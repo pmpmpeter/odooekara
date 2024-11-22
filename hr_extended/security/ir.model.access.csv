@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_employee_indent,employee.indent,model_employee_indent,base.group_user,1,1,1,1
+access_hr_job_levels,hr.job.levels,model_hr_job_levels,base.group_user,1,1,1,1
+access_hr_position_names,hr.position.names,model_hr_position_names,base.group_user,1,1,1,1
+access_preemp_check,preemp.check,model_preemp_check,base.group_user,1,1,1,1
+access_recruitment_invitation_letter_config,recruitment.invitation.letter.config,model_recruitment_invitation_letter_config,base.group_user,1,1,1,1
+access_applicant_invitation_letter,recruitment.applicant.invitation.letter,model_applicant_invitation_letter,base.group_user,1,1,1,1

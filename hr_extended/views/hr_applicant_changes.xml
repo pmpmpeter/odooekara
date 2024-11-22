@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="inherit_hr_applicant_view_form" model="ir.ui.view">
+            <field name="name">Inherit Jobs - Recruitment Form</field>
+            <field name="model">hr.applicant</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='oe_button_box']" position="inside">
+                    <field name="is_pre_emp_form_clicked" invisible="1"/>
+                    <button class="oe_stat_button" type="object" string="Referral Form" invisible="not is_pre_emp_form_clicked"
+                            name="action_open_related_candidate" icon="fa-user">
+                    </button>
+                </xpath>
+                <xpath expr="//group[@name='recruitment_contract']" position="before">
+                    <group string="Additional Information">
+                        <field name="sourcing_type" readonly="is_pre_emp_form_clicked"/>
+                        <field name="referred_by" invisible="sourcing_type not in ('internal_sourcing')" readonly="is_pre_emp_form_clicked"
+                               options="{'no_quick_create':True,'no_create': True,}"/>
+                        <button name="action_create_pre_form" string="Pre-Employment Form"
+                                type="object"
+                                class="oe_highlight pre-emp-form-btn"
+                                invisible="sourcing_type not in ('internal_sourcing') or is_pre_emp_form_clicked"/>
+                        <style>
+                            .pre-emp-form-btn{
+                            width:175px;
+                            }
+                        </style>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <!--salary breakup page -->
+        <record id="hr_applicant_view_form_inherit" model="ir.ui.view">
+            <field name="name">hr.applicant.view.form.inherit.additional.info</field>
+            <field name="model">hr.applicant</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Salary Breakup">
+                        <group>
+                            <group string="Compensation Details">
+                                <field name="monthly_fixed_salary"/>
+                                <field name="statutory_bonus_applicable"/>
+                                <field name="provident_fund_applicable"/>
+                                <field name="esi_applicable"/>
+                                <field name="variable_pay_percentage"/>
+                                <field name="annual_store_performance_incentive"/>
+                            </group>
+                            <group string="Incentives and Benefits">
+                                <field name="annual_performance_linked_pay"/>
+                                <field name="monthly_performance_incentive"/>
+                                <field name="medical_insurance"/>
+                                <field name="group_personal_accident_insurance"/>
+                                <field name="indicative_take_home_salary"/>
+                                <field name="grade_id"/>
+                                <field name="location_id"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+    </data>
+</odoo>

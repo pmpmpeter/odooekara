@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<odoo>
+    
+
+<!-- Invitation Letter Subject -->
+
+    <record id="recruitment_invitation_letter_config_tree" model="ir.ui.view">
+        <field name="name">recruitment.invitation.letter.config.tree</field>
+        <field name="model">recruitment.invitation.letter.config</field>
+        <field name="arch" type="xml">
+            <tree string="Invitation Subject">
+                <field name="name"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="recruitment_invitation_letter_config_form" model="ir.ui.view">
+        <field name="name">recruitment.invitation.letter.config.form</field>
+        <field name="model">recruitment.invitation.letter.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_recruitment_invitation_letter_action" model="ir.actions.act_window">
+        <field name="name">Invitation Letter Subject</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">recruitment.invitation.letter.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add Your Details Here!!</p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_recruitment_invitation_letter_menu"
+        name="Invitation Letter Subject"
+        parent="hr_recruitment.menu_hr_recruitment_config_applications"
+        action="action_recruitment_invitation_letter_action"
+        sequence="4"
+        groups="hr_recruitment.group_hr_recruitment_manager"
+    />
+
+    
+    />
+</odoo>

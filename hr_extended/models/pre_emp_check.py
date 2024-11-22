@@ -1,0 +1,56 @@
+# -*- coding: utf-8 -*-
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo import api, fields, models
+
+
+class PreEmpCheck(models.Model):
+    _name = 'preemp.check'
+    _description = 'Pre Employment Check'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _rec_name = "candidate_name"
+
+    candidate_name = fields.Char(string="Candidate",copy=False)
+    date = fields.Date(string="Date",copy=False,default=fields.Date.context_today)
+    location = fields.Char(string="Location",copy=False)
+    referee_id = fields.Many2one('res.users',string="Name of Referee",copy=False)
+    referee_phone = fields.Char(string="Phone Number",copy=False)
+    referee_email = fields.Char(string="Email ID",copy=False)
+    referee_title = fields.Char(string="Title of Referee",copy=False)
+    referee_relationship = fields.Char(string="Relationship to Candidate",copy=False)
+    technical_skills_comments = fields.Text(string="Comments on Technical Skills and Expertise",copy=False)
+    job_duties_comments = fields.Text(string="Comments on Job Duties Handled during the Tenure",copy=False)
+    professional_skills_comments = fields.Text(string="Comments on Professional Interactive Skills",copy=False)
+
+    integrity_resources = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Integrity or Effectiveness in Handling Organization’s Resources?",copy=False
+    )
+    integrity_interactions = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Integrity or Effectiveness in Professional Interactions?",copy=False
+    )
+    responsibility_productivity = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Ability to Accept Responsibility or Maintain Productivity?",copy=False
+    )
+    maturity_composure = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Maturity, Composure, or Professional Conduct Under Job Stresses?",copy=False
+    )
+    adaptability = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Ability to Adapt to New or Changing Work Situations?",copy=False
+    )
+
+    additional_comments = fields.Text(string="If Yes to Any, Please Comment",copy=False)
+    other_comments = fields.Text(string="Other Comments or Recommendation",copy=False)
+
+    state = fields.Selection([
+        ('to_submit', 'To Submit'),
+        ('done', 'Done')
+    ], string='Status', default='to_submit', required=True, tracking=True, copy=False)
+
+    def action_done(self):
+        for rec in self:
+            rec.state='done'
