@@ -181,14 +181,13 @@ class EmployeeIndent(models.Model):
     @api.constrains('budgeted_amount', 'utilized_budget', 'approved_budget')
     def _check_budget(self):
         for record in self:
-            total_spent = record.budgeted_amount + record.utilized_budget
-            if total_spent > record.approved_budget:
-                raise ValidationError("The total budgeted and utilized amount exceeds the approved budget!")
+            if record.utilized_budget > record.approved_budget:
+                raise ValidationError("The utilized amount exceeds the approved budget!")
 
     @api.depends('approved_budget', 'budgeted_amount', 'utilized_budget')
     def _compute_balance_budget(self):
         for record in self:
-            record.balance_budget = record.approved_budget - (record.budgeted_amount + record.utilized_budget)
+            record.balance_budget = record.approved_budget - record.utilized_budget
 
     def action_approve(self):
         # To make the reapprove functionality and then stop raising error if multi approval not installed
