@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<odoo noupdate="0">
+        <!--Email template -->
+
+        <!--Pre-Employment Reference form notification-->
+        <record id="reference_check_form_template" model="mail.template">
+            <field name="name">Reference Check Form Template</field>
+            <field name="model_id" ref="hr_extended.model_hr_applicant"/>
+            <field name="email_to">{{object.referred_by.email}}</field>
+            <field name="subject">Check the Pre Employment Reference Form for {{object.partner_name}}
+            </field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear<t t-out="object.referred_by.name or 'Referrer'"/>,
+                        <br/>
+                        <br/>
+                        Please review the pre-employment reference form for
+                        <strong>
+                            <t t-out="object.partner_name"/>
+                        </strong>
+                        <br/>
+                        <br/>
+                    </p>
+                </div>
+            </field>
+            <field name="lang">{{ object.referred_by.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+        <!--    Pre employment reference pdf mail -->
+        <record id="reference_check_pdf_form_template" model="mail.template">
+            <field name="name">Reference Check Form Pdf Template</field>
+            <field name="model_id" ref="hr_extended.model_preemp_check"/>
+            <field name="email_to">{{object.referee_id.email}}</field>
+            <field name="subject">Check the Pre Employment Reference PDF for {{object.candidate_name}}
+            </field>
+            <field name="report_template_ids" eval="[(4, ref('hr_extended.pre_employment_referral_report'))]"/>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear <t t-out="object.referee_id.name or 'Referrer'"/>,
+                        <br/>
+                        <br/>
+                        Please review the pre-employment reference form for
+                        <strong>
+                            <t t-out="object.candidate_name"/>
+                        </strong>
+                        <br/>
+                        <br/>
+                    </p>
+                </div>
+            </field>
+            <field name="lang">{{ object.referee_id.lang }}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+
+
+
+    <record id="employee_indent_approval_request_email" model="mail.template">
+        <field name="name">Approval Request - Employee Indent</field>
+        <field name="model_id" ref="hr_extended.model_employee_indent"/> <!-- Update to your model -->
+        <field name="subject">Approval Request for the Employee Indent of {{ object.name }}</field>
+        <field name="email_to">{{ object.unit_head_id.login }}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <t>
+                    <p>Dear Team,</p>
+                    <p>Kindly approve the submitted Employee Indent</p>
+                    <p>
+                        For more details, kindly 
+                        
+                        <a t-att-href="object.get_indent_url()" 
+                        target="_blank">Click here</a>
+
+
+
+                        to navigate to the Employee Indent.
+                    </p>
+
+                    <p><strong>Employee Indent Name:</strong> <span t-out="object.name"/></p>
+                    <p><strong>Job Positions:</strong> <span t-out="object.position_name.name or 'N/A'"/></p>
+                    <p><strong>Target Employees:</strong> <span t-out="object.target or 'N/A'"/></p>
+                    <p><strong>Approver Name:</strong> <span t-out="object.unit_head_id.name"/></p>
+
+                    <p>Thank you,</p>
+                    <p>System Administrator</p>
+                </t>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+        <field name="lang">{{ object.unit_head_id.lang }}</field>
+    </record>    
+
+    <record id="recruitement_first_invitiation_email_template" model="mail.template">
+        <field name="name">Recruitment First Invitation Letter</field>
+        <field name="model_id" ref="hr_extended.model_applicant_invitation_letter"/>
+        <field name="email_to">{{object.applicant_id.email_from}}</field>
+        <field name="subject">Recruitment First Invitation Letter
+        </field>
+            <field name="body_html" type="html">
+                <div style="margin: 0px; padding: 0px;">
+                    <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                        Dear
+                        <t t-out="object.applicant_id.name "></t>
+                        <br/>
+                        You are invited for the First Level of Interview. Kindly confirm.
+                        <br/>
+                        <br/>
+
+                        Regards<br/>
+                        HR Team.
+                    </p>
+                </div>
+            </field>
+        <field name="lang">{{object.user_id.lang}}</field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

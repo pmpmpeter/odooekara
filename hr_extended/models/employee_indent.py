@@ -1,0 +1,294 @@
+# -*- coding: utf-8 -*-
+
+from odoo import models, fields, api
+from odoo.exceptions import *
+from datetime import datetime
+
+class EmployeeIndent(models.Model):
+    _name = 'employee.indent'
+    _description = 'Employee Indent'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(string='Name', required=True)
+    tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
+    organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company)
+    location = fields.Many2one(
+        'res.partner', "Job Location",
+        domain=lambda self: self._address_id_domain(),
+        help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
+
+    department = fields.Many2one(
+        'hr.department',  # The model name of the HR department
+        string='Department',
+        required=True,
+        help="Select the department from HR departments"
+    )
+
+    grade_job_level = fields.Many2one('hr.job.levels', string='Grade/ Job Level', required=True)
+
+    position_name = fields.Many2one('hr.position.names', string='Position Name / Designations', required=True)
+
+    reporting_to = fields.Many2one(
+        'res.users',
+        string='Reporting To',
+        help='Select the employee to whom this position reports.'
+    )
+
+    employment_type = fields.Many2one('hr.contract.type',string="Employment Type")
+
+    target = fields.Integer(string='Target', required=True,default=1, help="Number of vacancies for this position.")
+
+    is_replacement =fields.Boolean(string='Is Replacement?', default=False, copy=False, help="Indicate if this position is a replacement.")
+
+    replacement_employee_id = fields.Many2one(
+        'hr.employee',
+        string='Replacement Employee Name',
+        help='Select the employee being replaced if this is a replacement position.'
+    )
+
+    expected_indent_closure_date = fields.Date(
+        string='Expected Indent Closure Date',
+        required=True,
+        help='Select the expected date for closing this indent.'
+    )
+
+    budgeting_unit = fields.Selection([
+        ('ekara_capex', 'Ekara Partnership - Capex'),
+        ('ekara_opex', 'Ekara Partnership - Opex'),
+        ('statutory_payments', 'Statutory Payments & Other B/S Items')
+    ], string='Budgeting Units', help="Select the appropriate budgeting unit.")
+
+    is_budgeted =fields.Boolean(string='Is Budgeted?', default=False, copy=False, help="Indicate if this position is budgeted.")
+
+    #have to add the BU/Department Total Approved Budget (dont know about that)
+    start_date = fields.Date(string='Fiscal Year',default=fields.Date.today)
+    end_date = fields.Date(string='End Date')
+
+    approved_budget = fields.Monetary(
+        string='BU/Department Total Approved Budget',
+        currency_field='currency_id',
+        help="Specify the total approved budget for the Business Unit (BU) or Department."
+    )
+
+    budgeted_amount = fields.Monetary(
+        string='Budgeted Amount for Position',
+        currency_field='currency_id',
+        help="Specify the budgeted amount for this position."
+    )
+
+    utilized_budget = fields.Monetary(
+        string='Utilized Budget',
+        currency_field='currency_id',
+        help="Amount already utilized from the budget for this position."
+    )
+
+    balance_budget = fields.Monetary(
+        string='Balance Budget',
+        compute='_compute_balance_budget',
+        currency_field='currency_id',
+        store=True,
+        help="Remaining budget after utilization."
+    )
+
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id,
+        help="Currency for the budget amounts."
+    )
+
+    unit_head_id = fields.Many2one(
+        'res.users',
+        string='Unit Head', required=True,
+        help="Select the Unit Head from available employees."
+    )
+
+    recruitment_spoc_mgr_id = fields.Many2one(
+        'res.users',
+        string='Recruitment SPOC/Mgr',required=True,
+        help="Select the Recruitment SPOC/Mgr from available employees."
+    )
+
+    director_approval_id = fields.Many2one(
+        'res.users',
+        string='Director Approval',required=True,
+        help="Select the Director for approval."
+    )
+
+    preferences = fields.Text(
+        string='Preferences',
+        help="Enter any specific preferences related to the indent."
+    )
+
+    notes = fields.Text(
+        string='Notes',
+        help="Add any relevant notes or comments here."
+    )
+
+    request_date = fields.Date(copy=False)
+    submit_date = fields.Date(readonly=True,copy=False)
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('waiting_approval', 'Waiting for Approval'),
+        ('open', 'Open'),
+        ('job_created', 'Job Position Created')
+    ], string='Status', default='draft', required=True, tracking=True, copy=False)
+
+    #Job Description template details
+
+    business_unit = fields.Char(string="Business Unit")
+    source = fields.Selection([
+        ('new_role', 'New Role'),
+        ('replacement', 'Replacement')
+    ], string="Source")
+    priority = fields.Selection([
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High')
+    ], string="Priority")
+    no_of_vacancy = fields.Integer(string="Number of Vacancies")
+    purpose_of_job = fields.Text(string="Purpose of the Job")
+    job_description = fields.Text(string="Job Description")
+    technical_qualification = fields.Text(string="Technical Qualification")
+    work_experience = fields.Text(string="Essential Years of Work Experience and Qualification")
+    industry_preferences = fields.Text(string="Industry Preferences")
+    mandatory_skills = fields.Text(string="Mandatory Skills/Competencies")
+    job_responsibility = fields.Text(string="Job Responsibility")
+    professional_requirements = fields.Text(string="Professional Requirements")
+    educational_requirements = fields.Text(string="Educational and Experience Requirements")
+    desirable = fields.Text(string="Desirable")
+    approved_by_hod_id = fields.Many2one('hr.employee',string="Approved by (HOD)")
+    approved_by_director_id = fields.Many2one('hr.employee',string="Approved by (Director)")
+
+
+    def action_open_related_jobs(self):
+        self.ensure_one()  # Ensure it's called for one record
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Related Jobs',
+            'view_mode': 'tree,form',
+            'res_model': 'hr.job',
+            'domain': [('name', '=', self.position_name.name)],
+            'target': 'current',
+        }
+
+    def _address_id_domain(self):
+        return ['|', '&', '&', ('type', '!=', 'contact'), ('type', '!=', 'private'),
+                ('id', 'in', self.sudo().env.companies.partner_id.child_ids.ids),
+                ('id', 'in', self.sudo().env.companies.partner_id.ids)]
+
+    @api.constrains('budgeted_amount', 'utilized_budget', 'approved_budget')
+    def _check_budget(self):
+        for record in self:
+            if record.utilized_budget > record.approved_budget:
+                raise ValidationError("The utilized amount exceeds the approved budget!")
+
+    @api.depends('approved_budget', 'budgeted_amount', 'utilized_budget')
+    def _compute_balance_budget(self):
+        for record in self:
+            record.balance_budget = record.approved_budget - record.utilized_budget
+
+    def action_approve(self):
+        # To make the reapprove functionality and then stop raising error if multi approval not installed
+        if hasattr(self, 'x_has_request_approval') and self.x_has_request_approval:
+            self.x_has_request_approval = False
+
+            approval_type_model = self.env['multi.approval.type']
+            approval_type_line_model = self.env['multi.approval.type.line']
+
+            for record in self:
+                record.state = 'waiting_approval'
+                self.submit_date = fields.Datetime.now()
+
+                approval_type = approval_type_model.search([
+                    ('model_id', '=', 'employee.indent'),
+                    ('domain', '=', '[("state", "=", "waiting_approval")]')
+                ], limit=1)
+
+                if not approval_type:
+                    raise ValueError("No matching approval type found for the Employee Indent.")
+
+                lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+
+                if len(lines) != 2:
+                    raise ValueError(
+                        "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
+
+                for index, line in enumerate(lines):
+                    line.write({
+                        'user_id': [(6, 0, [])]
+                    })
+                    if index == 0:
+                        unit_head_user = record.unit_head_id.id
+                        recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+
+                        if unit_head_user and recruitment_spoc_mgr_user:
+                            line.write({
+                                'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
+                            })
+                        else:
+                            raise ValueError("Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
+                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+
+                    elif index == 1:
+                        director_approval_user = record.director_approval_id.id
+
+                        if director_approval_user:
+                            line.write({
+                                'user_id': [(4, director_approval_user)]
+                            })
+                        else:
+                            raise ValueError("Director Approval does not have a corresponding user.")
+                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+
+        else:
+            for record in self:
+                record.state = 'waiting_approval'
+                self.submit_date = fields.Datetime.now()
+
+    def action_open(self):
+        for record in self:
+            record.state='open'
+
+    def action_create_job_position(self):
+        hr_job_model = self.env['hr.job']
+        for record in self:
+            existing_job = hr_job_model.search([('name', '=', record.position_name.name)], limit=1)
+
+            if existing_job:
+                existing_job.write({
+                    'no_of_recruitment': existing_job.no_of_recruitment + record.target,
+                    'website_published': True,
+                })
+                # print(f"Updated HR Job: {existing_job.name}, New Recruitment Count: {existing_job.no_of_recruitment}")
+            else:
+                hr_job_model.create({
+                    'name': record.position_name.name,
+                    'department_id': record.department.id,
+                    'address_id': record.location.id,
+                    'contract_type_id': record.employment_type.id,
+                    'company_id': record.organization.id,
+                    'no_of_recruitment': record.target,
+                    'user_id': record.reporting_to.id,
+                    'website_published': True,
+                })
+                # print(f"Created HR Job: {record.position_name.name}")
+            record.state = 'job_created'
+
+    def action_reset(self):
+        for record in self:
+            record.state = 'draft'
+
+    def get_indent_url(self):
+        """Generate the full URL for the current record."""
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu = self.env['ir.ui.menu'].search([('name', '=', 'Employee Indent')], limit=1)  # Adjust menu name
+        action = self.env['ir.actions.act_window'].search([('res_model', '=', 'employee.indent')], limit=1)
+        menu_id = menu.id if menu else 0
+        action_id = action.id if action else 0
+        if self:
+            return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
+        return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
+
+
