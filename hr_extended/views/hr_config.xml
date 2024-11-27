@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- HR Job Levels -->
+        
+        <record id="hr_job_levels_view_tree" model="ir.ui.view">
+            <field name="model">hr.job.levels</field>
+            <field name="arch" type="xml">
+                <tree string="Job Levels" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="code" groups="base.group_no_one"/>
+                    <field name="country_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_job_level_view_form" model="ir.ui.view">
+            <field name="model">hr.job.levels</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code" groups="base.group_no_one"/>
+                            <field name="country_id"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_job_levels_action" model="ir.actions.act_window">
+            <field name="name">Job Levels</field>
+            <field name="res_model">hr.job.levels</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new Job level
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="menu_hr_recruitment_job_levels"
+            action="hr_job_levels_action"
+            parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+            sequence="3"
+            groups="hr.group_hr_user"/>
+
+        <!-- Position Name Master -->
+
+        <record id="hr_position_names_view_tree" model="ir.ui.view">
+            <field name="model">hr.position.names</field>
+            <field name="arch" type="xml">
+                <tree string="Position Names" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="code" groups="base.group_no_one"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="hr_position_names_view_form" model="ir.ui.view">
+            <field name="model">hr.position.names</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="hr_position_names_action" model="ir.actions.act_window">
+            <field name="name">Position Names</field>
+            <field name="res_model">hr.position.names</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new Position Names
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="menu_hr_recruitment_position_names"
+            action="hr_position_names_action"
+            parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+            sequence="4"
+            groups="hr.group_hr_user"/>
+
+    </data>
+</odoo>

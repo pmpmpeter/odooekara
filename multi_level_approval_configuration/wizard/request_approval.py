@@ -65,7 +65,8 @@ class RequestApproval(models.TransientModel):
         # in order to bypass the record rule on it
         record = self.env[model_name].browse(res_id)
         record_name = record.display_name or _("this object")
-        title = _("Request approval for {}").format(record_name)
+        model_display_name = self.env['ir.model'].sudo().search([('model', '=', model_name)], limit=1).name or _("Unknown Model")
+        title = _("Request approval for {} - {}").format(model_display_name, record_name)
         record_url = self._get_obj_url(record)
         if approval_type.request_tmpl:
             request_tmpl = werkzeug.urls.url_unquote(_(approval_type.request_tmpl))
@@ -112,6 +113,7 @@ class RequestApproval(models.TransientModel):
             "origin_ref": f"{self.origin_ref._name},{self.origin_ref.id}",
         }
         request = self.env["multi.approval"].create(vals)
+        request.write({'request_date': self.request_date})
         request.action_submit()
 
         # update x_has_request_approval

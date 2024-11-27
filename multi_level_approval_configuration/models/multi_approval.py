@@ -61,8 +61,8 @@ class MultiApproval(models.Model):
             send_mail = False
             new_approval = self.sudo().copy({"type_id": next_move.id})
             new_approval.action_submit()
-        else:
-            self.finalize_related_document()
+        # else:
+            # self.finalize_related_document()
         super().set_approved(send_mail)
         if res:
             return res

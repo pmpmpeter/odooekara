@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
-
+from odoo import models, fields, api, _, Command, tools
+from odoo.exceptions import *
 
 class PreEmpCheck(models.Model):
     _name = 'preemp.check'
@@ -54,3 +53,12 @@ class PreEmpCheck(models.Model):
     def action_done(self):
         for rec in self:
             rec.state='done'
+
+    def action_send_form_pdf_mail(self):
+        template = self.env.ref('hr_extended.reference_check_pdf_form_template')
+        for rec in self:
+            if rec.referee_id.email:
+                print("inside",rec.referee_id.email)
+                template.send_mail(rec.id, force_send=True)
+            else:
+                print("else",rec.referee_id.email)

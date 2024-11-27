@@ -8,6 +8,8 @@ import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+import base64
+
 
 _logger = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ _logger = logging.getLogger(__name__)
 class MultiApproval(models.Model):
     _name = "multi.approval"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _description = "Multi Aproval"
+    _description = "Multi Approval"
 
     code = fields.Char(default="New")
     name = fields.Char(string="Title", required=True)
@@ -29,7 +31,8 @@ class MultiApproval(models.Model):
         [("0", "Normal"), ("1", "Medium"), ("2", "High"), ("3", "Very High")],
         default="0",
     )
-    request_date = fields.Datetime(default=fields.Datetime.now, copy=False)
+    request_date = fields.Datetime(copy=False)
+    submit_date = fields.Datetime(default=fields.Datetime.now, copy=False)
     complete_date = fields.Datetime(copy=False)
     type_id = fields.Many2one(
         string="Type", comodel_name="multi.approval.type", required=True
@@ -246,10 +249,15 @@ class MultiApproval(models.Model):
                 # If there are no more lines, finalize the approval process
                 else:
                     rec.set_approved()
-                    msg = _("I approved")
+                    msg = _("%s approved the request.") % self.env.user.name
                     rec.finalize_activity_or_message("approved", msg)
 
-            msg = _("I approved")
+            # rec.finalize_related_document()
+            log_msg = _("{} has approved this document at {}!").format(self.env.user.name, line.name)
+            if log_msg and hasattr(rec.origin_ref, "message_post"):
+                rec.origin_ref.message_post(body=log_msg)
+
+            msg = _("%s approved the request.") % self.env.user.name
             rec.finalize_activity_or_message("approved", msg)
         if ret_act:
             return ret_act
@@ -339,7 +347,8 @@ class MultiApproval(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            seq_date = vals.get("request_date", fields.Datetime.now())
+            seq_date = vals.get("submit_date", fields.Datetime.now())
+            # seq_date = vals.get("request_date", fields.Datetime.now())
             vals["code"] = self.env["ir.sequence"].next_by_code(
                 "multi.approval", sequence_date=seq_date
             ) or _("New")
@@ -356,8 +365,30 @@ class MultiApproval(models.Model):
         for req in requests:
             for user in req.pic_id:
                 print("Sending request to: %s", user.name)
-                if req.type_id.mail_template_id:
-                    req.type_id.mail_template_id.send_mail(req.id)
+                template = self.env.ref('hr_extended.employee_indent_approval_request_email')  # Email template
+                report_action = self.env.ref('hr_extended.action_employee_indent_report')
+                if not report_action:
+                    raise ValueError("Report action 'hr_extended.action_employee_indent_report' not found.")
+                pdf_content ,content= report_action._render_qweb_pdf(report_action.id,res_ids=self.origin_ref.ids)
+
+                attachment = self.env['ir.attachment'].create({
+                'name': f"Employee_Indent_{self.origin_ref.name}.pdf",
+                'type': 'binary',
+                'datas': base64.b64encode(pdf_content).decode('utf-8'),
+                'res_model': 'employee.indent',
+                'res_id': self.origin_ref.id,
+                'mimetype': 'application/pdf',
+
+                })
+                if template:
+                    email_values = {
+                    'email_from': req.user_id.email,  # Company's email
+                    'email_to': user.email,  # Company's email
+                    'attachment_ids': [(6, 0, [attachment.id])],  # Attach the PDF
+
+                    }
+                    self.env['mail.template'].browse(template.id).send_mail(self.origin_ref.id, force_send=True,email_values=email_values)
+                    req.message_post(body=_("The Approval request for the employee indent was sent successfully to %s.") % email_values['email_to'])
                 else:
                     message = self.env["mail.message"].create(
                         {

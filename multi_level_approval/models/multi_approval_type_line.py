@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 
 class MultiApprovalTypeLine(models.Model):
     _name = "multi.approval.type.line"
-    _description = "Multi Aproval Type Lines"
+    _description = "Multi Approval Type Lines"
     _order = "sequence"
 
     name = fields.Char(string="Title", required=True)

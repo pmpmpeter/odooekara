@@ -41,12 +41,15 @@
                     <button name="action_send_by_email" type="object" class="oe_highlight"
                             invisible="state not in ('draft')"
                             string="Send by Email"/>
-                    <!-- <button name="action_expiry" type="object" class="oe_highlight"
-                            invisible="state not in ('active')"
-                            string="Expired"/>
+                    <button name="action_set_as_accepted" type="object" class="oe_highlight"
+                            invisible="state not in ('sent')"
+                            string="Accepted"/>
+                    <button name="action_cancel" type="object" class="oe_highlight"
+                            invisible="state not in ('sent')"
+                            string="Cancelled"/>
                     <button name="action_draft" type="object" class="oe_highlight"
-                            invisible="state not in ('active')"
-                            string="Reset to Draft"/> -->
+                            invisible="state in ('draft')"
+                            string="Reset to Draft"/>
                     <!-- <button name="action_send_by_email" type="object" class="oe_highlight" string="Send by Email"/> -->
                     <field name="state" widget="statusbar" statusbar_visible="draft,active,expired" readonly="1"/>
                 </header>
@@ -62,13 +65,16 @@
                     <group>
                         <group>
                             <field name="applicant_id" 
-                                options="{'no_open': True, 'no_quick_create':True,'no_create': True,}" required='1'
+                                options="{'no_quick_create':True,'no_create': True,}" required='1'
                                 readonly="state in ('active', 'expired')"/> 
                             <field name="job_id" 
-                                options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>  
+                                options="{'no_quick_create':True,'no_create': True,}"/>  
                             <field name="invitation_date" readonly="state in ('active', 'expired')"/>
                         </group>
                        <group>
+                            <field name="user_id" 
+                                options="{'no_quick_create':True,'no_create': True,}" required='1'
+                                readonly="state in ('active', 'expired')"/> 
                             <field name="active" invisible="0"/>
                             <field name="company_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>

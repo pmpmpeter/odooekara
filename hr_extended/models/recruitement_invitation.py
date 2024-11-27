@@ -32,12 +32,13 @@ class ApplicantInvitation(models.Model):
 
     name = fields.Char('Reference', required=True, index='trigram', copy=False, default='New', readonly=True)
     applicant_id = fields.Many2one('hr.applicant', 'Applicant', readonly=True)
+    user_id = fields.Many2one('res.users', 'Responsible', readonly=False)
     job_id = fields.Many2one('hr.job', 'Job Position', readonly=True, related='applicant_id.job_id', store=True)
     company_id = fields.Many2one('res.company', 'Company', readonly=True, related='applicant_id.company_id', store=True)
     active = fields.Boolean('Active', default=True)
     invitation_date = fields.Date("Date", default=fields.Datetime.now)
     state = fields.Selection([
-        ('draft','Draft'),('active','Active'),('expired','Expired')
+        ('draft','Draft'),('sent','Sent'),('active','Accepted'),('expired','Expired'),('cancel','Cancelled')
         ],default='draft', tracking=1, string='Status', readonly=True, copy=False)
     letter_subject = fields.Html(string="Subject", default=_get_default_subject)    
 
@@ -108,40 +109,33 @@ class ApplicantInvitation(models.Model):
     #     for fsvp in active_fsvp_ids:
     #         fsvp.sudo().action_expiry()
 
-    def action_send_by_email(self):
-       
+    def action_draft(self):
+        for record in self.filtered(lambda s: s.state not in ['draft']):
+            record.write({'state': 'draft'})
+
+    def action_set_as_accepted(self):
+        for record in self.filtered(lambda s: s.state in ['sent']):
+            record.write({'state': 'active'})
+
+    def action_cancel(self):
+        for record in self.filtered(lambda s: s.state in ['sent']):
+            record.write({'state': 'cancel'})
+
+    def action_send_by_email(self):       
         self.ensure_one()
-        template_id = self.env.ref('res_partner_extended.email_template_fsvp_letter', raise_if_not_found=False)
-
-        if not template_id:
-            raise UserError(_("The email template for sending FSVP letters does not exist."))
-
-        recipient_email = self.partner_id.email
-        if not recipient_email:
-            raise UserError(_("The recipient does not have a valid email address."))
-
-
-        current_user_email = self.env.user.email
-        if not current_user_email:
-            raise UserError(_("The current user does not have a valid email address."))
-
-        ctx = {
-            'default_model': 'customer.fsvp.letter',
-            'default_res_ids': self.ids,
-            'default_template_id': template_id.id,
-            'default_composition_mode': 'comment',
-            'mark_so_as_sent': True,
-            'default_email_layout_xmlid': 'mail.mail_notification_layout_with_responsible_signature',
-            'force_email': True,
-            'email_from': current_user_email,
-        }
-
-        return {
-            'type': 'ir.actions.act_window',
-            'view_mode': 'form',
-            'res_model': 'mail.compose.message',
-            'views': [(False, 'form')],
-            'view_id': False,
-            'target': 'new',
-            'context': ctx,
-        }
+        for record in self:
+            template_id = self.env.ref('hr_extended.recruitement_first_invitiation_email_template', raise_if_not_found=False)
+            if not template_id:
+                raise UserError(_("The email template for sending First Invitation letter for Recruitment does not exist."))
+            recipient_email = record.applicant_id.email_from
+            if not recipient_email:
+                raise UserError(_("The recipient does not have a valid email address."))
+            current_user_email = record.env.user.email
+            if not current_user_email:
+                raise UserError(_("The current user does not have a valid email address."))
+            template_id.with_context(
+                    email_to=record.applicant_id.email_from
+                ).send_mail(
+                    record.id, force_send=True
+                )
+            record.write({'state': 'sent'})

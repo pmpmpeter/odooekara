@@ -10,6 +10,10 @@
                            statusbar_visible="to_submit,done"/>
                     <button name="action_done" type="object" string="Mark as Done" class="btn-primary"
                             invisible="state in 'done'"/>
+                    <button string="Print" type="action"
+                            name="%(hr_extended.pre_employment_referral_report)d" class="btn-primary"/>
+                    <button name="action_send_form_pdf_mail" type="object" string="Send by Email" class="oe_highlight"
+                            invisible="state not in ('done')"/>
                 </header>
                 <sheet>
                     <group string="Candidate Details">
@@ -51,6 +55,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>

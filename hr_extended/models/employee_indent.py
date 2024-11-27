@@ -4,8 +4,7 @@ from odoo import models, fields, api
 from odoo.exceptions import *
 from datetime import datetime
 
-
-class employee_indent(models.Model):
+class EmployeeIndent(models.Model):
     _name = 'employee.indent'
     _description = 'Employee Indent'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -100,19 +99,19 @@ class employee_indent(models.Model):
 
     unit_head_id = fields.Many2one(
         'res.users',
-        string='Unit Head',
+        string='Unit Head', required=True,
         help="Select the Unit Head from available employees."
     )
 
     recruitment_spoc_mgr_id = fields.Many2one(
         'res.users',
-        string='Recruitment SPOC/Mgr',
+        string='Recruitment SPOC/Mgr',required=True,
         help="Select the Recruitment SPOC/Mgr from available employees."
     )
 
     director_approval_id = fields.Many2one(
         'res.users',
-        string='Director Approval',
+        string='Director Approval',required=True,
         help="Select the Director for approval."
     )
 
@@ -126,10 +125,6 @@ class employee_indent(models.Model):
         help="Add any relevant notes or comments here."
     )
 
-    survey_id = fields.Many2one(
-        'survey.survey', "Interview Form",
-        help="Choose a form for this job position")
-
     request_date = fields.Date(copy=False)
     submit_date = fields.Date(readonly=True,copy=False)
 
@@ -139,6 +134,33 @@ class employee_indent(models.Model):
         ('open', 'Open'),
         ('job_created', 'Job Position Created')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
+
+    #Job Description template details
+
+    business_unit = fields.Char(string="Business Unit")
+    source = fields.Selection([
+        ('new_role', 'New Role'),
+        ('replacement', 'Replacement')
+    ], string="Source")
+    priority = fields.Selection([
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High')
+    ], string="Priority")
+    no_of_vacancy = fields.Integer(string="Number of Vacancies")
+    purpose_of_job = fields.Text(string="Purpose of the Job")
+    job_description = fields.Text(string="Job Description")
+    technical_qualification = fields.Text(string="Technical Qualification")
+    work_experience = fields.Text(string="Essential Years of Work Experience and Qualification")
+    industry_preferences = fields.Text(string="Industry Preferences")
+    mandatory_skills = fields.Text(string="Mandatory Skills/Competencies")
+    job_responsibility = fields.Text(string="Job Responsibility")
+    professional_requirements = fields.Text(string="Professional Requirements")
+    educational_requirements = fields.Text(string="Educational and Experience Requirements")
+    desirable = fields.Text(string="Desirable")
+    approved_by_hod_id = fields.Many2one('hr.employee',string="Approved by (HOD)")
+    approved_by_director_id = fields.Many2one('hr.employee',string="Approved by (Director)")
+
 
     def action_open_related_jobs(self):
         self.ensure_one()  # Ensure it's called for one record
@@ -168,64 +190,63 @@ class employee_indent(models.Model):
         for record in self:
             record.balance_budget = record.approved_budget - (record.budgeted_amount + record.utilized_budget)
 
-    def action_send_mail(self):
-        template = self.env.ref('hr_extended.job_creation_email_template')
-        for rec in self:
-            if rec.director_approval_id.email:
-                print("inside",rec.director_approval_id.email)
-                template.send_mail(rec.id, force_send=True)
-            else:
-                print("else",rec.director_approval_id.email)
-
     def action_approve(self):
-        approval_type_model = self.env['multi.approval.type']
-        approval_type_line_model = self.env['multi.approval.type.line']
+        # To make the reapprove functionality and then stop raising error if multi approval not installed
+        if hasattr(self, 'x_has_request_approval') and self.x_has_request_approval:
+            self.x_has_request_approval = False
 
-        for record in self:
-            record.state = 'waiting_approval'
-            self.submit_date = fields.Datetime.now()
+            approval_type_model = self.env['multi.approval.type']
+            approval_type_line_model = self.env['multi.approval.type.line']
 
-            approval_type = approval_type_model.search([
-                ('model_id', '=', 'employee.indent'),
-                ('domain', '=', '[("state", "=", "waiting_approval")]')
-            ], limit=1)
+            for record in self:
+                record.state = 'waiting_approval'
+                self.submit_date = fields.Datetime.now()
 
-            if not approval_type:
-                raise ValueError("No matching approval type found for the Employee Indent.")
+                approval_type = approval_type_model.search([
+                    ('model_id', '=', 'employee.indent'),
+                    ('domain', '=', '[("state", "=", "waiting_approval")]')
+                ], limit=1)
 
-            lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                if not approval_type:
+                    raise ValueError("No matching approval type found for the Employee Indent.")
 
-            if len(lines) != 2:
-                raise ValueError(
-                    "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
+                lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
 
-            for index, line in enumerate(lines):
-                line.write({
-                    'user_id': [(6, 0, [])]
-                })
-                if index == 0:
-                    unit_head_user = record.unit_head_id.id
-                    recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+                if len(lines) != 2:
+                    raise ValueError(
+                        "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
 
-                    if unit_head_user and recruitment_spoc_mgr_user:
-                        line.write({
-                            'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
-                        })
-                    else:
-                        raise ValueError("Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
-                    print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+                for index, line in enumerate(lines):
+                    line.write({
+                        'user_id': [(6, 0, [])]
+                    })
+                    if index == 0:
+                        unit_head_user = record.unit_head_id.id
+                        recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
 
-                elif index == 1:
-                    director_approval_user = record.director_approval_id.id
+                        if unit_head_user and recruitment_spoc_mgr_user:
+                            line.write({
+                                'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
+                            })
+                        else:
+                            raise ValueError("Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
+                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
 
-                    if director_approval_user:
-                        line.write({
-                            'user_id': [(4, director_approval_user)]
-                        })
-                    else:
-                        raise ValueError("Director Approval does not have a corresponding user.")
-                    print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+                    elif index == 1:
+                        director_approval_user = record.director_approval_id.id
 
+                        if director_approval_user:
+                            line.write({
+                                'user_id': [(4, director_approval_user)]
+                            })
+                        else:
+                            raise ValueError("Director Approval does not have a corresponding user.")
+                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+
+        else:
+            for record in self:
+                record.state = 'waiting_approval'
+                self.submit_date = fields.Datetime.now()
 
     def action_open(self):
         for record in self:
@@ -234,7 +255,6 @@ class employee_indent(models.Model):
     def action_create_job_position(self):
         hr_job_model = self.env['hr.job']
         for record in self:
-            record.state = 'job_created'
             existing_job = hr_job_model.search([('name', '=', record.position_name.name)], limit=1)
 
             if existing_job:
@@ -242,7 +262,7 @@ class employee_indent(models.Model):
                     'no_of_recruitment': existing_job.no_of_recruitment + record.target,
                     'website_published': True,
                 })
-                print(f"Updated HR Job: {existing_job.name}, New Recruitment Count: {existing_job.no_of_recruitment}")
+                # print(f"Updated HR Job: {existing_job.name}, New Recruitment Count: {existing_job.no_of_recruitment}")
             else:
                 hr_job_model.create({
                     'name': record.position_name.name,
@@ -254,25 +274,22 @@ class employee_indent(models.Model):
                     'user_id': record.reporting_to.id,
                     'website_published': True,
                 })
-                print(f"Created HR Job: {record.position_name.name}")
+                # print(f"Created HR Job: {record.position_name.name}")
+            record.state = 'job_created'
 
     def action_reset(self):
         for record in self:
-            record.state='draft'
+            record.state = 'draft'
 
-    def get_survey_url(self):
-        """
-        Generates the start URL for the survey associated with this employee indent,
-        including the survey access token if available.
-        """
-        self.ensure_one()
+    def get_indent_url(self):
+        """Generate the full URL for the current record."""
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        menu = self.env['ir.ui.menu'].search([('name', '=', 'Employee Indent')], limit=1)  # Adjust menu name
+        action = self.env['ir.actions.act_window'].search([('res_model', '=', 'employee.indent')], limit=1)
+        menu_id = menu.id if menu else 0
+        action_id = action.id if action else 0
+        if self:
+            return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
+        return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
 
-        if not self.survey_id:
-            raise ValueError("No survey associated with this employee indent.")
 
-        survey_token = self.survey_id.access_token
-        survey_url = f"{base_url}/survey/start/"
-        if survey_token:
-            survey_url += f"{survey_token}"
-            return survey_url

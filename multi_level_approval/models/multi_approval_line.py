@@ -7,13 +7,14 @@
 import logging
 
 from odoo import fields, models
+from datetime import datetime
 
 _logger = logging.getLogger(__name__)
 
 
 class MultiApprovalLine(models.Model):
     _name = "multi.approval.line"
-    _description = "Multi Aproval Line"
+    _description = "Multi Approval Line"
     _order = "sequence"
 
     name = fields.Char(string="Title", required=True)
@@ -41,13 +42,25 @@ class MultiApprovalLine(models.Model):
     refused_reason = fields.Text()
     deadline = fields.Date()
 
+    approval_datetime = fields.Datetime(
+        string="Action Date",
+        copy=False,
+        help="The date and time when this approval line was approved or rejected."
+    )
+
     approved_users = fields.Many2many("res.users", relation="multi_approval_line_approved_user_rel", string="Approved Users", copy=False)
 
     # 13.0.1.1
     def set_approved(self):
         self.ensure_one()
-        self.state = "Approved"
+        self.write({"state": "Approved", "approval_datetime": datetime.now()})
+        # self.state = "Approved"
 
     def set_refused(self, reason=""):
         self.ensure_one()
-        self.write({"state": "Refused", "refused_reason": reason})
+        self.write({
+            "state": "Refused",
+            "refused_reason": reason,
+            "approval_datetime": datetime.now(),
+        })
+        # self.write({"state": "Refused", "refused_reason": reason})

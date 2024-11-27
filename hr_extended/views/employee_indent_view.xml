@@ -16,12 +16,13 @@
                             invisible="state not in 'open'"/>
                     <button name="action_reset" type="object" string="Reset To Draft"
                             invisible="state in 'draft'"/>
-                    <button name="action_send_mail" type="object" string="Send by Email" class="oe_highlight"
-                            invisible="state not in ('open','job_created')"/>
+                    <button string="Print Job Description" type="action" 
+                        name="%(hr_extended.action_employee_indent_report)d" class="btn-primary"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" invisible="state not in ('job_created')">
-                        <button class="oe_stat_button" type="object" string="Job Position" name="action_open_related_jobs" icon="fa-user">
+                        <button class="oe_stat_button" type="object" string="Job Position"
+                                name="action_open_related_jobs" icon="fa-user">
                         </button>
                     </div>
                     <div class="oe_title">
@@ -33,7 +34,7 @@
                         </h1>
                     </div>
                     <notebook>
-                        <page string="Job Position Related">
+                        <page string="General Info">
                             <group>
                                 <group>
                                     <field name="tax_entity" string="Tax Entity"
@@ -114,9 +115,6 @@
                                     <field name="director_approval_id" string="Director Approval"
                                            readonly="state not in ('draft')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="survey_id" string="Survey Form"
-                                           readonly="state not in ('draft')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
                                 </group>
 
                                 <group string="Review">
@@ -125,6 +123,38 @@
                                     <field name="notes" string="Notes"
                                            readonly="state not in ('draft')"/>
                                 </group>
+                            </group>
+                        </page>
+                        <page string="Job Description Details">
+                             <group>
+                                <group>
+                                    <field name="business_unit"/>
+                                    <field name="source"/>
+                                </group>
+                                <group>
+                                    <field name="priority"/>
+                                    <field name="no_of_vacancy"/>
+                                </group>
+                            </group>
+                            <group>
+                            <group>
+                                <field name="purpose_of_job"/>
+                                <field name="job_description"/>
+                                <field name="technical_qualification"/>
+                                <field name="work_experience"/>
+                                <field name="industry_preferences"/>
+                            </group>
+                            <group>
+                                <field name="mandatory_skills"/>
+                                <field name="job_responsibility"/>
+                                <field name="professional_requirements"/>
+                                <field name="educational_requirements"/>
+                                <field name="desirable"/>
+                            </group>
+                        </group>
+                            <group>
+                                <field name="approved_by_hod_id"/>
+                                <field name="approved_by_director_id"/>
                             </group>
                         </page>
                     </notebook>
@@ -143,16 +173,19 @@
         <field name="model">employee.indent</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="currency_id" column_invisible="1"/>
                 <field name="name"/>
                 <field name="organization"/>
                 <field name="location"/>
                 <field name="department"/>
                 <field name="employment_type"/>
-                <field name="target"/>
+                <field name="target" sum="Total"/>
                 <field name="expected_indent_closure_date"/>
-                <field name="budgeted_amount"/>
-                <field name="utilized_budget"/>
-                <field name="balance_budget"/>
+                <field name="budgeted_amount" widget="monetary" options="{'currency_field': 'currency_id'}"
+                       sum="Total"/>
+                <field name="utilized_budget" widget="monetary" options="{'currency_field': 'currency_id'}"
+                       sum="Total"/>
+                <field name="balance_budget" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
                 <field name="state" widget='badge' decoration-info="state == 'open'"
                        decoration-success="state =='job_created'"/>
             </tree>
@@ -202,7 +235,7 @@
     </record>
 
     <menuitem
-            name="Employee Indents"
+            name="Employee Indent"
             parent="hr_recruitment.menu_crm_case_categ0_act_job"
             id="menu_employee_indent"
             sequence="0"

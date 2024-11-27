@@ -154,6 +154,10 @@
                                     readonly="state != 'Draft'"
                                 />
                                 <field
+                                    name="submit_date"
+                                    readonly="state != 'Draft'"
+                                />
+                                <field
                                     name="type_id"
                                     readonly="state != 'Draft'"
                                     options="{'no_create': True, 'no_open': True}"
@@ -273,6 +277,7 @@
                                         name="deadline"
                                         readonly="state not in ('draft', 'Waiting for Approval')"
                                     />
+                                    <field name="approval_datetime" readonly="1"/>
                                     <field name="state" readonly="1" />
                                 </tree>
                             </field>
