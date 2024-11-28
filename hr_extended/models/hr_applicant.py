@@ -10,6 +10,7 @@ class RecruitmentStage(models.Model):
         selection=[
             ('second_interview', 'Second Interview'),
             ('shortlist', 'Shortlist'),
+            ('first_level', 'First Level Interview'),
             ('hold', 'Hold')
         ],
         string='Stage',
@@ -145,11 +146,20 @@ class Job_Applicant(models.Model):
     def action_create_pre_form(self):
         if not self.referred_by:
             raise ValidationError("The 'Referee' field is required to create a Pre-Employment Check Form.")
+
+        template = self.env.ref('hr_extended.reference_check_form_template')
+        for rec in self:
+            if rec.referred_by.email:
+                template.send_mail(rec.id, force_send=True)
+
         vals = {
+            'applicant_id': self.id,
             'candidate_name': self.partner_name,
+            'candidate_email':self.email_from,
             'referee_id': self.referred_by.id,
             'referee_phone':self.referred_by.partner_id.phone,
             'referee_email' : self.referred_by.partner_id.email,
+            'recruiter_id' : self.user_id.id
         }
         pre_form = self.env['preemp.check'].create(vals)
         self.write({'is_pre_emp_form_clicked': True})
@@ -176,14 +186,19 @@ class Job_Applicant(models.Model):
 
     def action_open_related_candidate(self):
         self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Referral Candidate',
-            'view_mode': 'tree,form',
-            'res_model': 'preemp.check',
-            'domain': [('candidate_name', '=', self.partner_name)],
-            'target': 'current',
-        }
+        candidate = self.env['preemp.check'].search([('applicant_id','=',self.id),('candidate_name', '=', self.partner_name),
+                                                     ('candidate_email', '=',self.email_from)], limit=1)
+
+        if candidate:
+            return {
+                'name': _('Referral Candidate'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'preemp.check',
+                'view_id': self.env.ref('hr_extended.view_pre_employment_reference_check_form').id,
+                'res_id': candidate.id,
+                'target': 'current',
+            }
 
     def action_approve(self):
         """move to 'Shortlisted' stage"""

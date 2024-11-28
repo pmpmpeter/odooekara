@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import *
 from datetime import datetime
 
@@ -125,7 +125,7 @@ class EmployeeIndent(models.Model):
         help="Add any relevant notes or comments here."
     )
 
-    request_date = fields.Date(copy=False)
+    request_date = fields.Date(default=fields.Datetime.now, copy=False, readonly=True)
     submit_date = fields.Date(readonly=True,copy=False)
 
     state = fields.Selection([
@@ -160,16 +160,25 @@ class EmployeeIndent(models.Model):
     desirable = fields.Text(string="Desirable")
     approved_by_hod_id = fields.Many2one('hr.employee',string="Approved by (HOD)")
     approved_by_director_id = fields.Many2one('hr.employee',string="Approved by (Director)")
+    job_id = fields.Many2one('hr.job',string="Job Position")
 
+    def unlink(self):
+        for record in self:
+            if record.state != 'draft':
+                raise UserError(
+                    _("You can only delete records in the 'Draft' state.")
+                )
+        return super(EmployeeIndent, self).unlink()
 
     def action_open_related_jobs(self):
         self.ensure_one()  # Ensure it's called for one record
         return {
-            'type': 'ir.actions.act_window',
             'name': 'Related Jobs',
-            'view_mode': 'tree,form',
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
             'res_model': 'hr.job',
-            'domain': [('name', '=', self.position_name.name)],
+            'view_id': self.env.ref('hr.view_hr_job_form').id,
+            'res_id': self.job_id.id,
             'target': 'current',
         }
 
@@ -191,16 +200,14 @@ class EmployeeIndent(models.Model):
 
     def action_approve(self):
         # To make the reapprove functionality and then stop raising error if multi approval not installed
-        if hasattr(self, 'x_has_request_approval') and self.x_has_request_approval:
+        if hasattr(self, 'x_has_request_approval'):
+            print("here in action approve",self.x_has_request_approval)
             self.x_has_request_approval = False
 
             approval_type_model = self.env['multi.approval.type']
             approval_type_line_model = self.env['multi.approval.type.line']
 
             for record in self:
-                record.state = 'waiting_approval'
-                self.submit_date = fields.Datetime.now()
-
                 approval_type = approval_type_model.search([
                     ('model_id', '=', 'employee.indent'),
                     ('domain', '=', '[("state", "=", "waiting_approval")]')
@@ -242,6 +249,9 @@ class EmployeeIndent(models.Model):
                             raise ValueError("Director Approval does not have a corresponding user.")
                         print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
 
+                record.state = 'waiting_approval'
+                self.submit_date = fields.Datetime.now()
+
         else:
             for record in self:
                 record.state = 'waiting_approval'
@@ -262,8 +272,9 @@ class EmployeeIndent(models.Model):
                     'website_published': True,
                 })
                 # print(f"Updated HR Job: {existing_job.name}, New Recruitment Count: {existing_job.no_of_recruitment}")
+
             else:
-                hr_job_model.create({
+                job_id = hr_job_model.create({
                     'name': record.position_name.name,
                     'department_id': record.department.id,
                     'address_id': record.location.id,
@@ -274,6 +285,7 @@ class EmployeeIndent(models.Model):
                     'website_published': True,
                 })
                 # print(f"Created HR Job: {record.position_name.name}")
+            record.job_id = existing_job.id or job_id.id
             record.state = 'job_created'
 
     def action_reset(self):

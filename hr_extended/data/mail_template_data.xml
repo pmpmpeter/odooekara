@@ -12,7 +12,7 @@
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear<t t-out="object.referred_by.name or 'Referrer'"/>,
+                        Dear <t t-out="object.referred_by.name or 'Referrer'"/>,
                         <br/>
                         <br/>
                         Please review the pre-employment reference form for
@@ -32,14 +32,14 @@
         <record id="reference_check_pdf_form_template" model="mail.template">
             <field name="name">Reference Check Form Pdf Template</field>
             <field name="model_id" ref="hr_extended.model_preemp_check"/>
-            <field name="email_to">{{object.referee_id.email}}</field>
+            <field name="email_to">{{object.recruiter_id.email}}</field>
             <field name="subject">Check the Pre Employment Reference PDF for {{object.candidate_name}}
             </field>
             <field name="report_template_ids" eval="[(4, ref('hr_extended.pre_employment_referral_report'))]"/>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
                     <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                        Dear <t t-out="object.referee_id.name or 'Referrer'"/>,
+                        Dear <t t-out="object.recruiter_id.name or 'Recruiting Manager'"/>,
                         <br/>
                         <br/>
                         Please review the pre-employment reference form for
@@ -107,6 +107,7 @@
                         You are invited for the First Level of Interview. Kindly confirm.
                         <br/>
                         <br/>
+                        <t t-out="object.letter_subject"></t>
 
                         Regards<br/>
                         HR Team.

@@ -40,7 +40,7 @@ class ApplicantInvitation(models.Model):
     state = fields.Selection([
         ('draft','Draft'),('sent','Sent'),('active','Accepted'),('expired','Expired'),('cancel','Cancelled')
         ],default='draft', tracking=1, string='Status', readonly=True, copy=False)
-    letter_subject = fields.Html(string="Subject", default=_get_default_subject)    
+    letter_subject = fields.Html(string="Subject", default=_get_default_subject)
 
     # @api.model
     # def get_views(self, views, options=None):
@@ -116,6 +116,11 @@ class ApplicantInvitation(models.Model):
     def action_set_as_accepted(self):
         for record in self.filtered(lambda s: s.state in ['sent']):
             record.write({'state': 'active'})
+            first_level_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'first_level')], limit=1)
+            if first_level_stage:
+                record.applicant_id.stage_id = first_level_stage.id
+            else:
+                raise UserError("First Level Interview stage not found! Please create one in Recruitment stages.")   
 
     def action_cancel(self):
         for record in self.filtered(lambda s: s.state in ['sent']):

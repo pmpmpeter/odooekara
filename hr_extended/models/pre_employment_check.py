@@ -9,17 +9,21 @@ class PreEmpCheck(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = "candidate_name"
 
+    # applicant_id = fields.Many2one('hr.applicant', string='Applicant', ondelete='cascade')
+    applicant_id = fields.Integer(string='Applicant',readonly=True)
     candidate_name = fields.Char(string="Candidate",copy=False)
+    candidate_email = fields.Char(string="Candidate Email ID", readonly=True)
     date = fields.Date(string="Date",copy=False,default=fields.Date.context_today)
     location = fields.Char(string="Location",copy=False)
     referee_id = fields.Many2one('res.users',string="Name of Referee",copy=False)
+    recruiter_id = fields.Many2one('res.users',string="Recruiting Manager",copy=False)
     referee_phone = fields.Char(string="Phone Number",copy=False)
     referee_email = fields.Char(string="Email ID",copy=False)
     referee_title = fields.Char(string="Title of Referee",copy=False)
     referee_relationship = fields.Char(string="Relationship to Candidate",copy=False)
-    technical_skills_comments = fields.Text(string="Comments on Technical Skills and Expertise",copy=False)
-    job_duties_comments = fields.Text(string="Comments on Job Duties Handled during the Tenure",copy=False)
-    professional_skills_comments = fields.Text(string="Comments on Professional Interactive Skills",copy=False)
+    technical_skills_comments = fields.Text(string="Technical Skills and Expertise",copy=False)
+    job_duties_comments = fields.Text(string="Job Duties Handled during the Tenure",copy=False)
+    professional_skills_comments = fields.Text(string="Professional Interactive Skills",copy=False)
 
     integrity_resources = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')],
@@ -57,8 +61,5 @@ class PreEmpCheck(models.Model):
     def action_send_form_pdf_mail(self):
         template = self.env.ref('hr_extended.reference_check_pdf_form_template')
         for rec in self:
-            if rec.referee_id.email:
-                print("inside",rec.referee_id.email)
+            if rec.recruiter_id.email:
                 template.send_mail(rec.id, force_send=True)
-            else:
-                print("else",rec.referee_id.email)

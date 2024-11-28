@@ -198,6 +198,12 @@ class MultiApproval(models.Model):
                 rec.sudo().message_post(body=msg)
                 return False
             line = rec.line_id
+
+            model_display_name = self.env['ir.model'].sudo().search([('model', '=', self.type_id.model_id)], limit=1).name
+            log_msg = _("{} - {} has been approved by {}!").format(line.name, model_display_name, self.env.user.name)
+            if log_msg and hasattr(rec.origin_ref, "message_post"):
+                rec.origin_ref.message_post(body=log_msg)
+
             if not line or line.state != "Waiting for Approval":
                 # Something goes wrong!
                 rec.message_post(body=_("Something goes wrong!"))
@@ -253,9 +259,6 @@ class MultiApproval(models.Model):
                     rec.finalize_activity_or_message("approved", msg)
 
             # rec.finalize_related_document()
-            log_msg = _("{} has approved this document at {}!").format(self.env.user.name, line.name)
-            if log_msg and hasattr(rec.origin_ref, "message_post"):
-                rec.origin_ref.message_post(body=log_msg)
 
             msg = _("%s approved the request.") % self.env.user.name
             rec.finalize_activity_or_message("approved", msg)
@@ -358,8 +361,8 @@ class MultiApproval(models.Model):
     # 12.0.1.3
     def send_request_mail(self):
         requests = self.filtered(
-            lambda r: r.type_id.mail_notification
-            and r.pic_id
+            lambda r: 
+             r.pic_id
             and r.state == "Submitted"
         )
         for req in requests:

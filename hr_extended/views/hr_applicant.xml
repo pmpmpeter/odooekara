@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <odoo>
     <data>
+
         <record id="inherit_hr_applicant_view_form" model="ir.ui.view">
             <field name="name">Inherit Jobs - Recruitment Form</field>
             <field name="model">hr.applicant</field>
@@ -11,12 +12,12 @@
                     <field name="last_stage_id" invisible="1"/>
                     <field name="stage_status" invisible="1"/>
                     <button class="oe_stat_button" type="object" string="Referral Form" invisible="not is_pre_emp_form_clicked"
-                            name="action_open_related_candidate" icon="fa-bars">
+                            name="action_open_related_candidate" icon="fa-user-plus">
                     </button>
                 </xpath>
                 <xpath expr="//button[@name='archive_applicant']" position="after">
                     <button string="Offer Letter" type="action"
-                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
+                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary" invisible="stage_status != 'shortlist'"/>
                 </xpath>
 
                 <xpath expr="//header" position="inside">
@@ -52,6 +53,16 @@
                 </xpath>
             </field>
         </record>
+         <record id="inherit_hr_salary_view_form" model="ir.ui.view">
+            <field name="name">inmherit.hr.applicant.form</field>
+            <field name="model">hr.applicant</field>
+            <field name="inherit_id" ref="hr_contract_salary.hr_applicant_view_form"/>
+            <field name="arch" type="xml">
+                <button name="%(hr_contract_salary.generate_offer_link_action)d" position='attributes'>
+                    <attribute name="invisible">stage_status != 'shortlist'</attribute>
+                </button>
+            </field>
+        </record>
 
         <!--salary breakup page -->
         <record id="hr_applicant_view_form_inherit" model="ir.ui.view">
@@ -70,10 +81,10 @@
                 </xpath>
                 <xpath expr="//button[@name='create_employee_from_applicant']" position="after">
                    <button name="action_send_first_invitiation" type="object" class="oe_highlight" 
-                    string="Send Invitation"/>
+                    string="Send Invitation" invisible="stage_status not in ('second_interview','shortlist')"/>
                 </xpath>
                 <notebook position="inside">
-                    <page string="Salary Breakup">
+                    <page string="Salary Breakup" invisible="stage_status not in ('shortlist')">
                         <group>
                             <group string="Compensation Details">
                                 <field name="grade_id" options="{'no_quick_create':True,'no_create': True,}"/>

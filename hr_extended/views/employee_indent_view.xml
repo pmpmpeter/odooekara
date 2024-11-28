@@ -15,9 +15,10 @@
                             class="btn-info"
                             invisible="state not in 'open'"/>
                     <button name="action_reset" type="object" string="Reset To Draft"
-                            invisible="state in 'draft'"/>
+                            invisible="state not in ('waiting_approval','open')" groups="hr_recruitment.group_hr_recruitment_manager"/>
                     <button string="Print Job Description" type="action" 
-                        name="%(hr_extended.action_employee_indent_report)d" class="btn-primary"/>
+                        name="%(hr_extended.action_employee_indent_report)d" 
+                        groups="hr_recruitment.group_hr_recruitment_manager,hr_recruitment.group_hr_recruitment_user,hr_extended.group_hr_admin_recuitment" class="btn-primary"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" invisible="state not in ('job_created')">
@@ -58,7 +59,7 @@
                                 </group>
                                 <group>
                                     <field name="request_date" string="Request Date"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="1"/>
                                     <field name="submit_date" string="Submit Date"
                                            readonly="1"/>
                                     <field name="reporting_to" string="Reporting To"
