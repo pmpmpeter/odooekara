@@ -7,39 +7,146 @@ _logger = logging.getLogger(__name__)
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
+    state = fields.Selection(
+        [('draft', 'Draft'), ('done', 'To Validate'), ('approve', 'Approved')],
+        string='Status', default='draft', readonly=True, copy=False, tracking=True,)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
+    vendor_code = fields.Char(string='Vendor Code',readonly=1, copy=False)
+    customer_code = fields.Char(string='Customer Code', readonly=1, copy=False)
+    vat = fields.Char(string='GSTIN')
 
-    @api.model
-    def _build_vat_error_message(self, country_code, wrong_vat, record_label):
-        # OVERRIDE account
-        if self.env.context.get('company_id'):
-            company = self.env['res.company'].browse(self.env.context['company_id'])
-        else:
-            company = self.env.company
+    @api.onchange('is_customer','is_vendor')
+    def onchange_product(self):
+        if self.is_customer and not self.is_vendor:
+            self.customer_rank = 1
+            self.supplier_rank = 0
+        elif self.is_customer and self.is_vendor:
+            self.customer_rank = 1
+            self.supplier_rank = 1
+        elif not self.is_customer and self.is_vendor:
+            self.customer_rank = 0
+            self.supplier_rank = 1
 
-        vat_label = _("VAT")
-        if country_code and company.country_id and country_code == company.country_id.code.lower() and company.country_id.vat_label:
-            vat_label = company.country_id.vat_label
+    def action_draft(self):
+        for record in self.filtered(lambda m: m.state not in 'draft'):
+            record.write({'state': 'draft'})
 
-        # expected_format = _ref_vat.get(country_code, "'CC##' (CC=Country Code, ##=VAT Number)")
+    def action_approve(self):
+        for record in self.filtered(lambda m: m.state not in 'approve'):
+            record.write({'state': 'approve'})
+        # self.write({'state': 'approve'})
 
-        # Catch use case where the record label is about the public user (name: False)
-        # if 'False' not in record_label:
-        #     return '\n' + _(
-        #         'The %(vat_label)s number [%(wrong_vat)s] for %(record_label)s does not seem to be valid. \nNote: the expected format is %(expected_format)s',
-        #         vat_label=vat_label,
-        #         wrong_vat=wrong_vat,
-        #         record_label=record_label,
-        #         expected_format=expected_format,
-        #     )
-        # else:
-        #     return '\n' + _(
-        #         'The %(vat_label)s number [%(wrong_vat)s] does not seem to be valid. \nNote: the expected format is %(expected_format)s',
-        #         vat_label=vat_label,
-        #         wrong_vat=wrong_vat,
-        #         expected_format=expected_format,
-        #     )
+    def action_validate(self):
+        for record in self.filtered(lambda m: m.state in 'draft'):
+            if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
+                raise UserError(_("Alert !! Kindly update Supplier Currency."))
+            # if record.is_vendor and not record.vendor_code:
+            #     raise UserError(_("Alert !! Kindly update Vendor Category."))
+            record.write({'state': 'done'})
+
+    def action_approve(self):
+        for record in self.filtered(lambda m: m.state in 'done'):
+            if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
+                raise UserError(_("Alert !! Kindly update Supplier Currency."))
+            if record.is_customer:
+                customer_code = self.env['ir.sequence'].next_by_code('contact.debtor.code')
+                if customer_code != '' and not self.customer_code:
+                    record.write({'customer_code': customer_code})
+            if record.is_vendor:
+                vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
+                if vendor_code != '' and not self.vendor_code:
+                    record.write({'vendor_code': vendor_code})
+            record.write({'state': 'approve'})
+
+    def action_validate_partner_state(self):
+        records = self.env['res.partner'].browse(self._context.get('active_ids', False))
+        if records:
+            if self.env.user.has_group('dev_customer_flow.can_validate_partner') and self.env.user.has_group('dev_customer_flow.can_approve_partner'):
+                for vals in records:
+                    if vals.state == 'draft':
+                        vals.update({'state': 'done'})
+                    else:
+                        raise UserError(_("Alert !! %s should be in draft state.")%vals.name)
+            else:
+                raise UserError(_("You do not have access to trigger this action."))
+
+    def action_approve_partner_state(self):
+        records = self.env['res.partner'].browse(self._context.get('active_ids', False))
+        if records:
+            if self.env.user.has_group('dev_customer_flow.can_validate_partner') and self.env.user.has_group('dev_customer_flow.can_approve_partner'):
+                for res in records:
+                    if res.state == 'done':
+                        res.sequence = self.env['ir.sequence'].next_by_code(
+                            'res.partner') or 'RP/'
+                        res.update({'state': 'approve'})
+                    else:
+                        raise UserError(_("Alert !! %s should be in validate state.")%res.name)
+            else:
+                raise UserError(_("You do not have access to trigger this action."))
+
+    def reset_to_draft(self):
+        for record in self.filtered(lambda m: m.state not in 'draft'):
+            record.write({'state': 'draft'})
+
+    def unlink(self):
+        if not self.env.user.has_group('account.group_account_manager'):
+            raise UserError(_("You do not have access to trigger this action."))
+        for rec in self:
+            if rec.state == 'approve':
+                raise ValidationError(_("You cannot delete approved Contacts."))
+        res = super(ResPartnerInherit, self).unlink()
+        return res
+
+    def toggle_active(self):
+        result = super().toggle_active()
+        for rec in self:
+            if rec.state == 'approve':
+                raise ValidationError(_("You cannot delete approved Contacts."))
+        return result
+
+    @api.constrains("l10n_in_pan")
+    def _check_pan_number_format(self):
+        for rec in self:
+            if rec.type not in ('delivery', 'invoice') and rec.l10n_in_pan:
+                regex = "[A-Za-z]{5}\d{4}[A-Za-z]{1}"
+                p = re.compile(regex)
+                if(re.search(p, rec.l10n_in_pan)):
+                    pass
+                else:
+                    raise ValidationError(
+                        _(
+                            "PAN Number is not valid,Please use format like Ex:ABCDE9999K"
+                        )
+                    )
+
+    @api.constrains("mobile")
+    def _check_mobile_number_format(self):
+        if self.mobile:
+            regex = re.compile("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$")
+            p = re.compile(regex)
+            if (re.search(p, self.mobile)):
+                pass
+            else:
+                raise ValidationError(
+                    _(
+                        "Mobile Number is not valid,Please use Correct format"
+                    )
+                )
+
+    @api.constrains("phone")
+    def _check_phone_number_format(self):
+        if self.phone:
+            regex = re.compile("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$")            
+            p = re.compile(regex)
+            if (re.search(p, self.phone)):
+                pass
+            else:
+                raise ValidationError(
+                    _(
+                        "Phone Number is not valid,Please use Correct format"
+                    )
+                )
 
     # @api.model
     # def create(self, vals):
