@@ -15,10 +15,13 @@
                             class="btn-info"
                             invisible="state not in 'open'"/>
                     <button name="action_reset" type="object" string="Reset To Draft"
-                            invisible="state not in ('waiting_approval','open')" groups="hr_recruitment.group_hr_recruitment_manager"/>
-                    <button string="Print Job Description" type="action" 
-                        name="%(hr_extended.action_employee_indent_report)d" 
-                        groups="hr_recruitment.group_hr_recruitment_manager,hr_recruitment.group_hr_recruitment_user,hr_extended.group_hr_admin_recuitment" class="btn-primary"/>
+                            invisible="state not in ('waiting_approval','open')"
+                            groups="hr_recruitment.group_hr_recruitment_manager"/>
+                    <button string="Print Job Description" type="action"
+                            name="%(hr_extended.action_employee_indent_report)d"
+                            invisible="state in ('cancel')"
+                            groups="hr_recruitment.group_hr_recruitment_manager,hr_recruitment.group_hr_recruitment_user,hr_extended.group_hr_admin_recuitment"
+                            class="btn-primary"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box" invisible="state not in ('job_created')">
@@ -31,7 +34,7 @@
                         <h1>
                             <field name="name" options="{'line_breaks': False}" widget="text"
                                    placeholder="Name"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="state not in ('draft','cancel')"/>
                         </h1>
                     </div>
                     <notebook>
@@ -40,21 +43,21 @@
                                 <group>
                                     <field name="tax_entity" string="Tax Entity"
                                            options="{'no_quick_create':True,'no_create': True,}"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="organization" string="Organization" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="location" string="Location" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="department" string="Department" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="grade_job_level" string="Grade/ Job Level" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="position_name" string="Position Name / Designations" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                 </group>
                                 <group>
@@ -63,21 +66,21 @@
                                     <field name="submit_date" string="Submit Date"
                                            readonly="1"/>
                                     <field name="reporting_to" string="Reporting To"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="employment_type" string="Employment Type" required="1"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="target" string="Target" required="1"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="is_replacement" string="Is Replacement?"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="replacement_employee_id" string="Replacement Employee Name"
                                            invisible="not is_replacement"
                                            options="{'no_quick_create':True,'no_create': True,}"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="expected_indent_closure_date" string="Expected Indent Closure Date"
-                                           required="1" readonly="state not in ('draft')"/>
+                                           required="1" readonly="state not in ('draft','cancel')"/>
                                 </group>
                             </group>
                         </page>
@@ -86,22 +89,22 @@
                                 <group string="Budget Details">
                                     <field name="currency_id" required="1"
                                            options="{'no_quick_create':True,'no_create': True,}"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="budgeting_unit" string="Budgeting Units" required="1"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="is_budgeted" string="Is Budgeted?"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="start_date" widget="daterange" options="{'end_date_field': 'end_date'}"
                                            invisible="not is_budgeted"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="approved_budget" string="BU/Department Total Approved Budget"
                                            invisible="not is_budgeted"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="budgeted_amount" string="Budgeted Amount for Position"
                                            invisible="not is_budgeted"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="utilized_budget" string="Utilized Budget" invisible="not is_budgeted"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="balance_budget" string="Balance Budget" invisible="not is_budgeted"
                                            readonly="1"/>
                                 </group>
@@ -109,25 +112,25 @@
                                 <group string="Lead Details">
                                     <field name="unit_head_id" string="Unit Head"
                                            options="{'no_quick_create':True,'no_create': True,}"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="recruitment_spoc_mgr_id" string="Recruitment SPOC/Mgr"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="director_approval_id" string="Director Approval"
-                                           readonly="state not in ('draft')"
+                                           readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                 </group>
 
                                 <group string="Review">
                                     <field name="preferences" string="Preferences"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                     <field name="notes" string="Notes"
-                                           readonly="state not in ('draft')"/>
+                                           readonly="state not in ('draft','cancel')"/>
                                 </group>
                             </group>
                         </page>
                         <page string="Job Description Details">
-                             <group>
+                            <group>
                                 <group>
                                     <field name="business_unit"/>
                                     <field name="source"/>
@@ -138,21 +141,21 @@
                                 </group>
                             </group>
                             <group>
-                            <group>
-                                <field name="purpose_of_job"/>
-                                <field name="job_description"/>
-                                <field name="technical_qualification"/>
-                                <field name="work_experience"/>
-                                <field name="industry_preferences"/>
+                                <group>
+                                    <field name="purpose_of_job"/>
+                                    <field name="job_description"/>
+                                    <field name="technical_qualification"/>
+                                    <field name="work_experience"/>
+                                    <field name="industry_preferences"/>
+                                </group>
+                                <group>
+                                    <field name="mandatory_skills"/>
+                                    <field name="job_responsibility"/>
+                                    <field name="professional_requirements"/>
+                                    <field name="educational_requirements"/>
+                                    <field name="desirable"/>
+                                </group>
                             </group>
-                            <group>
-                                <field name="mandatory_skills"/>
-                                <field name="job_responsibility"/>
-                                <field name="professional_requirements"/>
-                                <field name="educational_requirements"/>
-                                <field name="desirable"/>
-                            </group>
-                        </group>
                             <group>
                                 <field name="approved_by_hod_id"/>
                                 <field name="approved_by_director_id"/>
@@ -188,7 +191,7 @@
                        sum="Total"/>
                 <field name="balance_budget" widget="monetary" options="{'currency_field': 'currency_id'}" sum="Total"/>
                 <field name="state" widget='badge' decoration-info="state == 'open'"
-                       decoration-success="state =='job_created'"/>
+                       decoration-success="state =='job_created'" decoration-danger="state == 'cancel'"/>
             </tree>
         </field>
     </record>

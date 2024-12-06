@@ -145,7 +145,7 @@
             action="action_pre_employment_reference_check"
             groups="hr.group_hr_user"
             parent="hr.menu_hr_employee_payroll"
-            sequence="6"
+            sequence="8"
     />
 
 </odoo>

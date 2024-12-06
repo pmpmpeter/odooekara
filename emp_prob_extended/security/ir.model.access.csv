@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_employee_probation,access.employee.probation,model_employee_probation,base.group_user,1,1,1,1
+access_employee_reviews_details,access.employee.reviews.details,model_employee_reviews_details,base.group_user,1,1,1,1

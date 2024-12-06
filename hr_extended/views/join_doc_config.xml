@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="employee_joining_doc_config_form_view" model="ir.ui.view">
+        <field name="name">employee.join.doc.config.form</field>
+        <field name="model">employee.join.doc.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="True"/>
+                            <field name="document_type" required="True"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="file" filename="file_name"/>
+                            <field name="file_name" invisible="1"/>                            
+                        </group>
+                        <notebook>
+                            <page string="Subject">
+                                <field name="subject" placeholder="Enter Subject Here....."/>
+                            </page>
+                        </notebook>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="employee_joining_doc_config_tree_view" model="ir.ui.view">
+        <field name="name">view.kra.master.tree</field>
+        <field name="model">employee.join.doc.config</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" required="True"/>
+                <field name="document_type" required="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="employee_joining_doc_config_search_view" model="ir.ui.view">
+        <field name="name">view.kra.master.form.search</field>
+        <field name="model">employee.join.doc.config</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" required="True"/>
+                <field name="document_type" required="True"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="employee_joining_doc_config_action" model="ir.actions.act_window">
+        <field name="name">Joining Doc Configuration</field>
+        <field name="res_model">employee.join.doc.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="employee_joining_doc_config_tree_view"/>
+        <field name="search_view_id" ref="employee_joining_doc_config_search_view"/>
+    </record>
+
+    <menuitem id="menu_joining_document" name="Joining Document" parent="hr.menu_hr_root"
+              sequence="4"/>
+
+    <menuitem id="menu_hr_joining_doc_config" name="Joining Document Configuration"
+              parent="hr_extended.menu_joining_document"
+              action="employee_joining_doc_config_action" sequence="2"/>
+</odoo>

@@ -1,0 +1,21 @@
+{
+    'name': 'Employee Probation',
+    'version': '17.0.1.0.0',
+    'category': 'HR',
+    'summary': 'Employee Probation details',
+    'description': """
+
+    """,
+    'depends': ['base', 'hr'],
+    'data': [
+        'security/ir.model.access.csv',
+        'security/security.xml',
+        'data/sequence.xml',
+        'data/emp_prob_mail_template.xml',
+        'views/emp_probation_view.xml',
+        'report/emp_prob_report.xml',
+
+    ],
+    'installable': True,
+    'license': 'LGPL-3'
+}

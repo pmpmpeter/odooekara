@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--   Inherited hr.employee to show the Smart button -->
+    <record id="view_employee_form_inherit_kra_button" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.kra.button</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/> <!-- Reference the original view -->
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" type="object" string="KRA Form"
+                        name="action_open_kra_records" icon="fa-star" groups="hr.group_hr_user"
+                        invisible="kra_record_count == 0">
+                    <field name="kra_record_count" widget="statinfo" string="KRA"/>
+                </button>
+                <button class="oe_stat_button"
+                        type="object"
+                        icon="fa-file-text"
+                        string="Joining Documents"
+                        name="action_get_joining_documents"
+                        invisible="joining_documents_count == 0">
+                    <field name="joining_documents_count" widget="statinfo" string="Joining Documents"/>
+                </button>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button string="NDA" type="action"
+                        name="%(hr_extended.nda_form_template)d" class="btn-primary" invisible="1"/>
+                <button string="Media Declare" type="action"
+                        name="%(hr_extended.media_declare_form_template)d" class="btn-primary" invisible="1"/>
+                <button string="Employee Verification" type="action"
+                        name="%(hr_extended.employee_verification_form_template)d" class="btn-primary" invisible="1"/>
+                <button string="Criminal Case" type="action"
+                        name="%(hr_extended.criminal_case_form_template)d" class="btn-primary" invisible="1"/>
+                <button string="Consent Form" type="action"
+                        name="%(hr_extended.consent_form_template)d" class="btn-primary" invisible="1"/>
+                <button string="Code of Conduct" type="action"
+                        name="%(hr_extended.code_of_conduct_template)d" class="btn-primary" invisible="1"/>
+                <button string="Appointment Order Form" type="action"
+                        name="%(hr_extended.appointment_order_form_template)d" class="btn-primary" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+
+</odoo>

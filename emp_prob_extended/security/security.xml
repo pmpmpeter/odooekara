@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.module.category" id="module_category_probation">
+        <field name="name">Employee Probation</field>
+        <field name="description">Category for Employee Probation</field>
+    </record>
+
+    <record id="group_employee_probation_user" model="res.groups">
+        <field name="name">Probation - User</field>
+        <field name="category_id" ref="emp_prob_extended.module_category_probation"/>
+    </record>
+
+    <record id="group_employee_probation_manager" model="res.groups">
+        <field name="name">Probation - Manager</field>
+        <field name="category_id" ref="emp_prob_extended.module_category_probation"/>
+    </record>
+</odoo>

@@ -4,6 +4,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import *
 from datetime import datetime
 
+
 class EmployeeIndent(models.Model):
     _name = 'employee.indent'
     _description = 'Employee Indent'
@@ -132,7 +133,8 @@ class EmployeeIndent(models.Model):
         ('draft', 'Draft'),
         ('waiting_approval', 'Waiting for Approval'),
         ('open', 'Open'),
-        ('job_created', 'Job Position Created')
+        ('job_created', 'Job Position Created'),
+        ('cancel','Cancelled')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
 
     #Job Description template details
@@ -201,7 +203,6 @@ class EmployeeIndent(models.Model):
     def action_approve(self):
         # To make the reapprove functionality and then stop raising error if multi approval not installed
         if hasattr(self, 'x_has_request_approval'):
-            print("here in action approve",self.x_has_request_approval)
             self.x_has_request_approval = False
 
             approval_type_model = self.env['multi.approval.type']
@@ -210,7 +211,7 @@ class EmployeeIndent(models.Model):
             for record in self:
                 approval_type = approval_type_model.search([
                     ('model_id', '=', 'employee.indent'),
-                    ('domain', '=', '[("state", "=", "waiting_approval")]')
+                    ('domain', 'ilike', '"state"')
                 ], limit=1)
 
                 if not approval_type:
@@ -291,6 +292,10 @@ class EmployeeIndent(models.Model):
     def action_reset(self):
         for record in self:
             record.state = 'draft'
+
+    def action_cancel(self):
+        for record in self:
+            record.state = 'cancel'
 
     def get_indent_url(self):
         """Generate the full URL for the current record."""

@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, AccessError,ValidationError
-import logging
+import logging, re
 from odoo.tools import SQL
 _logger = logging.getLogger(__name__)
 

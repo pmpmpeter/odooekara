@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="view_interview_assessment_form" model="ir.ui.view">
+        <field name="name">interview.assessment.form</field>
+        <field name="model">interview.assessment</field>
+        <field name="arch" type="xml">
+            <form string="Interview Assessment">
+                <header>
+                    <button string="Print" type="action"
+                            name="%(hr_extended.interview_assessment_template)d"
+                            class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Candidate Information">
+                            <field name="applicant_id" required='1'
+                                   options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="name" required='1'/>
+                            <field name="position_interviewed_for"/>
+                            <field name="date_of_interview"/>
+                            <field name="nature_of_employment"/>
+                        </group>
+                        <group string="Current Employment">
+                            <field name="present_company"/>
+                            <field name="present_designation"/>
+                            <field name="total_experience"/>
+                            <field name="relevant_experience"/>
+                        </group>
+                        <group string="Salary &amp; Expectations">
+                            <field name="education_qualifications"/>
+                            <field name="notice_period"/>
+                            <field name="current_ctc"/>
+                            <field name="expected_ctc"/>
+                        </group>
+                        <group string="Interview Result / Feedback">
+                            <field name="interview_result" widget="radio"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rating Scale">
+                            <group string="Skill Rating">
+                                <group>
+                                    <field name="education_qualification_skills"/>
+                                    <field name="interpersonal_skills"/>
+                                    <field name="personality"/>
+                                    <field name="comprehension_analytical_ability"/>
+                                </group>
+                                <group>
+                                    <field name="relevance_of_experience"/>
+                                    <field name="job_product_technical_knowledge"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Interviewer’s Comments">
+                            <group>
+                                <group string="Functional">
+                                    <field name="functional_comments"/>
+                                    <field name="hr_comments"/>
+                                </group>
+                                <group string="Functional">
+                                    <field name="position_offered"/>
+                                    <field name="division"/>
+                                    <field name="grade_level"/>
+                                    <field name="ctc_recommended"/>
+                                    <field name="expected_date_of_joining"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Final Comments by the Panel">
+                            <field name="panel_comments_ids">
+                                <tree editable="bottom">
+                                    <field name="panel_member_name"/>
+                                    <field name="panel_member_designation"/>
+                                    <field name="panel_member_department"/>
+                                    <field name="final_comments"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="view_interview_assessment_tree" model="ir.ui.view">
+        <field name="name">interview.assessment.tree</field>
+        <field name="model">interview.assessment</field>
+        <field name="arch" type="xml">
+            <tree string="Interview Assessments">
+                <field name="name"/>
+                <field name="position_interviewed_for"/>
+                <field name="date_of_interview"/>
+                <field name="present_company"/>
+                <field name="total_experience"/>
+                <field name="relevant_experience"/>
+                <field name="current_ctc"/>
+                <field name="expected_ctc"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_interview_assessment" model="ir.actions.act_window">
+        <field name="name">Interview Assessments</field>
+        <field name="res_model">interview.assessment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Interview Assessment!
+            </p>
+        </field>
+    </record>
+
+
+    <menuitem
+            id="menu_interview_assessment_form"
+            name="Interview Assessment"
+            parent="hr_recruitment.menu_crm_case_categ0_act_job"
+            action="action_interview_assessment"
+            sequence='3'/>
+</odoo>

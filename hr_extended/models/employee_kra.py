@@ -1,0 +1,77 @@
+from odoo import models, fields, api
+from odoo.exceptions import *
+
+class EmployeeKra(models.Model):
+    _name = "employee.kra"
+    _description = "Employee KRA"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _rec_name = 'employee_id'
+
+    kra_date = fields.Date(string="Date")
+    employee_id = fields.Many2one('hr.employee', string='Employee')
+    emp_job_id = fields.Many2one('hr.job', string='Job Position')
+    kra_master = fields.Many2one('kra.master', string="KRA")
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('submit_to_supervisor', 'Submitted to Supervisor'),
+        ('cancel', 'Cancelled'),
+        ('done', 'Done')
+    ], string='Status', default='draft', required=True, tracking=True, copy=False)
+
+    kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
+
+    @api.onchange('employee_id')
+    def _onchange_employee_id(self):
+        if self.employee_id:
+            self.emp_job_id = self.employee_id.job_id
+            self.kra_master = self.emp_job_id.kra_master
+
+    def action_submit_to_supervisor(self):
+        for record in self:
+            if not record.kra_details_ids:
+                raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
+            record.state = 'submit_to_supervisor'
+
+    def action_cancel(self):
+        for record in self:
+            record.state = 'cancel'
+
+    def action_approve(self):
+        for record in self:
+            record.state = 'done'
+
+    def action_reset(self):
+        for record in self:
+            record.state = 'draft'
+
+    def action_fetch_kra_details(self):
+        if not self.kra_master:
+            raise UserError("No KRA Master found for this employee.")
+        self.kra_details_ids.unlink()
+
+        for kra_detail in self.kra_master.details_ids:
+            self.env['employee.kra.details'].create({
+                'emp_kra_id': self.id,
+                'category': kra_detail.category,
+                'business_unit': kra_detail.business_unit,
+                'goal_description': kra_detail.goal_description,
+                'weightage': kra_detail.weightage,
+            })
+
+        return True
+
+class KraDetails(models.Model):
+    _name = "employee.kra.details"
+    _description = "Employee KRA Details"
+
+    emp_kra_id = fields.Many2one('employee.kra', string="KRA Questions", ondelete='cascade')
+
+    category = fields.Char(string="Category", required=True)
+    business_unit = fields.Text(string="Business Unit")
+    goal_description = fields.Char(string="Goal Description")
+    weightage = fields.Float(string="Weightage")
+    employee_rating = fields.Float(string="Employee Rating")
+    employee_remark = fields.Char(string="Employee Remark")
+    manager_rating = fields.Float(string="Manager Rating")
+    manager_remark = fields.Char(string="Manager Remark")
+    final_score = fields.Float(string="Final Score")

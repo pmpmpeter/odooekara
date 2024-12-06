@@ -110,7 +110,7 @@
                                     <tree editable="bottom">
                                         <field name="sequence" widget="handle" />
                                         <field name="name" />
-                                        <field name="user_id" widget="many2many_tags_avatar" />
+                                        <field name="user_id" widget="many2many_tags_avatar" options="{'no_quick_create':True,'no_create': True,}"/>
                                         <field name="require_opt" />
                                     </tree>
                                 </field>

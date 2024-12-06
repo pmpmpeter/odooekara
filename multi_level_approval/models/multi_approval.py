@@ -361,7 +361,7 @@ class MultiApproval(models.Model):
     # 12.0.1.3
     def send_request_mail(self):
         requests = self.filtered(
-            lambda r: 
+            lambda r:
              r.pic_id
             and r.state == "Submitted"
         )
@@ -403,7 +403,7 @@ class MultiApproval(models.Model):
                             "body": self.description,
                         }
                     )
-
+                    print(message)
                     self.env["mail.mail"].sudo().create(
                         {
                             "mail_message_id": message.id,

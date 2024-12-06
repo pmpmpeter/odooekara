@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+
+from odoo import models, fields, api, _
+from odoo.exceptions import *
+from datetime import datetime
+
+
+class InterviewAssessment(models.Model):
+    _name = 'interview.assessment'
+    _description = 'Interview Assessment'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(string='Name of Candidate', required=True)
+    applicant_id = fields.Many2one('hr.applicant', 'Applicant', readonly=False)
+    position_interviewed_for = fields.Char(string='Position Interviewed for')
+    date_of_interview = fields.Date(string='Date of Interview')
+    nature_of_employment = fields.Many2one('hr.contract.type', string='Nature of Employment')
+    present_company = fields.Char(string='Present Company')
+    present_designation = fields.Char(string='Present Designation')
+    total_experience = fields.Float(string='Total Experience (Years)')
+    relevant_experience = fields.Float(string='Relevant Experience (Years)')
+    education_qualifications = fields.Char(string='Education Qualifications')
+    notice_period = fields.Char(string='Notice Period')
+    current_ctc = fields.Float(string='Current CTC')
+    expected_ctc = fields.Float(string='Expected CTC')
+    rating_scale = [('1', 'Poor'), ('2', 'Average'), ('3', 'Good'), ('4', 'Excellent'),
+                    ('5', 'Outstanding')]
+
+    education_qualification_skills = fields.Selection(rating_scale, string='Educational Qualification', )
+    interpersonal_skills = fields.Selection(rating_scale, string='Interpersonal Skills/Attitude')
+    personality = fields.Selection(rating_scale, string='Personality (Individualistic/Team Player)')
+    comprehension_analytical_ability = fields.Selection(rating_scale,
+                                                        string='Comprehension, Analytical & Mental Ability')
+    relevance_of_experience = fields.Selection(rating_scale, string='Relevance of Previous Experience')
+    job_product_technical_knowledge = fields.Selection(rating_scale, string='Job/Product/Technical Knowledge')
+
+    functional_comments = fields.Text(string="Functional Interviewer's Comments")
+    hr_comments = fields.Text(string="HR Interviewer's Comments")
+
+    interview_result = fields.Selection(
+        [
+            ('selected', 'Select'),
+            ('rejected', 'Reject'),
+            ('on_hold', 'On Hold')
+        ],
+        string='Interview Result / Feedback',
+        required=True,
+        default='selected',
+    )
+
+    position_offered = fields.Many2one('hr.job',string='Designation / Position to be Offered')
+    division = fields.Char(string='Division / Business Unit')
+    grade_level = fields.Char(string='Grade / Level')
+    ctc_recommended = fields.Float(string='CTC Recommended')
+    expected_date_of_joining = fields.Date(string='Expected Date of Joining')
+
+    panel_comments_ids = fields.One2many(
+        'interview.panel.comments',
+        'interview_assessment_id',
+    )
+
+
+class InterviewPanelComments(models.Model):
+    _name = 'interview.panel.comments'
+    _description = 'Interview Panel Comments'
+
+    interview_assessment_id = fields.Many2one(
+        'interview.assessment',
+        string='Interview Assessment',
+        ondelete='cascade',
+    )
+    panel_member_name = fields.Many2one('hr.employee', string='Name of Panel Member')
+    panel_member_department = fields.Many2one('hr.department', string='Department')
+    panel_member_designation = fields.Many2one('hr.job',string='Job Position')
+    final_comments = fields.Text(string='Final Comments')
+
+    @api.onchange('panel_member_name')
+    def _onchange_panel_member_name(self):
+        if self.panel_member_name:
+            self.panel_member_department = self.panel_member_name.department_id
+            self.panel_member_designation = self.panel_member_name.job_id
+        else:
+            self.panel_member_department = False
+            self.panel_member_designation = False

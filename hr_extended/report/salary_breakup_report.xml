@@ -15,7 +15,7 @@
         <t t-call="web.basic_layout">
             <t t-foreach="docs" t-as="doc">
                 <div class="page">
-                    <p>Dear Mr/Ms <t t-esc="doc.partner_name"/>,
+                    <p>Dear Mr/Ms<t t-esc="doc.partner_name"/>,
                     </p>
                     <p><b>Greetings from Ekara Partnership</b>.
                     </p>
@@ -82,28 +82,44 @@
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Basic and DA</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">996,000</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">83,000</td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(doc.basic_da or 0.0)"/>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(round(doc.basic_da / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">House Rent Allowance</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">398,400</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">33,200</td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(doc.house_rent_allowance or 0.0)"/>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(round(doc.house_rent_allowance / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Special Allowance</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">1,088,348</td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">90,696</td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(doc.special_allowance or 0.0)"/>
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                <t t-esc="'{:,}'.format(round(doc.special_allowance / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6;">
                                 Sub-total (Part A)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                2,482,748
+                                <t t-set="a_annual_subtotal"
+                                   t-value="(doc.basic_da or 0.0)+ (doc.house_rent_allowance or 0.0)+ (doc.special_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(a_annual_subtotal)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                206,896
+                                <t t-set="a_monthly_subtotal"
+                                   t-value="(round(doc.basic_da / 12)) + (round(doc.house_rent_allowance / 12)) + (round(doc.special_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(a_monthly_subtotal)"/>
                             </td>
                         </tr>
                         <!-- Details: Part B -->
@@ -226,7 +242,9 @@
                                 TOTAL SALARY (A + B + C)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(2482748 +
+                                <t t-esc="'{:,}'.format((doc.basic_da or 0.0) +
+                                 (doc.house_rent_allowance or 0.0) +
+                                 (doc.special_allowance or 0.0) +
                                 (doc.stat_bonus_amount or 0.0) * 12 +
                                 (doc.provident_fund or 0.0) * 12 +
                                 (doc.esi_amount or 0.0) * 12 +
@@ -236,7 +254,9 @@
                                 (doc.annual_performance_linked_pay or 0.0))"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(206896 +
+                                <t t-esc="'{:,}'.format(round((doc.basic_da or 0.0) / 12) +
+                                 round((doc.house_rent_allowance or 0.0) / 12) +
+                                 round((doc.special_allowance or 0.0) / 12)  +
                                 (doc.stat_bonus_amount or 0) +
                                 (doc.provident_fund or 0) +
                                 (doc.esi_amount or 0) +
@@ -292,7 +312,9 @@
                                 Total Cost to the Company (A + B + C + D)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(2482748 +
+                                <t t-esc="'{:,}'.format((doc.basic_da or 0.0) +
+                                 (doc.house_rent_allowance or 0.0) +
+                                 (doc.special_allowance or 0.0) +
                                 (doc.stat_bonus_amount or 0.0) * 12 +
                                 (doc.provident_fund or 0.0) * 12 +
                                 (doc.esi_amount or 0.0) * 12 +
@@ -305,7 +327,9 @@
                                 (doc.solis_health_benefit_beacon_plan or 0.0) )"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(206896 +
+                                <t t-esc="'{:,}'.format(round((doc.basic_da or 0.0) / 12) +
+                                 round((doc.house_rent_allowance or 0.0) / 12) +
+                                 round((doc.special_allowance or 0.0) / 12) +
                                 (doc.stat_bonus_amount or 0) +
                                 (doc.provident_fund or 0) +
                                 (doc.esi_amount or 0) +
@@ -322,36 +346,50 @@
                     </table>
                     <div style="font-family: Times New Roman, sans-serif; font-size: 14px; margin-top: 20px;">
                         <p>
-                            <b>Variable pay payable as per the policy of the company</b><br/>
-                            <b>**Medical and Accidental Insurance applicable as per the company policy</b><br/>
-                            <b>***Apart from the above, you will be eligible for gratuity, leave, and other benefits as per
+                            <b>Variable pay payable as per the policy of the company</b>
+                            <br/>
+                            <b>**Medical and Accidental Insurance applicable as per the company policy</b>
+                            <br/>
+                            <b>***Apart from the above, you will be eligible for gratuity, leave, and other benefits as
+                                per
                                 the company policy
-                            </b><br/>
+                            </b>
+                            <br/>
                         </p>
 
                         <ol>
                             <li>This offer is contingent on you agreeing to join the Company and clearing the background
-                                checks and reference verifications by on or before <b><t t-esc="doc.verification_date"/></b>.
-                            </li><br/>
+                                checks and reference verifications by on or before
+                                <b>
+                                    <t t-esc="doc.verification_date"/>
+                                </b>
+                                .
+                            </li>
+                            <br/>
                             <li>Prior to the start of your employment with the Company, you will be required to submit
                                 to the Company a list of documents as detailed below to help conduct background checks
                                 and verifications. Your employment with the Company shall be contingent on you clearing
                                 any such checks and/or verifications.
-                            </li><br/>
+                            </li>
+                            <br/>
                             <li>For the first six (6) months of your employment you will be placed in probation. Post
                                 the successful completion of your probation period you will receive a written
                                 confirmation. This probation period may be extended if your performance is not
                                 satisfactory.
-                            </li><br/>
+                            </li>
+                            <br/>
                             <li>Your indicative compensation will be as mentioned above inclusive of all taxes and
                                 benefits. Please refer annexure for detailed breakup.
-                            </li><br/>
+                            </li>
+                            <br/>
                             <li>Upon acceptance of this offer, and execution of the Appointment Letter, you will be
                                 subject to all the Company’s internal policies.
-                            </li><br/>
+                            </li>
+                            <br/>
                             <li>Please execute and return this document to us if you wish to accept this offer of
                                 employment.
-                            </li><br/>
+                            </li>
+                            <br/>
                             <li>This is an official E-mail Offer.</li>
                         </ol>
 

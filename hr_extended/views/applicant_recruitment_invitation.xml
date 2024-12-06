@@ -64,12 +64,15 @@
                     </div>
                     <group>
                         <group>
-                            <field name="applicant_id" 
-                                options="{'no_quick_create':True,'no_create': True,}" required='1'
-                                readonly="state in ('active', 'expired')"/> 
+                            <field name="applicant_name" readonly="True" required="1"/>
+<!--                            <field name="stage_id"/>-->
+<!--                            <field name="applicant_id" -->
+<!--                                options="{'no_quick_create':True,'no_create': True,}" required='1'-->
+<!--                                readonly="state in ('active', 'expired')"/> -->
                             <field name="job_id" 
                                 options="{'no_quick_create':True,'no_create': True,}"/>  
                             <field name="invitation_date" readonly="state in ('active', 'expired')"/>
+                            <field name="letter_heading" readonly="state in ('active', 'expired')"/>
                         </group>
                        <group>
                             <field name="user_id" 

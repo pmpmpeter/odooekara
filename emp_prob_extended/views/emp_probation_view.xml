@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_employee_form" model="ir.ui.view">
+        <field name="name">view.employee.form.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button class="oe_stat_button"
+                        type="object"
+                        icon="fa-external-link"
+                        string="Probation"
+                        name="action_get_employee_probation">
+                </button>
+            </div>
+        </field>
+    </record>
+
+    <record id="employee_probation_tree_view" model="ir.ui.view">
+        <field name="name">employee.probation.view.tree</field>
+        <field name="model">employee.probation</field>
+        <field name="arch" type="xml">
+            <tree string="Employee Probation">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="employee_probation_form_view" model="ir.ui.view">
+        <field name="name">employee.probation.view.form</field>
+        <field name="model">employee.probation</field>
+        <field name="arch" type="xml">
+            <form string="Employee Probation">
+                <header>
+                    <button name="employee_probation_review"
+                            string="Review"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state in ['review','confirm','cancel']"
+                            groups="emp_prob_extended.group_employee_probation_user"/>
+                    <button name="employee_probation_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state in ['draft','confirm','cancel']"
+                            groups="emp_prob_extended.group_employee_probation_manager"/>
+                    <button name="employee_probation_cancel"
+                            string="Cancel"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state in ['draft','confirm','cancel']"
+                            groups="emp_prob_extended.group_employee_probation_manager"/>
+                    <button name="print_employee_probation" string="Print" type="object"
+                            class="oe_highlight"
+                            invisible="state in ['draft','review','cancel']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,review,confirm" nolabel="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" invisible="state not in ('confirm')">
+                        <button class="oe_stat_button" type="object" string="Employee"
+                                name="action_open_employee" icon="fa-user">
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Confirmed" bg-color="text-bg-success"
+                            invisible="state in ['draft','review','cancel']"/>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Name..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="EMPLOYEE">
+                            <field name="employee_id" readonly="state in ['confirm','cancel']" required="True"/>
+                            <field name="email" widget="email" readonly="state in ['confirm','cancel']"/>
+                            <field name="department_id" readonly="state in ['confirm','cancel']"/>
+                            <field name="parent_id" readonly="state in ['confirm','cancel']"/>
+                        </group>
+                        <group string="PROBATION">
+                            <field name="start_date" readonly="state in ['confirm','cancel']"/>
+                            <field name="end_date" readonly="state in ['confirm','cancel']"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Employee Reviews">
+                            <field name="employee_reviews_ids" readonly="state in ['confirm','cancel']">
+                                <tree editable="bottom">
+                                    <field name="date"/>
+                                    <field name="reviewer"/>
+                                    <field name="review_details" force_save="1"/>
+                                    <field name="performance"/>
+                                    <field name="rating" widget="priority"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <record id="employee_probation_action" model="ir.actions.act_window">
+        <field name="name">Employee Probation</field>
+        <field name="res_model">employee.probation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Employee Probation!
+            </p>
+        </field>
+    </record>
+    <menuitem id="probation_confirmation_menu"
+              parent="hr.menu_hr_employee_payroll"
+              name="Employee Probation"
+              action="employee_probation_action"
+              sequence="7"
+    />
+</odoo>

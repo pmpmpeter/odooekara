@@ -1,0 +1,474 @@
+<odoo>
+
+    <record id="hr_expense.hr_expense_actions_my_all" model="ir.actions.act_window">
+        <field name="name">My Expenses</field>
+        <field name="res_model">hr.expense</field>
+        <field name="view_mode">tree,kanban,form,graph,pivot,activity</field>
+        <field name="search_view_id" ref="hr_expense.hr_expense_view_search"/>
+        <field name="context">{'search_default_my_expenses': 1}</field>
+        <field name="domain">[('is_payment_approval', '=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_expense_receipt">
+                <h2 class="d-none d-md-block">
+                    Drag and drop files to create expenses
+                </h2>
+                <p class="d-none d-md-block">
+                    Or
+                </p>
+                <h2 class="d-none d-md-block">
+                    Did you try the mobile app?
+                </h2>
+            </p>
+            <p>Snap pictures of your receipts and let Odoo<br/> automatically create expenses for you.</p>
+            <p class="d-none d-md-block">
+                <a href="https://apps.apple.com/be/app/odoo/id1272543640" target="_blank" class="o_expense_mobile_app">
+                    <img alt="Apple App Store" class="img img-fluid h-100 o_expense_apple_store"
+                         src="/hr_expense/static/img/app_store.png"/>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=com.odoo.mobile" target="_blank"
+                   class="o_expense_mobile_app">
+                    <img alt="Google Play Store" class="img img-fluid h-100 o_expense_google_store"
+                         src="/hr_expense/static/img/play_store.png"/>
+                </a>
+            </p>
+        </field>
+    </record>
+
+    <record id='custom_hr_expense_inherited_form' model='ir.ui.view'>
+        <field name="name">custom.hr.expense.inherited.form</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="replace">
+                <form string="Expenses" js_class="hr_expense_form_view">
+                    <header>
+                        <button name="action_submit_expenses" string="Create Report" type="object"
+                                class="oe_highlight o_expense_submit" invisible="nb_attachment &lt;= 0 or sheet_id"
+                                data-hotkey="v"/>
+                        <button name="action_view_sheet" type="object" string="View Report" class="oe_highlight"
+                                invisible="not sheet_id or nb_attachment &lt; 1" data-hotkey="w"/>
+                        <widget name="attach_document" string="Attach Receipt" action="attach_document"
+                                invisible="nb_attachment &lt; 1"/>
+                        <widget name="attach_document" string="Attach Receipt" action="attach_document" highlight="1"
+                                invisible="nb_attachment &gt;= 1"/>
+                        <button name="action_submit_expenses" string="Create Report" type="object"
+                                class="o_expense_submit"
+                                invisible="nb_attachment &gt;= 1 or sheet_id" data-hotkey="v"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,reported,submitted,approved,done"
+                               invisible="state == 'refused'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,reported,submitted,refused"
+                               invisible="state != 'refused'"/>
+                        <button name="action_view_sheet" type="object" string="View Report" class="oe_highlight"
+                                invisible="not sheet_id or nb_attachment &gt;= 1" data-hotkey="w"/>
+                        <button name="action_split_wizard" string="Split Expense" type="object"
+                                invisible="sheet_id or product_has_cost"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name"/>
+                            <h1>
+                                <field name="name" placeholder="e.g. Lunch with Customer" readonly="not is_editable"
+                                       invisible="is_payment_approval"/>
+                                <field name="name" readonly="not is_editable" invisible="not is_payment_approval"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="sheet_id" invisible="1"/>
+                                <field name="product_has_cost" invisible="1"/>
+                                <field name="product_has_tax" invisible="1"/>
+                                <field name="is_multiple_currency" invisible="1"/>
+                                <field name="is_editable" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="company_id" invisible="1"/>
+                                <field name="company_currency_id" invisible="1"/>
+                                <field name="tax_amount" invisible="1"/>
+                                <field name="price_unit" invisible="1"/>
+                                <field name="nb_attachment" invisible="1"/>
+                                <field name="total_amount" invisible="1"/>
+                                <field name="duplicate_expense_ids" invisible="1"/>
+                                <field name="currency_rate" invisible="1"/>
+                                <field name="product_uom_category_id" invisible="1"/>
+                                <field name="is_payment_approval" invisible="1"/>
+                                <field name="supplier_id"/>
+
+                                <label for="product_id"/>
+                                <div>
+                                    <field name="product_id" required="1" readonly="not is_editable"
+                                           context="{'default_detailed_type': 'service', 'default_can_be_expensed': 1, 'tree_view_ref': 'hr_expense.product_product_expense_tree_view', 'form_view_ref': 'hr_expense.product_product_expense_form_view'}"
+                                           class="w-100"/>
+                                    <div class="fst-italic"
+                                         invisible="not is_editable or not product_description or not product_id">
+                                        <field name="product_description"/>
+                                    </div>
+                                </div>
+
+                                <!-- CASE: product has a cost defined -> user input qty (always in company currency) -->
+                                <field name="untaxed_amount_currency" required="1" widget="monetary"
+                                       options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                                <field name="price_unit" required="1" widget="monetary"
+                                       options="{'currency_field': 'currency_id', 'field_digits': True}"/>
+                                <label for="quantity" invisible="not product_has_cost"/>
+                                <div invisible="not product_has_cost">
+                                    <div class="o_row">
+                                        <field name="quantity" class="oe_inline" readonly="not is_editable"/>
+                                        <field name="product_uom_id" required="1" force_save="1"
+                                               options="{'no_open': True, 'no_create': True}" groups="uom.group_uom"
+                                               readonly="not is_editable"/>
+                                    </div>
+                                </div>
+
+                                <!-- CASE: product has no cost defined -> user input amount (in other currency if multi-currency) -->
+                                <label for="total_amount_currency" string="Total"
+                                       invisible="product_has_cost or is_payment_approval"
+                                       readonly="not is_editable"/>
+                                <label for="total_amount_currency" string="Taxable Value"
+                                       invisible="product_has_cost or not is_payment_approval"
+                                       readonly="not is_editable"/>
+                                <div class="o_row" invisible="product_has_cost">
+                                    <field name="total_amount_currency" widget='monetary'
+                                           options="{'currency_field': 'currency_id'}"
+                                           readonly="not is_editable" class="oe_inline mw-50 me-0"/>
+                                    <field name="currency_id" class="mw-25 ms-0" groups="base.group_multi_currency"
+                                           options="{'no_create': True}"
+                                           readonly="not is_editable"/>
+                                </div>
+
+                                <!-- CASE: converter when currency is different than the company one -->
+                                <label name="total_amount_product_cost_label" for="total_amount" string="Total"
+                                       invisible="is_multiple_currency or not product_has_cost"/>
+                                <label name="total_amount_multicurrency_label" for="total_amount" string=""
+                                       invisible="not is_multiple_currency"/>
+                                <div class="o_row" invisible="not is_multiple_currency and not product_has_cost">
+                                    <field name="total_amount" widget='monetary'
+                                           options="{'currency_field': 'company_currency_id'}"
+                                           force_save="1" readonly="not is_editable or product_has_cost"
+                                           class="oe_inline"/>
+                                    <field name="label_currency_rate" class="ps-0"/>
+                                </div>
+
+                                <label for="tax_ids" invisible="is_payment_approval"/>
+                                <label for="tax_ids" string="GST" invisible="not is_payment_approval"/>
+                                <div class="o_row">
+                                    <field name="tax_ids"
+                                           force_save="1"
+                                           widget="many2many_tags"
+                                           readonly="not is_editable"
+                                           options="{'no_create': True}"/>
+                                    <field name="tax_amount_currency"/>
+                                </div>
+                                <field name="total_invoice_value" invisible="not is_payment_approval" readonly="1"/>
+                                <t groups="hr_expense.group_hr_expense_team_approver">
+                                    <field name="employee_id" groups="!hr.group_hr_user" invisible="is_payment_approval"
+                                           context="{'default_company_id': company_id}"
+                                           widget="many2one_avatar_employee"
+                                           options="{'relation': 'hr.employee.public', 'no_create': True}"
+                                           readonly="not is_editable"/>
+                                    <field name="employee_id" groups="hr.group_hr_user" invisible="is_payment_approval"
+                                           context="{'default_company_id': company_id}"
+                                           widget="many2one_avatar_employee"
+                                           options="{'relation': 'hr.employee', 'no_create': True}"
+                                           readonly="not is_editable"/>
+                                </t>
+                                <label id="lo" for="payment_mode" invisible="is_payment_approval"/>
+                                <div id="payment_mode" invisible="is_payment_approval">
+                                    <field name="payment_mode" widget="radio" readonly="sheet_id"
+                                           invisible="is_payment_approval"/>
+                                </div>
+                            </group>
+                            <group>
+                                <field name="user_id" invisible="not is_payment_approval"/>
+                                <field name="date" readonly="not is_editable" invisible="is_payment_approval"/>
+                                <field name="date" readonly="not is_editable" string="Date"
+                                       invisible="not is_payment_approval"/>
+                                <!--                                <field name="create_date" string="Timestamp" invisible="not is_payment_approval"/>-->
+                                <field name="type" invisible="not is_payment_approval"/>
+                                <field name="invoice_no" invisible="not is_payment_approval"/>
+                                <field name="invoice_type_id" invisible="not is_payment_approval" 
+                                    options="{'no_quick_create':True,'no_create': True}"/>
+                                <field name="accounting_date"
+                                       invisible="not accounting_date or state not in ['approved', 'done'] or is_payment_approval"
+                                       readonly="not is_editable"/>
+                                <field name="account_id" options="{'no_create': True}" invisible="is_payment_approval"
+                                       domain="[('account_type', 'not in', ('asset_receivable','liability_payable','asset_cash','liability_credit_card')), ('deprecated', '=', False)]"
+                                       groups="account.group_account_readonly" readonly="not is_editable"
+                                       context="{'default_company_id': company_id}"/>
+                                <field name="analytic_distribution" widget="analytic_distribution"
+                                       invisible="is_payment_approval"
+                                       groups="analytic.group_analytic_accounting"
+                                       options="{'product_field': 'product_id', 'account_field': 'account_id', 'business_domain': 'expense'}"
+                                       readonly="not is_editable"/>
+                                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"
+                                       invisible="is_payment_approval"/>
+                            </group>
+                        </group>
+                        <div>
+                            <field name="description" placeholder="Notes..." readonly="not is_editable"/>
+                        </div>
+                    </sheet>
+                    <div class="o_attachment_preview o_center_attachment"/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="payment_approval_action_extend" model="ir.actions.act_window">
+        <field name="name">Expense</field>
+        <field name="res_model">hr.expense</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'is_payment_approval_option': True}</field>
+        <field name="domain">[('is_payment_approval', '=', True)]</field>
+    </record>
+
+    <menuitem id="payment_approval_sheet" name="Payment Approval" sequence="2"
+              parent="hr_expense_extended.expense_request_sheet" action="payment_approval_action_extend"/>
+
+    <record id='custom_hr_expense_sheet_inherited_form' model='ir.ui.view'>
+        <field name="name">custom.hr.expense.sheet.inherited.form</field>
+        <field name="model">hr.expense.sheet</field>
+        <field name="inherit_id" ref="hr_expense.view_hr_expense_sheet_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="replace">
+                <form string="Expense Reports">
+                    <field name="can_reset" invisible="1"/>
+                    <field name="can_approve" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="payment_state" invisible="1"/>
+                    <field name="is_editable" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="is_payment_approval" invisible="1"/>
+                    <header>
+                        <button name="action_submit_sheet"
+                                string="Submit to Manager"
+                                invisible="state != 'draft'"
+                                type="object"
+                                class="oe_highlight o_expense_sheet_submit"
+                                data-hotkey="l"/>
+                        <button name="action_approve_expense_sheets"
+                                string="Approve"
+                                type="object"
+                                data-hotkey="q"
+                                context="{'validate_analytic': True}"
+                                invisible="not can_approve or state != 'submit'"
+                                class="oe_highlight o_expense_sheet_approve"/>
+                        <button name="action_sheet_move_create"
+                                string="Post Journal Entries"
+                                type="object"
+                                data-hotkey="y"
+                                class="oe_highlight o_expense_sheet_post"
+                                invisible="state != 'approve'"
+                                groups="account.group_account_invoice"/>
+                        <button name="action_register_payment"
+                                string="Register Payment"
+                                type="object"
+                                data-hotkey="w"
+                                class="oe_highlight o_expense_sheet_pay"
+                                context="{'dont_redirect_to_payments': True}"
+                                invisible="payment_mode == 'company_account' or state not in ('post', 'done') or payment_state in ('paid', 'in_payment')"
+                                groups="account.group_account_invoice"/>
+                        <button name="action_refuse_expense_sheets"
+                                string="Refuse"
+                                invisible="state not in ('submit', 'approve')"
+                                type="object"
+                                groups="hr_expense.group_hr_expense_team_approver"
+                                data-hotkey="x"/>
+                        <button name="action_reset_approval_expense_sheets"
+                                string="Reset to Draft"
+                                type="object"
+                                invisible="not can_reset or state not in ('submit', 'cancel', 'approve')"
+                                data-hotkey="k"/>
+                        <button name="action_reset_expense_sheets"
+                                string="Reset to Draft"
+                                type="object"
+                                data-hotkey="c"
+                                invisible="state != 'post'"
+                                groups="account.group_account_readonly,account.group_account_invoice"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submit,approve,post,done"
+                               force_save="1" invisible="state == 'cancel'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,submit,cancel"
+                               force_save="1" invisible="state != 'cancel'"/>
+
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_open_account_moves"
+                                    class="oe_stat_button"
+                                    icon="fa-file-text-o"
+                                    type="object"
+                                    invisible="state not in ['post', 'done'] or nb_account_move == 0"
+                                    groups="account.group_account_invoice">
+                                <div class="o_stat_info">
+                                    <field name="nb_account_move" class="o_stat_value"/>
+                                    <span class="o_stat_text">Journal Entry</span>
+                                </div>
+                            </button>
+                            <button name="action_open_expense_view"
+                                    class="oe_stat_button"
+                                    icon="fa-file-text-o"
+                                    type="object"
+                                    invisible="nb_expense == 0">
+                                <field name="nb_expense" widget="statinfo" string="Expenses"/>
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Paid" bg_color="text-bg-success"
+                                invisible="payment_state != 'paid'"/>
+                        <widget name="web_ribbon" title="Partial" bg_color="text-bg-info"
+                                invisible="payment_state != 'partial'"/>
+                        <widget name="web_ribbon" title="In Payment" invisible="payment_state != 'in_payment'"/>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="e.g. Trip to NY" readonly="not is_editable"
+                                       invisible="is_payment_approval"
+                                       force_save="1"/>
+                                <field name="name" readonly="not is_editable" invisible="not is_payment_approval"
+                                       force_save="1"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group name="employee_details" invisible="is_payment_approval">
+                                <field name="employee_id" context="{'default_company_id': company_id}"
+                                       invisible="is_payment_approval"
+                                       widget="many2one_avatar_user" readonly="state != 'draft'"/>
+                                <field name="payment_mode"/>
+                                <field name="employee_journal_id"
+                                       groups="account.group_account_invoice,account.group_account_readonly"
+                                       options="{'no_open': True, 'no_create': True}"
+                                       invisible="payment_mode != 'own_account'" readonly="not is_editable"
+                                       context="{'default_company_id': company_id}"/>
+                                <field name="selectable_payment_method_line_ids" invisible="1"/>
+                                <field name="payment_method_line_id"
+                                       context="{'show_payment_journal_id': 1}"
+                                       options="{'no_open': True, 'no_create': True}"
+                                       invisible="payment_mode != 'company_account'"
+                                       readonly="not is_editable"
+                                       required="payment_mode == 'company_account'"/>
+                                <field name="department_id" invisible="1" readonly="not is_editable"
+                                       context="{'default_company_id': company_id}"/>
+                            </group>
+                            <group>
+                                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"
+                                       invisible="is_payment_approval"/>
+                                <field name="user_id" widget="many2one_avatar_user" readonly="state != 'draft'"/>
+                                <field name="accounting_date"
+                                       groups="account.group_account_invoice,account.group_account_readonly"
+                                       invisible="state not in ['approve', 'post', 'done']"
+                                       readonly="not is_editable"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="expenses" string="Expense">
+                                <field name="expense_line_ids"
+                                       nolabel="1"
+                                       widget="expense_lines_widget"
+                                       mode="tree,kanban"
+                                       domain="[
+                                        ('sheet_id', '=', False),
+                                        ('employee_id', '=', employee_id),
+                                        ('company_id', '=', company_id),
+                                        ('payment_mode', '=?', payment_mode),
+                                    ]"
+                                       options="{'reload_on_button': True}"
+                                       context="{
+                                        'form_view_ref' : 'hr_expense.hr_expense_view_form_without_header',
+                                        'default_company_id': company_id,
+                                        'default_employee_id': employee_id,
+                                        'default_payment_mode': payment_mode or 'own_account',
+                                    }"
+                                       readonly="not is_editable"
+                                       force_save="1">
+                                    <tree editable="bottom">
+                                        <field name="is_payment_approval" column_invisible="True"/>
+                                        <field name="employee_id" column_invisible="True"/>
+                                        <field name="state" column_invisible="True"/>
+                                        <field name="nb_attachment" column_invisible="True"/>
+                                        <field name="message_main_attachment_id" column_invisible="True"/>
+                                        <field name="company_id" column_invisible="True"/>
+                                        <field name="company_currency_id" column_invisible="True"/>
+                                        <field name="is_multiple_currency" column_invisible="True"/>
+                                        <field name="product_has_cost" column_invisible="True"/>
+                                        <field name="date" optional="show"
+                                               column_invisible="parent.is_payment_approval"/>
+                                        <field name="date" optional="show" string="Date"
+                                               column_invisible="not parent.is_payment_approval"/>
+                                        <field name="product_id"/>
+                                        <field name="name"/>
+                                        <field name="description" optional="hide"/>
+                                        <button name="action_get_attachment_view" type="object" icon="fa-paperclip"
+                                                aria-label="View Attachments" title="View Attachments"
+                                                class="float-end pe-0"
+                                                readonly="True" invisible="nb_attachment == 0"/>
+                                        <field name="analytic_distribution" widget="analytic_distribution"
+                                               column_invisible="parent.is_payment_approval"
+                                               groups="analytic.group_analytic_accounting"
+                                               optional="show"
+                                               options="{'product_field': 'product_id', 'account_field': 'account_id', 'business_domain': 'expense'}"/>
+                                        <field name="account_id" optional="hide"
+                                               column_invisible="parent.is_payment_approval"
+                                               groups="account.group_account_readonly"/>
+                                        <field name="price_unit" optional="hide" widget="monetary"
+                                               options="{'currency_field': 'company_currency_id', 'field_digits': True}"
+                                               readonly="True"/>
+                                        <field name="currency_id" optional="hide" readonly="True"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="quantity" optional="hide" readonly="True"/>
+                                        <field name="tax_ids" string="Taxes" optional="show" widget="many2many_tags"
+                                               column_invisible="parent.is_payment_approval"
+                                               context="{'default_company_id': company_id}" readonly="True"/>
+                                        <field name="tax_ids" string="GST" optional="show" widget="many2many_tags"
+                                               column_invisible="not parent.is_payment_approval"
+                                               context="{'default_company_id': company_id}" readonly="True"/>
+                                        <field name="tax_amount_currency" optional="hide"
+                                               options="{'currency_field': 'currency_id'}"
+                                               context="{'default_company_id': company_id}" readonly="True"
+                                               groups="base.group_multi_currency"/>
+                                        <field name="tax_amount" optional="hide" readonly="True"/>
+                                        <field name="total_amount_currency" options="{'currency_field': 'currency_id'}"
+                                               string="Subtotal In Currency " optional="show"
+                                               readonly="true" groups="base.group_multi_currency"/>
+                                        <field name="total_amount" string="Subtotal" readonly="True"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer" colspan="2" name="expense_total">
+                                    <field name="untaxed_amount"/>
+                                    <div class="oe_inline o_td_label">
+                                        <label for="total_tax_amount"/>
+                                    </div>
+                                    <field name="total_tax_amount" nolabel="1"/>
+                                    <div class="oe_inline o_td_label">
+                                        <label for="total_amount"/>
+                                    </div>
+                                    <field name="total_amount" nolabel="1" class="oe_subtotal_footer_separator"/>
+                                    <field name="amount_residual"
+                                           class="oe_subtotal_footer_separator"
+                                           invisible="state not in ('post', 'done')"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="o_attachment_preview o_center_attachment"/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="expense_sheet_action_extend" model="ir.actions.act_window">
+        <field name="name">Expense Sheet</field>
+        <field name="res_model">hr.expense.sheet</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'is_payment_approval_option': True}</field>
+        <field name="domain">[('is_payment_approval', '=', True)]</field>
+    </record>
+</odoo>
