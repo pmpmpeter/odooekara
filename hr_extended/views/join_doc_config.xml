@@ -63,10 +63,10 @@
         <field name="search_view_id" ref="employee_joining_doc_config_search_view"/>
     </record>
 
-    <menuitem id="menu_joining_document" name="Joining Document" parent="hr.menu_hr_root"
+    <menuitem id="menu_joining_document" name="Joining Document" parent="hr.menu_human_resources_configuration"
               sequence="4"/>
 
-    <menuitem id="menu_hr_joining_doc_config" name="Joining Document Configuration"
+    <menuitem id="menu_hr_recruitment_joining_doc" name="Joining Document Configuration"
               parent="hr_extended.menu_joining_document"
               action="employee_joining_doc_config_action" sequence="2"/>
 </odoo>
