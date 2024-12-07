@@ -7,8 +7,6 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submit_to_supervisor,cancel,done"/>
                     <button name="action_fetch_kra_details" string="Load Questions" type="object"
                             class="btn-primary" invisible="state not in ('draft')"/>
                     <button name="action_submit_to_supervisor" string="SUBMIT TO SUPERVISOR" type="object"
@@ -20,6 +18,8 @@
                             groups="hr_recruitment.group_hr_recruitment_manager"/>
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state not in ('submit_to_supervisor','done')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submit_to_supervisor,done,cancel"/>
                 </header>
                 <sheet>
                     <group>
@@ -36,7 +36,7 @@
                     </group>
                     <notebook>
                         <page string="KRA Questions">
-                            <field name="kra_details_ids">
+                            <field name="kra_details_ids" readonly="state not in ('draft')">
                                 <tree create="0" editable="bottom">
                                     <field name="category" readonly="parent.state not in ('draft')"/>
                                     <field name="business_unit" readonly="parent.state not in ('draft')"/>

@@ -7,15 +7,15 @@ class EmployeeKra(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
-    kra_date = fields.Date(string="Date")
+    kra_date = fields.Date(string="Date", default=fields.Date.context_today)
     employee_id = fields.Many2one('hr.employee', string='Employee')
     emp_job_id = fields.Many2one('hr.job', string='Job Position')
     kra_master = fields.Many2one('kra.master', string="KRA")
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('submit_to_supervisor', 'Submitted to Supervisor'),
+        ('submit_to_supervisor', 'Waiting Review'),
+        ('done', 'Done'),
         ('cancel', 'Cancelled'),
-        ('done', 'Done')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")

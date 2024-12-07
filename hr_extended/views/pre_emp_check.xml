@@ -16,7 +16,7 @@
                             invisible="state not in ('done')"/>
                 </header>
                 <sheet>
-                    <group string="Candidate Details">
+                    <group>
                         <field name="applicant_id" invisible="1"/>
                         <field name="candidate_name" required="True" readonly="True"/>
                         <field name="candidate_email"/>

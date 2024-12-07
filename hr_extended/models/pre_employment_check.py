@@ -11,7 +11,7 @@ class PreEmpCheck(models.Model):
 
     # applicant_id = fields.Many2one('hr.applicant', string='Applicant', ondelete='cascade')
     applicant_id = fields.Integer(string='Applicant',readonly=True)
-    candidate_name = fields.Char(string="Candidate",copy=False)
+    candidate_name = fields.Char(string="Candidate Name",copy=False)
     candidate_email = fields.Char(string="Candidate Email ID", readonly=True)
     date = fields.Date(string="Date",copy=False,default=fields.Date.context_today)
     location = fields.Char(string="Location",copy=False)
