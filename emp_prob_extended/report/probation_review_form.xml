@@ -17,13 +17,13 @@
     </record>
     <record id="report_probation_review_template" model="ir.actions.report">
         <field name="name">Probation Review</field>
-        <field name="model">employee.probation</field>
+        <field name="model">prob.review.form</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">emp_prob_extended.print_report_probation_review_form</field>
         <field name="report_file">emp_prob_extended.print_report_probation_review_form</field>
         <field name="paperformat_id" ref="emp_prob_extended.paperformat_probation_form_pdf_A4"/>
         <field name="print_report_name">'report_probation_review_form'</field>
-        <field name="binding_model_id" ref="emp_prob_extended.model_employee_probation"/>
+        <field name="binding_model_id" ref="emp_prob_extended.model_prob_review_form"/>
         <field name="binding_type">report</field>
     </record>
 
@@ -40,12 +40,15 @@
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Employee name:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.name"/>
+                            </td>
                         </tr>
                         <!-- Second Row -->
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;width: 50%;">Job Title:</td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.job_title.name"/>
                                 <!--                                <select style="width: 100%; padding: 4px;">-->
                                 <!--                                    <option value="">Select...</option>-->
                                 <!--                                </select>-->
@@ -54,21 +57,31 @@
                         <!-- Additional Rows -->
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; width: 50%;">Grade:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.grade"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; width: 50%;">Department / Section:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.department.name"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; width: 50%;">Date of Joining:</td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.date_of_joining"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; width: 50%;">Reporting Manager Name and
                                 Designation:
                             </td>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.reporting_manager.name"/>
+                                <t></t>
+                                <t t-esc="doc.reporting_manager_designation"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;"></td>
@@ -77,14 +90,22 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">3-month review:</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.three_month_review_due"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.three_month_review_completed"/>
+                            </td>
 
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">6-month review:</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.six_month_review_due"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.six_month_review_completed"/>
+                            </td>
 
                         </tr>
                     </table>
@@ -109,65 +130,144 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Quality and accuracy of work</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Efficiency</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Attendance</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Time Keeping</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Work relationships (team work and
                                 interpersonal communication skills)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                        </tr>
-                        <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;height:100px; ">If any areas of
-                                performance,
-                                conduct or attendance require improvement please provide details below.
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role == 'excellent'">✔</t>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">Where concerns
-                                have been
-                                identified, please summarise how these will be addressed during the remaining period of
-                                probation.
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            If any areas of performance, conduct or attendance require improvement
+                                            please provide details below.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.performance_improvement_details"/>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;height:100px; ">Summarise the
-                                employee’s
-                                performance and progress over the period
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">Where concerns have been identified,
+                                            please summarise how these will be addressed during the remaining period of
+                                            probation.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.concerns_addressed_summary"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">Summarise the employee’s
+                                            performance and progress over the period
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.performance_progress_summary"/>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                         <tr>
@@ -175,36 +275,55 @@
                                 Have the objectives identified for the period of the probation
                                 been met?
                             </td>
-                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.objectives_met"/>
+                            </td>
+                            <!--                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">YES / NO</td>-->
                             <td style="border: 1px solid black; padding: 8px; ">If NO, what further action is
                                 required?
                             </td>
                             <td style="border: 1px solid black; padding: 8px; ">Review Date</td>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.objectives_met_reason"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.objectives_review_date"/>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px;height:100px; ">Have the
                                 training/development needs identified for this period of probation
                                 been addressed?
                             </td>
-                            <td style="border: 1px solid black; padding: 8px; ">YES / NO</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.training_needs_met"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.training_needs_met_reason"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.training_review_date"/>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">Employee's Signature:</td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.employee_signature_id.name"/>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">Manager's Signature:</td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.manager_signature_id.name"/>
+                            </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">Date:</td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.date_part_1"/>
+                            </td>
                         </tr>
 
                     </table>
@@ -222,148 +341,260 @@
                             <th style="border: 1px solid black; padding: 8px; ">Excellent</th>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px; ">Quality and accuracy of work</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px;">Quality and accuracy of work</td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.quality_of_work_fr == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Efficiency</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.efficiency_fr == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Attendance</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.attendance_fr == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Time Keeping</td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.time_keeping_fr == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Work relationships (team work and
                                 interpersonal communication skills)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
-                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.work_relationships_fr == 'excellent'">✔</t>
+                            </td>
                         </tr>
                         <tr>
-                            <td rowspan="2" style="border: 1px solid black; padding: 8px; height:100px;">Have the objectives
+                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role_fr == 'improvement_required'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role_fr == 'satisfactory'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role_fr == 'good'">✔</t>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; text-align: center;">
+                                <t t-if="doc.competency_in_role_fr == 'excellent'">✔</t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; height:100px;">Have the
+                                objectives
                                 identified for the probationary period been met?
                             </td>
-                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.objectives_met_fr"/>
+                            </td>
                             <td colspan="3" style="border: 1px solid black; padding: 8px; ">If NO, please provide
                                 details
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="3"></td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.objectives_met_reason_fr"/>
+                            </td>
 
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px;height:100px; ">Have the training/development needs
+                            <td style="border: 1px solid black; padding: 8px;height:100px; ">Have the
+                                training/development needs
                                 identified for this period of probation
                                 been addressed?
                             </td>
-                            <td style="border: 1px solid black; padding: 8px; ">YES / NO</td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.training_needs_met_fr"/>
+                            </td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.training_needs_met_reason_fr"/>
+                            </td>
                             <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
                         </tr>
                         <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">Summarise the employee’s
-                                performance and progress over the period
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">Summarise the employee’s
+                                            performance and progress over the period
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.performance_progress_summary_fr"/>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">Is the employee’s
                                 appointment to be confirmed?
                             </td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
-                        </tr>
-                        <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">If NO, please provide
-                                reasons below and summarise what action has been taken to address any difficulties which
-                                have arisen during the probationary period.
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.emp_appointment_fr"/>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">The employee may provide any
-                                comments about their experience of the probationary process here.
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">If NO, please provide
+                                            reasons below and summarise what action has been taken to address any
+                                            difficulties which
+                                            have arisen during the probationary period.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.emp_appointment_reason_fr"/>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
-
                         <tr>
-                            <td colspan="2" style="border: 1px solid black; padding: 8px; height:50px;">Should the employee’s
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            If YES, please provide reasons and, where appropriate, specify any areas of
+                                            improvement required and how these
+                                            will be monitored.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <div style="margin: 0; padding: 0;">
+                                                <t t-esc="doc.emp_probation_extend_reason"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; height:50px;">Should the
+                                employee’s
                                 probationary period be extended?
                             </td>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.emp_probation_extend"/>
+                            </td>
                         </tr>
                         <tr>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px; ">If YES, please provide
-                                reasons and, where appropriate, specify any areas of improvement required and how these
-                                will be monitored.
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height: 100px;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px;">If YES, please provide reasons and, where appropriate,
+                                            specify any areas of improvement required and how these
+                                            will be monitored.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px;">
+                                            <t t-esc="doc.emp_probation_extend_reason"/>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Length of the extension (max 3
                                 months):
                             </td>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.probation_extend_length_"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">New Probation Period completion date:
                             </td>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.completion_date"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Employee’s signature:</td>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.employee_signature_fr_id.name"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Manager’s signature:</td>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.manager_signature_fr_id.name"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Date:</td>
-                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="doc.date_fr"/>
+                            </td>
                         </tr>
                         <tr>
-                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">>The employee has received a letter confirming his satisfactory completion of probation period</td>
-                            <td style="border: 1px solid black; padding: 8px; ">YES</td>
-                            <td style="border: 1px solid black; padding: 8px; ">NO</td>
+                            <td colspan="4" style="border: 1px solid black; padding: 8px; ">The employee has received a
+                                letter confirming his satisfactory completion of probation period
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">
+                                <t t-esc="doc.confirm_letter"/>
+                            </td>
                         </tr>
-
-                        <!--                        <tr>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                        </tr>-->
-                        <!--                        <tr>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
-                        <!--                        </tr>-->
                     </table>
-
-
                 </div>
-
-
             </t>
         </t>
     </template>

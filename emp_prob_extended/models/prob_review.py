@@ -70,3 +70,64 @@ class ProbationReviewForm(models.Model):
     employee_signature_id = fields.Many2one('hr.employee', string="Employee's Signature")
     manager_signature_id = fields.Many2one('hr.employee', string="Manager's Signature")
     date_part_1 = fields.Date(string="Date")
+# FINAL REVIEW
+    quality_of_work_fr = fields.Selection(REVIEW_RATING_SELECTION, string='Quality and accuracy of work',
+                                       default='satisfactory', required=True, tracking=True)
+    efficiency_fr = fields.Selection(REVIEW_RATING_SELECTION, string='Efficiency', default='satisfactory', required=True,
+                                  tracking=True)
+    attendance_fr = fields.Selection(REVIEW_RATING_SELECTION, string='Attendance', default='satisfactory', required=True,
+                                  tracking=True)
+    time_keeping_fr = fields.Selection(REVIEW_RATING_SELECTION, string='Time Keeping', default='satisfactory',
+                                    required=True,
+                                    tracking=True)
+    work_relationships_fr = fields.Selection(REVIEW_RATING_SELECTION,
+                                          string='Work relationships',
+                                          default='satisfactory', required=True, tracking=True)
+    competency_in_role_fr = fields.Selection(REVIEW_RATING_SELECTION, string='Competency in the role',
+                                          default='satisfactory', required=True, tracking=True)
+    objectives_met_fr = fields.Selection([
+        ('yes', 'YES'),
+        ('no', 'NO')
+    ], required=True, string='Have the objectives identified for the probationary period been met?', default='yes')
+    objectives_met_reason_fr = fields.Text(string="Reason for not meeting objectives",
+                                        help="Provide details if objectives have not been met")
+    training_needs_met_fr = fields.Selection([
+        ('yes', 'YES'),
+        ('no', 'NO')
+    ], required=True,
+        string='Have the training / development needs identified for the probationary period been addressed?',
+        default='yes')
+    training_needs_met_reason_fr = fields.Text(string="Reason for not addressing training needs",
+                                            help="Provide details if training needs have not been addressed")
+    performance_progress_summary_fr = fields.Text(string='Employee Performance and Progress Summary')
+    emp_appointment_fr = fields.Selection([
+        ('yes', 'YES'),
+        ('no', 'NO')
+    ], required=True,
+        string='Is the employee’s appointment to be confirmed?',
+        default='yes')
+    emp_appointment_reason_fr = fields.Text(string="Reason for not appointment the employee",
+                                           help="Provide details if not appoint the employee")
+    employee_comment = fields.Text(string="Employee comments about their experience of the probationary process",
+                                           help="Provide details about the employee experience of the probationary process")
+    emp_probation_extend = fields.Selection([
+        ('yes', 'YES'),
+        ('no', 'NO')
+    ], required=True,
+        string='Is the employee’s probationary period be extended?',
+        default='no')
+    emp_probation_extend_reason = fields.Text(string="Reason for extend the employee's probation period",
+                                   help="Provide details to extend the employee's probation period")
+    probation_extend_length_ = fields.Char(string='Length of the extension (max 3 months)')
+    completion_date = fields.Date(string="New Probation Period completion date")
+    employee_signature_fr_id = fields.Many2one('hr.employee', string="Employee's Signature")
+    manager_signature_fr_id = fields.Many2one('hr.employee', string="Manager's Signature")
+    date_fr = fields.Date(string="Date")
+    confirm_letter = fields.Selection([
+        ('yes', 'YES'),
+        ('no', 'NO')
+    ], required=True,
+        string='Is the employee receive the confirm letter?',
+        default='no')
+
+

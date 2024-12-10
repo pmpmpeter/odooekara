@@ -21,6 +21,14 @@
                         invisible="joining_documents_count == 0">
                     <field name="joining_documents_count" widget="statinfo" string="Joining Documents"/>
                 </button>
+                <button class="oe_stat_button"
+                        type="object"
+                        icon="fa-file-text"
+                        string="Project"
+                        name="action_get_project_task"
+                        invisible="project_count == 0">
+                    <field name="project_count" widget="statinfo" string="Project"/>
+                </button>
             </xpath>
             <xpath expr="//header" position="inside">
                 <button name="action_send_appointment_letter_emp_mail" type="object" class="oe_highlight"

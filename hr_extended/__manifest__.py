@@ -46,6 +46,8 @@
         'views/pre_emp_check.xml',
         'views/interview_assessment.xml',
         'views/kra_master.xml',
+        'views/onboarding_task.xml',
+        'data/onboarding_task_data.xml',
         'views/join_doc_config.xml',
         'views/joining_documents.xml',
         'views/employee_kra.xml',

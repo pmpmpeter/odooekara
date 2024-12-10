@@ -33,6 +33,9 @@ class EmployeeKra(models.Model):
             if not record.kra_details_ids:
                 raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
             record.state = 'submit_to_supervisor'
+
+    def send_email(self):
+        for record in self:
             template_id = self.env.ref('hr_extended.email_template_kra_submit')
             if template_id:
                 template_id.send_mail(record.id, force_send=True)

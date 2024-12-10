@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import *
+from odoo.exceptions import ValidationError, UserError
 
 
 class HrEmployeeSmartButton(models.Model):
@@ -30,6 +31,29 @@ class HrEmployeeSmartButton(models.Model):
         default=0,
         copy=False
     )
+    project_ids = fields.Many2many(
+        'project.task',
+        compute='_compute_project_records',
+        string='Project',
+        copy=False
+    )
+    project_count = fields.Integer(
+        "Project",
+        compute='_compute_project_records',
+        default=0,
+        copy=False
+    )
+
+    def _compute_project_records(self):
+        for employee in self:
+            user = employee.user_id
+            if user:
+                project_records = self.env['project.task'].sudo().search([('user_ids', 'in', user.id)])
+                employee.project_ids = project_records
+                employee.project_count = len(project_records)
+            else:
+                employee.project_ids = False
+                employee.project_count = 0
 
     def _compute_joining_document_records(self):
         for employee in self:
@@ -66,6 +90,22 @@ class HrEmployeeSmartButton(models.Model):
             'view_mode': 'tree,form',
             'res_model': 'joining.documents',
             'domain': [('employee_id', '=', self.id)],
+            'target': 'current',
+        }
+
+    def action_get_project_task(self):
+        self.ensure_one()
+        user = self.user_id
+        if not user:
+            return {
+                'type': 'ir.actions.act_window_close'
+            }
+        return {
+            'name': 'Project',
+            'type': 'ir.actions.act_window',
+            'view_mode': 'tree,form',
+            'res_model': 'project.task',
+            'domain': [('user_ids', 'in', user.id)],
             'target': 'current',
         }
 

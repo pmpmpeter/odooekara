@@ -16,80 +16,145 @@
         <field name="model">prob.review.form</field>
         <field name="arch" type="xml">
             <form string="Probation Review Form">
-                <group>
+                <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="job_title"/>
-                        <field name="grade"/>
-                        <field name="department"/>
-                    </group>
-                    <group>
-                        <field name="date_of_joining"/>
-                        <field name="reporting_manager"/>
-                        <field name="reporting_manager_designation"/>
-                    </group>
-                </group>
-                <group>
-                    <group string="Three Month Review">
-                        <field name="three_month_review_due"/>
-                        <field name="three_month_review_completed"/>
-                    </group>
-                    <group string="Six Month Review">
-                        <field name="six_month_review_due"/>
-                        <field name="six_month_review_completed"/>
-                    </group>
-                </group>
-                <notebook>
-                    <page string="Part 1A">
-                        <group string="First review (3 months from Date of Joining)">
-                            <group>
-                                <field name="quality_of_work"/>
-                                <field name="efficiency"/>
-                                <field name="attendance"/>
-                            </group>
-                            <group>
-                                <field name="time_keeping"/>
-                                <field name="work_relationships"/>
-                                <field name="competency_in_role"/>
-                            </group>
-                            <group string="Performance Details">
-                                <div style="width:1000px; font-weight:bold;">
-                                    <label for="performance_improvement_details"/>
-                                    <field name="performance_improvement_details" placeholder="Enter Comments here..." no_label="1"/>
-
-                                    <label for="concerns_addressed_summary"/>
-                                    <field name="concerns_addressed_summary" placeholder="Enter Comments here..." no_label="1"/>
-
-                                    <label for="performance_progress_summary"/>
-                                    <field name="performance_progress_summary" placeholder="Enter Comments here..." no_label="1"/>
-                                </div>
-                            </group>
-                        </group>
-                    </page>
-                    <page string="Part - 1B">
-                        <div style="width:1150px; font-weight:bold;">
-                            <label for="objectives_met"/>
-                            <field name="objectives_met" no_label="1"/>
-                            <label for="objectives_review_date" invisible="objectives_met != 'no'"/>
-                            <field name="objectives_review_date" no_label="1" invisible="objectives_met != 'no'"/>
-                            <field name="objectives_met_reason" placeholder="Enter Comments here..." invisible="objectives_met != 'no'"/>
-
-                            <label for="training_needs_met"/>
-                            <field name="training_needs_met" no_label="1"/>
-                            <label for="training_review_date" invisible="training_needs_met != 'no'"/>
-                            <field name="training_review_date" no_label="1" invisible="training_needs_met != 'no'"/>
-                            <field name="training_needs_met_reason" placeholder="Enter Comments here..." invisible="training_needs_met != 'no'"/>
-                        </div>
                         <group>
-                            <field name="employee_signature_id"/>
-                            <field name="manager_signature_id"/>
-                            <field name="date_part_1"/>
+                            <field name="name"/>
+                            <field name="job_title"/>
+                            <field name="grade"/>
+                            <field name="department"/>
                         </group>
-                    </page>
-                    <page string="">
+                        <group>
+                            <field name="date_of_joining"/>
+                            <field name="reporting_manager"/>
+                            <field name="reporting_manager_designation"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Three Month Review">
+                            <field name="three_month_review_due"/>
+                            <field name="three_month_review_completed"/>
+                        </group>
+                        <group string="Six Month Review">
+                            <field name="six_month_review_due"/>
+                            <field name="six_month_review_completed"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Part 1A">
+                            <group string="First Review (3 Months from Date of Joining)">
+                                <group>
+                                    <field name="quality_of_work"/>
+                                    <field name="efficiency"/>
+                                    <field name="attendance"/>
+                                </group>
+                                <group>
+                                    <field name="time_keeping"/>
+                                    <field name="work_relationships"/>
+                                    <field name="competency_in_role"/>
+                                </group>
+                                <separator/>
+                                <label for="performance_improvement_details"/>
+                                <field name="performance_improvement_details"
+                                       placeholder="Enter Comments here..."
+                                       no_label="1"/>
+                                <label for="concerns_addressed_summary"/>
+                                <field name="concerns_addressed_summary"
+                                       placeholder="Enter Comments here..."
+                                       no_label="1"/>
+                                <label for="performance_progress_summary"/>
+                                <field name="performance_progress_summary"
+                                       placeholder="Enter Comments here..."
+                                       no_label="1"/>
+                                <label for="objectives_met"/>
+                                <field name="objectives_met"/>
+                                <div>
+                                    <label for="objectives_met_reason" invisible="objectives_met != 'no'"/>
+                                    <field name="objectives_met_reason" placeholder="Enter Comments here..."
+                                           invisible="objectives_met != 'no'"/>
+                                </div>
+                                <div>
+                                    <label for="objectives_review_date" invisible="objectives_met != 'no'"/>
+                                    <field name="objectives_review_date" no_label="1"
+                                           invisible="objectives_met != 'no'"/>
+                                </div>
+                                <label for="training_needs_met"/>
+                                <field name="training_needs_met"/>
+                                <div>
+                                    <label for="training_needs_met_reason" invisible="training_needs_met != 'no'"/>
+                                    <field name="training_needs_met_reason" placeholder="Enter Comments here..."
+                                           invisible="training_needs_met != 'no'"/>
+                                </div>
+                                <div>
+                                    <label for="training_review_date" invisible="training_needs_met != 'no'"/>
+                                    <field name="training_review_date" no_label="1"
+                                           invisible="training_needs_met != 'no'"/>
+                                </div>
+                                <group>
+                                    <field name="employee_signature_id" placeholder="Employee's Signature"/>
+                                    <field name="manager_signature_id" placeholder="Manager's Signature"/>
+                                    <field name="date_part_1"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="PART 2">
+                            <group string="Final Review">
+                                <group>
+                                    <field name="quality_of_work_fr"/>
+                                    <field name="efficiency_fr"/>
+                                    <field name="attendance_fr"/>
+                                </group>
+                                <group>
+                                    <field name="time_keeping_fr"/>
+                                    <field name="work_relationships_fr"/>
+                                    <field name="competency_in_role_fr"/>
+                                </group>
+                                <separator/>
+                                <label for="objectives_met_fr"/>
+                                <field name="objectives_met_fr"/>
+                                <label for="objectives_met_reason_fr" invisible="objectives_met_fr != 'no'"/>
+                                <field name="objectives_met_reason_fr" placeholder="Enter Comments here..."
+                                       invisible="objectives_met_fr != 'no'"/>
+                                <label for="training_needs_met_fr"/>
+                                <field name="training_needs_met_fr"/>
+                                <label for="training_needs_met_reason_fr" invisible="training_needs_met_fr != 'no'"/>
+                                <field name="training_needs_met_reason_fr" placeholder="Enter Comments here..."
+                                       invisible="training_needs_met_fr != 'no'"/>
+                                <label for="performance_progress_summary_fr"/>
+                                <field name="performance_progress_summary_fr" placeholder="Enter Comments here..."
+                                       no_label="1"/>
+                                <label for="emp_appointment_fr"/>
+                                <field name="emp_appointment_fr" no_label="1"/>
+                                <label for="emp_appointment_reason_fr" invisible="emp_appointment_fr != 'no'"/>
+                                <field name="emp_appointment_reason_fr" placeholder="Enter Comments here..."
+                                       invisible="emp_appointment_fr != 'no'"/>
+                                <label for="employee_comment"/>
+                                <field name="employee_comment" placeholder="Enter Comments here..."
+                                       no_label="1"/>
+                                <label for="emp_probation_extend"/>
+                                <field name="emp_probation_extend"/>
+                                <label for="emp_probation_extend_reason" invisible="emp_probation_extend == 'no'"/>
+                                <field name="emp_probation_extend_reason" placeholder="Enter Comments here..."
+                                       invisible="emp_probation_extend == 'no'"/>
+                                <label for="probation_extend_length_" invisible="emp_probation_extend == 'no'"/>
+                                <field name="probation_extend_length_"
+                                       placeholder="Enter the probation extend length here..."
+                                       invisible="emp_probation_extend == 'no'"/>
+                                <label for="completion_date" invisible="emp_probation_extend == 'no'"/>
+                                <field name="completion_date" placeholder="Enter the probation extend length here..."
+                                       invisible="emp_probation_extend == 'no'"/>
+                                <group>
+                                    <field name="employee_signature_fr_id" placeholder="Employee's Signature"/>
+                                    <field name="manager_signature_fr_id" placeholder="Manager's Signature"/>
+                                    <field name="date_fr"/>
+                                </group>
+                                <label for="confirm_letter"/>
+                                <field name="confirm_letter"/>
 
-                    </page>
-                </notebook>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
             </form>
         </field>
     </record>

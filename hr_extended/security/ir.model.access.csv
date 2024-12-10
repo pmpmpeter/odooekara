@@ -14,3 +14,4 @@ access_interview_assessment,interview.assessment,model_interview_assessment,base
 access_interview_panel_comments,interview.panel.comments,model_interview_panel_comments,base.group_user,1,1,1,1
 access_employee_join_doc_config,employee.join.doc.config,model_employee_join_doc_config,base.group_user,1,1,1,1
 access_joining_documents,joining.documents,model_joining_documents,base.group_user,1,1,1,1
+access_onboarding.task,onboarding.task,model_onboarding_task,base.group_user,1,1,1,1

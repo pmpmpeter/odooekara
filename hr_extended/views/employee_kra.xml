@@ -11,6 +11,8 @@
                             class="btn-primary" invisible="state not in ('draft')"/>
                     <button name="action_submit_to_supervisor" string="SUBMIT TO SUPERVISOR" type="object"
                             class="btn-primary" invisible="state not in ('draft')"/>
+                    <button name="send_email" string="Send Email" type="object"
+                            class="btn-primary" invisible="state not in ('draft')"/>
                     <button name="action_reset" string="Reset to Draft" type="object"
                             invisible="state in ('draft','done')"/>
                     <button name="action_approve" string="Approve" type="object" class="btn-primary"

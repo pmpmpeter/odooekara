@@ -106,7 +106,7 @@ class EmployeeProbation(models.Model):
         })
 
         # Send the email with the attachment
-        template = self.env.ref('emp_prob_extended.mail_probation_confirmation_mailsss')
+        template = self.env.ref('emp_prob_extended.probation_confirmation_email_template')
         template.send_mail(self.id, force_send=True, email_values={
             'attachment_ids': [(6, 0, [attachment.id])]
         })

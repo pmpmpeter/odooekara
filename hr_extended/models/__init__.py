@@ -9,3 +9,4 @@ from . import employee_indent
 from . import joining_documents
 from . import hr_employee
 from . import hr_applicant
+from . import onboarding_task

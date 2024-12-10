@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="task_1" model="onboarding.task">
+            <field name="name">Signing of Joining Documents</field>
+        </record>
+        <record id="task_2" model="onboarding.task">
+            <field name="name">Check if employee is Non-Indian national</field>
+        </record>
+        <record id="task_3" model="onboarding.task">
+            <field name="name">Creation of Employee Docket and uploading in HRMS Portal</field>
+        </record>
+        <record id="task_4" model="onboarding.task">
+            <field name="name">PF application form completion</field>
+        </record>
+        <record id="task_5" model="onboarding.task">
+            <field name="name">HR Policies overview to New Joinee/ Induction</field>
+        </record>
+        <record id="task_6" model="onboarding.task">
+            <field name="name">Update employee master data by HR</field>
+        </record>
+        <record id="task_7" model="onboarding.task">
+            <field name="name">Creation of opening leave balance by HR</field>
+        </record>
+        <record id="task_8" model="onboarding.task">
+            <field name="name">Welcome Note/ Org Announcement/All Employees</field>
+        </record>
+        <record id="task_9" model="onboarding.task">
+            <field name="name">Assign employee number</field>
+        </record>
+        <record id="task_10" model="onboarding.task">
+            <field name="name">Addition of team members to Unit Share space</field>
+        </record>
+        <record id="task_11" model="onboarding.task">
+            <field name="name">Welcome Kit- Stationery</field>
+        </record>
+        <record id="task_12" model="onboarding.task">
+            <field name="name">Work Station/ Desk/Location</field>
+        </record>
+        <record id="task_13" model="onboarding.task">
+            <field name="name">Photo ID</field>
+        </record>
+        <record id="task_14" model="onboarding.task">
+            <field name="name">Business Card</field>
+        </record>
+        <record id="task_15" model="onboarding.task">
+            <field name="name">Email ID creation (for TLE, add to TLE database)</field>
+        </record>
+        <record id="task_16" model="onboarding.task">
+            <field name="name">Email ID to be included to the DL Group</field>
+        </record>
+        <record id="task_17" model="onboarding.task">
+            <field name="name">HRMS ID</field>
+        </record>
+        <record id="task_18" model="onboarding.task">
+            <field name="name">System Allocation</field>
+        </record>
+        <record id="task_19" model="onboarding.task">
+            <field name="name">Bio Metrics access setup and Bio Metric ID link table</field>
+        </record>
+        <record id="task_20" model="onboarding.task">
+            <field name="name">System setup and Active Directory User creation for System Login (NA for TSA, BLR &amp; Cbe)</field>
+        </record>
+        <record id="task_21" model="onboarding.task">
+            <field name="name">VPN Access creation (NA for TSA, BLR &amp; Cbe)</field>
+        </record>
+        <record id="task_22" model="onboarding.task">
+            <field name="name">UAN number &amp; KYC approval for UAN Portal &amp; (Collect Form 11 of PF Act - only for TSA, BLR)</field>
+        </record>
+        <record id="task_23" model="onboarding.task">
+            <field name="name">Send Tax Information packet to Employee by HR</field>
+        </record>
+        <record id="task_24" model="onboarding.task">
+            <field name="name">Background Check/ Report Submission &amp; Evaluation</field>
+        </record>
+        <record id="task_25" model="onboarding.task">
+            <field name="name">Bank Account opening</field>
+        </record>
+        <record id="task_26" model="onboarding.task">
+            <field name="name">Issue ESI Card, if applicable</field>
+        </record>
+        <record id="task_27" model="onboarding.task">
+            <field name="name">Send employee details to Insurer for Coverage under GMC &amp; GPA</field>
+        </record>
+        <record id="task_28" model="onboarding.task">
+            <field name="name">OPTIONAL- Send Dependent Parent Details to Insurer for coverage under Group Health Insurance</field>
+        </record>
+        <record id="task_29" model="onboarding.task">
+            <field name="name">Send Insurance E-card to employee</field>
+        </record>
+        <record id="task_30" model="onboarding.task">
+            <field name="name">KRA Form to be sent to Employee by Reporting Manager</field>
+        </record>
+        <record id="task_31" model="onboarding.task">
+            <field name="name">To close</field>
+        </record>
+    </data>
+</odoo>
