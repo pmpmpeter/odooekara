@@ -49,6 +49,8 @@
                     <button name="action_create_interview_assessment" type="object" class="oe_highlight"
                             string="Create Interview Assessment"
                             invisible="application_status == 'refused' or interview_assessment_letter_count > 0"/>
+                    <button string="Salary Breakup Report" type="action"
+                            invisible="stage_status not in ('shortlist') or application_status == 'refused'" name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
                     <!--                    <button string="Offer Letter" type="action"-->
                     <!--                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary"-->
                     <!--                            invisible="stage_status != 'shortlist'"/>-->

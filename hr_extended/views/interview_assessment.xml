@@ -6,7 +6,12 @@
         <field name="arch" type="xml">
             <form string="Interview Assessment">
                 <header>
-                    <button string="Print" type="action"
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                    <button name="action_submit" type="object" class="btn-primary"
+                            string="Submit" invisible="state in ('done')"/>
+                    <button name="action_reset_to_draft" type="object"
+                            string="Reset to Draft" invisible="state in ('draft')"/>
+                    <button string="Print" type="action" invisible="state in ('draft')"
                             name="%(hr_extended.interview_assessment_template)d"
                             class="btn-primary"/>
                 </header>
@@ -100,6 +105,33 @@
                 <field name="current_ctc"/>
                 <field name="expected_ctc"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_interview_assessment_search" model="ir.ui.view">
+        <field name="name">interview.assessment.search</field>
+        <field name="model">interview.assessment</field>
+        <field name="arch" type="xml">
+            <search string="Interview Assessments">
+                <field name="name"/>
+                <!-- Filters -->
+                <filter string="Interviewed Position" name="position_filter"
+                        domain="[('position_interviewed_for', '!=', False)]"/>
+                <filter string="Current Employment" name="current_employment_filter"
+                        domain="[('present_company', '!=', False)]"/>
+                <filter string="Pending Feedback" name="pending_feedback_filter"
+                        domain="[('interview_result', '=', False)]"/>
+
+                <!-- Group By -->
+                <group expand="1" string="Group By">
+                    <filter string="Position" name="group_by_position"
+                            context="{'group_by': 'position_interviewed_for'}"/>
+                    <filter string="Date of Interview" name="group_by_date"
+                            context="{'group_by': 'date_of_interview'}"/>
+                    <filter string="Company" name="group_by_company"
+                            context="{'group_by': 'present_company'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

@@ -34,239 +34,239 @@ class HrExpense(models.Model):
         tracking=True,
     )
     # Amount fields
-    tax_amount_currency = fields.Monetary(
-        string="Tax amount in Currency",
-        currency_field='currency_id',
-        compute='_compute_tax_amount_currency', precompute=True, store=True,
-        help="Tax amount in currency",
-    )
-    tax_amount = fields.Monetary(
-        string="Tax amount",
-        currency_field='company_currency_id',
-        compute='_compute_tax_amount', precompute=True, store=True,
-        help="Tax amount in company currency",
-    )
-    total_amount_currency = fields.Monetary(
-        string="Total In Currency",
-        currency_field='currency_id',
-        compute='_compute_total_amount_currency', precompute=True, store=True, readonly=False,
-        tracking=True,
-    )
-    untaxed_amount_currency = fields.Float(
-        string="Untaxed Amount", store=True,
-    )
-    total_amount = fields.Monetary(
-        string="Total",
-        currency_field='company_currency_id',
-        compute='_compute_total_amount', inverse='_inverse_total_amount', precompute=True, store=True, readonly=False,
-        tracking=True,
-    )
-    price_unit = fields.Float(
-        string="Unit Price",
-        compute='_compute_price_unit', store=True, required=True, readonly=True,
-        copy=True,
-        digits='Product Price',
-    )
+    # tax_amount_currency = fields.Monetary(
+    #     string="Tax amount in Currency",
+    #     currency_field='currency_id',
+    #     compute='_compute_tax_amount_currency', precompute=True, store=True,
+    #     help="Tax amount in currency",
+    # )
+    # tax_amount = fields.Monetary(
+    #     string="Tax amount",
+    #     currency_field='company_currency_id',
+    #     compute='_compute_tax_amount', precompute=True, store=True,
+    #     help="Tax amount in company currency",
+    # )
+    # total_amount_currency = fields.Monetary(
+    #     string="Total In Currency",
+    #     currency_field='currency_id',
+    #     compute='_compute_total_amount_currency', precompute=True, store=True, readonly=False,
+    #     tracking=True,
+    # )
+    # untaxed_amount_currency = fields.Float(
+    #     string="Untaxed Amount", store=True,
+    # )
+    # total_amount = fields.Monetary(
+    #     string="Total",
+    #     currency_field='company_currency_id',
+    #     compute='_compute_total_amount', inverse='_inverse_total_amount', precompute=True, store=True, readonly=False,
+    #     tracking=True,
+    # )
+    # price_unit = fields.Float(
+    #     string="Unit Price",
+    #     compute='_compute_price_unit', store=True, required=True, readonly=True,
+    #     copy=True,
+    #     digits='Product Price',
+    # )
 
-    # Account fields
-    tax_ids = fields.Many2many(
-        comodel_name='account.tax',
-        relation='expense_tax',
-        column1='expense_id',
-        column2='tax_id',
-        string="Included taxes",
-        compute='_compute_tax_ids', precompute=True, store=True, readonly=False,
-        domain="[('type_tax_use', '=', 'purchase')]",
-        check_company=True,
-        help="Both price-included and price-excluded taxes will behave as price-included taxes for expenses.",
-    )
+    # # Account fields
+    # tax_ids = fields.Many2many(
+    #     comodel_name='account.tax',
+    #     relation='expense_tax',
+    #     column1='expense_id',
+    #     column2='tax_id',
+    #     string="Included taxes",
+    #     compute='_compute_tax_ids', precompute=True, store=True, readonly=False,
+    #     domain="[('type_tax_use', '=', 'purchase')]",
+    #     check_company=True,
+    #     help="Both price-included and price-excluded taxes will behave as price-included taxes for expenses.",
+    # )
 
-    @api.depends('currency_id', 'untaxed_amount_currency', 'date')
-    def _compute_currency_rate(self):
-        """
-            We want the default odoo rate when the following change:
-            - the currency of the expense
-            - the total amount in foreign currency
-            - the date of the expense
-            this will cause the rate to be recomputed twice with possible changes but we don't have the required fields
-            to store the override state in stable
-        """
-        date_today = fields.Date.context_today(self)
-        for expense in self:
-            if expense.is_multiple_currency:
-                if (
-                        expense.currency_id != expense._origin.currency_id
-                        or expense.untaxed_amount_currency != expense._origin.untaxed_amount_currency
-                        or expense.date != expense._origin.date
-                ):
-                    expense.currency_rate = self.env['res.currency']._get_conversion_rate(
-                        from_currency=expense.currency_id,
-                        to_currency=expense.company_currency_id,
-                        company=expense.company_id,
-                        date=expense.date or date_today,
-                    )
-                else:
-                    expense.currency_rate = expense.total_amount / expense.untaxed_amount_currency if expense.total_amount_currency else 1.0
-            else:  # Mono-currency case computation shortcut, no need for the label if there is no conversion
-                expense.currency_rate = 1.0
-                expense.label_currency_rate = False
-                continue
+    # @api.depends('currency_id', 'untaxed_amount_currency', 'date')
+    # def _compute_currency_rate(self):
+    #     """
+    #         We want the default odoo rate when the following change:
+    #         - the currency of the expense
+    #         - the total amount in foreign currency
+    #         - the date of the expense
+    #         this will cause the rate to be recomputed twice with possible changes but we don't have the required fields
+    #         to store the override state in stable
+    #     """
+    #     date_today = fields.Date.context_today(self)
+    #     for expense in self:
+    #         if expense.is_multiple_currency:
+    #             if (
+    #                     expense.currency_id != expense._origin.currency_id
+    #                     or expense.untaxed_amount_currency != expense._origin.untaxed_amount_currency
+    #                     or expense.date != expense._origin.date
+    #             ):
+    #                 expense.currency_rate = self.env['res.currency']._get_conversion_rate(
+    #                     from_currency=expense.currency_id,
+    #                     to_currency=expense.company_currency_id,
+    #                     company=expense.company_id,
+    #                     date=expense.date or date_today,
+    #                 )
+    #             else:
+    #                 expense.currency_rate = expense.total_amount / expense.untaxed_amount_currency if expense.total_amount_currency else 1.0
+    #         else:  # Mono-currency case computation shortcut, no need for the label if there is no conversion
+    #             expense.currency_rate = 1.0
+    #             expense.label_currency_rate = False
+    #             continue
 
-            expense.label_currency_rate = _(
-                '1 %(exp_cur)s = %(rate)s %(comp_cur)s',
-                exp_cur=expense.currency_id.name,
-                rate=float_repr(expense.currency_rate, 6),
-                comp_cur=expense.company_currency_id.name,
-            )
+    #         expense.label_currency_rate = _(
+    #             '1 %(exp_cur)s = %(rate)s %(comp_cur)s',
+    #             exp_cur=expense.currency_id.name,
+    #             rate=float_repr(expense.currency_rate, 6),
+    #             comp_cur=expense.company_currency_id.name,
+    #         )
 
-    @api.depends('currency_id', 'company_currency_id')
-    def _compute_is_multiple_currency(self):
-        for expense in self:
-            expense.is_multiple_currency = expense.currency_id != expense.company_currency_id
+    # @api.depends('currency_id', 'company_currency_id')
+    # def _compute_is_multiple_currency(self):
+    #     for expense in self:
+    #         expense.is_multiple_currency = expense.currency_id != expense.company_currency_id
 
-    @api.depends('product_id.standard_price')
-    def _compute_from_product(self):
-        for expense in self:
-            expense.product_has_cost = expense.product_id and not expense.company_currency_id.is_zero(expense.product_id.standard_price)
-            tax_ids = expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id))
-            expense.product_has_tax = bool(tax_ids)
-            if not expense.product_has_cost and expense.state in {'draft', 'reported'} and expense.quantity != 1:
-                expense.quantity = 1
+    # @api.depends('product_id.standard_price')
+    # def _compute_from_product(self):
+    #     for expense in self:
+    #         expense.product_has_cost = expense.product_id and not expense.company_currency_id.is_zero(expense.product_id.standard_price)
+    #         tax_ids = expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id))
+    #         expense.product_has_tax = bool(tax_ids)
+    #         if not expense.product_has_cost and expense.state in {'draft', 'reported'} and expense.quantity != 1:
+    #             expense.quantity = 1
 
-    @api.depends('quantity', 'untaxed_amount_currency', 'tax_ids')
-    def _compute_total_amount_currency(self):
-        for expense in self.filtered('product_has_cost'):
-            base_lines = [expense._convert_to_tax_base_line_dict(price_unit=expense.untaxed_amount_currency, quantity=expense.quantity)]
-            taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.currency_id]
-            expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
+    # @api.depends('quantity', 'untaxed_amount_currency', 'tax_ids')
+    # def _compute_total_amount_currency(self):
+    #     for expense in self.filtered('product_has_cost'):
+    #         base_lines = [expense._convert_to_tax_base_line_dict(price_unit=expense.untaxed_amount_currency, quantity=expense.quantity)]
+    #         taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.currency_id]
+    #         expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
 
-    @api.onchange('untaxed_amount_currency')
-    def _inverse_total_amount_currency(self):
-        for expense in self:
-            if not expense.is_editable:
-                raise UserError(_('You are not authorized to edit this expense.'))
-            # expense.price_unit = (expense.untaxed_amount_currency / expense.quantity) if expense.quantity != 0 else 0.
-            # expense.price_unit = expense.untaxed_amount_currency
+    # @api.onchange('untaxed_amount_currency')
+    # def _inverse_total_amount_currency(self):
+    #     for expense in self:
+    #         if not expense.is_editable:
+    #             raise UserError(_('You are not authorized to edit this expense.'))
+    #         # expense.price_unit = (expense.untaxed_amount_currency / expense.quantity) if expense.quantity != 0 else 0.
+    #         # expense.price_unit = expense.untaxed_amount_currency
 
-    @api.depends(
-        'date',
-        'company_id',
-        'currency_id',
-        'company_currency_id',
-        'is_multiple_currency',
-        'untaxed_amount_currency',
-        'product_id',
-        'employee_id.user_id.partner_id',
-        'quantity',
-    )
-    def _compute_total_amount(self):
-        for expense in self:
-            if expense.is_multiple_currency:
-                base_lines = [expense._convert_to_tax_base_line_dict(
-                    price_unit=expense.untaxed_amount_currency * expense.currency_rate,
-                    currency=expense.company_currency_id,
-                )]
-                taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
-                expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
-                expense.total_amount = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
-            else:  # Mono-currency case computation shortcut
-                expense.total_amount = expense.untaxed_amount_currency + expense.tax_amount_currency
-                expense.total_amount_currency = expense.untaxed_amount_currency + expense.tax_amount_currency
+    # @api.depends(
+    #     'date',
+    #     'company_id',
+    #     'currency_id',
+    #     'company_currency_id',
+    #     'is_multiple_currency',
+    #     'untaxed_amount_currency',
+    #     'product_id',
+    #     'employee_id.user_id.partner_id',
+    #     'quantity',
+    # )
+    # def _compute_total_amount(self):
+    #     for expense in self:
+    #         if expense.is_multiple_currency:
+    #             base_lines = [expense._convert_to_tax_base_line_dict(
+    #                 price_unit=expense.untaxed_amount_currency * expense.currency_rate,
+    #                 currency=expense.company_currency_id,
+    #             )]
+    #             taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
+    #             expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
+    #             expense.total_amount = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
+    #         else:  # Mono-currency case computation shortcut
+    #             expense.total_amount = expense.untaxed_amount_currency + expense.tax_amount_currency
+    #             expense.total_amount_currency = expense.untaxed_amount_currency + expense.tax_amount_currency
 
-    def _inverse_total_amount(self):
-        """ Allows to set a custom rate on the expense, and avoid the override when it makes no sense """
-        for expense in self:
-            if expense.is_multiple_currency:
-                base_lines = [expense._convert_to_tax_base_line_dict(
-                    price_unit=expense.untaxed_amount_currency,
-                    currency=expense.company_currency_id,
-                )]
-                taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
-                expense.tax_amount = taxes_totals['amount_tax']
-            else:
-                expense.total_amount_currency = expense.total_amount
-                expense.tax_amount = expense.tax_amount_currency
-            expense.currency_rate = expense.total_amount / expense.total_amount_currency if expense.total_amount_currency else 1.0
+    # def _inverse_total_amount(self):
+    #     """ Allows to set a custom rate on the expense, and avoid the override when it makes no sense """
+    #     for expense in self:
+    #         if expense.is_multiple_currency:
+    #             base_lines = [expense._convert_to_tax_base_line_dict(
+    #                 price_unit=expense.untaxed_amount_currency,
+    #                 currency=expense.company_currency_id,
+    #             )]
+    #             taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
+    #             expense.tax_amount = taxes_totals['amount_tax']
+    #         else:
+    #             expense.total_amount_currency = expense.total_amount
+    #             expense.tax_amount = expense.tax_amount_currency
+    #         expense.currency_rate = expense.total_amount / expense.total_amount_currency if expense.total_amount_currency else 1.0
             # expense.price_unit = expense.total_amount / expense.quantity if expense.quantity else expense.total_amount
             # expense.price_unit = expense.untaxed_amount_currency
 
-    @api.depends('product_id', 'company_id')
-    def _compute_tax_ids(self):
-        for _expense in self:
-            expense = _expense.with_company(_expense.company_id)
-            # taxes only from the same company
-            expense.tax_ids = expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id))
+    # @api.depends('product_id', 'company_id')
+    # def _compute_tax_ids(self):
+    #     for _expense in self:
+    #         expense = _expense.with_company(_expense.company_id)
+    #         # taxes only from the same company
+    #         expense.tax_ids = expense.product_id.supplier_taxes_id.filtered_domain(self.env['account.tax']._check_company_domain(expense.company_id))
 
-    @api.depends('untaxed_amount_currency', 'tax_ids')
-    def _compute_tax_amount_currency(self):
-        # changed
-        """
-             Note: as total_amount_currency can be set directly by the user (for product without cost)
-             or needs to be computed (for product with cost), `untaxed_amount_currency` can't be computed in the same method as `total_amount_currency`.
-        """
-        for expense in self:
-            base_lines = [expense._convert_to_tax_base_line_dict(price_unit=expense.untaxed_amount_currency)]
-            taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.currency_id]
-            # pdb.set_trace()
-            # print("Sumit Sinha", taxes_totals['amount_tax'],taxes_totals['amount_untaxed'])
-            expense.tax_amount_currency = taxes_totals['amount_tax']
-            expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
+    # @api.depends('untaxed_amount_currency', 'tax_ids')
+    # def _compute_tax_amount_currency(self):
+    #     # changed
+    #     """
+    #          Note: as total_amount_currency can be set directly by the user (for product without cost)
+    #          or needs to be computed (for product with cost), `untaxed_amount_currency` can't be computed in the same method as `total_amount_currency`.
+    #     """
+    #     for expense in self:
+    #         base_lines = [expense._convert_to_tax_base_line_dict(price_unit=expense.untaxed_amount_currency)]
+    #         taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.currency_id]
+    #         # pdb.set_trace()
+    #         # print("Sumit Sinha", taxes_totals['amount_tax'],taxes_totals['amount_untaxed'])
+    #         expense.tax_amount_currency = taxes_totals['amount_tax']
+    #         expense.total_amount_currency = taxes_totals['amount_untaxed'] + taxes_totals['amount_tax']
 
-    @api.depends('untaxed_amount_currency', 'currency_rate', 'tax_ids', 'is_multiple_currency')
-    def _compute_tax_amount(self):
-        """
-             Note: as total_amount can be set directly by the user when the currency_rate is overriden,
-             the tax must be computed after the total_amount.
-        """
-        for expense in self:
-            if expense.is_multiple_currency:
-                base_lines = [expense._convert_to_tax_base_line_dict(
-                    price_unit=expense.untaxed_amount_currency,
-                    currency=expense.company_currency_id,
-                )]
-                taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
-                expense.tax_amount = taxes_totals['amount_tax']
-            else:  # Mono-currency case computation shortcut
-                expense.tax_amount = expense.tax_amount_currency
+    # @api.depends('untaxed_amount_currency', 'currency_rate', 'tax_ids', 'is_multiple_currency')
+    # def _compute_tax_amount(self):
+    #     """
+    #          Note: as total_amount can be set directly by the user when the currency_rate is overriden,
+    #          the tax must be computed after the total_amount.
+    #     """
+    #     for expense in self:
+    #         if expense.is_multiple_currency:
+    #             base_lines = [expense._convert_to_tax_base_line_dict(
+    #                 price_unit=expense.untaxed_amount_currency,
+    #                 currency=expense.company_currency_id,
+    #             )]
+    #             taxes_totals = self.env['account.tax']._compute_taxes(base_lines)['totals'][expense.company_currency_id]
+    #             expense.tax_amount = taxes_totals['amount_tax']
+    #         else:  # Mono-currency case computation shortcut
+    #             expense.tax_amount = expense.tax_amount_currency
 
-    @api.depends('total_amount', 'untaxed_amount_currency')
-    def _compute_price_unit(self):
-        """
-           The price_unit is the unit price of the product if no product is set and no attachment overrides it.
-           Otherwise it is always computed from the total_amount and the quantity else it would break the vendor bill
-           when edited after creation.
-        """
-        for expense in self:
-            expense.price_unit = expense.untaxed_amount_currency
-        #     if expense.state not in {'draft', 'reported'}:
-        #         continue
-        #     product_id = expense.product_id
-        #     if expense._needs_product_price_computation():
-        #         expense.price_unit = product_id._price_compute(
-        #             'standard_price',
-        #             uom=expense.product_uom_id,
-        #             company=expense.company_id,
-        #         )[product_id.id]
-        #     else:
-        #         expense.price_unit = expense.company_currency_id.round(expense.untaxed_amount_currency / expense.quantity) if expense.quantity else 0.    
+    # @api.depends('total_amount', 'untaxed_amount_currency')
+    # def _compute_price_unit(self):
+    #     """
+    #        The price_unit is the unit price of the product if no product is set and no attachment overrides it.
+    #        Otherwise it is always computed from the total_amount and the quantity else it would break the vendor bill
+    #        when edited after creation.
+    #     """
+    #     for expense in self:
+    #         expense.price_unit = expense.untaxed_amount_currency
+    #     #     if expense.state not in {'draft', 'reported'}:
+    #     #         continue
+    #     #     product_id = expense.product_id
+    #     #     if expense._needs_product_price_computation():
+    #     #         expense.price_unit = product_id._price_compute(
+    #     #             'standard_price',
+    #     #             uom=expense.product_uom_id,
+    #     #             company=expense.company_id,
+    #     #         )[product_id.id]
+    #     #     else:
+    #     #         expense.price_unit = expense.company_currency_id.round(expense.untaxed_amount_currency / expense.quantity) if expense.quantity else 0.    
 
-    def _convert_to_tax_base_line_dict(self, base_line=None, currency=None, price_unit=None, quantity=None):
-        self.ensure_one()
-        return self.env['account.tax']._convert_to_tax_base_line_dict(
-            base_line,
-            currency=currency or self.currency_id,
-            product=self.product_id,
-            taxes=self.tax_ids,
-            price_unit=self.untaxed_amount_currency,
-            quantity=quantity if quantity is not None else 1,
-            account=self.account_id,
-            analytic_distribution=self.analytic_distribution,
-        )    
+    # def _convert_to_tax_base_line_dict(self, base_line=None, currency=None, price_unit=None, quantity=None):
+    #     self.ensure_one()
+    #     return self.env['account.tax']._convert_to_tax_base_line_dict(
+    #         base_line,
+    #         currency=currency or self.currency_id,
+    #         product=self.product_id,
+    #         taxes=self.tax_ids,
+    #         price_unit=self.untaxed_amount_currency,
+    #         quantity=quantity if quantity is not None else 1,
+    #         account=self.account_id,
+    #         analytic_distribution=self.analytic_distribution,
+    #     )    
     
-    def action_submit_expenses(self, **kwargs):
-        res = super().action_submit_expenses(**kwargs)
-        self._validate_ocr()
-        return res
+    # def action_submit_expenses(self, **kwargs):
+    #     res = super().action_submit_expenses(**kwargs)
+    #     self._validate_ocr()
+    #     return res
 
     # @api.model_create_multi
     # def create(self, vals_list):

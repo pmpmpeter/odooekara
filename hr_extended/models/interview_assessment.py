@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import *
+from odoo.exceptions import ValidationError, UserError
 from datetime import datetime
 
 
@@ -58,6 +59,23 @@ class InterviewAssessment(models.Model):
         'interview.panel.comments',
         'interview_assessment_id',
     )
+    state = fields.Selection([
+            ('draft', 'Draft'),
+            ('done', 'Done'),], default='draft', string='State')
+
+    def action_submit(self):
+        for record in self:
+            record.state = 'done'
+
+    def action_reset_to_draft(self):
+        for record in self:
+            record.state = 'draft'
+
+    def unlink(self):
+        for record in self:
+            if record.state == 'done':
+                raise UserError(_("Only records in the 'Draft' state can be deleted."))
+        return super().unlink()
 
 
 class InterviewPanelComments(models.Model):

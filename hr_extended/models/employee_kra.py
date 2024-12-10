@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import *
+from odoo.exceptions import ValidationError, UserError
 
 class EmployeeKra(models.Model):
     _name = "employee.kra"
@@ -19,6 +20,7 @@ class EmployeeKra(models.Model):
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
+    employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
@@ -31,6 +33,9 @@ class EmployeeKra(models.Model):
             if not record.kra_details_ids:
                 raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
             record.state = 'submit_to_supervisor'
+            template_id = self.env.ref('hr_extended.email_template_kra_submit')
+            if template_id:
+                template_id.send_mail(record.id, force_send=True)
 
     def action_cancel(self):
         for record in self:
@@ -74,4 +79,19 @@ class KraDetails(models.Model):
     employee_remark = fields.Char(string="Employee Remark")
     manager_rating = fields.Float(string="Manager Rating")
     manager_remark = fields.Char(string="Manager Remark")
-    final_score = fields.Float(string="Final Score")
+    final_score = fields.Float(string="Final Score", compute="_compute_final_score", store=True)
+
+    @api.depends('weightage', 'employee_rating', 'manager_rating')
+    def _compute_final_score(self):
+        for record in self:
+            # Ensure ratings do not exceed 100
+            employee_rating = min(record.employee_rating, 100)
+            manager_rating = min(record.manager_rating, 100)
+
+            # Calculate weighted scores
+            employee_weighted_score = (employee_rating / 100) * record.weightage
+            manager_weighted_score = (manager_rating / 100) * record.weightage
+
+            # Calculate final score
+            record.final_score = employee_weighted_score + manager_weighted_score
+

@@ -37,6 +37,7 @@
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
         'data/ir_cron_data.xml',
+        'data/mail_template_data.xml',
         'views/hr_employee_views.xml',
         'views/hr_resignation_views.xml',
     ],

@@ -81,6 +81,7 @@
                             <field name="parent_id" readonly="state in ['confirm','cancel']"/>
                         </group>
                         <group string="PROBATION">
+                            <field name="number_of_months" readonly="state in ['confirm','cancel']"/>
                             <field name="start_date" readonly="state in ['confirm','cancel']"/>
                             <field name="end_date" readonly="state in ['confirm','cancel']"/>
                         </group>
@@ -116,8 +117,14 @@
             </p>
         </field>
     </record>
+    <menuitem
+            id="probation_menu_root"
+            name="Probation"
+            parent="hr.menu_hr_root"
+            sequence="90"
+    />
     <menuitem id="probation_confirmation_menu"
-              parent="hr.menu_hr_employee_payroll"
+              parent="probation_menu_root"
               name="Employee Probation"
               action="employee_probation_action"
               sequence="7"

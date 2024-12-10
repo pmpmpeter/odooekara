@@ -14,6 +14,7 @@
                         </group>
                         <group>
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="contact_id" invisible="document_type not in ('bgv')" options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="file" filename="file_name"/>
                             <field name="file_name" invisible="1"/>                            
                         </group>

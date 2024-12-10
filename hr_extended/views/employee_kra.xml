@@ -27,6 +27,7 @@
                             <field name="employee_id" required="True" widget="many2one_avatar_user"
                                    options="{'no_quick_create':True,'no_create': True}"
                                    readonly="state not in ('draft')"/>
+                            <field name="employee_parent_id"/>
                             <field name="kra_date" required="True" readonly="state not in ('draft')"/>
                         </group>
                         <group>

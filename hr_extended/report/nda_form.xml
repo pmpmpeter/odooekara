@@ -506,53 +506,53 @@
                             by
                             the hand of then duly authorized representative.
                         </p>
-
-                        <table border="1" cellpadding="10" cellspacing="0"
-                               style="margin-left: auto; margin-right: auto;">
-                            <tr>
-                                <td style="text-align: center; font-weight: bold;">
-                                    Ekara Partnership
-                                </td>
-                                <td style="width: 50%; text-align: center; font-weight: bold;">
-                                    Employee
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Signature:
-                                </td>
-                                <td>
-                                    Signature:
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Name: Ms. Preeti–Jeevan
-                                    <br/>
-                                    Head – Human Resources
-                                </td>
-                                <td>
-                                    Name:
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Place: Bangalore
-                                </td>
-                                <td>
-                                    Place:
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    Date:
-                                </td>
-                                <td>
-                                    Date:
-                                </td>
-                            </tr>
-                        </table>
                     </div>
+
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                        <tr>
+                            <td style="text-align: center; font-weight: bold; padding: 10px;">
+                                Ekara Partnership
+                            </td>
+                            <td style="width: 50%; text-align: center; font-weight: bold; padding: 10px;">
+                                Employee
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">
+                                Signature:
+                            </td>
+                            <td style="padding: 10px;">
+                                Signature:
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">
+                                Name: Ms. Preeti–Jeevan
+                                <br/>
+                                Head – Human Resources
+                            </td>
+                            <td style="padding: 10px;">
+                                Name:
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">
+                                Place: Bangalore
+                            </td>
+                            <td style="padding: 10px;">
+                                Place:
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px;">
+                                Date:
+                            </td>
+                            <td style="padding: 10px;">
+                                Date:
+                            </td>
+                        </tr>
+                    </table>
+
                 </div>
             </t>
         </t>

@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _, Command, tools
 from odoo.exceptions import *
+from odoo.exceptions import UserError, ValidationError
 
 class PreEmpCheck(models.Model):
     _name = 'preemp.check'
@@ -11,7 +12,7 @@ class PreEmpCheck(models.Model):
 
     # applicant_id = fields.Many2one('hr.applicant', string='Applicant', ondelete='cascade')
     applicant_id = fields.Integer(string='Applicant',readonly=True)
-    candidate_name = fields.Char(string="Candidate Name",copy=False)
+    candidate_name = fields.Char(string="Candidate",copy=False)
     candidate_email = fields.Char(string="Candidate Email ID", readonly=True)
     date = fields.Date(string="Date",copy=False,default=fields.Date.context_today)
     location = fields.Char(string="Location",copy=False)
@@ -57,6 +58,26 @@ class PreEmpCheck(models.Model):
     def action_done(self):
         for rec in self:
             rec.state='done'
+            if not rec.candidate_email:
+                raise UserError(_("Candidate email is missing. Please update the email address."))
+            if not rec.referee_id or not rec.referee_phone or not rec.referee_email:
+                raise UserError(_("Referee details are incomplete. Please fill in the referee's information."))
+            if not rec.technical_skills_comments:
+                raise UserError(
+                    _("Technical skills comments are missing. Please provide comments on the candidate's technical skills."))
+            if not rec.referee_title or not rec.referee_relationship:
+                raise UserError(_("Referee details are incomplete. Please fill in the referee's information."))
+            if not rec.job_duties_comments:
+                raise UserError(
+                    _("Job duties comments are missing. Please provide comments on the candidate's job duties."))
+            if not rec.professional_skills_comments:
+                raise UserError(
+                    _("Professional skills comments are missing. Please provide comments on the candidate's professional skills."))
+            if not (
+                    rec.integrity_resources and rec.integrity_interactions and rec.responsibility_productivity and rec.maturity_composure and rec.adaptability):
+                raise UserError(_("Please complete the integrity and competency-related fields."))
+            rec.state = 'done'
+
 
     def action_send_form_pdf_mail(self):
         template = self.env.ref('hr_extended.reference_check_pdf_form_template')

@@ -21,7 +21,7 @@
 #
 #############################################################################
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 
 class HrAnnouncement(models.Model):
@@ -126,3 +126,14 @@ class HrAnnouncement(models.Model):
                 announcement.write({
                     'state': 'expired'
                 })
+
+    def unlink(self):
+        """
+        Prevent deletion of records in 'Approved' state unless performed by an admin.
+        """
+        if not self.env.is_admin():
+            if any(record.state == 'approved' for record in self):
+                raise ValidationError(
+                    _("You cannot delete a record that is in the 'Approved' state.")
+                )
+        return super(HrAnnouncement, self).unlink()

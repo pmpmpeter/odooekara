@@ -1,4 +1,6 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import *
+
 
 class HrEmployeeSmartButton(models.Model):
     _inherit = "hr.employee"
@@ -66,3 +68,12 @@ class HrEmployeeSmartButton(models.Model):
             'domain': [('employee_id', '=', self.id)],
             'target': 'current',
         }
+
+    def action_send_appointment_letter_emp_mail(self):
+        template = self.env.ref('hr_extended.mail_appointment_letter_employee')
+        for rec in self:
+            recipient_email = rec.private_email
+            if not recipient_email:
+                raise UserError(_("The recipient does not have a valid email address."))
+
+            template.send_mail(rec.id, force_send=True)

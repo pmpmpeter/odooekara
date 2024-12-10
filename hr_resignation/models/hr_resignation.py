@@ -47,6 +47,7 @@ class HrResignation(models.Model):
                                       self: self.env.user.employee_id.id,
                                   help='Name of the employee for '
                                        'whom the request is creating')
+    employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
     department_id = fields.Many2one('hr.department', string="Department",
                                     related='employee_id.department_id',
                                     help='Department of the employee')
@@ -169,6 +170,9 @@ class HrResignation(models.Model):
                     _('Please set a Joining Date for employee'))
             resignation.state = 'confirm'
             resignation.resign_confirm_date = str(fields.Datetime.now())
+            template_id = self.env.ref('hr_resignation.email_template_resignation_confirm')
+            if template_id:
+                template_id.send_mail(resignation.id, force_send=True)
 
     def action_cancel_resignation(self):
         """
@@ -185,6 +189,9 @@ class HrResignation(models.Model):
         """
         for resignation in self:
             resignation.state = 'cancel'
+            template_id = self.env.ref('hr_resignation.email_template_resignation_reject')
+            if template_id:
+                template_id.send_mail(resignation.id, force_send=True)
 
     def action_reset_to_draft(self):
         """
@@ -217,6 +224,9 @@ class HrResignation(models.Model):
                         resignation.approved_revealing_date = (
                                 resignation.resign_confirm_date + timedelta(
                             days=contract.notice_days))
+                        template_id = self.env.ref('hr_resignation.email_template_resignation_approve')
+                        if template_id:
+                            template_id.send_mail(resignation.id, force_send=True)
                     else:
                         resignation.approved_revealing_date = (
                             resignation.expected_revealing_date)

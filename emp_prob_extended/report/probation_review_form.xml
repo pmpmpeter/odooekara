@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_probation_form_pdf_A4" model="report.paperformat">
+        <field name="name">NDA Form</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">20</field>
+        <field name="margin_right">20</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="report_probation_review_template" model="ir.actions.report">
+        <field name="name">Probation Review</field>
+        <field name="model">employee.probation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">emp_prob_extended.print_report_probation_review_form</field>
+        <field name="report_file">emp_prob_extended.print_report_probation_review_form</field>
+        <field name="paperformat_id" ref="emp_prob_extended.paperformat_probation_form_pdf_A4"/>
+        <field name="print_report_name">'report_probation_review_form'</field>
+        <field name="binding_model_id" ref="emp_prob_extended.model_employee_probation"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="print_report_probation_review_form">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="doc">
+                <!--page1-->
+                <div style="margin-left: 25px; margin-right: 25px;" class="page">
+                    <h5 style="text-align: center; font-weight: bold; text-decoration: underline;">PROBATION REVIEW
+                        FORM
+                    </h5>
+                    <P>Probation Record</P>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Employee name:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <!-- Second Row -->
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;width: 50%;">Job Title:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px;">
+                                <!--                                <select style="width: 100%; padding: 4px;">-->
+                                <!--                                    <option value="">Select...</option>-->
+                                <!--                                </select>-->
+                            </td>
+                        </tr>
+                        <!-- Additional Rows -->
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; width: 50%;">Grade:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; width: 50%;">Department / Section:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; width: 50%;">Date of Joining:</td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; width: 50%;">Reporting Manager Name and
+                                Designation:
+                            </td>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px; ">Date Due</td>
+                            <td style="border: 1px solid black; padding: 8px; ">Please select Date when completed</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;">3-month review:</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;">6-month review:</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+
+                        </tr>
+                    </table>
+
+                    <div>
+                        <br/>
+                        <br/>
+                        <h5>
+                            <U>PART 1 – First review (3 months from Date of Joining)</U>
+                        </h5>
+                        <P>To be completed by the Reporting Manager in discussion with the employee.</P>
+                    </div>
+                    <br/>
+                    <br/>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
+                        <tr>
+                            <th style="border: 1px solid black; padding: 8px; ">(please tick)</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Improvement required</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Satisfactory</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Good</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Excellent</th>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Quality and accuracy of work</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Efficiency</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Attendance</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Time Keeping</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Work relationships (team work and
+                                interpersonal communication skills)
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;height:100px; ">If any areas of
+                                performance,
+                                conduct or attendance require improvement please provide details below.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">Where concerns
+                                have been
+                                identified, please summarise how these will be addressed during the remaining period of
+                                probation.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;height:100px; ">Summarise the
+                                employee’s
+                                performance and progress over the period
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" rowspan="2" style="border: 1px solid black; padding: 8px; height:150px;">
+                                Have the objectives identified for the period of the probation
+                                been met?
+                            </td>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td style="border: 1px solid black; padding: 8px; ">If NO, what further action is
+                                required?
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">Review Date</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px;height:100px; ">Have the
+                                training/development needs identified for this period of probation
+                                been addressed?
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">Employee's Signature:</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">Manager's Signature:</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">Date:</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+
+                    </table>
+                    <br></br>
+                    <h5>
+                        <u style="width:100%;">PART 2 – Final Review</u>
+                    </h5>
+                    <P>To be completed by Reporting Manager in discussion with the employee.</P>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
+                        <tr>
+                            <th style="border: 1px solid black; padding: 8px; ">(please tick)</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Improvement required</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Satisfactory</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Good</th>
+                            <th style="border: 1px solid black; padding: 8px; ">Excellent</th>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Quality and accuracy of work</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Efficiency</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Attendance</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Time Keeping</td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Work relationships (team work and
+                                interpersonal communication skills)
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                            <td style="border: 1px solid black; padding: 8px; "></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; height:100px;">Have the objectives
+                                identified for the probationary period been met?
+                            </td>
+                            <td rowspan="2" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">If NO, please provide
+                                details
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"></td>
+
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;height:100px; ">Have the training/development needs
+                                identified for this period of probation
+                                been addressed?
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; "></td>
+                            <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">Summarise the employee’s
+                                performance and progress over the period
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; ">Is the employee’s
+                                appointment to be confirmed?
+                            </td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">If NO, please provide
+                                reasons below and summarise what action has been taken to address any difficulties which
+                                have arisen during the probationary period.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; height:100px;">The employee may provide any
+                                comments about their experience of the probationary process here.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 8px; height:50px;">Should the employee’s
+                                probationary period be extended?
+                            </td>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">YES / NO</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px; ">If YES, please provide
+                                reasons and, where appropriate, specify any areas of improvement required and how these
+                                will be monitored.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Length of the extension (max 3
+                                months):
+                            </td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">New Probation Period completion date:
+                            </td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Employee’s signature:</td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Manager’s signature:</td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px; ">Date:</td>
+                            <td colspan="5" style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="border: 1px solid black; padding: 8px; ">>The employee has received a letter confirming his satisfactory completion of probation period</td>
+                            <td style="border: 1px solid black; padding: 8px; ">YES</td>
+                            <td style="border: 1px solid black; padding: 8px; ">NO</td>
+                        </tr>
+
+                        <!--                        <tr>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                        </tr>-->
+                        <!--                        <tr>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; ">Competency in the role</td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
+                        <!--                        </tr>-->
+                    </table>
+
+
+                </div>
+
+
+            </t>
+        </t>
+    </template>
+</odoo>

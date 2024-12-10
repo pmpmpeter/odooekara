@@ -198,21 +198,21 @@
         <field name="auto_delete" eval="True"/>
     </record>
 
-<!--    <record id="email_template_interview_assessment" model="mail.template">-->
-<!--        <field name="name">Interview Assessment - PDF</field>-->
-<!--        <field name="model_id" ref="hr_extended.model_hr_applicant"/>-->
-<!--        <field name="email_from">{{object.user_id.partner_id.email}}</field>-->
-<!--        <field name="email_to">{{object.email_from}}</field>-->
-<!--        <field name="subject">Interview Assessment</field>-->
-<!--        <field name="body_html">-->
-<!--            <![CDATA[-->
-<!--            <p>Hello,</p>-->
-<!--            <p>Please find the attached interview assessment report</p>-->
-<!--            <p>Regards,<br/> HR Team</p>-->
-<!--            ]]>-->
-<!--        </field>-->
-<!--        <field name="report_template_ids" eval="[(4, ref('hr_extended.interview_assessment_template'))]"/>-->
-<!--    </record>-->
+    <!--    <record id="email_template_interview_assessment" model="mail.template">-->
+    <!--        <field name="name">Interview Assessment - PDF</field>-->
+    <!--        <field name="model_id" ref="hr_extended.model_hr_applicant"/>-->
+    <!--        <field name="email_from">{{object.user_id.partner_id.email}}</field>-->
+    <!--        <field name="email_to">{{object.email_from}}</field>-->
+    <!--        <field name="subject">Interview Assessment</field>-->
+    <!--        <field name="body_html">-->
+    <!--            <![CDATA[-->
+    <!--            <p>Hello,</p>-->
+    <!--            <p>Please find the attached interview assessment report</p>-->
+    <!--            <p>Regards,<br/> HR Team</p>-->
+    <!--            ]]>-->
+    <!--        </field>-->
+    <!--        <field name="report_template_ids" eval="[(4, ref('hr_extended.interview_assessment_template'))]"/>-->
+    <!--    </record>-->
 
     <!-- Refuse reason Template-->
     <record id="email_template_rejection_ekara" model="mail.template">
@@ -256,6 +256,294 @@
         </field>
         <field name="auto_delete" eval="True"/>
         <field name="lang">{{ object.partner_id.lang or '' }}</field>
+    </record>
+
+    <record id="email_template_kra_submit" model="mail.template">
+        <field name="name">KRA Submit</field>
+        <field name="model_id" ref="model_employee_kra"/>
+        <field name="subject">KRA Submit To Supervisor</field>
+        <field name="email_from">{{ user.email_formatted }}</field>
+        <field name="email_to">${{ object.employee_parent_id.work_email }}</field>
+        <field name="partner_to">${{ object.employee_parent_id.id }}</field>
+        <field name="body_html">
+            <![CDATA[
+        <p>Dear <t t-esc="object.employee_parent_id.name"/>,</p>
+        <p>This is to notify you that <t t-esc="object.employee_id.name"/> has submitted their KRA for review.</p>
+        <p><strong>Submission Date:</strong> <t t-esc="object.kra_date"/></p>
+        <p><strong>Job Position:</strong> <t t-esc="object.emp_job_id.name"/></p>
+        <p>Please review the submitted KRA and take the necessary action.</p>
+        <p>Best regards,</p>
+        <p><t t-esc="object.employee_id.name"/></p>
+        ]]>
+        </field>
+    </record>
+
+    <record id="mail_template_bgv" model="mail.template">
+        <field name="name">BGV Email Template</field>
+        <field name="model_id" ref="hr_extended.model_joining_documents"/>
+        <!--            <field name="email_from">{{ object.company_id.email }}</field>-->
+        <field name="email_to">{{object.contact_id.email}}</field>
+        <field name="subject">Background Verification Email</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    <t t-out="object.subject"/>
+                </p>
+            </div>
+
+        </field>
+    </record>
+
+    <record id="mail_appointment_letter_employee" model="mail.template">
+        <field name="name">Appointment Letter Email Template</field>
+        <field name="model_id" ref="hr_extended.model_hr_employee"/>
+        <field name="email_to">{{object.private_email}}</field>
+        <field name="report_template_ids" eval="[(4, ref('hr_extended.appointment_letter_emp_template'))]"/>
+        <field name="subject">Appointment Letter</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear
+                    <t t-out="object.name"/>
+                    ,
+                    <br/>
+                    Please find the attachment of your Appointment Letter for your reference.
+                    <br/>
+                    This letter outlines the terms and
+                    conditions of your employment with
+                    <t t-out="object.company_id.name"/>
+                    <br/>
+                </p>
+            </div>
+
+        </field>
+    </record>
+
+    <!-- have to change the model and email_to based on the use - tested working -->
+    <record id="mail_appraisal_lettersss" model="mail.template">
+        <field name="name">Appraisal Letter</field>
+        <field name="model_id" ref="hr_extended.model_hr_employee"/>
+        <field name="email_from">{{ object.company_id.email }}</field>
+        <field name="email_to">{{object.company_id.email}}</field>
+        <field name="subject">Appraisal Letter</field>
+        <field name="body_html" type="html">
+            <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width: 100%;">
+                <h4 align="center">
+                    <u>Confidential</u>
+                </h4>
+                <br/>
+                <br/>
+
+                <p>Date:
+                    <br/>
+                    <br/>
+                    <span style="font-weight:bold;">
+                        Name:
+                        <!--                            <t t-out="object.name"/>,-->
+                    </span>
+                    <br/>
+                    <span style="font-weight:bold;">Designation:</span>
+                    <br/>
+                    <span style="font-weight:bold;">Employee ID:</span>
+                    <br/>
+                    <br/>
+                    <span style="font-weight:bold;">Subject :Letter of Increment and Salary Breakup Re-structure.</span>
+                    <br/>
+                    <br/>
+
+
+                    <span style="font-weight:bold;">Dear,</span>
+                    <br/>
+                    <br/>
+                    In recognition to your performance, we are pleased to inform you that your compensation has been
+                    revised and you will be entitled to get the CTC of <b>Rs …….</b> per annum (Rupees …… only) ,with
+                    effect from Month Date, Year
+                    <br/>
+                    <br/>
+
+                    Your compensation is subject to tax deductions and other statutory levies as applicable. The
+                    break-up of the compensation will be as per the Annexure given below.
+                    <br/>
+                    <br/>
+
+                    All other terms and conditions of your employment remain unaltered. Your salary details are strictly
+                    private and confidential and details in this letter must not be disclosed or discussed with others.
+                    <br/>
+                    <br/>
+
+                    Please acknowledge your acceptance of the revised terms by signing the duplicate copy of this
+                    letter.
+
+                    <br/>
+                    <br/>
+                    Thank you for being part of the <b>Ekara Partnership</b> Family.
+
+                    <br/>
+                    <br/>
+                    With Best Wishes,
+                    <br/>
+                    <br/>
+                    <b>
+                        Bhairavi M Shibulal
+                        <br/>
+                        Director
+                        <br/>
+                        Ekara Partnership,
+                        <br/>
+                        Bangalore
+                    </b>
+                </p>
+            </div>
+            <div>
+                <h4 align="center">ANNEXURE</h4>
+                <br/>
+                <span>Name</span>
+                <br/>
+                <br/>
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
+                    <tr>
+                        <td colspan="3" style="border: 1px solid black; padding: 8px;height:100px;">
+                            <h4 align="center">ANNEXURE</h4>
+                            <br/>
+                            <span style="font-weight:bold;">Name :</span>
+                            <br/>
+                            <span style="font-weight:bold;">Designation :</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3"
+                            style="border: 1px solid black; padding: 8px;text-align: center;font-weight:bold;">Salary
+                            Structure with effect from Date
+                        </td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <th style="border: 1px solid black; padding: 8px;">Particulars</th>
+                        <th style="border: 1px solid black; padding: 8px;">Per Annum</th>
+                        <th style="border: 1px solid black; padding: 8px;">Per Month</th>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part - A (Fixed Pay)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Basic &amp; DA</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;House Rent Allowance</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Special Allowance</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part A)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – B (Statutory
+                            payments)
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Statutory Bonus</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Provident Fund (Employer's
+                            Contribution)
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;ESIC (Employer's Contribution)
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part B)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – C (Variable Pay)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Variable Pay</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part C)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">TOTAL SALARY (A + B + C)
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part D (Other Benefits)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Medical Insurance **</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Group Personal Accidental
+                            Insurance***
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part D)</td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                    <tr style="background-color:#e7e6e6;">
+                        <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Total Cost to the Company (A
+                            + B + C + D)
+                        </td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                        <td style="border: 1px solid black; padding: 8px;"></td>
+                    </tr>
+                </table>
+                <br>
+                    * Payable as per the Variable Pay Policy of the Company
+                </br>
+                With Best Wishes,
+                <br/>
+                <br/>
+                <b>
+                    Bhairavi M Shibulal
+                    <br/>
+                    Director
+                    <br/>
+                    Ekara Partnership,
+                    <br/>
+                    Bangalore
+                </b>
+            </div>
+        </field>
     </record>
 
 </odoo>

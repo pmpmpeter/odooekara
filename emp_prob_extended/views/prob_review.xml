@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="probation_review_form_tree_view" model="ir.ui.view">
+        <field name="name">prob.review.form.tree</field>
+        <field name="model">prob.review.form</field>
+        <field name="arch" type="xml">
+            <tree string="Probation Review">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="probation_review_form_form_view" model="ir.ui.view">
+        <field name="name">prob.review.form.form</field>
+        <field name="model">prob.review.form</field>
+        <field name="arch" type="xml">
+            <form string="Probation Review Form">
+                <group>
+                    <group>
+                        <field name="name"/>
+                        <field name="job_title"/>
+                        <field name="grade"/>
+                        <field name="department"/>
+                    </group>
+                    <group>
+                        <field name="date_of_joining"/>
+                        <field name="reporting_manager"/>
+                        <field name="reporting_manager_designation"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Three Month Review">
+                        <field name="three_month_review_due"/>
+                        <field name="three_month_review_completed"/>
+                    </group>
+                    <group string="Six Month Review">
+                        <field name="six_month_review_due"/>
+                        <field name="six_month_review_completed"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page string="Part 1A">
+                        <group string="First review (3 months from Date of Joining)">
+                            <group>
+                                <field name="quality_of_work"/>
+                                <field name="efficiency"/>
+                                <field name="attendance"/>
+                            </group>
+                            <group>
+                                <field name="time_keeping"/>
+                                <field name="work_relationships"/>
+                                <field name="competency_in_role"/>
+                            </group>
+                            <group string="Performance Details">
+                                <div style="width:1000px; font-weight:bold;">
+                                    <label for="performance_improvement_details"/>
+                                    <field name="performance_improvement_details" placeholder="Enter Comments here..." no_label="1"/>
+
+                                    <label for="concerns_addressed_summary"/>
+                                    <field name="concerns_addressed_summary" placeholder="Enter Comments here..." no_label="1"/>
+
+                                    <label for="performance_progress_summary"/>
+                                    <field name="performance_progress_summary" placeholder="Enter Comments here..." no_label="1"/>
+                                </div>
+                            </group>
+                        </group>
+                    </page>
+                    <page string="Part - 1B">
+                        <div style="width:1150px; font-weight:bold;">
+                            <label for="objectives_met"/>
+                            <field name="objectives_met" no_label="1"/>
+                            <label for="objectives_review_date" invisible="objectives_met != 'no'"/>
+                            <field name="objectives_review_date" no_label="1" invisible="objectives_met != 'no'"/>
+                            <field name="objectives_met_reason" placeholder="Enter Comments here..." invisible="objectives_met != 'no'"/>
+
+                            <label for="training_needs_met"/>
+                            <field name="training_needs_met" no_label="1"/>
+                            <label for="training_review_date" invisible="training_needs_met != 'no'"/>
+                            <field name="training_review_date" no_label="1" invisible="training_needs_met != 'no'"/>
+                            <field name="training_needs_met_reason" placeholder="Enter Comments here..." invisible="training_needs_met != 'no'"/>
+                        </div>
+                        <group>
+                            <field name="employee_signature_id"/>
+                            <field name="manager_signature_id"/>
+                            <field name="date_part_1"/>
+                        </group>
+                    </page>
+                    <page string="">
+
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
+    <record id="probation_review_form_action" model="ir.actions.act_window">
+        <field name="name">Probation Review Form</field>
+        <field name="res_model">prob.review.form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Probation Review!
+            </p>
+        </field>
+    </record>
+    <menuitem id="probation_review_form_menu"
+              parent="probation_menu_root"
+              name="Probation Review Form"
+              action="probation_review_form_action"
+              sequence="8"
+    />
+</odoo>
+
+
+

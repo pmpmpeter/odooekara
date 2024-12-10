@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _, Command, tools
 from odoo.exceptions import *
+from odoo.exceptions import UserError, ValidationError
 
 
 class RecruitmentStage(models.Model):
@@ -227,7 +228,7 @@ class Job_Applicant(models.Model):
 
     def action_send_first_invitiation(self):
         next_stage = self.get_next_stage_name_applicant()
-        letter_heading = 'Invitation Letter - ' + str(next_stage) 
+        letter_heading = 'Invitation Letter - ' + str(next_stage)
         vals = {
             'applicant_id': self.id,
             'user_id': self.user_id.id,
@@ -352,10 +353,12 @@ class Job_Applicant(models.Model):
                         'subject': doc.subject,
                         'employee_id': employee.id,
                         'reference_file': doc.file,
+                        'reference_filename': doc.file_name,
                         'job_position_id': employee.job_id.id,
                         'department_id': employee.department_id.id,
                         'company_id': doc.company_id.id,
                         'joining_date': self.availability,
+                        'contact_id': doc.contact_id.id if doc.document_type == 'bgv' and doc.contact_id else False,
                     }
                     joining_record = joining_doc_employee.sudo().create(vals)
 

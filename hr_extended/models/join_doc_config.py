@@ -30,3 +30,5 @@ class EmployeeJoinDocConfig(models.Model):
     file_name = fields.Char(string="File Name")
     subject = fields.Html(string="Subject")
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
+

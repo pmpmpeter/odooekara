@@ -16,7 +16,9 @@
             <t t-foreach="docs" t-as="doc">
                 <div class="page">
                     <!-- Title -->
-                    <h4 style="text-align: center;font-weight: bold; text-decoration: underline;">INTERVIEW ASSESSMENT SHEET</h4>
+                    <h4 style="text-align: center;font-weight: bold; text-decoration: underline;">INTERVIEW ASSESSMENT
+                        SHEET
+                    </h4>
                     <br/>
                     <br/>
 
@@ -40,7 +42,7 @@
                                 </td>
                                 <td style="border: 1px solid black; padding: 5px;">
                                     <strong>Nature of Employment:</strong>
-                                    <t t-esc="doc.nature_of_employment"/>
+                                    <t t-esc="doc.nature_of_employment.name"/>
                                 </td>
                             </tr>
                             <tr>
@@ -157,13 +159,15 @@
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
                         <tbody>
                             <tr>
-                                <td style="border: 1px solid black; padding: 5px; height: 70px;"><strong>Functional:</strong>
+                                <td style="border: 1px solid black; padding: 5px; height: 70px;">
+                                    <strong>Functional:</strong>
                                     <t t-esc="doc.functional_comments"/>
                                 </td>
 
                             </tr>
                             <tr>
-                                <td style="border: 1px solid black; padding: 5px; height: 70px;"><strong>HR:</strong>
+                                <td style="border: 1px solid black; padding: 5px; height: 70px;">
+                                    <strong>HR:</strong>
                                     <t t-esc="doc.hr_comments"/>
                                 </td>
                             </tr>
@@ -184,81 +188,91 @@
                         </p>
                     </div>
 
-                    <div class="row" style="page-break-before:always;">
-                        <h4 style="font-weight: bold; text-decoration: underline;">Candidates:</h4>
-                        <br/>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
-                            <tbody>
-                                <tr>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>Designation / Position to be
-                                        Offered:</strong>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>Division / Business Unit</strong></td>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>Grade / Level:</strong></td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="doc.position_offered"/>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="doc.division"/>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="doc.grade_level"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <br/>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
-                            <tbody>
-                                <tr>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>Notice Period:</strong></td>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>CTC Recommended:</strong></td>
-                                    <td style="border: 1px solid black; padding: 5px;"><strong>Expected Date of Joining:</strong></td>
-                                </tr>
-                                <tr>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="doc.notice_period"/>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="'{:,}'.format(doc.ctc_recommended)"/>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <t t-esc="doc.expected_date_of_joining"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <br/>
-                        <!-- Final Comments -->
-                        <h4 style="font-weight: bold; text-decoration: underline;">Final Comments by the Panel</h4>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
-                            <thead>
-                                <tr>
-                                    <th style="border: 1px solid black; padding: 5px;">Name of Panel Member</th>
-                                    <th style="border: 1px solid black; padding: 5px;">Designation &amp; Department</th>
-                                    <th style="border: 1px solid black; padding: 5px;">Final Comments</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Loop through panel_comment_ids (One2many field) -->
-                                <tr t-foreach="doc.panel_comments_ids" t-as="line">
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <span t-field="line.panel_member_name"/>
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <span t-field="line.panel_member_designation"/> &amp;
-                                        <span t-field="line.panel_member_department"/>
+                    <h4 style="font-weight: bold; text-decoration: underline;">Candidates:</h4>
+                    <br/>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                        <tbody>
+                            <tr>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Designation / Position to be
+                                        Offered:
+                                    </strong>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Division / Business Unit</strong>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Grade / Level:</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="doc.position_offered.name"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="doc.division"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="doc.grade_level"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                        <tbody>
+                            <tr>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Notice Period:</strong>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>CTC Recommended:</strong>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Expected Date of Joining:</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="doc.notice_period"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="'{:,}'.format(doc.ctc_recommended)"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <t t-esc="doc.expected_date_of_joining"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <!-- Final Comments -->
+                    <h4 style="font-weight: bold; text-decoration: underline;">Final Comments by the Panel</h4>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid black; padding: 5px;">Name of Panel Member</th>
+                                <th style="border: 1px solid black; padding: 5px;">Designation &amp; Department</th>
+                                <th style="border: 1px solid black; padding: 5px;">Final Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Loop through panel_comment_ids (One2many field) -->
+                            <tr t-foreach="doc.panel_comments_ids" t-as="line">
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <span t-field="line.panel_member_name"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <span t-field="line.panel_member_designation"/> &amp;
+                                    <span t-field="line.panel_member_department"/>
 
-                                    </td>
-                                    <td style="border: 1px solid black; padding: 5px; height: 50px;">
-                                        <span t-field="line.final_comments"/>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px; height: 50px;">
+                                    <span t-field="line.final_comments"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </t>
         </t>

@@ -23,6 +23,8 @@
                 </button>
             </xpath>
             <xpath expr="//header" position="inside">
+                <button name="action_send_appointment_letter_emp_mail" type="object" class="oe_highlight"
+                            string="Send Appointment Letter"/>
                 <button string="NDA" type="action"
                         name="%(hr_extended.nda_form_template)d" class="btn-primary" invisible="1"/>
                 <button string="Media Declare" type="action"

@@ -50,6 +50,7 @@ class EmployeeProbation(models.Model):
 
     start_date = fields.Date('Start Date', compute='_compute_start_date', store=True)
     end_date = fields.Date('End Date', compute='_compute_end_date', store=True)
+    number_of_months = fields.Integer(string='Number of Months', default=3, store=True, copy=False)
 
     @api.onchange('employee_id')
     def _compute_start_date(self):
@@ -64,12 +65,14 @@ class EmployeeProbation(models.Model):
             else:
                 record.start_date = False
 
-    @api.onchange('start_date')
+    @api.onchange('start_date','number_of_months')
     def _compute_end_date(self):
         for record in self:
-            if record.start_date:
-                record.end_date = (fields.Date.from_string(record.start_date) + relativedelta(months=3)).replace(
-                    day=1) - timedelta(days=1)
+            if record.number_of_months > 12 or record.number_of_months <= 0:
+                raise UserError("The number of months between 0 and 12.")
+
+            if record.start_date and record.number_of_months:
+                record.end_date = fields.Date.to_date(record.start_date) + relativedelta(months=record.number_of_months)
             else:
                 record.end_date = False
 
@@ -103,7 +106,7 @@ class EmployeeProbation(models.Model):
         })
 
         # Send the email with the attachment
-        template = self.env.ref('emp_prob_extended.probation_confirmation_email_template')
+        template = self.env.ref('emp_prob_extended.mail_probation_confirmation_mailsss')
         template.send_mail(self.id, force_send=True, email_values={
             'attachment_ids': [(6, 0, [attachment.id])]
         })

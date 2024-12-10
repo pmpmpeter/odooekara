@@ -21,16 +21,18 @@ class AccountMoveLine(models.Model):
             attachment_domains.append([('res_model', '=', 'hr.expense'), ('res_id', '=', self.expense_id.id)])
         return attachment_domains
 
-    # def _compute_tax_key(self):
-    #     super()._compute_tax_key()
-    #     for line in self:
-    #         if line.expense_id:
-    #             line.tax_key = frozendict(**line.tax_key, expense_id=line.expense_id.id)
+    def _compute_tax_key(self):
+        super()._compute_tax_key()
+        for line in self:
+            if line.expense_id:
+                pass
+                # line.tax_key = frozendict(**line.tax_key, expense_id=line.expense_id.id)
 
     def _compute_all_tax(self):
         expense_lines = self.filtered('expense_id')
-        super(AccountMoveLine, expense_lines)._compute_all_tax()
-        super(AccountMoveLine, self - expense_lines)._compute_all_tax()
+        super(AccountMoveLine, self)._compute_all_tax()
+        # super(AccountMoveLine, expense_lines)._compute_all_tax()
+        # super(AccountMoveLine, self - expense_lines)._compute_all_tax()
         # for line in expense_lines:
         #     for key in list(line.compute_all_tax.keys()):
         #         pdb.set_trace()
@@ -52,4 +54,5 @@ class AccountMoveLine(models.Model):
         return result
 
     def _get_extra_query_base_tax_line_mapping(self):
-        return ' AND (base_line.expense_id IS NULL OR account_move_line.expense_id = base_line.expense_id)'
+        pass
+        # return ' AND (base_line.expense_id IS NULL OR account_move_line.expense_id = base_line.expense_id)'
