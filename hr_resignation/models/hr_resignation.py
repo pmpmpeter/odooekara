@@ -117,10 +117,10 @@ class HrResignation(models.Model):
             resignation_request = self.env['hr.resignation'].search(
                 [('employee_id', '=', resignation.employee_id.id),
                  ('state', 'in', ['confirm', 'approved'])])
-            if resignation_request:
-                raise ValidationError(
-                    _('There is a resignation request in confirmed or'
-                      ' approved state for this employee'))
+            # if resignation_request:
+            #     raise ValidationError(
+            #         _('There is a resignation request in confirmed or'
+            #           ' approved state for this employee'))
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
@@ -132,10 +132,10 @@ class HrResignation(models.Model):
             resignation_request = self.env['hr.resignation'].search(
                 [('employee_id', '=', self.employee_id.id),
                  ('state', 'in', ['confirm', 'approved'])])
-            if resignation_request:
-                raise ValidationError(
-                    _('There is a resignation request in confirmed or'
-                      ' approved state for this employee'))
+            # if resignation_request:
+            #     raise ValidationError(
+            #         _('There is a resignation request in confirmed or'
+            #           ' approved state for this employee'))
             employee_contract = self.env['hr.contract'].search(
                 [('employee_id', '=', self.employee_id.id)])
             for contracts in employee_contract:
