@@ -15,11 +15,10 @@ class Employee(models.Model):
                                               compute='_compute_employee_probation', default=0, copy=False)
 
     def _compute_employee_probation(self):
-        for record in self:
-            domain = [('employee_id', '=', record.id)]
-            employee_probation_ids = self.env['employee.probation'].sudo().search(domain)
-            record.employee_probation_ids = employee_probation_ids
-            record.employee_probation_count = len(employee_probation_ids)
+        for employee in self:
+            employee_probation_ids = self.env['employee.probation'].sudo().search([('employee_id', '=', employee.id)])
+            employee.employee_probation_ids = employee_probation_ids
+            employee.employee_probation_count = len(employee_probation_ids)
 
     def action_get_employee_probation(self):
         action = self.env.ref('emp_prob_extended.employee_probation_action')

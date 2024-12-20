@@ -19,8 +19,8 @@
                         type="object" invisible="state not in ('employment')"/>
                 <button name="action_relived" string="Relieved" type="object"
                         invisible="state not in ('notice_period')"/>
-                <button name="action_terminate" string="Terminate" type="object"
-                        invisible="state not in ('grounding','employment')"/>
+<!--                <button name="action_terminate" string="Terminate" type="object"-->
+<!--                        invisible="state not in ('grounding','employment')"/>-->
                 <field name="state" widget="statusbar"
                        statusbar_visible="joined,grounding,employment"/>
             </xpath>

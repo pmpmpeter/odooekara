@@ -50,7 +50,7 @@
                             name="action_reject_resignation"
                             invisible="state in ('draft','confirm','hr_approved','cancel')"
                             class="oe_highlight"/>
-                    <button string="Send Reliving Letter" type="object"
+                    <button string="Send Relieving Letter" type="object"
                             groups="hr.group_hr_user"
                             name="action_send_reliving_letter"
                             invisible="state in ('draft','confirm','manager_approved','cancel')"
@@ -113,7 +113,7 @@
         <field name="res_model">hr.resignation</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('state', 'in', ('draft',
-            'confirm','cancel'))]
+            'confirm','cancel','manager_approved'))]
         </field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Create the First Resignation
@@ -125,7 +125,7 @@
         <field name="name">Approved Resignation</field>
         <field name="res_model">hr.resignation</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('state', '=', 'approved')]</field>
+        <field name="domain">[('state', '=', 'hr_approved')]</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Approved Resignation
             </p>
