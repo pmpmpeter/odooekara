@@ -103,7 +103,7 @@ class PurchaseOrderInherit(models.Model):
         for order in self.filtered(lambda c: c.state in ['draft', 'sent', 'to approve']):
             if not order.budget_id:
                 raise UserError(_("Alert !! Please select the budget."))
-            if order.budget_id.state not in ['done']:
+            if order.budget_id.crossovered_budget_id.state not in ['done']:
                 raise UserError(_("Alert !! The Budget is not approved."))
             if not order.order_line:
                 raise UserError(_("Alert !! Please select Products."))
