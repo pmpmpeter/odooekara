@@ -1,5 +1,20 @@
 <odoo>
 
+    <record id='custom_hr_expense_inherited_tree' model='ir.ui.view'>
+       <field name="name">custom.hr.expense.inherited.tree</field>
+       <field name="model">hr.expense</field>
+       <field name="inherit_id" ref="hr_expense.hr_expense_view_expenses_analysis_tree"/>
+       <field name="arch" type="xml">
+           <xpath expr="//field[@name='company_id']" position="after">
+               <field name="is_payment_approval"/>
+           </xpath>
+            <!-- <xpath expr="//field[@name='payment_mode']" position="replace">
+                <field name="payment_mode" optional="show" readonly="not is_editable" 
+                    column_invisible="not is_payment_approval"/>
+           </xpath> -->
+       </field>
+    </record>
+
     <record id="hr_expense.hr_expense_actions_my_all" model="ir.actions.act_window">
         <field name="name">My Expenses</field>
         <field name="res_model">hr.expense</field>
@@ -66,6 +81,12 @@
                     </header>
                     <sheet>
                         <div class="oe_title">
+                            <h1>
+                                <field name="sequence"/>
+                            </h1>
+                        </div>
+                        <div class="oe_title">
+
                             <label for="name"/>
                             <h1>
                                 <field name="name" placeholder="e.g. Lunch with Customer" readonly="not is_editable"
@@ -91,12 +112,15 @@
                                 <field name="currency_rate" invisible="1"/>
                                 <field name="product_uom_category_id" invisible="1"/>
                                 <field name="is_payment_approval" invisible="1"/>
-                                <field name="supplier_id"/>
+                                <field name="supplier_id" 
+                                    domain="[('state','=','approve'),('is_vendor','=',True)]" 
+                                    force_save="1" options="{'no_quick_create':True,'no_create': True}"/>
 
                                 <label for="product_id"/>
                                 <div>
                                     <field name="product_id" required="1" readonly="not is_editable"
-                                           context="{'default_detailed_type': 'service', 'default_can_be_expensed': 1, 'tree_view_ref': 'hr_expense.product_product_expense_tree_view', 'form_view_ref': 'hr_expense.product_product_expense_form_view'}"
+                                           context="{'default_detailed_type': 'service', 'default_can_be_expensed': 1, 'tree_view_ref': 'hr_expense.product_product_expense_tree_view', 'form_view_ref': 'hr_expense.product_product_expense_form_view'}" 
+                                           options="{'no_quick_create':True,'no_create': True}"
                                            class="w-100"/>
                                     <div class="fst-italic"
                                          invisible="not is_editable or not product_description or not product_id">

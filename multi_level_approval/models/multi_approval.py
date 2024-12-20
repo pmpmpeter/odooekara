@@ -10,7 +10,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 import base64
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -199,7 +198,8 @@ class MultiApproval(models.Model):
                 return False
             line = rec.line_id
 
-            model_display_name = self.env['ir.model'].sudo().search([('model', '=', self.type_id.model_id)], limit=1).name
+            model_display_name = self.env['ir.model'].sudo().search([('model', '=', self.type_id.model_id)],
+                                                                    limit=1).name
             log_msg = _("{} - {} has been approved by {}!").format(line.name, model_display_name, self.env.user.name)
             if log_msg and hasattr(rec.origin_ref, "message_post"):
                 rec.origin_ref.message_post(body=log_msg)
@@ -315,7 +315,7 @@ class MultiApproval(models.Model):
         if requests and notify_type:
             activities = requests.mapped("activity_ids").filtered(
                 lambda a: a.activity_type_id == notify_type
-                and a.user_id == self.env.user
+                          and a.user_id == self.env.user
             )
             activities._action_done(msg)
 
@@ -361,38 +361,45 @@ class MultiApproval(models.Model):
     # 12.0.1.3
     def send_request_mail(self):
         requests = self.filtered(
-            lambda r:
-             r.pic_id
+            lambda r: r.type_id.mail_notification and
+            r.pic_id
             and r.state == "Submitted"
         )
         for req in requests:
-            for user in req.pic_id:
-                print("Sending request to: %s", user.name)
-                template = self.env.ref('hr_extended.employee_indent_approval_request_email')  # Email template
-                report_action = self.env.ref('hr_extended.action_employee_indent_report')
-                if not report_action:
-                    raise ValueError("Report action 'hr_extended.action_employee_indent_report' not found.")
-                pdf_content ,content= report_action._render_qweb_pdf(report_action.id,res_ids=self.origin_ref.ids)
+            # Check if origin_ref is of type 'employee.indent'
+            if req.origin_ref and req.origin_ref._name == 'employee.indent':
+                # New behavior for 'employee.indent' model
+                for user in req.pic_id:
+                    print("Sending request to: %s", user.name)
+                    print(self.origin_ref.name, "origin_ref")
+                    template = self.env.ref('hr_extended.employee_indent_approval_request_email')  # Email template
+                    report_action = self.env.ref('hr_extended.action_employee_indent_report')
 
-                attachment = self.env['ir.attachment'].create({
-                'name': f"Employee_Indent_{self.origin_ref.name}.pdf",
-                'type': 'binary',
-                'datas': base64.b64encode(pdf_content).decode('utf-8'),
-                'res_model': 'employee.indent',
-                'res_id': self.origin_ref.id,
-                'mimetype': 'application/pdf',
+                    if not report_action:
+                        raise ValueError("Report action 'hr_extended.action_employee_indent_report' not found.")
 
-                })
-                if template:
-                    email_values = {
-                    'email_from': req.user_id.email,  # Company's email
-                    'email_to': user.email,  # Company's email
-                    'attachment_ids': [(6, 0, [attachment.id])],  # Attach the PDF
+                    pdf_content, content = report_action._render_qweb_pdf(report_action.id, res_ids=self.origin_ref.ids)
+                    attachment = self.env['ir.attachment'].create({
+                        'name': f"Employee_Indent_{self.origin_ref.name}.pdf",
+                        'type': 'binary',
+                        'datas': base64.b64encode(pdf_content).decode('utf-8'),
+                        'res_model': 'employee.indent',
+                        'res_id': self.origin_ref.id,
+                        'mimetype': 'application/pdf',
+                    })
 
-                    }
-                    self.env['mail.template'].browse(template.id).send_mail(self.origin_ref.id, force_send=True,email_values=email_values)
-                    req.message_post(body=_("The Approval request for the employee indent was sent successfully to %s.") % email_values['email_to'])
-                else:
+                    # if template:
+                    #     email_values = {
+                    #         'email_from': req.user_id.email,  # Company's email
+                    #         'email_to': user.email,  # User's email
+                    #         'attachment_ids': [(6, 0, [attachment.id])],  # Attach the PDF
+                    #     }
+                    #     self.env['mail.template'].browse(template.id).send_mail(self.origin_ref.id, force_send=True,
+                    #                                                             email_values=email_values)
+                    #     req.message_post(
+                    #         body=_("The Approval request for the employee indent was sent successfully to %s.") %
+                    #              email_values['email_to'])
+                    # else:
                     message = self.env["mail.message"].create(
                         {
                             "subject": _("Request the approval for: {request_name}").format(
@@ -408,8 +415,34 @@ class MultiApproval(models.Model):
                         {
                             "mail_message_id": message.id,
                             "body_html": self.description,
-                            # "email_to": req.pic_id.email,
                             "email_to": user.email,
+                            "email_from": req.user_id.email,
+                            "auto_delete": True,
+                            "state": "outgoing",
+                        }
+                    )
+            else:
+                # Base Code for Other Modules
+                print(self.origin_ref._name)
+                if req.type_id.mail_template_id:
+                    req.type_id.mail_template_id.send_mail(req.id)
+                else:
+                    message = self.env["mail.message"].create(
+                        {
+                            "subject": _("Request the approval for: {request_name}").format(
+                                request_name=req.display_name
+                            ),
+                            "model": req._name,
+                            "res_id": req.id,
+                            "body": self.description,
+                        }
+                    )
+
+                    self.env["mail.mail"].sudo().create(
+                        {
+                            "mail_message_id": message.id,
+                            "body_html": self.description,
+                            "email_to": req.pic_id.email,
                             "email_from": req.user_id.email,
                             "auto_delete": True,
                             "state": "outgoing",
@@ -433,8 +466,8 @@ class MultiApproval(models.Model):
     def send_activity_notification(self):
         requests = self.filtered(
             lambda r: r.type_id.activity_notification
-            and r.pic_id
-            and r.state == "Submitted"
+                      and r.pic_id
+                      and r.state == "Submitted"
         )
         notify_type = self.env.ref("mail.mail_activity_data_todo", False)
         if not notify_type:

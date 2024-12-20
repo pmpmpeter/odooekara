@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_360_performance_review_pdf_A4" model="report.paperformat">
+        <field name="name">360 Performance Review</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">20</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">35</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="360_performance_review_report" model="ir.actions.report">
+        <field name="name">360 Performance Review</field>
+        <field name="model">hr.appraisal</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_appraisal_extended.print_360_performance_review</field>
+        <field name="report_file">hr_appraisal_extended.print_360_performance_review</field>
+        <field name="paperformat_id" ref="hr_appraisal_extended.paperformat_360_performance_review_pdf_A4"/>
+        <field name="print_report_name">'360_performace_review'</field>
+        <field name="binding_model_id" ref="hr_appraisal_extended.model_hr_appraisal"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="print_360_performance_review">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="doc">
+                <div class="page" style="margin:0;">
+
+
+                    <table style="width:100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="text-align: center;  padding: 10px;">Who are you leaving feedback for?
+                                (Employee
+                                Name)
+                            </td>
+                            <td style="text-align: center;  padding: 10px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;  padding: 10px;">What is their job title:</td>
+                            <td style="text-align: center;  padding: 10px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;  padding: 10px;">Grade (if applicable):</td>
+                            <td style="text-align: center;  padding: 10px;"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="text-align: center;  padding: 10px;">Please rate the above
+                                Employee in
+                                accordance with the criteria below:
+                            </td>
+
+                    </tr>
+                </table>
+
+
+
+                <div style="width:100%">
+                    <table style="width:48%;float:left">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Communication</th>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Rating</th>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Shares information widely and does not
+                                withhold
+                                information from others:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Actively listens and is receptive to
+                                others’
+                                opinions and points of view:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Stays focused and is easily understood
+                                in
+                                conversation:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Encourages dialogue in an open and
+                                direct
+                                way:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    <table style="width:48%;float:right">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Team working
+                            </th>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Rating</th>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Works as an effective member of the team:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Is willing to pitch in and help other members of the team:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Willingly shares own knowledge and expertise with team membersy:</td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Shares credit and recognition with the rest of the team:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                </div>
+                    <br/>
+                    <br/>
+                    <br/>
+
+                    <div style="width:100%;margin-top:250px;">
+                    <table style="width:48%;float:left">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #de541d;">Problem-solving and decision-making </th>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Rating</th>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Gathers information from a range of sources before making a decision:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Focuses on the key issues of a problem and does not get diverted\ in unnecessary detail:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Flexibility/Change Orientation:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Considers the impact and implications of a decision before taking action:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    <table style="width:48%;float:right">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #449110;">Continuous improvement
+                            </th>
+                            <th style="text-align: center;  padding: 10px;background-color: #449110;">Rating</th>
+                        </tr>
+                        <tr style="height:50px;">
+                            <td style="text-align: left;  padding: 10px;">Is adaptable and willing to work with new systems and processes:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr style="height:50px;">
+                            <td style="text-align: left;  padding: 10px;">Does not resist the ideas of others:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr style="height:50px;">
+                            <td style="text-align: left;  padding: 10px;">Actively seeks and promotes new ways of working:</td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Strives for innovation:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    </div>
+                    <div style="width:100%;margin-top:550px;">
+                    <table style="width:48%;float:left">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #dedede;">Organisation and Time Management  </th>
+                            <th style="text-align: center;  padding: 10px;background-color: #dedede;">Rating</th>
+                        </tr>
+                        <tr style="height:70px;">
+                            <td style="text-align: left;  padding: 10px;">Is able to manage competing priorities effectively:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr style="height:70px;">
+                            <td style="text-align: left;  padding: 10px;">Focuses on the key issues of a problem and does not get diverted\ in unnecessary detail:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr style="height:60px;">
+                            <td style="text-align: left;  padding: 10px;">Delivers well in stressful or time-pressured situations:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr style="height:60px;">
+                            <td style="text-align: left;  padding: 10px;">Has a methodical and structured approach:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    <table style="width:48%;float:right">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color: #0073b7;">Customer focus
+                            </th>
+                            <th style="text-align: center;  padding: 10px;background-color:#0073b7;">Rating</th>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Establishes and maintains effective relationships with customer/stakeholders and earns their trust and respect:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Has a well-developed, customer-focused mind set and acts with customers in mind:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Strives to present a professional image in customer communications and provision of service:</td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Shows a willingness to handle customer criticisms, complaints and/or special requests:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    </div>
+                    <div style="width:100%;margin-top:1000px;">
+                    <table style="width:48%;float:left">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color:#f5ea25;">Interpersonal skills    </th>
+                            <th style="text-align: center;  padding: 10px;background-color:#f5ea25;">Rating</th>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Works to resolve internal conflict among team members:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Recognises the value of people with different skills and talents:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Is tactful, compassionate and able to consider the needs of others:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Delivers difficult or sensitive information openly, honestly and with empathy:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    <table style="width:48%;float:right">
+                        <tr>
+                            <th style="text-align: center;  padding: 10px;background-color:#f5ea25;">Motivation
+                            </th>
+                            <th style="text-align: center;  padding: 10px;background-color:#f5ea25;">Rating</th>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Is able to make a case for his/her views and opinions
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Can effectively persuade others to build commitment to ideas:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr >
+                            <td style="text-align: left;  padding: 10px;">Helps create a positive atmosphere which encourages others to achieve:</td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px;">Is able to take risks and views honest mistakes as a learning experience:
+                            </td>
+                            <td style="text-align: left;  padding: 10px;">B</td>
+                        </tr>
+                    </table>
+                    </div>
+
+
+
+<!--                    <table style="width:90%; border-collapse: collapse;height:50px;">-->
+<!--                        <tr>-->
+<!--                            <th style="text-align: center;  padding: 10px;">Organisation and Time Management-->
+<!--                            </th>-->
+<!--                            <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                        </tr>-->
+<!--                        <tr>-->
+<!--                            <td style="text-align: left;  padding: 10px;">Is able to manage competing priorities-->
+<!--                                effectively:-->
+<!--                            </td>-->
+<!--                            <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                        </tr>-->
+<!--                        <tr>-->
+<!--                            <td style="text-align: left;  padding: 10px;">Meets deadlines and obligations on-->
+<!--                                time:-->
+<!--                            </td>-->
+<!--                            <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                        </tr>-->
+<!--                        <tr>-->
+<!--                            <td style="text-align: left;  padding: 10px;">Delivers well in stressful or-->
+<!--                                time-pressured situations:-->
+<!--                            </td>-->
+<!--                            <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                        </tr>-->
+<!--                        <tr>-->
+<!--                            <td style="text-align: left;  padding: 10px;">Has a methodical and structured-->
+<!--                                approach:-->
+<!--                            </td>-->
+<!--                            <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                        </tr>-->
+<!--                    </table>-->
+<!--                    <div class="col-auto" align="left">-->
+<!--                        <table style="width:90%; border-collapse: collapse;height:50px;">-->
+<!--                            <tr>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Interpersonal skills</th>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Works to resolve internal conflict-->
+<!--                                    among-->
+<!--                                    team members:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Recognises the value of people with-->
+<!--                                    different skills and talents:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Is tactful, compassionate and able to-->
+<!--                                    consider the needs of others:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Delivers difficult or sensitive-->
+<!--                                    information openly, honestly and with empathy:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                        </table>-->
+<!--                    </div>-->
+
+
+<!--                    <div class="col-auto" align="right">-->
+<!--                        <table style="width:90%; border-collapse: collapse;">-->
+<!--                            <tr>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Team working</th>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Works as an effective member of the-->
+<!--                                    team:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Is willing to pitch in and help other-->
+<!--                                    members of-->
+<!--                                    the team:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Willingly shares own knowledge and-->
+<!--                                    expertise with-->
+<!--                                    team membersy:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Shares credit and recognition with the-->
+<!--                                    rest of the-->
+<!--                                    team:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                        </table>-->
+<!--                        <table style="width:90%; border-collapse: collapse;">-->
+<!--                            <tr>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Continuous improvement</th>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Is adaptable and willing to work with-->
+<!--                                    new-->
+<!--                                    systems-->
+<!--                                    and processes:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Does not resist the ideas of others:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Actively seeks and promotes new ways-->
+<!--                                    of-->
+<!--                                    working:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Strives for innovation:</td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                        </table>-->
+<!--                        <table style="width:90%; border-collapse: collapse;height:50px;">-->
+<!--                            <tr>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Customer focus</th>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Establishes and maintains effective-->
+<!--                                    relationships with customer/stakeholders and earns their trust and respect:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Has a well-developed, customer-focused-->
+<!--                                    mind set and acts with customers in mind:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Strives to present a professional-->
+<!--                                    image in-->
+<!--                                    customer communications and provision of service:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Shows a willingness to handle customer-->
+<!--                                    criticisms, complaints and/or special requests:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                        </table>-->
+<!--                        <table style="width:90%; border-collapse: collapse;height:50px;">-->
+<!--                            <tr>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Motivation</th>-->
+<!--                                <th style="text-align: center;  padding: 10px;">Rating</th>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Is able to make a case for his/her-->
+<!--                                    views-->
+<!--                                    and opinions-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Can effectively persuade others to-->
+<!--                                    build-->
+<!--                                    commitment to ideas:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Helps create a positive atmosphere-->
+<!--                                    which-->
+<!--                                    encourages others to achieve:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                            <tr>-->
+<!--                                <td style="text-align: left;  padding: 10px;">Is able to take risks and views honest-->
+<!--                                    mistakes as a learning experience:-->
+<!--                                </td>-->
+<!--                                <td style="text-align: left;  padding: 10px;">B</td>-->
+<!--                            </tr>-->
+<!--                        </table>-->
+
+<!--                    </div>-->
+<!--                    </div>-->
+
+
+                    <table style="width:100%; border-collapse: collapse; margin-top:6000px;">
+                        <tr>
+                            <td style="text-align: left;  padding: 10px; width:40%;">Review submitted by (Employee Name,
+                                Designation , Department , BU)
+                            </td>
+                            <td style="text-align: left;  padding: 10px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;  padding: 10px; width:40%;">Date and Time</td>
+                            <td style="text-align: left;  padding: 10px;"></td>
+                        </tr>
+                    </table>
+
+
+                </div>
+
+
+            </t>
+        </t>
+    </template>
+
+</odoo>
+

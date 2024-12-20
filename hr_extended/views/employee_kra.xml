@@ -21,7 +21,7 @@
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state not in ('submit_to_supervisor','done')"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submit_to_supervisor,done,cancel"/>
+                           statusbar_visible="draft,submit_to_supervisor,done"/>
                 </header>
                 <sheet>
                     <group>

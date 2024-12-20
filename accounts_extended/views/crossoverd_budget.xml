@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="crossover_budget_form_extend" model="ir.ui.view">
+            <field name="name">crossovered.budget.inherit</field>
+            <field name="model">crossovered.budget</field>
+            <field name="inherit_id" ref="account_budget.crossovered_budget_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='user_id']" position="after">
+                    <field name="x_has_request_approval" invisible="1"/>
+                    <field name="x_review_result" invisible="1"/>
+                    <field name="approval_state"/>
+                </xpath>
+                <xpath expr="//button[@name='action_budget_confirm']" position="attributes">
+                    <attribute name="invisible">approval_state != 'Not Applicable'</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_budget_validate']" position="attributes">
+                    <attribute name="invisible">approval_state != 'Not Applicable'</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_budget_draft']" position="attributes">
+                   <attribute name="invisible">state != 'cancel' or x_has_request_approval</attribute>
+                </xpath>
+                 <xpath expr="//button[@name='action_budget_cancel']" position="attributes">
+                    <attribute name="invisible">approval_state != 'Not Applicable'</attribute>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <button name="action_revise" type="object" string="Revise" class="btn-primary"
+                            invisible="state not in 'done'" groups="account.group_account_manager"/>
+                </xpath>
+                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="attributes">
+                    <attribute name="optional">hide</attribute>
+                </xpath>
+                <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='percentage']" position="attributes">
+                    <attribute name="optional">hide</attribute>
+                </xpath>
+                <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='general_budget_id']" position="after">
+                    <field name="budget_code" readonly="1"/>
+                </xpath>
+                <page name='budget_lines' position='after'>
+                     <page string="Revision Reason" invisible='not revision_reason'>
+                        <field name='revision_reason'/>
+                    </page>
+                </page>
+            </field>
+        </record>
+
+        <record id="crossover_budget_search_extend" model="ir.ui.view">
+            <field name="name">crossovered.budget.search.inherit</field>
+            <field name="model">crossovered.budget</field>
+            <field name="inherit_id" ref="account_budget.view_crossovered_budget_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//search" position="inside">
+                    <field name="approval_state" string="Approval State"/>
+                </xpath>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>

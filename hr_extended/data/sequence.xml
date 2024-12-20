@@ -7,5 +7,16 @@
             <field name="prefix">REC/INV/</field>
             <field name="padding">3</field>
         </record>
+
+        <!--Employee number-->
+
+        <record id="seq_hr_employee_number" model="ir.sequence">
+            <field name="name">Employee Number Sequence</field>
+            <field name="code">hr.employee.number</field>
+            <field name="padding">4</field>
+            <field name="implementation">standard</field>
+            <field name="company_id" eval="False"/> <!-- Shared across companies -->
+        </record>
     </data>
+
 </odoo>

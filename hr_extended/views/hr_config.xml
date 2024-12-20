@@ -12,6 +12,7 @@
                     <field name="name"/>
                     <field name="code" groups="base.group_no_one"/>
                     <field name="country_id"/>
+                    <field name="active"/>
                 </tree>
             </field>
         </record>
@@ -25,6 +26,7 @@
                             <field name="name"/>
                             <field name="code" groups="base.group_no_one"/>
                             <field name="country_id"/>
+                            <field name="active"/>
                         </group>
                     </group>
                 </form>
@@ -58,6 +60,7 @@
                     <field name="sequence" widget="handle"/>
                     <field name="name"/>
                     <field name="code" groups="base.group_no_one"/>
+                    <field name="active"/>
                 </tree>
             </field>
         </record>
@@ -70,6 +73,7 @@
                         <group>
                             <field name="name"/>
                             <field name="code" groups="base.group_no_one"/>
+                            <field name="active"/>
                         </group>
                     </group>
                 </form>
@@ -92,6 +96,55 @@
             action="hr_position_names_action"
             parent="hr_recruitment.menu_hr_recruitment_config_jobs"
             sequence="4"
+            groups="hr.group_hr_user"/>
+
+        <!-- Business Units Master -->
+
+        <record id="business_units_view_tree" model="ir.ui.view">
+            <field name="model">business.units</field>
+            <field name="arch" type="xml">
+                <tree string="Business Units" editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="tax_entity" options="{'no_quick_create':True,'no_create': True,}"/>
+                    <field name="code" groups="base.group_no_one"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="business_units_view_form" model="ir.ui.view">
+            <field name="model">business.units</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="tax_entity" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="code" groups="base.group_no_one"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="business_units_action" model="ir.actions.act_window">
+            <field name="name">Business Units</field>
+            <field name="res_model">business.units</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new Business Units
+                </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="menu_business_units"
+            action="business_units_action"
+            parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+            sequence="5"
             groups="hr.group_hr_user"/>
 
     </data>

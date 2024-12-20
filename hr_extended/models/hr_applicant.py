@@ -12,19 +12,22 @@ class RecruitmentStage(models.Model):
         selection=[
             ('new', 'New'),
             ('initial', 'Initial Qualification'),
+            ('first_level', 'First Level Interview'),
             ('second_interview', 'Second Interview'),
             ('shortlist', 'Shortlist'),
-            ('first_level', 'First Level Interview'),
+            ('offer_accepted', 'Offer Accepted'),
             ('hold', 'Hold')
         ],
         string='Stage',
     )
+
 
 class HrJobKra(models.Model):
     _inherit = "hr.job"
 
     kra_master = fields.Many2one('kra.master', string='KRA', copy=False,
                                  help="Select the Key Result Area (KRA) Master associated with this applicant.")
+
 
 class Job_Applicant(models.Model):
     _inherit = "hr.applicant"
@@ -43,6 +46,10 @@ class Job_Applicant(models.Model):
         ('yes', 'Yes'),
         ('no', 'No'),
     ], string="Document Sent", copy=False, readonly=True)
+    offer_letter_approved = fields.Selection([
+        ('yes', 'Yes'),
+        ('no', 'No'),
+    ], string="Offer Letter Approval", default='no', copy=False, readonly=True)
     offer_letter_sent = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),
@@ -68,7 +75,7 @@ class Job_Applicant(models.Model):
         [('yes', 'Yes'), ('no', 'No')], string="ESI Applicable (per month)", default='no', required=True, copy=False
     )
     esi_amount = fields.Float(string="ESI Amount", store=True, copy=False, readonly=True)
-    variable_pay_percentage = fields.Float(string="Percentage of Variable Pay", store=True, copy=False)
+    variable_pay_percentage = fields.Float(string="Percentage of Variable Pay (per annum)", store=True, copy=False)
     variable_pay_amount = fields.Float(string="Variable Pay Amounts", store=True, readonly=True, copy=False)
     annual_store_performance_incentive = fields.Float(string="Annual Store Performance Incentive", store=True,
                                                       copy=False)
@@ -77,8 +84,7 @@ class Job_Applicant(models.Model):
     medical_insurance = fields.Float(string="Medical Insurance", store=True, copy=False)
     group_personal_accident_insurance = fields.Float(string="Group Personal Accident Insurance", store=True, copy=False)
     solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
-    indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False,
-                                               readonly=True)
+    indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False)
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)
     special_allowance = fields.Float(string="Special Allowance (PA)", store=True, copy=False)
@@ -100,10 +106,11 @@ class Job_Applicant(models.Model):
     first_invitation_letter_count = fields.Integer("Invitation Letter Count",
                                                    compute='_compute_first_invitation_letter', default=0, copy=False)
     interview_assessment_letter_ids = fields.Many2many('interview.assessment',
-                                                   compute='_compute_interview_assessment_letter',
-                                                   string='Assessment Letters', copy=False)
+                                                       compute='_compute_interview_assessment_letter',
+                                                       string='Assessment Letters', copy=False)
     interview_assessment_letter_count = fields.Integer("Assessment Letter Count",
-                                                   compute='_compute_interview_assessment_letter', default=0, copy=False)
+                                                       compute='_compute_interview_assessment_letter', default=0,
+                                                       copy=False)
 
     def _compute_interview_assessment_letter(self):
         for record in self:
@@ -122,7 +129,8 @@ class Job_Applicant(models.Model):
         elif len(self.interview_assessment_letter_ids.ids) == 1:
             res = self.env.ref('hr_extended.view_interview_assessment_form', False)
             result['views'] = [(res and res.id or False, 'form')]
-            result['res_id'] = self.interview_assessment_letter_ids.ids and self.interview_assessment_letter_ids.ids[0] or False
+            result['res_id'] = self.interview_assessment_letter_ids.ids and self.interview_assessment_letter_ids.ids[
+                0] or False
         return result
 
     def _compute_first_invitation_letter(self):
@@ -195,6 +203,8 @@ class Job_Applicant(models.Model):
     def action_create_pre_form(self):
         if not self.referred_by:
             raise ValidationError("The 'Referee' field is required to create a Pre-Employment Check Form.")
+        if not self.email_from:
+            raise ValidationError("The Candidate Email fields is required to create a Pre-Employment Check Form.")
 
         template = self.env.ref('hr_extended.reference_check_form_template')
         for rec in self:
@@ -273,9 +283,10 @@ class Job_Applicant(models.Model):
 
     def action_send_document_update_mail(self):
         for applicant in self.filtered(lambda s: not s.stage_id.stage):
-            raise UserError(_("Alert !! Configure %s stage properly.")%(applicant.stage_id.display_name))
+            raise UserError(_("Alert !! Configure %s stage properly.") % (applicant.stage_id.display_name))
         for applicant in self.filtered(lambda s: s.stage_id.stage not in ['shortlist']):
-            raise UserError(_("Alert !! You cannot send document update at %s stage")%(applicant.stage_id.display_name))
+            raise UserError(
+                _("Alert !! You cannot send document update at %s stage") % (applicant.stage_id.display_name))
         for applicant in self.filtered(lambda s: s.stage_id.stage in ['shortlist']):
             if not applicant.get_document_update_interview_subject():
                 raise UserError(_("Kindly update the document subject email."))
@@ -288,11 +299,16 @@ class Job_Applicant(models.Model):
                 template.send_mail(applicant.id, force_send=True)
                 applicant.write({'document_sent': 'yes'})
 
+    def action_approve_offer_letter(self):
+        for record in self:
+            record.offer_letter_approved = "yes"
+
     def action_send_offer_letter_mail(self):
         for applicant in self.filtered(lambda s: not s.stage_id.stage):
-            raise UserError(_("Alert !! Configure %s stage properly.")%(applicant.stage_id.display_name))
+            raise UserError(_("Alert !! Configure %s stage properly.") % (applicant.stage_id.display_name))
         for applicant in self.filtered(lambda s: s.stage_id.stage not in ['shortlist']):
-            raise UserError(_("Alert !! You cannot send document update at %s stage")%(applicant.stage_id.display_name))
+            raise UserError(
+                _("Alert !! You cannot send document update at %s stage") % (applicant.stage_id.display_name))
         for applicant in self.filtered(lambda s: s.stage_id.stage in ['shortlist']):
             template = self.env.ref('hr_extended.offer_letter_mail')
             if not template:
@@ -303,6 +319,28 @@ class Job_Applicant(models.Model):
                 template.send_mail(applicant.id, force_send=True)
                 applicant.write({'offer_letter_sent': 'yes'})
 
+            # compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+            # if not compose_form:
+            #     raise UserError(_("Email composition form not found."))
+            # ctx = {
+            #     'default_model': 'hr.applicant',
+            #     'default_res_ids': applicant.ids,
+            #     'default_template_id': template.id,
+            #     'default_composition_mode': 'comment',
+            #     'force_email': True,
+            # }
+            # # applicant.write({'offer_letter_sent': 'yes'})
+            # return {
+            #     'name': _('Compose Offer Letter Email'),
+            #     'type': 'ir.actions.act_window',
+            #     'view_mode': 'form',
+            #     'res_model': 'mail.compose.message',
+            #     'views': [(compose_form.id, 'form')],
+            #     'view_id': compose_form.id,
+            #     'target': 'new',
+            #     'context': ctx,
+            # }
+
     def action_approve(self):
         """move to 'Shortlisted' stage"""
         for record in self:
@@ -311,6 +349,15 @@ class Job_Applicant(models.Model):
                 record.stage_id = shortlist_stage.id
             else:
                 raise UserError("Shortlist stage not found! Please create one in Recruitment stages.")
+
+    # def action_offer_accepted(self):
+    #     """move to 'Offer Accepted' stage"""
+    #     for record in self:
+    #         offer_accepted_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'offer_accepted')], limit=1)
+    #         if offer_accepted_stage:
+    #             record.stage_id = offer_accepted_stage.id
+    #         else:
+    #             raise UserError("Offer Accepted stage not found! Please create map in Recruitment stages.")
 
     def action_hold(self):
         """Mark as on hold"""
@@ -358,9 +405,16 @@ class Job_Applicant(models.Model):
                         'department_id': employee.department_id.id,
                         'company_id': doc.company_id.id,
                         'joining_date': self.availability,
-                        'contact_id': doc.contact_id.id if doc.document_type == 'bgv' and doc.contact_id else False,
+                        'contact_id': doc.contact_id.id if doc.contact_id else False,
                     }
                     joining_record = joining_doc_employee.sudo().create(vals)
+
+                    # preemp_check_vals = {
+                    #     'applicant_id': self.id,
+                    #     'candidate_name': self.partner_name,
+                    #     'candidate_email': self.email_from,
+                    # }
+                    # self.env['preemp.check'].sudo().create(preemp_check_vals)
 
     def create_employee_from_applicant(self):
         action = super(Job_Applicant, self).create_employee_from_applicant()
@@ -369,6 +423,9 @@ class Job_Applicant(models.Model):
         if employee_id:
             employee = self.env['hr.employee'].browse(employee_id)
             if employee and self.job_id:
+                employee.write({
+                    'job_level_id': self.grade_job_level_id.id,  # Set job level on employee
+                })
                 self._create_kra_for_employee(employee, self.job_id)
                 self._create_jonining_documents_for_employee(employee, self.job_id)
         return action
@@ -382,7 +439,7 @@ class Job_Applicant(models.Model):
                 raise ValidationError(
                     f"Interviewer {interviewer.name} does not have an email address. Please provide a valid email.")
 
-        vals={
+        vals = {
             'name': self.partner_name,
             'position_interviewed_for': self.job_id.name,
             'position_offered': self.job_id.id,

@@ -15,7 +15,8 @@
         <t t-call="web.basic_layout">
             <t t-foreach="docs" t-as="doc">
                 <div class="page">
-                    <p>Dear Mr/Ms<t t-esc="doc.partner_name"/>,
+                    <p>Dear Mr/Ms
+                        <t t-esc="doc.partner_name"/>,
                     </p>
                     <p><b>Greetings from Ekara Partnership</b>.
                     </p>

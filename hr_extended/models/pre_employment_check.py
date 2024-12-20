@@ -78,9 +78,33 @@ class PreEmpCheck(models.Model):
                 raise UserError(_("Please complete the integrity and competency-related fields."))
             rec.state = 'done'
 
-
     def action_send_form_pdf_mail(self):
         template = self.env.ref('hr_extended.reference_check_pdf_form_template')
         for rec in self:
-            if rec.recruiter_id.email:
-                template.send_mail(rec.id, force_send=True)
+            if not rec.recruiter_id.email:
+                raise ValidationError(_("The Recruiter does not have a valid email."))
+
+            if not template:
+                raise ValidationError(_("The email template is not configured."))
+
+            compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+            ctx = {
+                'default_model': 'preemp.check',
+                'default_res_ids': self.ids,
+                'default_template_id': template.id,
+                'default_composition_mode': 'comment',
+                'default_email_layout_xmlid': "mail.mail_notification_light",
+            }
+
+            return {
+                'name': _('Compose Pre Employment Reference Email'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'target': 'new',
+                'context': ctx,
+            }
+
+

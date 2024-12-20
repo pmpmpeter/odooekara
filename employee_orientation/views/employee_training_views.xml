@@ -102,11 +102,17 @@
         </field>
     </record>
     <menuitem
+            id="menu_employee_training_root"
+            name="Training"
+            parent="hr.menu_hr_employee_payroll"
+            sequence="14"
+    />
+    <menuitem
             id="menu_employee_training_child"
             name="Training Program"
-            parent="hr.menu_hr_root"
+            parent="employee_orientation.menu_employee_training_root"
             action="employee_training_action"
-            sequence="91"
+            sequence="1"
     />
     <record id="view_employee_form" model="ir.ui.view">
         <field name="name">hr.employee.view.form.inherit.employee.orientation</field>

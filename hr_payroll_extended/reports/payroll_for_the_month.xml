@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="get_payroll_for_the_month" model="ir.actions.report">
+    <field name="name">Payroll For The Month</field>
+    <field name="model">hr.payslip</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">hr_payroll_extended.report_payroll_for_the_month</field>
+    <field name="report_file">hr_payroll_extended.report_payroll_for_the_month</field>
+    <field name="binding_model_id" ref="hr_payroll_extended.model_hr_payslip"/>
+    <field name="binding_type">report</field>
+</record>
+</odoo>

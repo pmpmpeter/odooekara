@@ -78,5 +78,23 @@
                 </div>
             </field>
         </record>
+        <record id="training_confirmation_email_template" model="mail.template">
+            <field name="name">Training Confirmation Email</field>
+            <field name="model_id" ref="model_employee_training"/>
+            <field name="subject">Training Confirmation</field>
+            <field name="email_from">${object.program_convener_id.email or ''}</field>
+            <field name="email_to">${object.user_id.email or ''}</field>
+            <field name="body_html">
+                <![CDATA[
+        <p>Hello,</p>
+        <p>You are invited to the training program: <strong><t t-out="object.program_name"/></strong>.</p>
+        <p><strong>Department:</strong> <t t-out="object.program_department_id.name"/></p>
+        <p><strong>Date:</strong> <t t-out="object.date_from"/> to <t t-out="object.date_to"/></p>
+        <p><strong>Description:</strong> <t t-out="object.note_id"/></p>
+        <p>Thank you.</p>
+        ]]>
+            </field>
+        </record>
+
     </data>
 </odoo>

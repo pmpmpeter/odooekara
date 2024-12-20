@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_self_rating,access.self.rating,hr_appraisal_extended.model_self_rating,,1,1,1,1
+access_self_rating_kra,access.self.rating.kra,hr_appraisal_extended.model_self_rating_kra,,1,1,1,1
+access_self_rating_assessment_kra,access.self.rating.assessment.kra,hr_appraisal_extended.model_self_rating_assessment_kra,,1,1,1,1
+access_self_rating_development_plan,access.self.rating.development.plan,hr_appraisal_extended.model_self_rating_development_plan,,1,1,1,1
+access_hr_pip,access.hr.pip,hr_appraisal_extended.model_hr_pip,,1,1,1,1
+access_hr_pip_improvement_goal,access.hr.pip.improvement.goal,hr_appraisal_extended.model_hr_pip_improvement_goal,,1,1,1,1
+access_hr_pip_activity_goal,access.hr.pip.activity.goal,hr_appraisal_extended.model_hr_pip_activity_goal,,1,1,1,1
+access_hr_pip_resource,access.hr.pip.resource,hr_appraisal_extended.model_hr_pip_resource,,1,1,1,1
+access_hr_pip_expectation,access.hr.pip.expectation,hr_appraisal_extended.model_hr_pip_expectation,,1,1,1,1
+access_hr_pip_progress,access.hr.pip.progress,hr_appraisal_extended.model_hr_pip_progress,,1,1,1,1
+access_hr_pip_activity,access.hr.pip.activity,hr_appraisal_extended.model_hr_pip_activity,,1,1,1,1

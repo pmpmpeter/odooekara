@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="self_rating_tree_view" model="ir.ui.view">
+        <field name="name">self.rating.tree</field>
+        <field name="model">self.rating</field>
+        <field name="arch" type="xml">
+            <tree string="Self Rating">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="date_of_joining"/>
+                <field name="reporting_to_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="self_rating_view" model="ir.ui.view">
+        <field name="name">self.rating.form</field>
+        <field name="model">self.rating</field>
+        <field name="arch" type="xml">
+            <form string="Self Rating">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,completed" nolabel="1"/>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state in ('in_progress','completed')"/>
+                    <button name="action_mark_completed" type="object" string="Mark as Completed" class="oe_highlight"
+                            invisible="state in ('draft','completed')"/>
+                    <button name="action_set_to_drat" type="object" string="Reset to Draft"
+                            invisible="state in ('draft', 'in_progress')"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="department_id"/>
+                            <field name="date_of_joining"/>
+                            <field name="reporting_to_id"/>
+                            <field name="quarterly_review"/>
+                            <field name="half_yearly_review"/>
+                        </group>
+                        <group>
+                            <field name="designation"/>
+                            <field name="location"/>
+                            <field name="appraisal_date"/>
+                            <field name="reviewer_id"/>
+                            <field name="annual_review"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="KRA Details">
+                            <field name="kra_ids">
+                                <tree editable="bottom">
+                                    <field name="name" string="KRA" required="1"/>
+                                    <field name="weightage" string="Weightage (%)"/>
+                                    <field name="employee_response" string="Employee's Response"/>
+                                    <field name="appraiser_remarks" string="Appraiser's Remarks"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="weightage"/>
+                                        <field name="employee_response"/>
+                                        <field name="appraiser_remarks"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Assessment KRA">
+                            <field name="assessment_kra_ids">
+                                <tree editable="bottom">
+                                    <field name="name" string="KRA"/>
+                                    <field name="weightage" string="Weightage (%)"/>
+                                    <field name="employee_rating" string="Employee's Rating"/>
+                                    <field name="appraiser_rating" string="Appraiser's Rating"/>
+                                </tree>
+                            </field>
+                            <group>
+                                <group>
+                                    <field name="appraiser_overall_rating" string="Appraiser’s Overall Rating"/>
+                                    <field name="appraiser_remarks" string="Appraiser’s Remarks"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="employee_signature" string="Employee’s Signature"/>
+                                    <field name="reporting_manager_signature" string="Reporting Manager’s Signature"/>
+                                    <field name="reviewer_signature" string="Reviewer’s Signature"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Employee Development Plan">
+                            <field name="development_plan_ids">
+                                <tree editable="bottom">
+                                    <field name="action" string="Action"/>
+                                    <field name="timeline" string="Time Line"/>
+                                    <field name="by_whom" string="By Whom"/>
+                                    <field name="remarks" string="Remarks"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <field name="action" string="Action"/>
+                                        <field name="timeline" string="Time Line"/>
+                                        <field name="by_whom" string="By Whom"/>
+                                        <field name="remarks" string="Remarks"/>
+                                    </group>
+                                </form>
+                            </field>
+                            <group>
+                                <field name="employee_signature_dev" string="Employee’s Signature"/>
+                                <field name="reporting_manager_signature_dev"
+                                       string="Reporting Manager’s Signature"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="self_rating_action" model="ir.actions.act_window">
+        <field name="name">Self Rating</field>
+        <field name="res_model">self.rating</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Self Rating!
+            </p>
+        </field>
+    </record>
+    <menuitem id="self_rating_menu"
+              parent="hr_appraisal.menu_open_view_hr_appraisal_tree"
+              name="Self Rating"
+              action="self_rating_action"
+              sequence="2"
+    />
+</odoo>
+
+
+

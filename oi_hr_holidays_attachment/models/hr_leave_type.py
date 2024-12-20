@@ -5,7 +5,11 @@ Created on Jan 9, 2019
 '''
 from odoo import models, fields
 
+
 class HolidaysType(models.Model):
     _inherit = "hr.leave.type"
 
+    type = fields.Selection([
+        ('corporate', 'Corporate (Per Year)'),
+        ('unit', 'Unit/Centre (Per Year)')],string="Type")
     attachment_required = fields.Boolean('Attachment Required')

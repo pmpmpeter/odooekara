@@ -60,10 +60,16 @@ class ChangeApprover(models.TransientModel):
         if requests:
             requests.message_post(body=self.reason)
 
+        lines = requests.mapped("line_id")
+        for line in lines:
+            if self.new_pic_id.id in line.approved_users.ids:
+                line.write({'approved_users': [(3, self.new_pic_id.id)]})
+
         # vals = {"user_id": self.new_pic_id.id}
         vals = {"user_id": [(6, 0, [self.new_pic_id.id])]}
-        lines = requests.mapped("line_id")
+        # lines = requests.mapped("line_id")
         lines.write(vals)
         requests.sudo().send_request_mail()
         requests.sudo().send_activity_notification()
+        requests._compute_show_approve_button()
         return True

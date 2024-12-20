@@ -551,11 +551,38 @@ for rec in self:
         self.create_views(compute_field, f_names[0], f_names[1])
         self.is_configured = True
         self.state = 'confirm'
+        if self.model_id == 'crossovered.budget':
+            po_ids = self.env['crossovered.budget'].search([('state','=','draft')])
+            po_ids.write({'approval_state':'To Submit for Approval'})
+        if self.model_id == 'account.move':
+            move_ids = self.env['account.move'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'To Submit for Approval'})
+        if self.model_id == 'purchase.order':
+            move_ids = self.env['purchase.order'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'To Submit for Approval'})
     def action_draft(self):
         self.state='draft'
+        if self.model_id == 'crossovered.budget':
+            po_ids = self.env['crossovered.budget'].search([('state','=','draft')])
+            po_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'account.move':
+            move_ids = self.env['account.move'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'purchase.order':
+            move_ids = self.env['purchase.order'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
         self.is_configured = False
     def action_cancelled(self):
         self.state='cancelled'
+        if self.model_id == 'crossovered.budget':
+            po_ids = self.env['crossovered.budget'].search([('state','=','draft')])
+            po_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'account.move':
+            move_ids = self.env['account.move'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'purchase.order':
+            move_ids = self.env['purchase.order'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
         self.is_configured = False
 
     @api.model
@@ -712,8 +739,8 @@ Approval Type is not configured properly, contact your administrator for help!
             if rec.x_review_result == "refused":
                 raise UserError(self._make_err_msg(True))
             # Could not update state field
-            if approval_type.state_field and approval_type.state_field in vals:
-                raise UserError(self._make_err_msg())
+            # if approval_type.state_field and approval_type.state_field in vals:
+            #     raise UserError(self._make_err_msg())
         return True
 
     def _make_err_msg(self, refused=False):

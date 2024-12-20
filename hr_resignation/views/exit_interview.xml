@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="exit_interview_tree_view" model="ir.ui.view">
+        <field name="name">exit.interview.tree</field>
+        <field name="model">exit.interview</field>
+        <field name="arch" type="xml">
+            <tree string="Exit Interview">
+                <field name="employee_id"/>
+                <field name="department_id"/>
+                <field name="date_of_joining"/>
+                <field name="email"/>
+                <field name="mobile"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="exit_interview_form_view" model="ir.ui.view">
+        <field name="name">exit.interview.form</field>
+        <field name="model">exit.interview</field>
+        <field name="arch" type="xml">
+            <form string="Exit Interview">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,completed" nolabel="1"/>
+                    <button name="exit_interview_submit" string="Submit" type="object"
+                            class="oe_highlight" invisible="state == 'completed'"
+                    />
+                    <button name="exit_interview_complete" string="Complete" type="object"
+                            class="oe_highlight" invisible="state == 'draft'"
+                    />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="department_id"/>
+                            <field name="date_of_joining"/>
+                            <field name="email"/>
+                            <field name="mobile"/>
+                        </group>
+                        <group>
+                            <field name="employee_code"/>
+                            <field name="designation"/>
+                            <field name="date_of_exit"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason_for_separation"/>
+                        <field name="please_specify" placeholder="Enter the reason here..."
+                               invisible="reason_for_separation != 'any_other'"
+                               required="reason_for_separation == 'any_other'"/>
+                    </group>
+                    <notebook>
+                        <page string="Exit details">
+                            <label for="reason_for_looking_job"/>
+                            <field name="reason_for_looking_job"
+                                   placeholder="Enter the reason here..."
+                                   no_label="1"/>
+                            <label for="inform_manager"/>
+                            <field name="inform_manager"/>
+                            <div>
+                                <field name="inform_manager_reason" placeholder="Enter the response here..."
+                                       invisible="inform_manager == 'no'"/>
+                            </div>
+                            <label for="retain_effort"/>
+                            <field name="retain_effort"/>
+                            <div>
+                                <field name="retain_effort_response" placeholder="Enter the response here..."
+                                       invisible="retain_effort == 'no'"/>
+                            </div>
+
+                        </page>
+                        <page string="Feedback">
+                            <group>
+                                <field name="company_policies_explained" placeholder="Company Policies Explained"/>
+                                <field name="rules_regulations_explained"
+                                       placeholder="Rules &amp; Regulations Explained"/>
+                                <field name="entitlements_benefits_explained"
+                                       placeholder="Entitlements &amp; Benefits Explained"/>
+                                <field name="nature_of_work_explained" placeholder="Nature of Work Explained"/>
+                                <field name="work_like" placeholder="Do you like the work you were doing?"/>
+                                <field name="career_progress_feedback"
+                                       placeholder="Your career progress with the company"/>
+                                <field name="training_development_feedback"
+                                       placeholder="Training and Development inputs received by you"/>
+                                <field name="compensation_policy_feedback"
+                                       placeholder="Compensation policy &amp; levels in the company"/>
+                                <field name="hr_policies_feedback" placeholder="HR Policies and Systems"/>
+                                <field name="suggestions_work_improvement"
+                                       placeholder="Suggestions to improve the work you were doing"/>
+                                <field name="suggestions_training_improvement"
+                                       placeholder="Suggestions to improve Training &amp; Development activities"/>
+                                <field name="suggestions_hr_improvement"
+                                       placeholder="Suggestions to improve HR policies and systems"/>
+                                <field name="working_environment_company"
+                                       placeholder="How was the working environment in the company?"/>
+                                <field name="working_environment_department"
+                                       placeholder="How was the working environment in the department?"/>
+                                <field name="communication_feedback"
+                                       placeholder="Feedback on communication channels in the company"/>
+                                <field name="approachability_feedback"
+                                       placeholder="Feedback on approachability of higher authorities"/>
+                                <field name="superior_feedback" placeholder="Feedback on your superior"/>
+                                <field name="colleagues_feedback" placeholder="Feedback on your colleagues"/>
+                                <field name="coordination_feedback"
+                                       placeholder="Feedback on coordination between departments"/>
+                                <field name="welfare_activities_feedback" placeholder="Feedback on welfare activities"/>
+                                <field name="staff_facilities_feedback" placeholder="Feedback on staff facilities"/>
+                                <field name="general_suggestions"
+                                       placeholder="General suggestions to improve the organization"/>
+                            </group>
+                        </page>
+                        <page string="New Employment Details">
+                            <group>
+                                <field name="new_employment_organization" placeholder="New Employment Organization"/>
+                                <field name="new_employment_designation" placeholder="New Employment Designation"/>
+                                <field name="new_employment_compensation_monthly"
+                                       placeholder="New Employment Compensation (Monthly)"/>
+                                <field name="new_employment_compensation_annual"
+                                       placeholder="New Employment Compensation (Annual)"/>
+                                <field name="new_employment_working_conditions"
+                                       placeholder="New Employment Working Conditions"/>
+                                <field name="other_details" placeholder="Other Details"/>
+                            </group>
+                            <group>
+                                <field name="signature_employee" placeholder="Employee's Signature"/>
+                                <field name="conducted_by" placeholder="Exit Interview Conducted By"/>
+                                <field name="conducted_by_signature" placeholder="Exit Interview Conducted Signature"/>
+                                <field name="interview_date"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="exit_interview_form_action" model="ir.actions.act_window">
+        <field name="name">Exit Interview</field>
+        <field name="res_model">exit.interview</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Exit Interview!
+            </p>
+        </field>
+    </record>
+    <menuitem id="exit_interview_menu"
+              parent="hr_resignation.hr_resignation_menu_root"
+              name="Exit Interview"
+              action="exit_interview_form_action"
+              sequence="8"
+    />
+</odoo>
+
+
+

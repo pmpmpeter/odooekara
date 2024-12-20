@@ -18,6 +18,7 @@ class InvoiceType(models.Model):
 class HrExpense(models.Model):
     _inherit = "hr.expense"
 
+    sequence = fields.Char(string='Task ID', readonly=1,copy=False)
     type = fields.Selection([
         ("capex", "Capex"),
         ("opex", "Opex")], default='opex', string="Capex/Opex")
@@ -33,6 +34,23 @@ class HrExpense(models.Model):
         compute='_compute_expense_total_amount', store=True, readonly=False,
         tracking=True,
     )
+
+    def action_submit_expenses(self):
+        for record in self.filtered(lambda s: s.state in ['draft'] and s.is_payment_approval):
+            if not record.supplier_id:
+                raise UserError(_("Cannot submit the bill without Supplier!"))
+            if not record.invoice_type_id:
+                raise UserError(_("Cannot submit the bill without Invoice Type!"))
+            if not record.invoice_no:
+                raise UserError(_("Cannot submit the bill without Invoice No.!"))
+            if not record.type:
+                raise UserError(_("Alert !! Kindly update the expense type as Capex/Opex."))
+        res = super().action_submit_expenses()
+        if res.get('res_id'):
+            sheets = self.env['hr.expense.sheet'].browse(res.get('res_id', []))
+            sheets.write({'sequence':self.sequence})       
+        return res
+
     # Amount fields
     # tax_amount_currency = fields.Monetary(
     #     string="Tax amount in Currency",
@@ -293,6 +311,13 @@ class HrExpense(models.Model):
     #             record._compute_total_invoice_value()
     #     return result
 
+    @api.model
+    def create(self, vals):
+        sequence_code = self.env['ir.sequence'].next_by_code('expense.sequence.code')
+        if sequence_code:
+            vals['sequence'] = sequence_code
+        return super(HrExpense, self).create(vals)
+
     @api.depends('price_unit', 'untaxed_amount_currency', 'tax_amount')
     def _compute_expense_total_amount(self):
         for record in self:
@@ -464,6 +489,7 @@ class HrExpense(models.Model):
 class HrExpenseSheet(models.Model):
     _inherit = "hr.expense.sheet"
 
+    sequence = fields.Char('Task ID',readonly=1)
     type = fields.Selection([
         ("capex", "Capex"),
         ("opex", "Opex")], default='opex', string="Capex/Opex")
@@ -556,6 +582,7 @@ class HrExpenseSheet(models.Model):
             'expense_user_id': self[0].user_id.id,
             'is_payment_approval': self[0].is_payment_approval,
             # 'supplier_id': self[0].supplier_id.id,
+            'expense_sequence':self[0].sequence,
         }
 
     def _prepare_move_vals(self):

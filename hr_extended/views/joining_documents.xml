@@ -29,38 +29,50 @@
                             invisible="state not in ('draft')"
                             string="Submit"/>
                     <button name="action_confirm" type="object" class="oe_highlight"
-                            invisible="state not in ('waiting_confirmation')"
+                            invisible="state not in ('waiting_confirmation')" groups="hr.group_hr_user"
                             string="Confirm"/>
-                    <button name="action_reset" type="object"
+                    <button name="action_reset" type="object" groups="hr.group_hr_user"
                             invisible="state not in ('done','reject')"
                             string="Reset to Draft"/>
-                    <button name="action_reject" type="object"
+                    <button name="action_reject" type="object" groups="hr.group_hr_user"
                             invisible="state not in ('waiting_confirmation')"
                             string="Reject"/>
-                    <button name="action_send_by_email" type="object"
-                            invisible="document_type not in ('bgv')"
+                    <button name="action_send_document_by_email" type="object"
+                            invisible="document_type not in ('bgv','it_declaration','ebp_claim')"
                             string="Send Mail"/>
+                    <!--                    <button name="action_send_it_declaration_by_email" type="object"-->
+                    <!--                            invisible="document_type not in ('it_declaration')"-->
+                    <!--                            string="Send Mail"/>-->
+                    <!--                    <button name="action_send_ebp_claim_form_by_email" type="object"-->
+                    <!--                            invisible="document_type not in ('ebp_claim')"-->
+                    <!--                            string="Send Mail"/>-->
                     <button name="action_print_document"
                             type="object"
                             string="Print"
-                            class="btn-primary"
-                            invisible="document_type not in ('she_nda', 'app_order_form', 'code_of_conduct',
-                                                                         'consent', 'criminal_case',
-                                                                         'emp_verifi_form', 'ex_media_comm',
-                                                                 'pf_nomination')"
+                            class="btn-primary" groups="hr.group_hr_manager"
+                            invisible="state not in ('waiting_confirmation')"
                     />
                 </header>
                 <sheet>
+                    <!--                    <div class="oe_button_box" name="button_box">-->
+                    <!--                        <button class="oe_stat_button" type="object" string="Referral Form"-->
+                    <!--                                invisible="document_type not in ('emp_ref_check')"-->
+                    <!--                                name="action_open_related_candidate" icon="fa-user-plus">-->
+                    <!--                        </button>-->
+                    <!--                    </div>-->
                     <group>
                         <group>
                             <field name="name"
                                    readonly="state not in ('draft')"/>
                             <field name="employee_id" options="{'no_quick_create':True,'no_create': True,}"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                             <field name="document_type" readonly="True"/>
                             <field name="reference_filename" invisible="1"/>
-                            <field name="reference_file" filename="reference_filename" readonly="True"/>
+                            <field name="reference_file" filename="reference_filename"
+                                   invisible="document_type not in ('it_declaration','gmc','ebp_claim')"
+                                   readonly="True"/>
                             <field name="submitted_file" filename="submitted_filename"
+                                   invisible="document_type not in ('it_declaration','bgv','ebp_claim')"
                                    readonly="state not in ('draft')"/>
                             <field name="submitted_filename" invisible="1"/>
                         </group>
@@ -71,14 +83,41 @@
                                    readonly="state not in ('draft')"/>
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"
                                    readonly="True"/>
-                            <field name="contact_id" invisible="document_type not in ('bgv')" readonly="True"
+                            <field name="contact_id"
+                                   invisible="document_type not in ('it_declaration','ebp_claim','bgv')" readonly="True"
                                    options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="joining_date" readonly="state not in ('draft')"/>
+                            <field name="joining_date" readonly="state in ('done')" groups="hr.group_hr_user"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Subject" name="subject">
                             <field name="subject" widget="html" readonly="state not in ('draft')"/>
+                        </page>
+                        <page string="GMC GPA Details" invisible="document_type not in ('gmc')">
+                            <group>
+                                <group>
+                                    <field name="emp_code"/>
+                                    <field name="dependent_name"/>
+                                    <field name="relationship"/>
+                                    <field name="dob"/>
+                                    <field name="age"/>
+                                    <field name="gender"/>
+                                    <field name="tax_entity" options="{'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="location"/>
+                                </group>
+                                <group>
+                                    <field name="email" widget="email"/>
+                                    <field name="contact_no" widget="phone"/>
+                                    <field name="doj"/>
+                                    <field name="insurance_type"/>
+                                    <field name="sum_insured_gmc"/>
+                                    <field name="sum_insured_gpa"/>
+                                    <field name="insurance_status"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="remarks"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

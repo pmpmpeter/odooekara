@@ -1,49 +1,6 @@
 <?xml version="1.0" ?>
 <odoo noupdate="0">
     <!--Email template -->
-    <record id="email_template_indent_request" model="mail.template">
-        <field name="name">Employee Indent Approval</field>
-        <field name="model_id" ref="multi_level_approval.model_multi_approval"/>
-        <field name="partner_to">{{ object.user_id.partner_id.id }}</field>
-        <field
-                name="subject"
-        >Employee Indent {{ object.display_name }}
-        </field>
-        <field name="body_html" type="html">
-            <div style="margin: 0px; padding: 0px;">
-                <p style="margin: 0px; padding: 0px; font-size: 13px;">
-                    Dear Team,
-                    <br/>
-                    <br/>
-                    The Employee Indent request has been submitted by
-                    <a target="__blank__" href="{record_url}">
-                        {object.display_name}
-                    </a>
-                    <a t-attf-href="/web?#id={{object.id}}&amp;view_type=form&amp;model=employee.indent">View Order</a>
-                    for the
-                    period FY 2025,
-                    <br/>
-                    <br/>
-                    Please find the further Indent details below:
-                    <a target="__blank__" href="{record_url}">
-                        {object.display_name}
-                    </a>
-                    <!--                    <Approved Manpower Budget Name>-->
-                    <!--                    <Job Positions>-->
-                    <!--                    -<Target>.-->
-                    To access the submitted request, please click here:<a target="__blank__" href="{record_url}">
-                        {object.display_name}
-                    </a>.
-                    <br/>
-                    <br/>
-                    Thank you,
-                    System Administrator
-                </p>
-            </div>
-        </field>
-        <field name="lang">{{ object.user_id.lang }}</field>
-        <field name="auto_delete" eval="True"/>
-    </record>
     <record id="email_template_approved_request" model="mail.template">
         <field name="name">Approval: approved case</field>
         <field name="model_id" ref="multi_level_approval.model_multi_approval"/>

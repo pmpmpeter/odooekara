@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="extend_portal_my_details_fields" inherit_id="portal.portal_my_details_fields">
+        <xpath expr="//div[@class='clearfix']" position="after">
+            <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
+                <label class="col-form-label" for="attachment">Attachments</label>
+            <input type="file" name="attachment" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+            <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>
+            </div>
+        </xpath>
+        <xpath expr="//label[@for='vat']" position="replace">
+            <label class="col-form-label label-optional" for="vat">Tax ID</label>
+        </xpath>
+    </template>
+
+    <template id="extended_portal_my_details" inherit_id="portal.portal_my_details">
+<!--        <xpath expr="//button[@type='submit']" position="after">-->
+
+<!--            <button type="submit" formaction="/my/send_email" formmethod="post" class="btn btn-secondary">-->
+<!--                Submit-->
+<!--            </button>-->
+
+<!--        </xpath>-->
+         <xpath expr="//form" position="attributes">
+            <attribute name="enctype">multipart/form-data</attribute>
+        </xpath>
+    </template>
+
+</odoo>

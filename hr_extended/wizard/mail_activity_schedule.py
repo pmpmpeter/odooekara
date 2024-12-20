@@ -12,63 +12,52 @@ class MailActivitySchedule(models.TransientModel):
         print(self.res_ids, "================")
         project_task_obj = self.env['project.task']
         project_obj = self.env['project.project']
+        project_task_type_obj = self.env['project.task.type']
         context = self.env.context
 
         # Fetch the employee based on active_id
         emp_ids = self.env['hr.employee'].search([('id', '=', context.get('active_id'))])
         print(emp_ids, "--------------------------------")
 
-        # Create the project for the employee's onboarding
+        # Fetch tasks from the selected activity plan template
+        activity_templates = self.env['mail.activity.plan.template'].search([
+            ('plan_id', '=', self.plan_id.id)
+        ])
+
+        # Create the project for the employee
         for emp_id in emp_ids:
             project_id = project_obj.create({
-                'name': emp_id.name + ' On-boarding for ' + emp_id.department_id.name,
-                'display_name': emp_id.name + ' On-boarding for ' + emp_id.department_id.name,
-                'label_tasks': 'On-boarding Tasks',
-                'user_id': emp_id.user_id.id,
+                'name': f"{emp_id.name} {self.plan_id.name} for {emp_id.department_id.name}",
+                'display_name': f"{emp_id.name} {self.plan_id.name} for {emp_id.department_id.name}",
+                'label_tasks': f"{self.plan_id.name} Tasks",
+                'user_id': emp_id.parent_id.user_id.id,
             })
 
-            # List of the 31 onboarding tasks
-            task_names = [
-                "Signing of Joining Documents",
-                "Check if employee is Non-Indian national",
-                "Creation of Employee Docket and uploading in HRMS Portal",
-                "PF application form completion",
-                "HR Policies overview to New Joinee/ Induction",
-                "Update employee master data by HR",
-                "Creation of opening leave balance by HR",
-                "Welcome Note/ Org Announcement/All Employees",
-                "Assign employee number",
-                "Addition of team members to Unit Share space",
-                "Welcome Kit- Stationery",
-                "Work Station/ Desk/Location",
-                "Photo ID",
-                "Business Card",
-                "Email ID creation (for TLE, add to TLE database)",
-                "Email ID to be included to the DL Group",
-                "HRMS ID",
-                "System Allocation",
-                "Bio Metrics access setup and Bio Metric ID link table",
-                "System setup and Active Directory User creation for System Login (NA for TSA, BLR & Cbe)",
-                "VPN Access creation (NA for TSA, BLR & Cbe)",
-                "UAN number & KYC approval for UAN Portal & (Collect Form 11 of PF Act - only for TSA, BLR)",
-                "Send Tax Information packet to Employee by HR",
-                "Background Check/ Report Submission & Evaluation",
-                "Bank Account opening",
-                "Issue ESI Card, if applicable",
-                "Send employee details to Insurer for Coverage under GMC & GPA",
-                "OPTIONAL- Send Dependent Parent Details to Insurer for coverage under Group Health Insurance",
-                "Send Insurance E-card to employee",
-                "KRA Form to be sent to Employee by Reporting Manager",
-                "To close"
-            ]
+            # Create the required stages for the project
+            stage_initial = project_task_type_obj.create({
+                'name': 'Initial',
+                'sequence': 1,
+                'project_ids': [(4, project_id.id)],
+            })
+            stage_in_progress = project_task_type_obj.create({
+                'name': 'In Progress',
+                'sequence': 2,
+                'project_ids': [(4, project_id.id)],
+            })
+            stage_done = project_task_type_obj.create({
+                'name': 'Done',
+                'sequence': 3,
+                'project_ids': [(4, project_id.id)],
+            })
 
-            # Create individual tasks for each of the 31 tasks
-            for task_name in task_names:
-                task = project_task_obj.create({
-                    'name': task_name,
-                    'project_id': project_id.id,
-                    'user_ids': [(6, 0, [emp_id.user_id.id])],  # Assigning the task to the employee's manager
-                    'display_in_project': True,
-                })
+            # Create individual tasks for each activity template
+            for template in activity_templates:
+                    project_task_obj.create({
+                        'name': template.summary,
+                        'project_id': project_id.id,
+                        'user_ids': emp_id.user_id.ids,
+                        'display_in_project': True,
+                        'stage_id': stage_initial.id,
+                    })
 
         return True

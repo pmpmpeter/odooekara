@@ -12,7 +12,7 @@
                 <field name="employee_contract"/>
                 <field name="joined_date" readonly="1"/>
                 <field name="expected_revealing_date"/>
-                <field name="approved_revealing_date"/>
+                <field name="hr_approved_reliving_date"/>
                 <field name="resignation_type"/>
                 <field name="notice_period"/>
                 <field name="state"/>
@@ -28,29 +28,39 @@
             <form string="Employee Resignation">
                 <header>
                     <button string="Confirm" type="object"
-                            name="action_confirm_resignation"
-                            invisible="state != 'draft'"
+                            name="action_confirm_resignation" context="{'active_id': active_id}"
+                            invisible="state in ('manager_approved','hr_approved','confirm','cancel')"
                             class="oe_highlight"/>
                     <button string="Cancel" type="object"
                             name="action_cancel_resignation"
-                            invisible="state != 'draft'"
+                            invisible="state in ('manager_approved','hr_approved','confirm','cancel')"
                             class="oe_highlight"/>
-                    <button string="Approve" type="object"
+                    <button string="Manager Approve" type="object"
                             groups="hr.group_hr_user"
-                            name="action_approve_resignation"
-                            invisible="state != 'confirm'"
+                            name="action_manager_approve_resignation"
+                            invisible="state in ('draft','manager_approved','hr_approved','cancel')"
+                            class="oe_highlight"/>
+                    <button string="HR Approve" type="object"
+                            groups="hr.group_hr_user"
+                            name="action_hr_approve_resignation"
+                            invisible="state in ('draft','confirm','hr_approved','cancel')"
                             class="oe_highlight"/>
                     <button string="Reject" type="object"
                             groups="hr.group_hr_user"
                             name="action_reject_resignation"
-                            invisible="state != 'confirm'"
+                            invisible="state in ('draft','confirm','hr_approved','cancel')"
+                            class="oe_highlight"/>
+                    <button string="Send Reliving Letter" type="object"
+                            groups="hr.group_hr_user"
+                            name="action_send_reliving_letter"
+                            invisible="state in ('draft','confirm','manager_approved','cancel')"
                             class="oe_highlight"/>
                     <button string="Set to Draft" type="object"
                             groups="hr.group_hr_manager"
                             name="action_reset_to_draft"
-                            invisible="state != 'approved'"/>
+                            invisible="state in ('draft','confirm','manager_approved')"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,confirm"/>
+                           statusbar_visible="draft,confirm,manager_approved,hr_approved"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -61,22 +71,24 @@
                     <group>
                         <group string="Employee Details">
                             <field name="change_employee" invisible="1"/>
-                            <field name="employee_id"
+                            <field name="employee_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    readonly="change_employee == False or state == 'approved'"/>
-                            <field name="department_id"/>
-                            <field name="employee_contract"/>
-                            <field name="employee_parent_id" invisible="1"/>
+                            <field name="department_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="employee_contract" groups="hr.group_hr_user"/>
+                            <field name="employee_parent_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="coach_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
-                        <group string="Dates">
-                            <field name="joined_date"/>
+                        <group string="Dates" groups="hr.group_hr_user">
+                            <field name="joined_date" groups="hr.group_hr_user"/>
                             <field name="resign_confirm_date"
                                    readonly="1"
                                    invisible="resign_confirm_date == False"/>
-                            <field name="expected_revealing_date"
+                            <field name="expected_revealing_date" groups="hr.group_hr_user"
                                    readonly="state == 'approved'"/>
-                            <field name="approved_revealing_date"
+                            <field name="manager_approved_date" groups="hr.group_hr_user"/>
+                            <field name="hr_approved_reliving_date"
                                    groups="hr.group_hr_user"/>
-                            <field name="notice_period"/>
+                            <field name="notice_period" groups="hr.group_hr_user"/>
                         </group>
                         <group string="Resignation Details">
                             <field name="resignation_type" string="Type"
@@ -119,7 +131,7 @@
             </p>
         </field>
     </record>
-<!--    &lt;!&ndash; Root menu item for Resignation &ndash;&gt;-->
+<!--    Root menu item for Resignation -->
     <menuitem id="hr_resignation_menu_root" name="Resignation"
               groups="base.group_user" parent="hr.menu_hr_employee_payroll"
               sequence="9"/>
@@ -135,4 +147,5 @@
               action="hr_resignation_approved_action"
               groups="hr.group_hr_user"
               sequence="2"/>
+
 </odoo>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+     <!-- Group: Tax Entity Head -->
+        <record id="group_tax_entity_head" model="res.groups">
+            <field name="name">Tax Entity Head</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Group for Tax Entity Head.</field>
+        </record>
+
+        <!-- Group: Tax Entity Director -->
+        <record id="group_tax_entity_director" model="res.groups">
+            <field name="name">Tax Entity Director</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Group for Tax Entity Director.</field>
+        </record>
+    </data>
+</odoo>

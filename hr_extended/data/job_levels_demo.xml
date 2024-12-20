@@ -121,5 +121,21 @@
             <field name="sequence">11</field>
         </record>
 
+        <!-- Business units data-->
+        <record id="bu_data_1" model="business.units">
+            <field name="name">Corporate</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="bu_data_2" model="business.units">
+            <field name="name">Centre</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="bu_data_3" model="business.units">
+            <field name="name">Telehealth</field>
+            <field name="sequence">3</field>
+        </record>
+
     </data>
 </odoo>

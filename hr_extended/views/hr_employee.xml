@@ -1,5 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_employee_form_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="job_level_id" options="{'no_open': True, 'no_quick_create': True}"/>
+                <field name="type"/>
+            </xpath>
+            <xpath expr="//field[@name='spouse_birthdate']" position="after">
+                <field name="anniversary" invisible="marital not in ['married', 'cohabitant']"/>
+                <field name="child_name" invisible="marital not in ['married', 'cohabitant']"/>
+                <field name="child_dob" invisible="marital not in ['married', 'cohabitant']"/>
+            </xpath>
+            <xpath expr="//div[@class='o_address_format']" position="after">
+                <label for="present_street" string="Present Address"/>
+                <div class="o_address_format">
+                    <field name="present_street" placeholder="Street..." class="o_address_street"/>
+                    <field name="present_street2" placeholder="Street 2..." class="o_address_street"/>
+                    <field name="present_city" placeholder="City" class="o_address_city"/>
+                    <field name="present_state_id" class="o_address_state" placeholder="State"
+                           options="{'no_open': True, 'no_quick_create': True}"
+                           context="{'default_country_id': present_country_id}"/>
+                    <field name="present_zip" placeholder="ZIP" class="o_address_zip"/>
+                    <field name="present_country_id" placeholder="Country" class="o_address_country"
+                           options='{"no_open": True, "no_create": True}'/>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='identification_id']" position="after">
+                <field name="pf_no"/>
+                <field name="uan_no"/>
+                <field name="esi_no"/>
+                <field name="aadhar_no"/>
+                <field name="is_differently_abled"/>
+                <field name="disability_type" invisible="not is_differently_abled"/>
+                <field name="disability_notes" invisible="not is_differently_abled"/>
+            </xpath>
+            <xpath expr="//field[@name='marital']" position="before">
+                <field name="name_as_per_bank"/>
+                <field name="father_name"/>
+                <field name="mother_name"/>
+            </xpath>
+            <xpath expr="//field[@name='emergency_contact']" position="after">
+                <field name="emergency_contact_relation"/>
+            </xpath>
+            <xpath expr="//div[@id='o_work_employee_main']" positon="after">
+                <group>
+                    <group string="Last Work Details">
+                        <field name="employee_experience"/>
+                        <field name="last_organization"/>
+                        <field name="last_working_day"/>
+                        <field name="last_employment_type"/>
+                        <field name="last_designation"/>
+                        <field name="city_name"/>
+                        <field name="last_gross_comp"/>
+                        <field name="last_ctc"/>
+                        <field name="last_variable"/>
+                        <field name="last_esop_yes"/>
+                    </group>
+                    <group string="Employment Details">
+                        <field name="bu_head"/>
+                        <field name="bu_unit"/>
+                        <field name="sub_bu_unit"/>
+                        <field name="separation_type"/>
+                        <field name="class_of_employment"/>
+                        <field name="employee_status"/>
+                        <field name="budgeting_units"/>
+                    </group>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='private_phone']" position="after">
+                <field name="blood_group"/>
+            </xpath>
+            <xpath expr="//page[@name='hr_settings']" position="before">
+                <page string="Insurance Details">
+                    <group>
+                        <field name="employee_master_insurance_ids">
+                            <tree>
+                                <field name="insurance_holder_name"/>
+                                <field name="relationship"/>
+                                <field name="insurance"/>
+                                <field name="gmc_insurance_slab"/>
+                                <field name="gpa_insurance_slab"/>
+                                <field name="insured_date"/>
+                                <field name="annual_premium"/>
+                                <field name="validity"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
 
     <!--   Inherited hr.employee to show the Smart button -->
     <record id="view_employee_form_inherit_kra_button" model="ir.ui.view">
@@ -32,7 +127,7 @@
             </xpath>
             <xpath expr="//header" position="inside">
                 <button name="action_send_appointment_letter_emp_mail" type="object" class="oe_highlight"
-                            string="Send Appointment Letter"/>
+                        string="Send Appointment Letter"/>
                 <button string="NDA" type="action"
                         name="%(hr_extended.nda_form_template)d" class="btn-primary" invisible="1"/>
                 <button string="Media Declare" type="action"
@@ -48,8 +143,27 @@
                 <button string="Appointment Order Form" type="action"
                         name="%(hr_extended.appointment_order_form_template)d" class="btn-primary" invisible="1"/>
             </xpath>
+            <xpath expr="//field[@name='mobile_phone']" position="before">
+                <field name="employee_number" readonly="1" string="Employee Number"/>
+                <field name="create_date" string="Created On"/>
+            </xpath>
         </field>
     </record>
 
+    <record model="ir.ui.view" id="view_res_bank_form_ekara_details">
+        <field name="name">res.bank.form.ekara.details</field>
+        <field name="model">res.bank</field>
+        <field name="inherit_id" ref="base.view_res_bank_form"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="ifsc_code"/>
+                <field name="bank_branch"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="hr.menu_hr_employee_payroll" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 
 </odoo>

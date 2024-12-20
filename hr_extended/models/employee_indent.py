@@ -35,11 +35,12 @@ class EmployeeIndent(models.Model):
         help='Select the employee to whom this position reports.'
     )
 
-    employment_type = fields.Many2one('hr.contract.type',string="Employment Type")
+    employment_type = fields.Many2one('hr.contract.type', string="Employment Type")
 
-    target = fields.Integer(string='Target', required=True,default=1, help="Number of vacancies for this position.")
+    target = fields.Integer(string='Target', required=True, default=1, help="Number of vacancies for this position.")
 
-    is_replacement =fields.Boolean(string='Is Replacement?', default=False, copy=False, help="Indicate if this position is a replacement.")
+    is_replacement = fields.Boolean(string='Is Replacement?', default=False, copy=False,
+                                    help="Indicate if this position is a replacement.")
 
     replacement_employee_id = fields.Many2one(
         'hr.employee',
@@ -59,10 +60,11 @@ class EmployeeIndent(models.Model):
         ('statutory_payments', 'Statutory Payments & Other B/S Items')
     ], string='Budgeting Units', help="Select the appropriate budgeting unit.")
 
-    is_budgeted =fields.Boolean(string='Is Budgeted?', default=False, copy=False, help="Indicate if this position is budgeted.")
+    is_budgeted = fields.Boolean(string='Is Budgeted?', default=False, copy=False,
+                                 help="Indicate if this position is budgeted.")
 
-    #have to add the BU/Department Total Approved Budget (dont know about that)
-    start_date = fields.Date(string='Fiscal Year',default=fields.Date.today)
+    # have to add the BU/Department Total Approved Budget (dont know about that)
+    start_date = fields.Date(string='Fiscal Year', default=fields.Date.today)
     end_date = fields.Date(string='End Date')
 
     approved_budget = fields.Monetary(
@@ -106,13 +108,13 @@ class EmployeeIndent(models.Model):
 
     recruitment_spoc_mgr_id = fields.Many2one(
         'res.users',
-        string='Recruitment SPOC/Mgr',required=True,
+        string='Recruitment SPOC/Mgr', required=True,
         help="Select the Recruitment SPOC/Mgr from available employees."
     )
 
     director_approval_id = fields.Many2one(
         'res.users',
-        string='Director Approval',required=True,
+        string='Director Approval', required=True,
         help="Select the Director for approval."
     )
 
@@ -127,19 +129,20 @@ class EmployeeIndent(models.Model):
     )
 
     request_date = fields.Date(default=fields.Datetime.now, copy=False, readonly=True)
-    submit_date = fields.Date(readonly=True,copy=False)
+    submit_date = fields.Date(readonly=True, copy=False)
 
     state = fields.Selection([
         ('draft', 'Draft'),
         ('waiting_approval', 'Waiting for Approval'),
         ('open', 'Open'),
         ('job_created', 'Job Position Created'),
-        ('cancel','Cancelled')
+        ('cancel', 'Cancelled')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
 
-    #Job Description template details
+    # Job Description template details
 
-    business_unit = fields.Char(string="Business Unit")
+    # business_unit = fields.Char(string="Business Unit")
+    business_unit_id = fields.Many2one('business.units', string="Business Units")
     source = fields.Selection([
         ('new_role', 'New Role'),
         ('replacement', 'Replacement')
@@ -160,9 +163,18 @@ class EmployeeIndent(models.Model):
     professional_requirements = fields.Text(string="Professional Requirements")
     educational_requirements = fields.Text(string="Educational and Experience Requirements")
     desirable = fields.Text(string="Desirable")
-    approved_by_hod_id = fields.Many2one('hr.employee',string="Approved by (HOD)")
-    approved_by_director_id = fields.Many2one('hr.employee',string="Approved by (Director)")
-    job_id = fields.Many2one('hr.job',string="Job Position")
+    approved_by_hod_id = fields.Many2one('hr.employee', string="Approved by (HOD)")
+    approved_by_director_id = fields.Many2one('hr.employee', string="Approved by (Director)")
+    job_id = fields.Many2one('hr.job', string="Job Position")
+
+    @api.onchange('business_unit_id')
+    def _onchange_business_unit_id(self):
+        """Set tax_entity based on the selected business_unit_id."""
+        for rec in self:
+            if rec.business_unit_id:
+                rec.tax_entity = rec.business_unit_id.tax_entity
+            else:
+                rec.tax_entity = False
 
     def unlink(self):
         for record in self:
@@ -204,7 +216,7 @@ class EmployeeIndent(models.Model):
         # To make the reapprove functionality and then stop raising error if multi approval not installed
         if hasattr(self, 'x_has_request_approval'):
             self.x_has_request_approval = False
-
+            # passing two level approvers from employee.indent others(>2) are static
             approval_type_model = self.env['multi.approval.type']
             approval_type_line_model = self.env['multi.approval.type.line']
 
@@ -214,58 +226,73 @@ class EmployeeIndent(models.Model):
                     ('domain', 'ilike', '"state"')
                 ], limit=1)
 
-                if not approval_type:
-                    raise ValueError("No matching approval type found for the Employee Indent.")
+                # if not approval_type:
+                #     raise ValueError("No matching approval type found for the Employee Indent.")
+                if approval_type and approval_type.state == 'confirm':
+                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)], limit=2)
 
-                lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                    while len(lines) < 2:
+                        # Create missing lines
+                        new_line = approval_type_line_model.create({
+                            'type_id': approval_type.id,
+                            'name': f"L{len(lines) + 1}",
+                            'sequence': len(lines) + 1,  # Assign a sequence for clarity
+                        })
+                        lines += new_line
 
-                if len(lines) != 2:
-                    raise ValueError(
-                        "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
+                    # if len(lines) != 2:
+                    #     raise ValueError(
+                    #         "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
 
-                for index, line in enumerate(lines):
-                    line.write({
-                        'user_id': [(6, 0, [])]
-                    })
-                    if index == 0:
-                        unit_head_user = record.unit_head_id.id
-                        recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+                    for index, line in enumerate(lines):
+                        line.write({
+                            'user_id': [(6, 0, [])]
+                        })
+                        if index == 0:
+                            unit_head_user = record.unit_head_id.id
+                            recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
 
-                        if unit_head_user and recruitment_spoc_mgr_user:
-                            line.write({
-                                'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
-                            })
-                        else:
-                            raise ValueError("Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
-                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+                            if unit_head_user and recruitment_spoc_mgr_user:
+                                line.write({
+                                    'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
+                                })
+                            else:
+                                raise ValueError(
+                                    "Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
+                            print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
 
-                    elif index == 1:
-                        director_approval_user = record.director_approval_id.id
+                        elif index == 1:
+                            director_approval_user = record.director_approval_id.id
 
-                        if director_approval_user:
-                            line.write({
-                                'user_id': [(4, director_approval_user)]
-                            })
-                        else:
-                            raise ValueError("Director Approval does not have a corresponding user.")
-                        print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+                            if director_approval_user:
+                                line.write({
+                                    'user_id': [(4, director_approval_user)]
+                                })
+                            else:
+                                raise ValueError("Director Approval does not have a corresponding user.")
+                            print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
 
-                record.state = 'waiting_approval'
-                self.submit_date = fields.Datetime.now()
+                    record.state = 'waiting_approval'
+                    record.submit_date = fields.Datetime.now()
+
+                else:
+                    record.state = 'waiting_approval'
+                    record.submit_date = fields.Datetime.now()
 
         else:
             for record in self:
                 record.state = 'waiting_approval'
-                self.submit_date = fields.Datetime.now()
+                record.submit_date = fields.Datetime.now()
 
     def action_open(self):
         for record in self:
-            record.state='open'
+            record.state = 'open'
 
     def action_create_job_position(self):
         hr_job_model = self.env['hr.job']
         for record in self:
-            existing_job = hr_job_model.search([('name', '=', record.position_name.name)], limit=1)
+            existing_job = hr_job_model.search(
+                [('name', '=', record.position_name.name), ('company_id', '=', record.organization.id)], limit=1)
 
             if existing_job:
                 existing_job.write({
@@ -301,11 +328,10 @@ class EmployeeIndent(models.Model):
         """Generate the full URL for the current record."""
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         menu = self.env['ir.ui.menu'].search([('name', '=', 'Employee Indent')], limit=1)  # Adjust menu name
+        # cant able to use this for normal users (ir.actions.act_window) only accessible by administration/settings
         action = self.env['ir.actions.act_window'].search([('res_model', '=', 'employee.indent')], limit=1)
         menu_id = menu.id if menu else 0
         action_id = action.id if action else 0
         if self:
             return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
         return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
-
-

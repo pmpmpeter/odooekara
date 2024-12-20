@@ -1,0 +1,148 @@
+<odoo>
+    <record id="view_hr_pip_form" model="ir.ui.view">
+        <field name="name">hr.pip.form</field>
+        <field name="model">hr.pip</field>
+        <field name="arch" type="xml">
+            <form string="Performance Improvement Plan">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,completed" nolabel="1"/>
+                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            invisible="state in ('in_progress','completed')"/>
+                    <button name="action_mark_completed" type="object" string="Mark as Completed" class="oe_highlight"
+                            invisible="state in ('draft','completed')"/>
+                    <button name="action_set_to_drat" type="object" string="Reset to Draft"
+                            invisible="state in ('draft', 'in_progress')"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="supervisor_id"/>
+                            <field name="hod_id"/>
+                            <field name="hr_head_id"/>
+                        </group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Improvement Goals">
+                            <field name="improvement_goal_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Activity Goals">
+                            <field name="activity_goal_ids">
+                                <tree editable="bottom">
+                                    <field name="goal"/>
+                                    <field name="activity"/>
+                                    <field name="how_to"/>
+                                    <field name="start_date"/>
+                                    <field name="completion_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Resources">
+                            <field name="resource_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Expectations">
+                            <field name="expectation_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Progress Checkpoints">
+                            <field name="progress_checkpoint_ids">
+                                <tree editable="bottom">
+                                    <field name="goal"/>
+                                    <field name="checkpoint_date"/>
+                                    <field name="followup_type"/>
+                                    <field name="progress_expected"/>
+                                    <field name="notes"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Memo Updates">
+                            <field name="activities_ids">
+                                <tree editable="bottom">
+                                    <field name="date_schedule"/>
+                                    <field name="activity_memo"/>
+                                    <field name="conducted_by"/>
+                                    <field name="completion_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Observations">
+                            <field name="observations"/>
+                            <field name="areas_of_concern"/>
+                        </page>
+                        <page string="Signatures">
+                            <group>
+                                <group>
+                                    <field name="employee_signature" widget="image" class="oe_avatar"/>
+                                    <field name="employee_signature_date"/>
+                                </group>
+                                <group>
+                                    <field name="supervisor_signature" widget="image" class="oe_avatar"/>
+                                    <field name="supervisor_signature_date"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="hod_signature" widget="image" class="oe_avatar"/>
+                                    <field name="hod_signature_date"/>
+                                </group>
+                                <group>
+                                    <field name="hr_head_signature" widget="image" class="oe_avatar"/>
+                                    <field name="hr_head_signature_date"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_hr_pip_tree" model="ir.ui.view">
+        <field name="name">hr.pip.tree</field>
+        <field name="model">hr.pip</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_id"/>
+                <field name="supervisor_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_hr_pip" model="ir.actions.act_window">
+        <field name="name">Performance Improvement Plan</field>
+        <field name="res_model">hr.pip</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>Create and manage performance improvement plans for employees.</p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_hr_pip" name="Performance Improvement Plan"
+              parent="hr_appraisal.menu_open_view_hr_appraisal_tree"
+              sequence="2" action="action_hr_pip"/>
+</odoo>

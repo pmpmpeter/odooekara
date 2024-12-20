@@ -64,6 +64,11 @@ class RequestApproval(models.TransientModel):
         # Add the link to the source document inside the description.
         # in order to bypass the record rule on it
         record = self.env[model_name].browse(res_id)
+        if model_name == 'crossovered.budget' and record.crossovered_budget_line:
+            for line in record.crossovered_budget_line:
+                if line.planned_amount <= 0:
+                    raise UserError('Warning !! Planned Amount Should be greater than Zero')
+
         record_name = record.display_name or _("this object")
         model_display_name = self.env['ir.model'].sudo().search([('model', '=', model_name)], limit=1).name or _("Unknown Model")
         title = _("Request approval for {} - {}").format(model_display_name, record_name)
@@ -115,6 +120,15 @@ class RequestApproval(models.TransientModel):
         request = self.env["multi.approval"].create(vals)
         request.write({'request_date': self.request_date})
         request.action_submit()
+        res_model = self._context.get('active_model')
+        if res_model == 'crossovered.budget':
+            self.origin_ref.approval_document = request
+            self.origin_ref.state = 'to approve'
+            self.origin_ref.message_post(body='Document is submitted for approval')
+        if res_model == 'account.move':
+            self.origin_ref.approval_document = request
+            self.origin_ref.state = 'to approve'
+            self.origin_ref.message_post(body='Document is submitted for approval')
 
         # update x_has_request_approval
         self.env["multi.approval.type"].update_x_field(

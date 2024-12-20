@@ -3,10 +3,14 @@ from . import kra
 from . import employee_kra
 from . import hr_config
 from . import recruitement_invitation
+# from . import gmc_gpa_parental
 from . import pre_employment_check
 from . import interview_assessment
 from . import employee_indent
+from . import cmg_and_gpa_details
+from . import manpower_budget_sheet
 from . import joining_documents
+from . import hr_contract
 from . import hr_employee
 from . import hr_applicant
-from . import onboarding_task
+

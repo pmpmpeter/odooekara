@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<odoo>
+  <record id="contact_creation_mail" model="mail.template">
+        <field name="name">Invitation Mail</field>
+        <field name="model_id" ref="model_contact_creation"/>
+        <field name="email_to">{{object.email}}</field>
+        <field name="subject">Invitation Email for {{object.name}}
+        </field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear <t t-out="object.name or ''"/>,
+                    <br/>
+                    <p>Kindly login using below URL and credentials and update your profile details using Edit Information after login and then upload KYC documents.</p>
+                    <t t-set="website_url" t-value="object.portal_url()"></t>
+                     <p>URL: <a t-att-href='website_url' t-out="website_url or ''"/></p>
+                    <p>Username: <t t-out="object.email or ''"/></p>
+                    <p>Password: <t t-out="object.password or ''"/></p>
+
+                </p>
+            </div>
+        </field>
+        <field name="lang">{{ object.partner_id.lang }}</field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+</odoo>
+

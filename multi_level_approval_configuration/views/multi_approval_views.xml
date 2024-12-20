@@ -21,6 +21,7 @@
                     name="%(multi_level_approval_configuration.change_approver_action)d"
                     type="action"
                     string="Change Approver"
+                    context="{'active_model': 'multi.approval', 'active_ids': active_ids}"
                     invisible="state != 'Submitted'"
                 />
             </button>

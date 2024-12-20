@@ -4,24 +4,35 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import *
 
+
 class Employee(models.Model):
     _inherit = 'hr.employee'
 
+    employee_probation_ids = fields.Many2many('employee.probation',
+                                              compute='_compute_employee_probation',
+                                              string='Employee Probation ID', copy=False)
+    employee_probation_count = fields.Integer("Employee Probation Count",
+                                              compute='_compute_employee_probation', default=0, copy=False)
+
+    def _compute_employee_probation(self):
+        for record in self:
+            domain = [('employee_id', '=', record.id)]
+            employee_probation_ids = self.env['employee.probation'].sudo().search(domain)
+            record.employee_probation_ids = employee_probation_ids
+            record.employee_probation_count = len(employee_probation_ids)
+
     def action_get_employee_probation(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Employee Probation',
-            'view_mode': 'tree,form',
-            'res_model': 'employee.probation',
-            'domain': [('employee_id', '=', self.id)],
-            'context': {
-                'default_employee_id': self.id,
-                'default_email': self.work_email,
-                'default_department_id': self.department_id.id,
-                'default_parent_id': self.parent_id.id,
-            },
-        }
+        action = self.env.ref('emp_prob_extended.employee_probation_action')
+        result = action.sudo().read()[0]
+        result.pop('id', None)
+        result['context'] = {}
+        if len(self.employee_probation_ids.ids) > 1:
+            result['domain'] = "[('id','in',[" + ','.join(map(str, self.employee_probation_ids.ids)) + "])]"
+        elif len(self.employee_probation_ids.ids) == 1:
+            res = self.env.ref('probation_management.employee_probation_form_view', False)
+            result['views'] = [(res and res.id or False, 'form')]
+            result['res_id'] = self.employee_probation_ids.ids and self.employee_probation_ids.ids[0] or False
+        return result
 
 
 class EmployeeProbation(models.Model):
@@ -37,10 +48,15 @@ class EmployeeProbation(models.Model):
     employee_reviews_ids = fields.One2many('employee.reviews.details', 'probation_id', 'Employee Reviews')
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('review', 'Review'),
+        ('review', 'Reviewed'),
         ('confirm', 'Confirmed'),
         ('cancel', 'Canceled'),
     ], string='State', default='draft', required=True, tracking=True)
+
+    based_on = fields.Selection([
+        ('months', 'Months'),
+        ('days', 'Days'),
+    ], string="Based On", default='months', required=True, copy=False)
 
     employee_prob_ids = fields.Many2many('hr.employee',
                                          compute='_compute_employee_prob',
@@ -48,31 +64,58 @@ class EmployeeProbation(models.Model):
     employee_prob_count = fields.Integer("Employee Prob Count",
                                          compute='_compute_employee_prob', default=0, copy=False)
 
+    review_form_ids = fields.Many2many(
+        'prob.review.form',
+        compute='_compute_review_forms',
+        string='Review Forms',
+        copy=False
+    )
+    review_form_count = fields.Integer(
+        "Review Form Count",
+        compute='_compute_review_forms',
+        default=0,
+        copy=False
+    )
+
     start_date = fields.Date('Start Date', compute='_compute_start_date', store=True)
     end_date = fields.Date('End Date', compute='_compute_end_date', store=True)
     number_of_months = fields.Integer(string='Number of Months', default=3, store=True, copy=False)
+    number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
+    review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
 
     @api.onchange('employee_id')
     def _compute_start_date(self):
         for record in self:
             if record.employee_id:
-                resume_line = self.env['hr.resume.line'].search(
+                contract = self.env['hr.contract'].search(
                     [('employee_id', '=', record.employee_id.id)],
-                    order='date_start desc',
+                    order='date_start asc',
                     limit=1
                 )
-                record.start_date = resume_line.date_start if resume_line else False
+                if contract:
+                    record.start_date = contract.date_start
+                else:
+                    raise ValidationError(
+                        "No contract found for the selected employee. Please ensure the employee has a valid contract."
+                    )
             else:
                 record.start_date = False
 
-    @api.onchange('start_date','number_of_months')
+    @api.depends('start_date', 'number_of_months', 'number_of_days', 'based_on')
     def _compute_end_date(self):
         for record in self:
-            if record.number_of_months > 12 or record.number_of_months <= 0:
-                raise UserError("The number of months between 0 and 12.")
+            if not record.start_date:
+                record.end_date = False
+                continue
 
-            if record.start_date and record.number_of_months:
-                record.end_date = fields.Date.to_date(record.start_date) + relativedelta(months=record.number_of_months)
+            if record.based_on == 'months':
+                if record.number_of_months <= 0 or record.number_of_months > 12:
+                    raise UserError("The number of months must be between 1 and 12.")
+                record.end_date = record.start_date + relativedelta(months=record.number_of_months)
+            elif record.based_on == 'days':
+                if record.number_of_days <= 0:
+                    raise UserError("The number of days must be greater than 0.")
+                record.end_date = record.start_date + relativedelta(days=record.number_of_days)
             else:
                 record.end_date = False
 
@@ -86,38 +129,123 @@ class EmployeeProbation(models.Model):
                 raise UserError("You cannot delete a record in the 'Confirmed' state.")
         return super(EmployeeProbation, self).unlink()
 
-    def print_employee_probation(self):
-        return self.env.ref('emp_prob_extended.employee_probation_pdf').report_action(self.id)
+    # def print_employee_probation(self):
+    #     return self.env.ref('emp_prob_extended.report_probation_review_template').report_action(self.id)
 
     def employee_probation_confirm(self):
-        report = self.env.ref('emp_prob_extended.employee_probation_pdf')
-        # pdf_content, content_type = report._render_qweb_pdf([self.id])
-        data_record = base64.b64encode(
-            self.env['ir.actions.report'].sudo()._render_qweb_pdf(
-                report, [self.id], data=None)[0])
-        # Create an attachment for the PDF
-        attachment = self.env['ir.attachment'].create({
-            'name': f"Probation_Confirmation_{self.employee_id.name}.pdf",
-            'type': 'binary',
-            'datas': data_record,
-            'mimetype': 'application/pdf',
-            'res_model': 'employee.probation',
-            'res_id': self.id,
-        })
+        if not self.review_form_id:
+            raise UserError("No associated Probation Review Form found.")
 
-        # Send the email with the attachment
-        template = self.env.ref('emp_prob_extended.probation_confirmation_email_template')
-        template.send_mail(self.id, force_send=True, email_values={
-            'attachment_ids': [(6, 0, [attachment.id])]
-        })
-        # if self.state == 'draft':
+        # Change the state to 'confirm'
         self.state = 'confirm'
+
+    def action_send_probation_confirmation_mail(self):
+        for record in self:
+            if not record.review_form_id:
+                raise UserError("No associated Probation Review Form found.")
+
+            report = self.env.ref('emp_prob_extended.report_probation_review_template')
+            pdf_content = self.env['ir.actions.report'].sudo()._render_qweb_pdf(
+                report, [record.review_form_id.id], data=None)[0]
+            data_record = base64.b64encode(pdf_content)
+
+            attachment = self.env['ir.attachment'].create({
+                'name': f"Probation_Confirmation_{record.employee_id.name}.pdf",
+                'type': 'binary',
+                'datas': data_record,
+                'mimetype': 'application/pdf',
+                'res_model': 'employee.probation',
+                'res_id': record.id,
+            })
+
+            template = self.env.ref('emp_prob_extended.mail_probation_confirmation_mailsss', False)
+            if not template:
+                raise UserError(_("Probation Confirmation template not found."))
+
+            compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+            if not compose_form:
+                raise UserError(_("Email composition form not found."))
+
+            ctx = dict(
+                default_model='employee.probation',
+                default_res_ids=self.ids,
+                default_template_id=template.id,
+                default_composition_mode='comment',
+                default_email_layout_xmlid="mail.mail_notification_light",
+                default_attachment_ids=[attachment.id],
+            )
+            return {
+                'name': _('Compose Probation Confirmation Email'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'target': 'new',
+                'context': ctx,
+            }
 
     def employee_probation_cancel(self):
         self.state = 'cancel'
 
     def employee_probation_review(self):
-        self.state = 'review'
+        for record in self:
+            if not record.employee_id:
+                raise UserError("Please select an employee to create the probation review form.")
+
+            existing_form = self.env['prob.review.form'].search([('employee_probation_id', '=', record.id)], limit=1)
+
+            if existing_form:
+                return {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Probation Review Form',
+                    'res_model': 'prob.review.form',
+                    'view_mode': 'form',
+                    'res_id': existing_form.id,
+                    'target': 'current',
+                }
+
+            review_form = self.env['prob.review.form'].create({
+                'employee_id': record.employee_id.id,
+                'job_title_id': record.employee_id.job_id.id,
+                'department_id': record.employee_id.department_id.id,
+                'date_of_joining': record.start_date,
+                'reporting_manager_id': record.employee_id.parent_id.id,
+                'reporting_manager_designation_id': record.employee_id.parent_id.job_id.id,
+                'employee_probation_id': record.id,
+            })
+
+            record.review_form_id = review_form.id
+            # record.state = 'review'
+
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Probation Review Form',
+                'res_model': 'prob.review.form',
+                'view_mode': 'form',
+                'res_id': review_form.id,
+                'target': 'current',
+            }
+
+    def _compute_review_forms(self):
+        for record in self:
+            domain = [('employee_probation_id', '=', record.id)]
+            review_forms = self.env['prob.review.form'].sudo().search(domain)
+            record.review_form_ids = review_forms
+            record.review_form_count = len(review_forms)
+
+    def action_open_review_forms(self):
+        action = self.env.ref('emp_prob_extended.probation_review_form_action')
+        result = action.sudo().read()[0]
+        result.pop('id', None)
+        result['context'] = {}
+        if len(self.review_form_ids.ids) > 1:
+            result['domain'] = "[('id','in',[" + ','.join(map(str, self.review_form_ids.ids)) + "])]"
+        elif len(self.review_form_ids.ids) == 1:
+            res = self.env.ref('emp_prob_extended.probation_review_form_form_view',False)
+            result['views'] = [(res and res.id or False, 'form')]
+            result['res_id'] = self.review_form_ids.ids and self.review_form_ids.ids[0] or False
+        return result
 
     def _compute_employee_prob(self):
         for record in self:

@@ -10,8 +10,9 @@
             <field name="subject">Probation Confirmation Letter</field>
             <field name="body_html" type="html">
                 <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width:40%">
-
+                    <t t-set="current_date" t-value="time.strftime('%Y-%m-%d')"/>
                     <p>Date:
+                        <t t-esc="current_date"/>
                         <br/>
                         <br/>
                         <span style="font-weight:bold;">
@@ -19,9 +20,13 @@
                             <t t-out="object.employee_id.name"/>,
                         </span>
                         <br/>
-                        <span style="font-weight:bold;">Designation: <t t-out="object.employee_id.job_id.name"/>,</span>
+                        <span style="font-weight:bold;">Designation:
+                            <t t-out="object.employee_id.job_id.name"/>,
+                        </span>
                         <br/>
-                        <span style="font-weight:bold;">Employee ID:<t t-out="object.employee_id.id"/>,</span>
+                        <span style="font-weight:bold;">Employee ID:
+                            <t t-out="object.employee_id.id"/>,
+                        </span>
                         <br/>
                         <br/>
                         <span style="font-weight:bold;">Subject :Letter of Confirmation</span>
@@ -29,12 +34,16 @@
                         <br/>
 
 
-                        <span style="font-weight:bold;">Dear <t t-out="object.employee_id.name"/>,</span>
+                        <span style="font-weight:bold;">Dear<t t-out="object.employee_id.name"/>,
+                        </span>
                         <br/>
                         <br/>
                         We are pleased to inform you that you are confirmed in the services of this organization
                         effective
-                        <b>2022-10-01 as</b>
+                        <b>
+                            <t t-esc="current_date"/>
+                            as
+                        </b>
                         <br/>
                         <br/>
 

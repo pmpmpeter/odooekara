@@ -9,19 +9,29 @@ class ProbationReviewForm(models.Model):
     _name = 'prob.review.form'
     _description = 'Probation Review Form'
     _inherit = 'mail.thread'
+    _rec_name = 'employee_id'
 
-    name = fields.Char(string='Employee Name', required=True, tracking=True)
-    job_title = fields.Many2one('hr.job', string='Job Title', tracking=True)
+    employee_probation_id = fields.Many2one('employee.probation', string='Employee Probation')
+
+    employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
+    job_title_id = fields.Many2one('hr.job', string='Job Title', tracking=True)
     grade = fields.Char(string='Grade', tracking=True)
-    department = fields.Many2one('hr.department', string='Department / Section', tracking=True)
+    department_id = fields.Many2one('hr.department', string='Department / Section', tracking=True)
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
-    reporting_manager = fields.Many2one('hr.employee', string='Reporting Manager',
+    reporting_manager_id = fields.Many2one('hr.employee', string='Reporting Manager',
                                         tracking=True)
-    reporting_manager_designation = fields.Char(string='Manager Designation', tracking=True)
+    reporting_manager_designation_id = fields.Many2one('hr.job',string='Manager Designation', tracking=True)
     three_month_review_due = fields.Date(string='Due Date', tracking=True)
     three_month_review_completed = fields.Date(string='Completed On', tracking=True)
     six_month_review_due = fields.Date(string='Due Date', tracking=True)
     six_month_review_completed = fields.Date(string='Completed On', tracking=True)
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('review1_done', 'Review 1 Done'),
+        ('review2_done', 'Review 2 Done'),
+        ('done', 'Done'),
+    ], string='State', default='draft', tracking=True)
 
     REVIEW_RATING_SELECTION = [
         ('improvement_required', 'Improvement required'),
@@ -130,4 +140,27 @@ class ProbationReviewForm(models.Model):
         string='Is the employee receive the confirm letter?',
         default='no')
 
+    def mark_review1_done(self):
+        for record in self:
+            record.state = 'review1_done'
+
+    def mark_review2_done(self):
+        for record in self:
+            record.state = 'review2_done'
+
+    def mark_done(self):
+        for record in self:
+            record.state = 'done'
+
+    def write(self, vals):
+        res = super(ProbationReviewForm, self).write(vals)
+        if 'state' in vals and self.employee_probation_id:
+            if vals['state'] == 'done':
+                self.employee_probation_id.state = 'review'
+            else:
+                self.employee_probation_id.state = 'draft'
+        return res
+
+    def print_employee_probation_review_form(self):
+        return self.env.ref('emp_prob_extended.report_probation_review_template').report_action(self.id)
 

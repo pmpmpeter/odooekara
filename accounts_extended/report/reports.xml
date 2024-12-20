@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="action_coa_report_xlsx" model="ir.actions.report">
+            <field name="name">COA Report</field>
+            <field name="model">account.report.wizard</field>
+            <field name="report_type">xlsx</field>
+            <field name="report_name">accounts_extended.account_monthly_xlsx</field>
+            <field name="report_file">accounts_extended.account_monthly_xlsx</field>
+        </record>
+    </data>
+</odoo>

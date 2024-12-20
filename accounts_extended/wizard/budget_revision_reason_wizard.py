@@ -1,0 +1,31 @@
+from odoo import models, fields, api
+from datetime import datetime,timedelta
+
+
+class BudgetRevisionWizard(models.TransientModel):
+    _name = 'budget.revision.wizard'
+    _description = 'Budget Revision Wizard'
+
+    reason = fields.Char(string="Revision Reason", required=True)
+
+    def action_confirm_revision(self):
+        active_id = self.env.context.get('active_id')  # Get the active budget record
+        if active_id:
+            budget = self.env['crossovered.budget'].browse(active_id)
+            # Get current user and timestamp
+            user_name = self.env.user.name  # Current user's name
+            current_time = datetime.now()  # Current date and time
+            revision_time = (current_time + timedelta(hours=5, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')  # Add 5:30 hours
+            # Calculate the new revision number
+            current_revisions = budget.revision_reason or ''
+            revision_count = current_revisions.count('R') + 1  # Count existing revisions
+            new_revision = f"R{revision_count}: {self.reason} (by {user_name} on {revision_time})"
+            # Append the new reason to the existing reasons
+            budget.revision_reason = f"{new_revision}\n {current_revisions}".strip()
+            # for rec in self:
+            budget.x_has_request_approval = False
+            budget.approval_state = 'To Submit for Approval'
+            budget.x_review_result = ''
+            budget.state = 'draft'
+            budget.sudo().message_post(body='This document has been revised')
+

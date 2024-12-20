@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- not using-->
     <record id="employee_probation_pdf" model="ir.actions.report">
         <field name="name">Employee Probation Report</field>
         <field name="model">employee.probation</field>

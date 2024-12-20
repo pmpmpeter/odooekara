@@ -22,7 +22,7 @@
         <field name="report_name">emp_prob_extended.print_report_probation_review_form</field>
         <field name="report_file">emp_prob_extended.print_report_probation_review_form</field>
         <field name="paperformat_id" ref="emp_prob_extended.paperformat_probation_form_pdf_A4"/>
-        <field name="print_report_name">'report_probation_review_form'</field>
+        <field name="print_report_name">'%s - Review Form' % (object.employee_id.name)</field>
         <field name="binding_model_id" ref="emp_prob_extended.model_prob_review_form"/>
         <field name="binding_type">report</field>
     </record>
@@ -41,14 +41,14 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">Employee name:</td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="doc.name"/>
+                                <t t-esc="doc.employee_id.name"/>
                             </td>
                         </tr>
                         <!-- Second Row -->
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;width: 50%;">Job Title:</td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="doc.job_title.name"/>
+                                <t t-esc="doc.job_title_id.name"/>
                                 <!--                                <select style="width: 100%; padding: 4px;">-->
                                 <!--                                    <option value="">Select...</option>-->
                                 <!--                                </select>-->
@@ -64,7 +64,7 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; width: 50%;">Department / Section:</td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.department.name"/>
+                                <t t-esc="doc.department_id.name"/>
                             </td>
                         </tr>
                         <tr>
@@ -78,9 +78,9 @@
                                 Designation:
                             </td>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.reporting_manager.name"/>
+                                <t t-esc="doc.reporting_manager_id.name"/>
                                 <t></t>
-                                <t t-esc="doc.reporting_manager_designation"/>
+                                <t t-esc="doc.reporting_manager_designation_id.name"/>
                             </td>
                         </tr>
                         <tr>
@@ -286,10 +286,14 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.objectives_met_reason"/>
+                                <t t-if="doc.objectives_met == 'no'">
+                                    <t t-esc="doc.objectives_met_reason"/>
+                                </t>
                             </td>
                             <td style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.objectives_review_date"/>
+                                <t t-if="doc.objectives_met == 'no'">
+                                    <t t-esc="doc.objectives_review_date"/>
+                                </t>
                             </td>
                         </tr>
                         <tr>
@@ -301,10 +305,14 @@
                                 <t t-esc="doc.training_needs_met"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.training_needs_met_reason"/>
+                                <t t-if="doc.training_needs_met == 'no'">
+                                    <t t-esc="doc.training_needs_met_reason"/>
+                                </t>
                             </td>
                             <td style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.training_review_date"/>
+                                <t t-if="doc.training_needs_met == 'no'">
+                                    <t t-esc="doc.training_review_date"/>
+                                </t>
                             </td>
                         </tr>
                         <tr>
@@ -446,7 +454,9 @@
                         </tr>
                         <tr>
                             <td colspan="3" style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.objectives_met_reason_fr"/>
+                                <t t-if="doc.objectives_met_fr == 'no'">
+                                    <t t-esc="doc.objectives_met_reason_fr"/>
+                                </t>
                             </td>
 
                         </tr>
@@ -460,7 +470,9 @@
                                 <t t-esc="doc.training_needs_met_fr"/>
                             </td>
                             <td colspan="3" style="border: 1px solid black; padding: 8px; ">
-                                <t t-esc="doc.training_needs_met_reason_fr"/>
+                                <t t-if="doc.training_needs_met_fr == 'no'">
+                                    <t t-esc="doc.training_needs_met_reason_fr"/>
+                                </t>
                             </td>
                             <!--                            <td style="border: 1px solid black; padding: 8px; "></td>-->
                         </tr>
@@ -500,7 +512,9 @@
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px;">
-                                            <t t-esc="doc.emp_appointment_reason_fr"/>
+                                            <t t-if="doc.emp_appointment_fr == 'no'">
+                                                <t t-esc="doc.emp_appointment_reason_fr"/>
+                                            </t>
                                         </td>
                                     </tr>
                                 </table>
@@ -511,21 +525,21 @@
                                 <table style="width: 100%; border-collapse: collapse;">
                                     <tr>
                                         <td style="padding: 8px;">
-                                            If YES, please provide reasons and, where appropriate, specify any areas of
-                                            improvement required and how these
-                                            will be monitored.
+                                            The employee may provide any comments about their experience of the
+                                            probationary process here.
                                         </td>
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px;">
                                             <div style="margin: 0; padding: 0;">
-                                                <t t-esc="doc.emp_probation_extend_reason"/>
+                                                <t t-esc="doc.employee_comment"/>
                                             </div>
                                         </td>
                                     </tr>
                                 </table>
                             </td>
                         </tr>
+
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 8px; height:50px;">Should the
                                 employee’s
@@ -546,7 +560,9 @@
                                     </tr>
                                     <tr>
                                         <td style="padding: 8px;">
-                                            <t t-esc="doc.emp_probation_extend_reason"/>
+                                            <t t-if="doc.emp_probation_extend == 'yes'">
+                                                <t t-esc="doc.emp_probation_extend_reason"/>
+                                            </t>
                                         </td>
                                     </tr>
                                 </table>

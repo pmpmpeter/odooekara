@@ -2,6 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_employee_indent,employee.indent,model_employee_indent,base.group_user,1,1,1,1
 access_hr_job_levels,hr.job.levels,model_hr_job_levels,base.group_user,1,1,1,1
 access_hr_position_names,hr.position.names,model_hr_position_names,base.group_user,1,1,1,1
+access_business_units,business.units,model_business_units,base.group_user,1,1,1,1
 access_preemp_check,preemp.check,model_preemp_check,base.group_user,1,1,1,1
 access_recruitment_invitation_letter_config,recruitment.invitation.letter.config,model_recruitment_invitation_letter_config,base.group_user,1,1,1,1
 access_applicant_invitation_letter,recruitment.applicant.invitation.letter,model_applicant_invitation_letter,base.group_user,1,1,1,1
@@ -13,5 +14,7 @@ access_employee_kra_details,employee.kra.details,model_employee_kra_details,base
 access_interview_assessment,interview.assessment,model_interview_assessment,base.group_user,1,1,1,1
 access_interview_panel_comments,interview.panel.comments,model_interview_panel_comments,base.group_user,1,1,1,1
 access_employee_join_doc_config,employee.join.doc.config,model_employee_join_doc_config,base.group_user,1,1,1,1
-access_joining_documents,joining.documents,model_joining_documents,base.group_user,1,1,1,1
-access_onboarding.task,onboarding.task,model_onboarding_task,base.group_user,1,1,1,1
+access_joining_documents_user,joining.documents.user,model_joining_documents,base.group_user,1,1,0,0
+access_joining_documents_hr,joining.documents.hr,model_joining_documents,hr.group_hr_user,1,1,1,1
+access_employee_insurance,employee.insurance,model_employee_insurance,base.group_user,1,1,1,1
+access_hr_employee_group_user,hr.employee.group.user,hr.model_hr_employee,base.group_user,1,0,0,0

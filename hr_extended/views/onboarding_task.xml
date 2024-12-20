@@ -9,7 +9,7 @@
                 <tree>
                     <field name="name"/>
                     <field name="description"/>
-                    <field name="is_active"/>
+                    <field name="active"/>
                 </tree>
             </field>
         </record>
@@ -27,7 +27,7 @@
                                 <field name="description"/>
                             </group>
                             <group>
-                                <field name="is_active"/>
+                                <field name="active"/>
                             </group>
                         </group>
                     </sheet>

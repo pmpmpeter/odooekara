@@ -132,7 +132,9 @@
                         <page string="Job Description Details">
                             <group>
                                 <group>
-                                    <field name="business_unit"/>
+                                    <field name="business_unit_id"
+                                           readonly="state not in ('draft','cancel')"
+                                           options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="source"/>
                                 </group>
                                 <group>

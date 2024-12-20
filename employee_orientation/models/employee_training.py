@@ -22,6 +22,7 @@
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError, UserError
 
 
 class EmployeeTraining(models.Model):
@@ -99,9 +100,42 @@ class EmployeeTraining(models.Model):
         self.write({'state': 'complete'})
 
     def action_confirm_event(self):
-        """Function executes if the event is confirmed and state changed to
-              confirm"""
+        """Function executes if the event is confirmed and state changes to confirm."""
+        self.ensure_one()
         self.write({'state': 'confirm'})
+        # Send email notifications to employees
+        if self.training_ids:
+            template = self.env.ref('employee_orientation.training_confirmation_email_template',
+                                    raise_if_not_found=False)
+            if template:
+                for employee in self.training_ids:
+                    if employee.work_email:
+                        template.sudo().send_mail(
+                            self.id,
+                            email_values={'email_to': employee.work_email},
+                            force_send=True
+                        )
+
+        # Create calendar events for employees
+        attendees = []
+        for emp in self.training_ids:
+            if emp.user_id and emp.user_id.partner_id:
+                attendees.append((0, 0, {'partner_id': emp.user_id.partner_id.id}))
+
+        if not attendees:
+            missing_users = [emp.name for emp in self.training_ids if not emp.user_id or not emp.user_id.partner_id]
+            raise ValidationError(
+                f"No valid attendees found for creating a calendar event. Missing User/Partner IDs for: {', '.join(missing_users)}"
+            )
+        self.env['calendar.event'].create({
+            'name': f'Training: {self.program_name}',
+            'start': self.date_from,
+            'stop': self.date_to,
+            'user_id': self.program_convener_id.id,
+            'partner_ids': [attendee[2]['partner_id'] for attendee in attendees],
+            'description': self.note_id,
+            'location': self.program_department_id.name,
+        })
 
     def action_cancel_event(self):
         """Function executes if the event is cancelled and state changed to

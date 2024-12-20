@@ -1,3 +1,2 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_category_res_partner,category.res.partner,model_category_res_partner,res_partner_extended.group_contact_admin,1,1,1,1
-access_category_res_partner_vendor,category.res.partner.vendor,model_category_res_partner_vendor,res_partner_extended.group_contact_admin,1,1,1,1
+access_contact_creation,contact_creation_name,model_contact_creation,base.group_user,1,1,1,0

@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="review_performance" model="ir.actions.report">
+        <field name="name">Review Performance</field>
+        <field name="model">hr.appraisal</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_appraisal_extended.print_review_performance</field>
+        <field name="report_file">hr_appraisal_extended.print_review_performance</field>
+        <field name="print_report_name">'Review Performance'</field>
+        <field name="binding_model_id" ref="hr_appraisal_extended.model_hr_appraisal"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+    <template id="print_review_performance">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="doc">
+                <div style="font-size:17px; ">
+                    <p style="line-height:12px;">
+                        <h4 style="text-decoration:underline; text-align:center; font-weight:bold;">Performance Review FY 2024-25</h4>
+                        <div style="border:2px solid black">
+
+
+                            <table style="width:100%;   font-size: 20px; border:0px solid white ;">
+                                <tr>
+                                    <td style="height: 70px; width: 50%">Name :</td>
+                                    <td style="height: 70px; width: 50%">Designation:</td>
+                                </tr>
+                                <tr>
+                                    <td style="height: 70px; width: 50%">Department:</td>
+                                    <td style="height: 70px; width: 50%">Location:</td>
+                                </tr>
+                                <tr>
+                                    <td style="height: 70px; width: 50%">DOJ:</td>
+                                    <td style="height: 70px; width: 50%">Appraisal Date:</td>
+                                </tr>
+                                <tr>
+                                    <td style="height: 70px; width: 50%">Reporting To:</td>
+                                    <td style="height: 70px; width: 50%">Reviewer</td>
+                                </tr>
+                                <tr>
+                                    <td style="height: 70px; width: 50%">Quarterly Performance Review</td>
+                                    <td style="height: 70px; width: 50%">Annual Performance Review/Appraisal</td>
+                                </tr>
+                                <tr>
+                                    <td style="height: 70px; width: 50%">Half Yearly Performance Review</td>
+                                    <td style="height: 70px; width: 50%"></td>
+                                </tr>
+
+                            </table>
+                        </div><br/><br/><br/><br/>
+
+                        <div style="border:2px solid black">
+                            <div>
+                                <div style="text-align:left;">
+                                    <text style="width:40px;">KRA 1:</text>
+                                </div>
+                                <div style="text-align:right;">
+                                    <text style="width:40px;">WEIGHTAGE:_______%</text>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="width:40px;text-decoration: underline;">Employee’s Response:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <text style="width:40px;text-decoration: underline;">Appraiser’s Remarks:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </div>
+
+                            <div>
+                                <div style="text-align:left;">
+                                    <text style="width:40px;">KRA 2:</text>
+                                </div>
+                                <div style="text-align:right;">
+                                    <text style="width:40px;">WEIGHTAGE:_______%</text>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="width:40px;text-decoration: underline;">Employee’s Response:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <text style="width:40px;text-decoration: underline;">Appraiser’s Remarks:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </div>
+
+
+                        </div><br/><br/><br/><br/>
+
+                        <div style="border:2px solid black">
+                            <div>
+                                <div style="text-align:left;">
+                                    <text style="width:40px;">KRA 3:</text>
+                                </div>
+                                <div style="text-align:right;">
+                                    <text style="width:40px;">WEIGHTAGE:_______%</text>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="width:40px;text-decoration: underline;">Employee’s Response:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <text style="width:40px;text-decoration: underline;">Appraiser’s Remarks:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </div>
+
+                            <div>
+                                <div style="text-align:left;">
+                                    <text style="width:40px;">KRA 4:</text>
+                                </div>
+                                <div style="text-align:right;">
+                                    <text style="width:40px;">WEIGHTAGE:_______%</text>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="width:40px;text-decoration: underline;">Employee’s Response:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <text style="width:40px;text-decoration: underline;">Appraiser’s Remarks:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </div>
+
+
+                        </div><br/><br/><br/><br/>
+
+                        <div style="border:2px solid black">
+                            <div>
+                                <div style="text-align:left;">
+                                    <text style="width:40px;">KRA 5:</text>
+                                </div>
+                                <div style="text-align:right;">
+                                    <text style="width:40px;">WEIGHTAGE:_______%</text>
+                                </div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <hr style="colour:black"/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="width:40px;text-decoration: underline;">Employee’s Response:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <text style="width:40px;text-decoration: underline;">Appraiser’s Remarks:</text>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </div>
+                        </div>
+                        <br/>
+                        <br/>
+                        <br/>
+
+                        <h6 style="text-decoration:underline;text-align:center;">ASSESSMENT</h6><br/>
+                        Rate yourself for each KRA for the past 12 months (or the period covered by this appraisal) with
+                        the measures or standards agreed; Weightage will be in percentage for each KRA. Score the
+                        performance against each KRA (1 = poor, 2= satisfactory, 3 = good, 4 = Very Good, 5=Excellent):<br/><br/>
+
+
+                        <table style="width: 100%; border-collapse: collapse; border:1px solid black; ">
+                            <tr>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;background-color: #94c973;">KRA</th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;background-color: #94c973;">Weightage (%)</th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;background-color: #94c973;">Employee's Rating</th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;background-color: #94c973;">Appraiser's Rating (to
+                                    be filled in pencil)
+                                </th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:30px;"></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <div style="text-align:left;font-weight: bold;">
+                            <text style="width:40px;">APPRAISER’S OVERALL RATING:</text>
+                        </div>
+                        <br/>
+                        <br/>
+                        <div style="text-align:left;font-weight: bold;">
+                            <text style="width:40px;">REMARKS:</text>
+                        </div>
+                        <br/>
+                        <hr style="colour:black"/>
+                        <br/>
+                        <hr style="colour:black"/>
+                        <br/>
+                        <hr style="colour:black"/>
+                        <br/>
+                        <div>
+                            <div style="text-align:left;">
+                                <text style="border-top:1px solid black;width:40px;">Employee’s Signature
+                                </text>
+                            </div><div style="text-align:right;">
+                                <text style="border-top:1px solid black;width:40px;">Reporting Manager’s Signature
+                                </text>
+                            </div>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <br/>
+                            <div style="text-align:left;">
+                                <text style="border-top:1px solid black;width:40px;">Reviewer’s Signature
+                                </text>
+                            </div>
+                        </div><br/><br/>
+                        The appraisal for the employee will be based on the final overall rating by the Appraiser (Reporting Manager) post discussion with Reviewer.
+                        <br/>
+                        <br/>
+                        <h6 style="text-align:center; ">TO BE FILLED BY APPRAISER (Reporting Manager)</h6>
+
+                        <table style="width: 100%; border-collapse: collapse; border:1px solid black; ">
+                            <tr>
+                                <th colspan="4" style="text-align: center;  padding: 10px; font-size: 18px;">EMPLOYEE DEVELOPMENT PLAN (Training/ Projects/ Special Assignments)</th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;">ACTION </th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;">TIME LINE </th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;">BY WHOM </th>
+                                <th style="text-align: center;  padding: 10px; font-size: 18px;">REMARKS </th>
+                            </tr>
+                            <tr>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:250px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:250px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:250px;"></td>
+                                <td style="text-align: center;  padding: 10px; font-size: 18px;height:250px;"></td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <br/>
+                        <div>
+                            <div style="text-align:left;">
+                                <text style="border-top:1px solid black;width:40px;">Employee’s Signature
+                                </text>
+                            </div><div style="text-align:right;">
+                                <text style="border-top:1px solid black;width:40px;">Reporting Manager’s Signature
+                                </text>
+                            </div>
+                        </div>
+
+
+                    </p>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

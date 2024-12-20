@@ -1,6 +1,7 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import *
 from odoo.exceptions import ValidationError, UserError
+
 
 class EmployeeKra(models.Model):
     _name = "employee.kra"
@@ -29,16 +30,68 @@ class EmployeeKra(models.Model):
             self.kra_master = self.emp_job_id.kra_master
 
     def action_submit_to_supervisor(self):
+        approval_type_model = self.env['multi.approval.type']
+        approval_type_line_model = self.env['multi.approval.type.line']
+
         for record in self:
+            if not record.employee_parent_id:
+                raise UserError("Please set the Manager for the Employee.")
+
             if not record.kra_details_ids:
                 raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
+
+            if hasattr(self, 'x_has_request_approval'):
+                self.x_has_request_approval = False
+
+                # Search for the approval type
+                approval_type = approval_type_model.search([
+                    ('model_id', '=', 'employee.kra'),
+                    ('domain', 'ilike', '"state"')
+                ], limit=1)
+
+                if approval_type and approval_type.state == 'confirm':
+                    approval_lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                    if not approval_lines:
+                        raise UserError("No approval lines found for the selected approval type.")
+
+                    approval_line = approval_lines[0]
+                    manager_user_id = record.employee_parent_id.user_id.id
+
+                    if manager_user_id:
+                        approval_line.write({
+                            'user_id': [(6, 0, [manager_user_id])]
+                        })
+                    else:
+                        raise UserError("The Manager does not have a corresponding user in the system.")
+
             record.state = 'submit_to_supervisor'
 
     def send_email(self):
         for record in self:
-            template_id = self.env.ref('hr_extended.email_template_kra_submit')
-            if template_id:
-                template_id.send_mail(record.id, force_send=True)
+            template = self.env.ref('hr_extended.email_template_kra_submit')
+            if template:
+                if not record.employee_parent_id.work_email:
+                    raise UserError("Please check the Manager work email")
+
+                compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+                ctx = {
+                    'default_model': 'employee.kra',
+                    'default_res_ids': self.ids,
+                    'default_template_id': template.id,
+                    'default_composition_mode': 'comment',
+                    'default_email_layout_xmlid': "mail.mail_notification_light",
+                }
+
+                return {
+                    'name': _('Compose KRA Email'),
+                    'type': 'ir.actions.act_window',
+                    'view_mode': 'form',
+                    'res_model': 'mail.compose.message',
+                    'views': [(compose_form.id, 'form')],
+                    'view_id': compose_form.id,
+                    'target': 'new',
+                    'context': ctx,
+                }
 
     def action_cancel(self):
         for record in self:
@@ -51,6 +104,12 @@ class EmployeeKra(models.Model):
     def action_reset(self):
         for record in self:
             record.state = 'draft'
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_("Only records in the 'Draft' state can be deleted."))
+        return super(EmployeeKra, self).unlink()
 
     def action_fetch_kra_details(self):
         if not self.kra_master:
@@ -67,6 +126,7 @@ class EmployeeKra(models.Model):
             })
 
         return True
+
 
 class KraDetails(models.Model):
     _name = "employee.kra.details"
@@ -97,4 +157,3 @@ class KraDetails(models.Model):
 
             # Calculate final score
             record.final_score = employee_weighted_score + manager_weighted_score
-

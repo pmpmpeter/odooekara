@@ -12,9 +12,17 @@ class ResPartner(models.Model):
         string='Status', default='draft', readonly=True, copy=False, tracking=True,)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
-    vendor_code = fields.Char(string='Vendor Code',readonly=1, copy=False)
+    vendor_code = fields.Char(string='Supplier Code',readonly=1, copy=False)
     customer_code = fields.Char(string='Customer Code', readonly=1, copy=False)
     vat = fields.Char(string='GSTIN')
+    tds_applicable = fields.Boolean('TDS Applicable?')
+    tcs_applicable = fields.Boolean('TCS Applicable?')
+    tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", domain=[('type_tax_use', 'in', ['purchase','none'])])
+    tcs_tax_id = fields.Many2one('account.tax', string="TCS Tax", domain=[('type_tax_use', '=', ['sale','none'])])
+    tds_limit_amount_partner = fields.Float(
+        'Maximum TDS Amount', help="By adding maximum limit amount will let users know about the TDS limit")
+    tcs_limit_amount_partner = fields.Float(
+        'Maximum TCS Amount', help="By adding maximum limit amount will let users know about the TCS limit")
 
     @api.onchange('is_customer','is_vendor')
     def onchange_product(self):

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="get_manpower_budget_sheet" model="ir.actions.report">
+    <field name="name">Manpower Budget Sheet</field>
+    <field name="model">hr.job</field>
+    <field name="report_type">xlsx</field>
+    <field name="report_name">hr_extended.report_manpower_budget_sheet</field>
+    <field name="report_file">hr_extended.report_manpower_budget_sheet</field>
+    <field name="binding_model_id" ref="hr_extended.model_hr_job"/>
+    <field name="binding_type">report</field>
+</record>
+</odoo>

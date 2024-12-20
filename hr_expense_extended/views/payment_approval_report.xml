@@ -128,6 +128,7 @@
                                 <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"
                                        invisible="is_payment_approval"/>
                                 <field name="user_id" widget="many2one_avatar_user" readonly="state != 'draft'"/>
+                                <field name="sequence"/>
                                 <field name="accounting_date"
                                        groups="account.group_account_invoice,account.group_account_readonly"
                                        invisible="state not in ['approve', 'post', 'done']"
