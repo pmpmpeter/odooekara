@@ -102,7 +102,7 @@
                             <field name="is_statuory_notice" invisible="1"/>
                             <field name="date_of_notice" invisible="not (is_legal_notice or is_statuory_notice)"/>
                             <field name="last_date" invisible="not (is_legal_notice or is_statuory_notice)"/>
-                            <field name="first_reminder" invisible="not (is_legal_notice or is_statuory_notice)"/>
+                            <field name="first_reminder" invisible="0"/>
                             <field name="second_reminder" invisible="not (is_legal_notice or is_statuory_notice)"/>
                             <field name="first_reminder_date" invisible="1"/>
                             <field name="second_reminder_date" invisible="1"/>

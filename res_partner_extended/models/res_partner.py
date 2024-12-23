@@ -66,6 +66,25 @@ class ResPartner(models.Model):
                 if vendor_code != '' and not self.vendor_code:
                     record.write({'vendor_code': vendor_code})
             record.write({'state': 'approve'})
+            # Retrieve the action with the ID 'contacts.action_contacts'
+        action = self.env['ir.actions.act_window'].search([('id', '=', self.env.ref('contacts.action_contacts').id)], limit=1)
+        action.context = {'default_is_company': True,'edit':False}
+        action_to_return = {
+        'type': 'ir.actions.act_window',
+        'name': 'Contacts',
+        'res_model': 'res.partner',
+        'view_mode': 'kanban,tree,form,activity',
+        'context': action.context,
+        }
+
+        # Return the action with a page refresh
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',  # This will refresh the page
+            'params': action_to_return  # Include the action that opens contacts
+        }
+
+
 
     def action_validate_partner_state(self):
         records = self.env['res.partner'].browse(self._context.get('active_ids', False))
@@ -96,22 +115,39 @@ class ResPartner(models.Model):
     def reset_to_draft(self):
         for record in self.filtered(lambda m: m.state not in 'draft'):
             record.write({'state': 'draft'})
+        action = self.env['ir.actions.act_window'].search([('id', '=', self.env.ref('contacts.action_contacts').id)], limit=1)
+        action.context = {'default_is_company': True,'edit':True}
+        action_to_return = {
+        'type': 'ir.actions.act_window',
+        'name': 'Contacts',
+        'res_model': 'res.partner',
+        'view_mode': 'kanban,tree,form,activity',
+        'context': action.context,
+        }
+
+        # Return the action with a page refresh
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',  # This will refresh the page
+            'params': action_to_return  # Include the action that opens contacts
+        }
 
     def unlink(self):
         if not self.env.user.has_group('account.group_account_manager'):
             raise UserError(_("You do not have access to trigger this action."))
-        for rec in self:
-            if rec.state == 'approve':
-                raise ValidationError(_("You cannot delete approved Contacts."))
-        res = super(ResPartnerInherit, self).unlink()
-        return res
+        # Prevent deletion if the state is 'approved'
+        for record in self:
+            if record.state in ('approve','done'):
+                raise UserError(_("You cannot delete a record in the Approved or Done state."))
+        return super(ResPartner, self).unlink()
 
     def toggle_active(self):
-        result = super().toggle_active()
-        for rec in self:
-            if rec.state == 'approve':
-                raise ValidationError(_("You cannot delete approved Contacts."))
-        return result
+        # Prevent archiving if the state is 'approved'
+        for record in self:
+            if record.state in ('approve','done'):
+                raise UserError(_("You cannot archive a record in the Approved or Done state."))
+        return super(ResPartner, self).toggle_active()
+
 
     @api.constrains("l10n_in_pan")
     def _check_pan_number_format(self):

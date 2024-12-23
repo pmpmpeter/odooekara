@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-from datetime import timedelta
+from datetime import timedelta,date
 from odoo.exceptions import UserError
 
 class ProjectProject(models.Model):
@@ -10,6 +10,13 @@ class ProjectProject(models.Model):
     validity_start_date = fields.Date(string="Validity Start Date")
     validity_end_date = fields.Date(string="Validity End Date")
     is_document_validity_management = fields.Boolean(string="Is Document Validity Management", default=False)
+    closed_date = fields.Date(string='Closed Date',readonly=1)
+    closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
+
+    def document_closed(self):
+        self.closed_date = date.today()
+        self.closed_by = self.env.user
+        self.active=False
 
     def _create_default_task_stages(self):
         context = self.env.context
@@ -42,8 +49,26 @@ class ProjectProject(models.Model):
             self.validity_end_date = self.validity_start_date = False
         if self.document_type_id and self.validity_start_date:
             self.validity_end_date = self.validity_start_date + timedelta(
-                days=self.document_type_id.default_validity_period
-            )
+                days=self.document_type_id.default_validity_period)
+
+    @api.onchange('validity_end_date','first_reminder')
+    def _onchange_dates(self):
+        """
+        Update reminder fields when the date_of_notice or last_date changes.
+        """
+        for project in self:
+            if project.is_legal_notice or project.is_document_validity_management:
+                if project.validity_end_date:
+                    validity_end_date = project.validity_end_date
+                    if validity_end_date < fields.Date.today():
+                            raise UserError("Kindly provide the correct date.")
+                    else:
+                        if project.first_reminder:
+                            first_reminder = project.first_reminder
+                            project.first_reminder_date = validity_end_date - timedelta(days=first_reminder)
+                        if project.second_reminder:
+                            second_reminder = project.second_reminder
+                            project.second_reminder_date = validity_end_date - timedelta(days=second_reminder)
 
     @api.constrains('validity_start_date', 'validity_end_date')
     def _check_date_order(self):
@@ -52,6 +77,38 @@ class ProjectProject(models.Model):
                 raise UserError("The end date cannot be earlier than the start date.")
             if record.validity_start_date > record.validity_end_date:
                 raise UserError("The start date cannot be later than the end date.")
+
+    def send_reminder(self):
+        today = fields.Date.today()
+        document_first_reminder = self.sudo().search([
+            ('first_reminder_date', '=', today),('is_document_validity_management','=',True)
+        ])
+        if document_first_reminder:
+            self._schedule_activities_first_reminder_document()
+            self._send_first_reminder_email_notifications_document(document_first_reminder)
+
+    def _send_first_reminder_email_notifications_document(self,document_first_reminder):
+        for rec in document_first_reminder:
+            account_manager_group = self.env.ref('account.group_account_manager')
+            emails = [user.email for user in account_manager_group.users if user.email]
+            if emails:
+                template = self.env.ref('document_validity_management.document_validity_first_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+
+    def _schedule_activities_first_reminder_document(self):
+        today = fields.Date.today()
+        projects = self.search([
+            ('first_reminder_date', '=', today),('is_document_validity_management','=',True)
+        ])
+        for project in projects:
+            project.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary="Reminder: Document Validity Due",
+                note="The document deadline is approaching. Please take action.",
+                user_id=project.user_id.id,
+                date_deadline=fields.Date.today()
+            )
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'

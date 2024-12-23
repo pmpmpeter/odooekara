@@ -25,9 +25,10 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,sent,purchase" readonly="1"/>
                 </header>
                 <div
-                     class="alert alert-warning mb-0" role="alert"
-                     invisible="budget_balance_warning == '' or state not in ['draft','sent']">
-                    <field name="budget_balance_warning"/>
+                        class="alert alert-warning mb-0"
+                        role="alert"
+                        invisible="budget_balance_warning == '' or state not in ['draft','sent']">
+                        <field name="budget_balance_warning" widget="html"/>
                 </div>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

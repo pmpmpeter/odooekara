@@ -33,6 +33,10 @@
                     <filter string="To Validate" name="done" domain="[('state','=','done')]"/>
                     <filter string="Approved" name="approve" domain="[('state','=','approve')]"/>
                 </xpath>
+                <xpath expr="//filter[@name='type_company']" position="after">
+                    <filter string="Customer" name="is_customer" domain="[('is_customer','=',True)]"/>
+                    <filter string="Supplier" name="is_vendor" domain="[('is_vendor','=',True)]"/>
+                </xpath>
                 <xpath expr="//search/group" position="inside">
                     <filter name="state" string="Status" domain="[]" context="{'group_by' : 'state'}"/>
                 </xpath>

@@ -16,8 +16,14 @@ class CustomPortalInherit(CustomerPortal):
             'error_message': [],
         })
 
-        uploaded_files = request.httprequest.files.getlist('attachment')  # Fetch all uploaded files
+        uploaded_files = request.httprequest.files.getlist('attachment')
+        uploaded_files1 = request.httprequest.files.getlist('attachment1')# Fetch all uploaded files
+        uploaded_files2 = request.httprequest.files.getlist('attachment2')
+        uploaded_files3 = request.httprequest.files.getlist('attachment3')
         attachment_ids = []
+        attachment_ids1 = []
+        attachment_ids2 = []
+        attachment_ids3 = []
         if uploaded_files:
             filtered_files = [file for file in uploaded_files if file.filename]
             Attachments = request.env['ir.attachment']
@@ -39,6 +45,72 @@ class CustomPortalInherit(CustomerPortal):
                 partner.message_post(
                     body=f"{len(attachment_ids)} attachment(s) uploaded.",
                     attachment_ids=[attachment.id for attachment in attachment_ids]
+                )
+        if uploaded_files1:
+            filtered_files = [file for file in uploaded_files1 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id1 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids1.append(attachment_id1)
+
+            if attachment_ids1:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"MSME certificates uploaded",
+                    attachment_ids=[attachment.id for attachment in attachment_ids1]
+                )
+        if uploaded_files2:
+            filtered_files = [file for file in uploaded_files2 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id2 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids2.append(attachment_id2)
+
+            if attachment_ids2:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"GST Certificate/Declaration uploaded.",
+                    attachment_ids=[attachment.id for attachment in attachment_ids2]
+                )
+        if uploaded_files3:
+            filtered_files = [file for file in uploaded_files3 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id3 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids3.append(attachment_id3)
+
+            if attachment_ids:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"PAN documents uploaded.",
+                    attachment_ids=[attachment.id for attachment in attachment_ids3]
                 )
 
         if post and request.httprequest.method == 'POST':

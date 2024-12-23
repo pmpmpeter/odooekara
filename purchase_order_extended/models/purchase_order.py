@@ -12,6 +12,7 @@ from num2words import num2words
 from odoo.osv import expression
 from odoo.tools import format_amount, format_date, formatLang, groupby
 from odoo.tools.float_utils import float_is_zero
+from markupsafe import Markup
 
 
 class PurchaseOrderInherit(models.Model):
@@ -19,7 +20,7 @@ class PurchaseOrderInherit(models.Model):
 
     purchase_type = fields.Many2one('purchase.orders.type','Purchase Type')
     budget_id = fields.Many2one('crossovered.budget.lines','Budget Code', copy=False)
-    budget_balance_warning = fields.Text(
+    budget_balance_warning = fields.Html(
         compute='_compute_budget_balance_warning',
     )
 
@@ -70,11 +71,16 @@ class PurchaseOrderInherit(models.Model):
                 allocated_amount_formatted = formatLang(self.env, allocated_amount, currency_obj=order.company_id.currency_id)
                 available_amount_formatted = formatLang(self.env, available_amount, currency_obj=order.company_id.currency_id)
                 if order.amount_total > available_amount:
-                    msg = "Alert !! Budget is exceeding for %s. Allocated budget is %s and Available balance is %s."%(order.budget_id.display_name,allocated_amount_formatted, available_amount_formatted)
+                    msg = Markup(
+                              "<span style='color: red;'>Alert !! Budget is exceeding for %s."
+                              "Allocated budget is %s and Available balance is %s.</span>"
+                          ) % (order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
                 else:
-                    msg = "For %s Allocated budget is %s and Available balance is %s."%(order.budget_id.display_name,allocated_amount_formatted, available_amount_formatted)
+                    msg = Markup(
+                              "For %s Allocated budget is %s and Available balance is %s."
+                          ) % (order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
             else:
-                msg = "Alert !! No active budget found."
+                msg = Markup("Alert !! No active budget found.</span>")
         self.budget_balance_warning = msg
 
     def exceed_budget_balance_warning(self):
