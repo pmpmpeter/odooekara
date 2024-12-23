@@ -39,7 +39,7 @@
             <xpath expr="//header" position="inside">
                 <button name="document_closed" type="object" string="Closed" class="btn-primary" invisible="not is_document_validity_management"/>
             </xpath>
-            <field name='company_id' position="after">
+            <field name='tag_ids' position="after">
                 <field name="closed_date" invisible="not is_document_validity_management"/>
                 <field name="closed_by" invisible="not is_document_validity_management"/>
             </field>
