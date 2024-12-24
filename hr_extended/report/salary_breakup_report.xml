@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="salary_breakup_report" model="ir.actions.report">
-        <field name="name">Salary Breakup Report</field>
+        <field name="name">Offer Letter - Salary Breakup PDF</field>
         <field name="model">hr.applicant</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">hr_extended.print_salary_breakup</field>

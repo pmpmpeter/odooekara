@@ -63,12 +63,14 @@ class Project(models.Model):
                     else:
                         if project.first_reminder:
                             first_reminder = project.first_reminder
+                            print(last_date - timedelta(days=first_reminder),'aaaaaaaaaaaaaaaaaaaaaaaaa')
                             project.first_reminder_date = last_date - timedelta(days=first_reminder)
                         if project.second_reminder:
                             second_reminder = project.second_reminder
                             project.second_reminder_date = last_date - timedelta(days=second_reminder)
 
     def send_reminder(self):
+
         today = fields.Date.today()
         legal_first_reminder = self.sudo().search([
             ('first_reminder_date', '=', today),('is_legal_notice','=',True)
@@ -84,16 +86,16 @@ class Project(models.Model):
         ])
         if legal_first_reminder:
             self._schedule_activities_first_reminder_legal()
-            self._send_first_reminder_email_notifications_legal()
+            self._send_first_reminder_email_notifications_legal(legal_first_reminder)
         if legal_second_reminder:
             self._schedule_activities_second_reminder_legal()
-            self._send_second_reminder_email_notifications_legal()
+            self._send_second_reminder_email_notifications_legal(legal_second_reminder)
         if statuory_first_reminder:
             self._schedule_activities_first_reminder_statuory()
-            self._send_first_reminder_email_notifications_statuory()
+            self._send_first_reminder_email_notifications_statuory(statuory_first_reminder)
         if statuory_second_reminder:
             self._schedule_activities_second_reminder_statuory()
-            self._send_second_reminder_email_notifications_statuory()
+            self._send_second_reminder_email_notifications_statuory(statuory_second_reminder)
 
     @api.model
     def create(self,vals):
@@ -177,34 +179,38 @@ class Project(models.Model):
                 date_deadline=fields.Date.today()
             )
 
-    def _send_first_reminder_email_notifications_legal(self):
+    def _send_first_reminder_email_notifications_legal(self,legal_first_reminder):
         account_manager_group = self.env.ref('account.group_account_manager')
         emails = [user.email for user in account_manager_group.users if user.email]
         if emails:
-            template = self.env.ref('project_extended.legal_notice_first_reminder_email_template')
-            template.write({'email_to': ', '.join(emails)})
-            self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+            for rec in legal_first_reminder:
+                template = self.env.ref('project_extended.legal_notice_first_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
 
-    def _send_second_reminder_email_notifications_legal(self):
+    def _send_second_reminder_email_notifications_legal(self,legal_second_reminder):
         account_manager_group = self.env.ref('account.group_account_manager')
         emails = [user.email for user in account_manager_group.users if user.email]
         if emails:
-            template = self.env.ref('project_extended.legal_notice_second_reminder_email_template')
-            template.write({'email_to': ', '.join(emails)})
-            self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+            for rec in legal_second_reminder:
+                template = self.env.ref('project_extended.legal_notice_second_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
 
-    def _send_first_reminder_email_notifications_statuory(self):
+    def _send_first_reminder_email_notifications_statuory(self,statuory_first_reminder):
         account_manager_group = self.env.ref('account.group_account_manager')
         emails = [user.email for user in account_manager_group.users if user.email]
         if emails:
-            template = self.env.ref('project_extended.statuory_notice_first_reminder_email_template')
-            template.write({'email_to': ', '.join(emails)})
-            self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+            for rec in statuory_first_reminder:
+                template = self.env.ref('project_extended.statuory_notice_first_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
 
-    def _send_second_reminder_email_notifications_statuory(self):
+    def _send_second_reminder_email_notifications_statuory(self,statuory_second_reminder):
         account_manager_group = self.env.ref('account.group_account_manager')
         emails = [user.email for user in account_manager_group.users if user.email]
         if emails:
-            template = self.env.ref('project_extended.statuory_notice_second_reminder_email_template')
-            template.write({'email_to': ', '.join(emails)})
-            self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+            for rec in statuory_second_reminder:
+                template = self.env.ref('project_extended.statuory_notice_second_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)

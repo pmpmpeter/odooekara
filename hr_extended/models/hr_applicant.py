@@ -32,16 +32,16 @@ class HrJobKra(models.Model):
 class Job_Applicant(models.Model):
     _inherit = "hr.applicant"
 
-    sourcing_type = fields.Selection(
-        [('internal_sourcing', 'Internal Sourcing'), ('external_sourcing', 'External Sourcing')],
-        string="Sourcing Type", default='external_sourcing', required=True, copy=False,
-        help="This field specifies the source of the candidate's CV")
-
-    referred_by = fields.Many2one(
-        'res.users',
-        string='Referred By', copy=False,
-        help="The employee who referred this candidate."
-    )
+    # sourcing_type = fields.Selection(
+    #     [('internal_sourcing', 'Internal Sourcing'), ('external_sourcing', 'External Sourcing')],
+    #     string="Sourcing Type", default='external_sourcing', required=True, copy=False,
+    #     help="This field specifies the source of the candidate's CV")
+    #
+    # referred_by = fields.Many2one(
+    #     'res.users',
+    #     string='Referred By', copy=False,
+    #     help="The employee who referred this candidate."
+    # )
     document_sent = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),
@@ -53,11 +53,11 @@ class Job_Applicant(models.Model):
     offer_letter_sent = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),
-    ], string="Offer Letter Sent", copy=False, readonly=True)
+    ], string="Offer Letter Sent", default='no', copy=False, readonly=True)
     grade_job_level_id = fields.Many2one('hr.job.levels', string='Job Levels', copy=False)
     verification_date = fields.Date(string="Verification Due Date", copy=False)
 
-    is_pre_emp_form_clicked = fields.Boolean(string="Pre-Employment Form Clicked", default=False, copy=False)
+    # is_pre_emp_form_clicked = fields.Boolean(string="Pre-Employment Form Clicked", default=False, copy=False)
 
     monthly_fixed_salary = fields.Float(string="Monthly Fixed Salary (excl PF & all incentive pay)", store=True,
                                         copy=False)
@@ -200,29 +200,29 @@ class Job_Applicant(models.Model):
                 record.variable_pay_amount = round((monthly_salary * 12 + provident_fund_annual) * variable_percentage,
                                                    0)
 
-    def action_create_pre_form(self):
-        if not self.referred_by:
-            raise ValidationError("The 'Referee' field is required to create a Pre-Employment Check Form.")
-        if not self.email_from:
-            raise ValidationError("The Candidate Email fields is required to create a Pre-Employment Check Form.")
-
-        template = self.env.ref('hr_extended.reference_check_form_template')
-        for rec in self:
-            if rec.referred_by.email:
-                template.send_mail(rec.id, force_send=True)
-
-        vals = {
-            'applicant_id': self.id,
-            'candidate_name': self.partner_name,
-            'candidate_email': self.email_from,
-            'referee_id': self.referred_by.id,
-            'referee_phone': self.referred_by.partner_id.phone,
-            'referee_email': self.referred_by.partner_id.email,
-            'recruiter_id': self.user_id.id,
-        }
-        pre_form = self.env['preemp.check'].create(vals)
-        self.write({'is_pre_emp_form_clicked': True})
-        return pre_form
+    # def action_create_pre_form(self):
+    #     if not self.referred_by:
+    #         raise ValidationError("The 'Referee' field is required to create a Pre-Employment Check Form.")
+    #     if not self.email_from:
+    #         raise ValidationError("The Candidate Email fields is required to create a Pre-Employment Check Form.")
+    #
+    #     template = self.env.ref('hr_extended.reference_check_form_template')
+    #     for rec in self:
+    #         if rec.referred_by.email:
+    #             template.send_mail(rec.id, force_send=True)
+    #
+    #     vals = {
+    #         'applicant_id': self.id,
+    #         'candidate_name': self.partner_name,
+    #         'candidate_email': self.email_from,
+    #         'referee_id': self.referred_by.id,
+    #         'referee_phone': self.referred_by.partner_id.phone,
+    #         'referee_email': self.referred_by.partner_id.email,
+    #         'recruiter_id': self.user_id.id,
+    #     }
+    #     pre_form = self.env['preemp.check'].create(vals)
+    #     self.write({'is_pre_emp_form_clicked': True})
+    #     return pre_form
 
     def get_next_stage_name_applicant(self):
         self.ensure_one()
@@ -237,8 +237,23 @@ class Job_Applicant(models.Model):
         return next_stage.name if next_stage else "No Next Stage Defined"
 
     def action_send_first_invitiation(self):
+        if not self.partner_name:
+            raise UserError(_("Please fill the name of the Applicant"))
+        if not self.email_from:
+            raise UserError(_("Please fill the Email of the Applicant"))
+        if not self.user_id:
+            raise UserError(_("Please fill the Recruiter for the Applicant"))
         next_stage = self.get_next_stage_name_applicant()
         letter_heading = 'Invitation Letter - ' + str(next_stage)
+
+        existing_letter = self.env['applicant.invitation.letter'].search([
+            ('applicant_id', '=', self.id),
+            ('state', 'in', ['draft', 'sent'])
+        ], limit=1)
+
+        if existing_letter:
+            raise ValidationError(_("A invitation letter already exists for this applicant."))
+
         vals = {
             'applicant_id': self.id,
             'user_id': self.user_id.id,
@@ -259,22 +274,22 @@ class Job_Applicant(models.Model):
             'res_id': first_invitation_id.id,
         }
 
-    def action_open_related_candidate(self):
-        self.ensure_one()
-        candidate = self.env['preemp.check'].search(
-            [('applicant_id', '=', self.id), ('candidate_name', '=', self.partner_name),
-             ('candidate_email', '=', self.email_from)], limit=1)
-
-        if candidate:
-            return {
-                'name': _('Referral Candidate'),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'res_model': 'preemp.check',
-                'view_id': self.env.ref('hr_extended.view_pre_employment_reference_check_form').id,
-                'res_id': candidate.id,
-                'target': 'current',
-            }
+    # def action_open_related_candidate(self):
+    #     self.ensure_one()
+    #     candidate = self.env['preemp.check'].search(
+    #         [('applicant_id', '=', self.id), ('candidate_name', '=', self.partner_name),
+    #          ('candidate_email', '=', self.email_from)], limit=1)
+    #
+    #     if candidate:
+    #         return {
+    #             'name': _('Referral Candidate'),
+    #             'type': 'ir.actions.act_window',
+    #             'view_mode': 'form',
+    #             'res_model': 'preemp.check',
+    #             'view_id': self.env.ref('hr_extended.view_pre_employment_reference_check_form').id,
+    #             'res_id': candidate.id,
+    #             'target': 'current',
+    #         }
 
     def get_document_update_interview_subject(self):
         """Fetch the active subject from document.update.interview.status."""
@@ -341,23 +356,34 @@ class Job_Applicant(models.Model):
             #     'context': ctx,
             # }
 
+    def action_first_stage_new(self):
+        """move to 'New' stage"""
+        for record in self:
+            new_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'new')], limit=1)
+            if new_stage:
+                record.stage_id = new_stage.id
+            else:
+                raise UserError("New stage not found! Please create one in Recruitment stages.")
+
     def action_approve(self):
         """move to 'Shortlisted' stage"""
         for record in self:
+            if hasattr(self, 'x_has_request_approval'):
+                self.x_has_request_approval = False
             shortlist_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'shortlist')], limit=1)
             if shortlist_stage:
                 record.stage_id = shortlist_stage.id
             else:
                 raise UserError("Shortlist stage not found! Please create one in Recruitment stages.")
 
-    # def action_offer_accepted(self):
-    #     """move to 'Offer Accepted' stage"""
-    #     for record in self:
-    #         offer_accepted_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'offer_accepted')], limit=1)
-    #         if offer_accepted_stage:
-    #             record.stage_id = offer_accepted_stage.id
-    #         else:
-    #             raise UserError("Offer Accepted stage not found! Please create map in Recruitment stages.")
+    def action_offer_accepted(self):
+        """move to 'Offer Accepted' stage"""
+        for record in self:
+            offer_accepted_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'offer_accepted')], limit=1)
+            if offer_accepted_stage:
+                record.stage_id = offer_accepted_stage.id
+            else:
+                raise UserError("Offer Accepted stage not found! Please create map in Recruitment stages.")
 
     def action_hold(self):
         """Mark as on hold"""
@@ -395,6 +421,7 @@ class Job_Applicant(models.Model):
             if joining_docs:
                 for doc in joining_docs:
                     vals = {
+                        'join_doc_id': doc.id,
                         'name': doc.name,
                         'document_type': doc.document_type,
                         'subject': doc.subject,
@@ -408,6 +435,8 @@ class Job_Applicant(models.Model):
                         'contact_id': doc.contact_id.id if doc.contact_id else False,
                     }
                     joining_record = joining_doc_employee.sudo().create(vals)
+                    print(joining_record, joining_record.join_doc_id, joining_record.join_doc_id.name, joining_record.sequence)
+                    # raise ValidationError(888)
 
                     # preemp_check_vals = {
                     #     'applicant_id': self.id,
@@ -415,6 +444,7 @@ class Job_Applicant(models.Model):
                     #     'candidate_email': self.email_from,
                     # }
                     # self.env['preemp.check'].sudo().create(preemp_check_vals)
+
 
     def create_employee_from_applicant(self):
         action = super(Job_Applicant, self).create_employee_from_applicant()

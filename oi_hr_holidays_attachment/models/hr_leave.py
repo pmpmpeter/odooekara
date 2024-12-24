@@ -3,11 +3,15 @@ Created on Jan 9, 2019
 
 @author: Zuhair Hammadi
 '''
-from odoo import models, api, _
+from odoo import models, api, _, fields
 from odoo.exceptions import ValidationError
 
 class HolidaysRequest(models.Model):
     _inherit = "hr.leave"
+
+    request_date_from_period = fields.Selection([
+        ('am', 'Session 1'), ('pm', 'Session 2')],
+        string="Date Period Start", default='am')
 
     @api.constrains('state','holiday_status_id', 'number_of_days_display')
     def _check_attachment(self):

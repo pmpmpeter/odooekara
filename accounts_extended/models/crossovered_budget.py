@@ -53,7 +53,6 @@ class BudgetInherit(models.Model):
     def action_budget_done(self):
         for rec in self.crossovered_budget_line:
             if not rec.is_budget_code:
-                print(rec,'tttttttttttttttttttttttt')
                 rec.is_budget_code = True
                 rec.budget_code = self.env['ir.sequence'].next_by_code('budget.code')
         return super().action_budget_done()

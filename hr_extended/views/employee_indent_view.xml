@@ -28,6 +28,12 @@
                         <button class="oe_stat_button" type="object" string="Job Position"
                                 name="action_open_related_jobs" icon="fa-user">
                         </button>
+                        <button name="action_view_document"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text"
+                                string="View Document"
+                                invisible="not document_id"/>
                     </div>
                     <div class="oe_title">
                         <label for="name"/>
@@ -36,6 +42,7 @@
                                    placeholder="Name"
                                    readonly="state not in ('draft','cancel')"/>
                         </h1>
+                        <field name="document_id" invisible="1"/>
                     </div>
                     <notebook>
                         <page string="General Info">

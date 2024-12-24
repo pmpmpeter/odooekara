@@ -1,0 +1,206 @@
+from odoo import models, fields, api
+import xlsxwriter
+import base64
+import calendar
+from io import BytesIO
+from datetime import date, timedelta,datetime
+
+
+class AccountQuarterlyReportWizard(models.TransientModel):
+    _name = 'account.quarterly.report.wizard'
+    _description = 'Quarterly CRR Report Wizard'
+
+    def _default_start_date(self):
+        """Calculate the start date of the current financial year."""
+        today = date.today()
+        fiscal_start_month = 4  # Assuming April is the fiscal start month
+        fiscal_year = today.year if today.month >= fiscal_start_month else today.year - 1
+        return date(fiscal_year, fiscal_start_month, 1)
+
+    def _default_end_date(self):
+        """Set the end date to the current date."""
+        return date.today()
+
+    start_date = fields.Date(string='Start Date',default=_default_start_date,required=True,)
+    end_date = fields.Date(
+        string='End Date',
+        default=_default_end_date,
+        required=True,
+    )
+    report_file = fields.Binary('Report File', readonly=True)
+    file_name = fields.Char('File Name', readonly=True)
+    # account_ids = fields.Many2many("account.account", string="Accounts")
+
+    def action_generate_report(self):
+
+        report_content = self._generate_excel_report()
+
+        self.report_file = base64.b64encode(report_content)
+        self.file_name = f"CRR_Quarterly_Report_{datetime.now().strftime('%Y%m%d')}.xlsx"
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.quarterly.report.wizard',
+            'view_mode': 'form',
+            'res_id': self.id,
+            'target': 'new',
+        }
+
+    def _fetch_crr_data(self,account_type):
+        """Fetch CRR journal entries (Debit - Credit) for each month."""
+        crr_data = {}
+        year = fields.Date.today().year
+        move_line_obj = self.env['account.move.line']
+        months = [
+            ('April', 4), ('May', 5), ('June', 6),
+            ('July', 7), ('August', 8), ('September', 9),
+            ('October', 10), ('November', 11), ('December', 12),
+            ('January', 1), ('February', 2), ('March', 3)
+        ]
+        quarters = {
+            'Q1': [4, 5, 6],
+            'Q2': [7, 8, 9],
+            'Q3': [10, 11, 12],
+            'Q4': [1, 2, 3],
+        }
+        # selected_accounts = self.account_ids or self.env['account.account'].sudo().search([])
+        selected_accounts = self.env['account.account'].sudo().search([('account_type','=',account_type)])
+        for crr in selected_accounts:
+            crr_data[f"{crr.name}"] = {}
+            for month_name, month_num in months:
+                last_day = calendar.monthrange(year, month_num)[1]
+                total = move_line_obj.search([
+                    ('account_id', '=', crr.id),
+                    ('move_id.state', '=', 'posted'),
+                    ('date', '>=', f'2024-{month_num:02}-01'),
+                    ('date', '<=', f'2024-{month_num:02}-{last_day}')
+                ]).mapped(lambda l: l.debit - l.credit)
+                crr_data[f"{crr.name}"][month_name] = float(sum(total))
+
+            for quarter, months_list in quarters.items():
+                quarter_total = sum(
+                    crr_data[f"{crr.name}"].get(month_name, 0) for month_name, m in months if m in months_list
+                )
+                crr_data[f"{crr.name}"][quarter] = quarter_total
+
+        return crr_data
+
+
+    def _generate_excel_report(self):
+        """Generate an Excel file from CRR data, including company and transaction details."""
+        buffer = BytesIO()
+        workbook = xlsxwriter.Workbook(buffer)
+        sheet = workbook.add_worksheet('Quarterly CRR Report')
+
+        # Define formats
+        title_format = workbook.add_format({'bold': True, 'font_size': 12})
+        header_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#D9E1F2',
+            'font_color': '#000000',
+            'border': 1,
+            'align': 'center',
+        })
+        cell_format = workbook.add_format({'border': 1})
+        value_format = workbook.add_format({'num_format': '0.00', 'border': 1})  # Float format and border
+        total_value_format = workbook.add_format({'num_format': '0.00', 'border': 1,'bold': True,'bg_color': '#F4B084',})  # Float format and border
+
+        total_format = workbook.add_format({
+            'bold': True,
+            'bg_color': '#F4B084',
+            'border': 1,
+        })
+
+        # Add company and transaction details
+        sheet.write(0, 0, 'Group Company Name', title_format)
+        sheet.write(0, 1, 'Your Company Name')  # Replace with actual company name
+        sheet.write(1, 0, 'Group Company Code', title_format)
+        sheet.write(1, 1, 'GC01')  # Replace with actual company code
+
+        sheet.write(3, 0, 'Type of Transaction', title_format)
+        sheet.write(4, 1, 'OPEX', cell_format)
+        sheet.write(4, 2, 'Operating Expenditure', cell_format)
+        sheet.write(5, 1, 'CAPEX', cell_format)
+        sheet.write(5, 2, 'Capital Expenditure', cell_format)
+        sheet.write(6, 1, 'OCIF', cell_format)
+        sheet.write(6, 2, 'Operating Cash In Flow', cell_format)
+        sheet.write(7, 1, 'NOCIF', cell_format)
+        sheet.write(7, 2, 'Non-Operating Cash In Flow', cell_format)
+
+        # Headers for the CRR table
+        headers = [
+            'Cash Payments','cash OutFlow Heads\nExpense account','Budget Code','Expense Code','Year Total', 'April', 'May', 'June', 'Q1',
+            'July', 'August', 'September', 'Q2',
+            'October', 'November', 'December', 'Q3',
+            'January', 'February', 'March', 'Q4']
+        header_start_row = 13
+        for col_num, header in enumerate(headers):
+            sheet.write(header_start_row, col_num, header, header_format)
+
+        # Populate CRR data
+        row = header_start_row + 1
+        yearly_totals = {key: 0 for key in headers[1:]}  # Initialize totals for all headers except 'CRR'
+        account_type = 'expesne'
+        income_data = self._fetch_crr_data(account_type)
+        for crr, values in income_data.items():
+            sheet.write(row, 0, crr, cell_format)  # crr
+            year_total = 0
+            for col_num, header in enumerate(headers[1:], start=2):
+                value = values.get(header, 0)
+                sheet.write(row, col_num, float(value), value_format)
+                yearly_totals[header] += value
+                if 'Q' not in header and 'Year Total' not in header:  # Only aggregate monthly values
+                    year_total += value
+
+            # Write Year Total
+            sheet.write(row,4, year_total, value_format)
+            row += 1
+
+        # Write totals row
+        sheet.write(row, 0, 'Total OutFlow(A)', total_format)
+        for col_num, header in enumerate(headers[1:], start=1):
+            sheet.write(row, col_num, yearly_totals[header], total_value_format)
+        row +=2
+        yearly_totals = ''
+        sheet.write(row, 0, 'Cash Receipts \n Cash InFlow Heads\nInocme account', header_format)
+        row +=2
+
+
+        account_type = 'income'
+        expense_data = self._fetch_crr_data(account_type)
+        yearly_totals = {key: 0 for key in headers[1:]}  # Initialize totals for all headers except 'CRR'
+        for crr, values in expense_data.items():
+            sheet.write(row, 0, crr, cell_format)  # CRR
+            year_total = 0
+            for col_num, header in enumerate(headers[1:], start=1):
+                value = values.get(header, 0)
+                sheet.write(row, col_num,float(value), value_format)
+                yearly_totals[header] += value
+                if 'Q' not in header and 'Year Total' not in header:  # Only aggregate monthly values
+                    year_total += value
+
+            # Write Year Total
+            sheet.write(row,4, year_total, value_format)
+            row += 1
+
+        # Write totals row
+        sheet.write(row, 0, 'Total InFlow(B)', total_format)
+        for col_num, header in enumerate(headers[1:], start=1):
+            sheet.write(row, col_num, yearly_totals[header], total_value_format)
+        row+=1
+        sheet.write(row, 0, 'SURPLUS/DEFICIT (B-A)',total_format)
+        row+=1
+        sheet.write(row, 0, 'Sources of Fund:',total_format)
+        row+=1
+        sheet.write(row, 0, 'Tax Entity 1',total_format)
+        row+=1
+        sheet.write(row, 0, 'Tax Entity 2',total_format)
+        row+=1
+        sheet.write(row, 0, 'Others',total_format)
+        row+=1
+        sheet.write(row, 0, 'Total Requirement (D = C)',total_format)
+        row+=1
+        sheet.write(row, 0, 'Difference',total_format)
+        workbook.close()
+        buffer.seek(0)
+        return buffer.read()

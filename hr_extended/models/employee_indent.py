@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 
 from odoo import models, fields, api, _
 from odoo.exceptions import *
@@ -127,6 +128,8 @@ class EmployeeIndent(models.Model):
         string='Notes',
         help="Add any relevant notes or comments here."
     )
+
+    document_id = fields.Many2one('documents.document', string="Document", copy=False)
 
     request_date = fields.Date(default=fields.Datetime.now, copy=False, readonly=True)
     submit_date = fields.Date(readonly=True, copy=False)
@@ -299,7 +302,6 @@ class EmployeeIndent(models.Model):
                     'no_of_recruitment': existing_job.no_of_recruitment + record.target,
                     'website_published': True,
                 })
-                # print(f"Updated HR Job: {existing_job.name}, New Recruitment Count: {existing_job.no_of_recruitment}")
 
             else:
                 job_id = hr_job_model.create({
@@ -312,8 +314,35 @@ class EmployeeIndent(models.Model):
                     'user_id': record.reporting_to.id,
                     'website_published': True,
                 })
-                # print(f"Created HR Job: {record.position_name.name}")
             record.job_id = existing_job.id or job_id.id
+
+            #To store the job description in documents
+            report_action = self.env.ref('hr_extended.action_employee_indent_report')
+            if not report_action:
+                raise ValueError("Report action 'hr_extended.action_employee_indent_report' not found.")
+
+            pdf_content = self.env['ir.actions.report'].sudo()._render_qweb_pdf(
+                report_action, [record.id], data=None)[0]
+            if not pdf_content:
+                raise ValueError("hai")
+
+            pdf_name = f"{record.name}_Job_Description.pdf"
+
+            folder = self.env['documents.folder'].search([('name', '=', 'Job Descriptions')], limit=1)
+            if not folder:
+                folder = self.env['documents.folder'].create({'name': 'Job Descriptions'})
+
+            attachment = self.env['documents.document'].create({
+                'name': pdf_name,
+                'type': 'binary',
+                'datas': base64.b64encode(pdf_content),
+                'mimetype': 'application/pdf',
+                'res_model': 'employee.indent',
+                'res_id': record.id,
+                'folder_id': folder.id,
+            })
+
+            record.document_id = attachment.id
             record.state = 'job_created'
 
     def action_reset(self):
@@ -323,6 +352,24 @@ class EmployeeIndent(models.Model):
     def action_cancel(self):
         for record in self:
             record.state = 'cancel'
+
+    def action_view_document(self):
+        self.ensure_one()
+
+        if not self.document_id:
+            raise ValidationError(_("No document is attached to this record."))
+
+        document_folder = self.env['documents.folder'].search([('name', '=', 'Job Descriptions')], limit=1)
+        action = self.env['ir.actions.act_window']._for_xml_id('documents.document_action')
+
+        action['context'] = {
+            'default_res_id': self.id,
+            'default_res_model': 'employee.indent',
+            'searchpanel_default_folder_id': document_folder.id if document_folder else False,
+        }
+        action['domain'] = [('res_id', '=', self.id), ('res_model', '=', 'employee.indent')]
+
+        return action
 
     def get_indent_url(self):
         """Generate the full URL for the current record."""
@@ -335,3 +382,13 @@ class EmployeeIndent(models.Model):
         if self:
             return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
         return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
+
+
+# class DocumentsDocument(models.Model):
+#     _inherit = 'documents.document'
+#
+#     def unlink(self):
+#         for document in self:
+#             if document.res_model == 'employee.indent' and self.env.user.has_group('documents.group_documents_user'):
+#                 raise UserError(_("You are not allowed to delete documents linked to Employee Indent."))
+#         return super(DocumentsDocument, self).unlink()

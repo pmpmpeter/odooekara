@@ -9,6 +9,8 @@
     'version': '17.1',
     'depends': [
         'base',
+        'documents',
+        'website',
         'mail',
         'contacts',
         'hr',
@@ -20,7 +22,7 @@
         'project',
         'report_xlsx',
         'multi_level_approval',
-	'oi_hr_holidays_attachment',
+        'oi_hr_holidays_attachment',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -41,6 +43,7 @@
         'report/cmg_and_gpa_details.xml',
         'report/manpower_budget_sheet.xml',
         'report/nda_intellectual_property_form.xml',
+        'report/kra_template.xml',
         'data/sequence.xml',
         'data/job_levels_demo.xml',
         'data/mail_template_data.xml',

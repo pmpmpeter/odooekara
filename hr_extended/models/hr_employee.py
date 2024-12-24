@@ -263,6 +263,20 @@ class HrEmployeeSmartButton(models.Model):
         default=0,
         copy=False
     )
+    all_documents_done = fields.Boolean(
+        string='All Documents Done',
+        compute='_compute_all_documents_done',
+        store=True,
+        readonly=True
+    )
+
+    @api.depends('joining_documents_ids.state')
+    def _compute_all_documents_done(self):
+        for employee in self:
+            joining_documents = self.env['joining.documents'].search([
+                ('employee_id', '=', employee.id)
+            ])
+            employee.all_documents_done = all(doc.state == 'done' for doc in joining_documents)
 
     @api.model
     def create(self, vals):

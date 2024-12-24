@@ -166,7 +166,7 @@ class ApplicantInvitation(models.Model):
                 'new': 'initial',
                 'initial': 'first_level',
                 'first_level': 'second_interview',
-                'second_interview': 'shortlist',
+                # 'second_interview': 'shortlist',
             }
             next_stage_key = stage_mapping.get(current_stage.stage, False)
             if next_stage_key:

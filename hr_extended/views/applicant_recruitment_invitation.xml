@@ -48,7 +48,7 @@
                             invisible="state not in ('sent')"
                             string="Cancelled"/>
                     <button name="action_draft" type="object" class="oe_highlight"
-                            invisible="state in ('draft')"
+                            invisible="state in ('draft','active')"
                             string="Reset to Draft"/>
                     <!-- <button name="action_send_by_email" type="object" class="oe_highlight" string="Send by Email"/> -->
                     <field name="state" widget="statusbar" statusbar_visible="draft,active,expired" readonly="1"/>

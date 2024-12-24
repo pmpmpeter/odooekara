@@ -1,4 +1,15 @@
 <odoo>
+    <record id="action_employee_indent_report" model="ir.actions.report">
+    <field name="name">Job Description Report</field>
+    <field name="model">employee.indent</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">hr_extended.report_employee_indent_document</field>
+    <field name="report_file">hr_extended.report_employee_indent_document</field>
+    <field name="print_report_name">'Job Description'</field>
+    <field name="binding_model_id" ref="hr_extended.model_employee_indent"/>
+    <field name="binding_type">report</field>
+</record>
+
    <template id="report_employee_indent_document">
     <t t-call="web.html_container">
         <t t-foreach="docs" t-as="doc">
@@ -46,7 +57,7 @@
                         <td colspan="2" style="border: 1px solid black; padding: 10px;">
                             <span style="font-weight: bold; text-decoration: underline;">Job Description:</span>
                             <span style="font-weight: normal;"><t t-esc="doc.job_description"/></span>
-                            
+
                         </td>
                     </tr>
                     <tr>
@@ -97,14 +108,14 @@
                         <td colspan="2" style="border: 1px solid black; padding: 10px;">
                             <span style="font-weight: bold; text-decoration: underline;">Professional Requirements:</span>
                             <span style="font-weight: normal;"><t t-esc="doc.professional_requirements"/></span>
-                            
+
                         </td>
                     </tr>
                     <tr>
                         <td colspan="2" style="border: 1px solid black; padding: 10px;">
                             <span style="font-weight: bold; text-decoration: underline;">Educational and Experience Requirements:</span>
                             <span style="font-weight: normal;"><t t-esc="doc.educational_requirements"/></span>
-                            
+
                         </td>
                     </tr>
                 </table>
@@ -132,7 +143,7 @@
                             <t t-esc="doc.approved_by_director_id.name"/>
                         </td>
                     </tr>
-                   
+
                 </table>
                 <div style="text-align: center; font-size: 12px; font-style: italic; margin-top: 20px;">
                     <p>Human Resources Department</p>
@@ -141,19 +152,6 @@
         </t>
     </t>
 </template>
-
-
-<record id="action_employee_indent_report" model="ir.actions.report">
-    <field name="name">Job Description Report</field>
-    <field name="model">employee.indent</field>
-    <field name="report_type">qweb-pdf</field>
-    <field name="report_name">hr_extended.report_employee_indent_document</field>
-    <field name="report_file">hr_extended.report_employee_indent_document</field>
-    <field name="print_report_name">'Job Description'</field>
-    <field name="binding_model_id" ref="model_employee_indent"/>
-    <field name="binding_type">report</field>
-</record>
-
 
 </odoo>
    

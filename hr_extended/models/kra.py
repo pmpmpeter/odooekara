@@ -19,5 +19,6 @@ class KraDetails(models.Model):
 
     category = fields.Char(string="Category", required=True)
     business_unit = fields.Text(string="Business Unit")
+    kra_type = fields.Char(string="KRA")
     goal_description = fields.Char(string="Goal Description")
     weightage = fields.Float(string="Weightage")

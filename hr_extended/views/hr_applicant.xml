@@ -21,18 +21,18 @@
             <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
             <field name="arch" type="xml">
                 <!-- to avoid jumping stages and fix approval matrix -->
-                <!--                <xpath expr="//field[@name='stage_id']" position="attributes">-->
-                <!--                    <attribute name="options">{'fold_field': 'fold'}</attribute>-->
-                <!--                </xpath>-->
+                <xpath expr="//field[@name='stage_id']" position="attributes">
+                    <attribute name="options">{'fold_field': 'fold'}</attribute>
+                </xpath>
 
                 <xpath expr="//div[@class='oe_button_box']" position="inside">
-                    <field name="is_pre_emp_form_clicked" invisible="1"/>
+<!--                    <field name="is_pre_emp_form_clicked" invisible="1"/>-->
                     <field name="last_stage_id" invisible="1"/>
                     <field name="stage_status" invisible="1"/>
-                    <button class="oe_stat_button" type="object" string="Referral Form"
-                            invisible="not is_pre_emp_form_clicked"
-                            name="action_open_related_candidate" icon="fa-user-plus">
-                    </button>
+<!--                    <button class="oe_stat_button" type="object" string="Referral Form"-->
+<!--                            invisible="not is_pre_emp_form_clicked"-->
+<!--                            name="action_open_related_candidate" icon="fa-user-plus">-->
+<!--                    </button>-->
                     <!--                    <button name="action_open_interview_assessment"-->
                     <!--                            type="object"-->
                     <!--                            class="oe_stat_button"-->
@@ -41,6 +41,11 @@
                     <!--                        <field name="interview_assessment_count" widget="statinfo" string="Interview Assessment"/>-->
                     <!--                    </button>-->
                 </xpath>
+                <xpath expr="//button[@name='archive_applicant']" position="before">
+                    <button name="action_first_stage_new" string="New" type="object"
+                            invisible="stage_status != False"
+                            class="btn-primary"/>
+                </xpath>
                 <xpath expr="//button[@name='archive_applicant']" position="after">
                     <field name="interview_assessment_letter_count" invisible="1"/>
                     <button name="action_send_document_update_mail" type="object" class="oe_highlight"
@@ -48,7 +53,7 @@
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused' or
                             document_sent == 'yes'"/>
                     <button name="action_approve_offer_letter" type="object" string="Offer Letter Approve"
-                            class="btn-primary"
+                            class="btn-primary" groups="hr_recruitment.group_hr_recruitment_manager"
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused' or
                             offer_letter_approved == 'yes'"/>
                     <button name="action_send_offer_letter_mail" type="object" class="oe_highlight"
@@ -58,12 +63,12 @@
                     <button name="action_create_interview_assessment" type="object" class="oe_highlight"
                             string="Create Interview Assessment"
                             invisible="application_status == 'refused' or interview_assessment_letter_count > 0"/>
-                    <button string="Salary Breakup Report" type="action"
+                    <button string="Offer Letter Report" type="action"
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused'"
                             name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
-                    <!--                    <button name="action_offer_accepted" string="Offer Accepted" type="object"-->
-                    <!--                            invisible="stage_status not in ('shortlist') or application_status == 'refused'"-->
-                    <!--                            class="btn-primary"/>-->
+                    <button name="action_offer_accepted" string="Offer Accepted" type="object"
+                            invisible="offer_letter_sent == 'no' or stage_status not in ('shortlist') or application_status == 'refused'"
+                            class="btn-primary"/>
                     <!--                    <button string="Offer Letter" type="action"-->
                     <!--                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary"-->
                     <!--                            invisible="stage_status != 'shortlist'"/>-->
@@ -104,19 +109,19 @@
                 <xpath expr="//group[@name='recruitment_contract']" position="before">
                     <group string="Additional Information">
                         <field name="verification_date"/>
-                        <field name="sourcing_type" readonly="is_pre_emp_form_clicked"/>
-                        <field name="referred_by" invisible="sourcing_type not in ('internal_sourcing')"
-                               readonly="is_pre_emp_form_clicked"
-                               options="{'no_quick_create':True,'no_create': True,}"/>
-                        <button name="action_create_pre_form" string="Pre-Employment Form"
-                                type="object"
-                                class="oe_highlight pre-emp-form-btn"
-                                invisible="sourcing_type not in ('internal_sourcing') or is_pre_emp_form_clicked"/>
-                        <style>
-                            .pre-emp-form-btn{
-                            width:175px;
-                            }
-                        </style>
+<!--                        <field name="sourcing_type" readonly="is_pre_emp_form_clicked"/>-->
+<!--                        <field name="referred_by" invisible="sourcing_type not in ('internal_sourcing')"-->
+<!--                               readonly="is_pre_emp_form_clicked"-->
+<!--                               options="{'no_quick_create':True,'no_create': True,}"/>-->
+<!--                        <button name="action_create_pre_form" string="Pre-Employment Form"-->
+<!--                                type="object"-->
+<!--                                class="oe_highlight pre-emp-form-btn"-->
+<!--                                invisible="sourcing_type not in ('internal_sourcing') or is_pre_emp_form_clicked"/>-->
+<!--                        <style>-->
+<!--                            .pre-emp-form-btn{-->
+<!--                            width:175px;-->
+<!--                            }-->
+<!--                        </style>-->
                     </group>
                 </xpath>
             </field>
@@ -146,7 +151,7 @@
                     <button name="action_open_invitation_letter"
                             type="object"
                             class="oe_stat_button"
-                            icon="fa-bars"
+                            icon="fa-envelope"
                             invisible="first_invitation_letter_count == 0">
                         <field name="first_invitation_letter_count" widget="statinfo" string="Invitation Letters"/>
                     </button>
@@ -155,7 +160,7 @@
                             class="oe_stat_button"
                             icon="fa-bars"
                             invisible="interview_assessment_letter_count == 0">
-                        <field name="interview_assessment_letter_count" widget="statinfo" string="Assessment Letters"/>
+                        <field name="interview_assessment_letter_count" widget="statinfo" string="Assessment Form"/>
                     </button>
                 </xpath>
                 <xpath expr="//button[@name='create_employee_from_applicant']" position="after">

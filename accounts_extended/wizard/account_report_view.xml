@@ -28,11 +28,11 @@
         <field name="view_id" ref="account_report_wizard_view_form"/>
     </record>
 
-    <menuitem id="menu_account_account_report"
+   <!--  <menuitem id="menu_account_account_report"
               name="COA Report"
               sequence="100"
               action="account_report_action"
               parent="account.menu_finance_reports"
-              groups="account.group_account_manager,account.group_account_user"/>
+              groups="account.group_account_manager,account.group_account_user"/> -->
 
 </odoo>

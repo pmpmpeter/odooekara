@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+
+        <record id="email_template_budget_revision_email" model="mail.template">
+            <field name="name">Budget Revision:{{object.budget_id.name}}</field>
+            <field name="model_id" ref="model_budget_revision_wizard"/>
+            <field name="subject">Budget Revision</field>
+            <field name="body_html" type="html">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Hi,
+                    <br/>
+                    <br/>
+                    Your Budget <t t-out="object.budget_id.name"/> has been revised because of below reason.
+                    <br/>
+                    <p>Reason:<t t-out="object.reason"/></p>
+                    <br/>
+                    <p>Thank You.</p>
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

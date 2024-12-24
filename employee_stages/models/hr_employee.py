@@ -27,7 +27,7 @@ class HrEmployee(models.Model):
     _inherit = 'hr.employee'
 
     state = fields.Selection([('joined', 'Slap On'),
-                              ('grounding', 'Grounding'),
+                              ('grounding', 'On Probation'),
                               ('test_period', 'Test Period'),
                               ('employment', 'Employment'),
                               ('notice_period', 'Notice Period'),
@@ -140,7 +140,7 @@ class EmployeeStageHistory(models.Model):
                               string='Duration(days)',
                               help="Duration of the stage")
     state = fields.Selection([('joined', 'Slap On'),
-                              ('grounding', 'Grounding'),
+                              ('grounding', 'On Probation'),
                               ('test_period', 'Test Period'),
                               ('employment', 'Employment'),
                               ('notice_period', 'Notice Period'),

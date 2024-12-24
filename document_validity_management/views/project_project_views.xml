@@ -9,6 +9,7 @@
                 <field name="document_type_id" invisible="not is_document_validity_management"/>
                 <field name="validity_start_date" required="document_type_id or is_document_validity_management" invisible="not is_document_validity_management"/>
                 <field name="validity_end_date" required="document_type_id or is_document_validity_management" invisible="not is_document_validity_management" />
+                <field name="document_reminder" invisible="not is_document_validity_management"/>
             </field>
         </field>
     </record>

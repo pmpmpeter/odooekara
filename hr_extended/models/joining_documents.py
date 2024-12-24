@@ -92,6 +92,13 @@ class JoiningDocuments(models.Model):
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
 
     remarks = fields.Text(string="Remarks")
+    join_doc_id = fields.Many2one('employee.join.doc.config', string='Joining document')
+    sequence = fields.Integer(string='Sequence', compute='_compute_sequence', store=True, index=True)
+
+    @api.depends('join_doc_id')
+    def _compute_sequence(self):
+        for record in self:
+            record.sequence = record.join_doc_id.sequence
 
     def create(self, vals):
         if vals.get('employee_id'):
@@ -115,9 +122,37 @@ class JoiningDocuments(models.Model):
             else:
                 record.age = 0
 
+    def write(self, vals):
+        for record in self:
+            if record.state == 'draft' and record.sequence > 0:
+                previous_record = self.search([
+                    ('employee_id', '=', record.employee_id.id),
+                    ('sequence', '=', record.sequence - 1),
+                    ('state', '=', 'done')
+                ], limit=1)
+
+                if not previous_record:
+                    raise ValidationError(
+                        "The previous sequence record must be 'Done' before submitting the next one.")
+
+        return super(JoiningDocuments, self).write(vals)
+
     def action_submit(self):
         for record in self:
+            if record.sequence > 0:
+                previous_record = self.search([
+                    ('employee_id', '=', record.employee_id.id),
+                    ('sequence', '=', record.sequence - 1),
+                    ('state', '=', 'done')
+                ], limit=1)
+
+                if not previous_record:
+                    raise ValidationError(
+                        "The previous sequence record must be 'Done' before submitting the next one.")
+
             record.state = 'waiting_confirmation'
+
+        return True
 
     def action_confirm(self):
         for record in self:

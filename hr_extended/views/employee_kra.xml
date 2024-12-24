@@ -20,6 +20,8 @@
                             groups="hr_recruitment.group_hr_recruitment_manager"/>
                     <button name="action_cancel" string="Cancel" type="object"
                             invisible="state not in ('submit_to_supervisor','done')"/>
+                    <button name="%(hr_extended.employee_kra_template_pdf)d" string="Print"
+                            class="btn-primary" type="action"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submit_to_supervisor,done"/>
                 </header>
@@ -29,7 +31,7 @@
                             <field name="employee_id" required="True" widget="many2one_avatar_user"
                                    options="{'no_quick_create':True,'no_create': True}"
                                    readonly="state not in ('draft')"/>
-                            <field name="employee_parent_id"/>
+                            <field name="employee_parent_id" readonly="state not in ('draft')"/>
                             <field name="kra_date" required="True" readonly="state not in ('draft')"/>
                         </group>
                         <group>
@@ -39,19 +41,30 @@
                     </group>
                     <notebook>
                         <page string="KRA Questions">
-                            <field name="kra_details_ids" readonly="state not in ('draft')">
-                                <tree create="0" editable="bottom">
+                            <field name="kra_details_ids">
+                                <tree editable="bottom">
                                     <field name="category" readonly="parent.state not in ('draft')"/>
                                     <field name="business_unit" readonly="parent.state not in ('draft')"/>
+                                    <field name="kra_type" readonly="parent.state not in ('draft')"/>
                                     <field name="goal_description" readonly="parent.state not in ('draft')"/>
                                     <field name="weightage" readonly="parent.state not in ('draft')"/>
                                     <field name="employee_rating" readonly="parent.state not in ('draft')"/>
                                     <field name="employee_remark" readonly="parent.state not in ('draft')"/>
-                                    <field name="manager_rating" readonly="parent.state not in ('draft')"/>
-                                    <field name="manager_remark" readonly="parent.state not in ('draft')"/>
-                                    <field name="final_score" sum="Total" readonly="1" force_save="1"/>
+                                    <field name="manager_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_ekara_manager"/>
+                                    <field name="manager_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_ekara_manager"/>
+
+                                    <field name="bu_head_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>
+                                    <field name="bu_head_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>
+
+                                    <field name="director_hr_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                                    <field name="director_hr_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                                    <field name="final_score" sum="Total" readonly="1" force_save="1" groups="hr_recruitment.group_hr_recruitment_manager"/>
                                 </tree>
                             </field>
+                            <group>
+                                <field name="remarks" placeholder="Please give the Remarks here...."
+                                       groups="hr_recruitment.group_hr_recruitment_user" readonly="state not in ('draft', 'submit_to_supervisor')"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -90,9 +103,9 @@
                 <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
 
                 <group expand="0" string="Group By">
-                    <filter string="kra_master" name="group_by_kra_master" context="{'group_by':'kra_master'}"/>
+                    <filter string="KRA" name="group_by_kra_master" context="{'group_by':'kra_master'}"/>
                     <filter string="Date" name="group_by_kra_date" context="{'group_by':'kra_date'}"/>
-                    <filter string="Status" name="group_by_state" context="{'group_by':'state'}"/>
+                    <filter string="State" name="group_by_state" context="{'group_by':'state'}"/>
                 </group>
 
                 <field name="employee_id" string="Name"/>
@@ -120,7 +133,7 @@
             id="menu_employee_kra"
             name="Employee KRA"
             action="action_view_employee_kra"
-            groups="hr.group_hr_user"
+            groups="base.group_user"
             parent="hr.menu_hr_employee_payroll"
             sequence="7"
     />

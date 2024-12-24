@@ -27,6 +27,16 @@ class PurchaseOrderInherit(models.Model):
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
+    approval_history = fields.Text(string="Approval History", readonly=True, help="Tracks approval reasons and metadata",copy=False)
+    quote_matrix_approval_state = fields.Selection([
+        ('draft', 'Draft'),
+        ('quote_exceeds', 'Quote Exceeds'),
+        ('to_department_head', 'To Department Head'),
+        ('to_account_head', 'To Account Head'),
+        ('to_tax_entity_head', 'To Tax Entity Head'),
+        ('approved', 'Approved'),
+    ], string="Status", readonly=True, index=True, default='draft', tracking=True,copy=False)
+
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):
@@ -82,6 +92,37 @@ class PurchaseOrderInherit(models.Model):
             else:
                 msg = Markup("Alert !! No active budget found.</span>")
         self.budget_balance_warning = msg
+        total_amount = self.amount_total
+
+        other_pos = self.sudo().search([
+            ('state', 'not in', ['done', 'cancel','purchase'])
+        ])
+        total_other_po = []
+        for other_po in other_pos:
+            if sorted(other_po.order_line.mapped('product_id').ids) == sorted(self.order_line.mapped('product_id').ids):
+                # total_amount += (other_po.amount_total)
+                total_other_po.append(other_po)
+
+        # Fetch configuration settings
+        level_1 = float(self.company_id.po_value_1)
+        quotes_1 = int(self.company_id.quotes_required_1)
+        level_2 = float(self.company_id.po_value_2)
+        quotes_2 = int(self.company_id.quotes_required_2)
+        level_3 = float(self.company_id.po_value_3)
+        quotes_3 = int(self.company_id.quotes_required_3)
+        # Compare and validate levels
+        warning = False
+        if total_amount <= level_1 and len(total_other_po) < quotes_1 and self.quote_matrix_approval_state != 'approved':
+            warning = True
+        elif total_amount > level_1 and total_amount <= level_2 and len(total_other_po) < quotes_2 and self.quote_matrix_approval_state != 'approved':
+            warning = True
+        elif total_amount > level_2 and len(total_other_po) < quotes_3 and self.quote_matrix_approval_state != 'approved':
+            warning = True
+        if warning == True and self.quote_matrix_approval_state == 'draft':
+            self.quote_matrix_approval_state = 'quote_exceeds'
+        elif warning == False and self.quote_matrix_approval_state not in ('draft','approved'):
+            self.quote_matrix_approval_state = 'draft' 
+
 
     def exceed_budget_balance_warning(self):
         msg = ''
@@ -104,6 +145,15 @@ class PurchaseOrderInherit(models.Model):
                     msg = "Alert !! Budget is exceeding for %s. Allocated budget is %s and Available balance is %s." % (
                     order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
                     raise UserError(_(msg))
+
+    def button_send_for_approval(self):
+        return {
+                'type': 'ir.actions.act_window',
+                'name': 'Approval Reason',
+                'res_model': 'purchase.order.approval.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                }
 
     def button_confirm(self):
         for order in self.filtered(lambda c: c.state in ['draft', 'sent', 'to approve']):
@@ -135,12 +185,16 @@ class PurchaseOrderInherit(models.Model):
             level_3 = float(order.company_id.po_value_3)
             quotes_3 = int(order.company_id.quotes_required_3)
             # Compare and validate levels
-            if total_amount <= level_1 and len(total_other_po)+1 < quotes_1:
+            if total_amount <= level_1 and len(total_other_po)+1 < quotes_1 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 1. Minimum %s quotes required.") % quotes_1)
-            elif total_amount > level_1 and total_amount <= level_2 and len(total_other_po)+1 < quotes_2:
+            elif total_amount > level_1 and total_amount <= level_2 and len(total_other_po)+1 < quotes_2 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 2. Minimum %s quotes required.") % quotes_2)
-            elif total_amount > level_2 and len(total_other_po)+1 < quotes_3:
+            elif total_amount > level_2 and len(total_other_po)+1 < quotes_3 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 3. Minimum %s quotes required.") % quotes_3)
+            if self.quote_matrix_approval_state == 'to_tax_entity_head' and not self.env.user.has_group('accounts_extended.group_tax_entity_director'):
+                raise UserError(_("You are not authorized to approve this PO."))
+            elif self.quote_matrix_approval_state == 'to_tax_entity_head' and self.env.user.has_group('accounts_extended.group_tax_entity_director'):
+                self.quote_matrix_approval_state = 'approved'
             for line in order.order_line:
                 # Check if the price is zero or less
                 if line.price_unit <= 0:

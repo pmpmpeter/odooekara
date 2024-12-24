@@ -10,6 +10,7 @@ class ProjectProject(models.Model):
     validity_start_date = fields.Date(string="Validity Start Date")
     validity_end_date = fields.Date(string="Validity End Date")
     is_document_validity_management = fields.Boolean(string="Is Document Validity Management", default=False)
+    document_reminder = fields.Integer('Reminder')
     closed_date = fields.Date(string='Closed Date',readonly=1)
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
 
@@ -51,8 +52,8 @@ class ProjectProject(models.Model):
             self.validity_end_date = self.validity_start_date + timedelta(
                 days=self.document_type_id.default_validity_period)
 
-    @api.onchange('validity_end_date','first_reminder')
-    def _onchange_dates(self):
+    @api.onchange('validity_end_date','document_reminder')
+    def _onchange_validity_dates(self):
         """
         Update reminder fields when the date_of_notice or last_date changes.
         """
@@ -63,12 +64,9 @@ class ProjectProject(models.Model):
                     if validity_end_date < fields.Date.today():
                             raise UserError("Kindly provide the correct date.")
                     else:
-                        if project.first_reminder:
-                            first_reminder = project.first_reminder
-                            project.first_reminder_date = validity_end_date - timedelta(days=first_reminder)
-                        if project.second_reminder:
-                            second_reminder = project.second_reminder
-                            project.second_reminder_date = validity_end_date - timedelta(days=second_reminder)
+                        if project.document_reminder:
+                            document_reminder = project.document_reminder
+                            project.first_reminder_date = validity_end_date - timedelta(days=document_reminder)
 
     @api.constrains('validity_start_date', 'validity_end_date')
     def _check_date_order(self):
@@ -78,7 +76,7 @@ class ProjectProject(models.Model):
             if record.validity_start_date > record.validity_end_date:
                 raise UserError("The start date cannot be later than the end date.")
 
-    def send_reminder(self):
+    def send_reminder_document(self):
         today = fields.Date.today()
         document_first_reminder = self.sudo().search([
             ('first_reminder_date', '=', today),('is_document_validity_management','=',True)
@@ -94,7 +92,7 @@ class ProjectProject(models.Model):
             if emails:
                 template = self.env.ref('document_validity_management.document_validity_first_reminder_email_template')
                 template.write({'email_to': ', '.join(emails)})
-                self.env['mail.template'].browse(template.id).send_mail(self.id, force_send=True)
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
 
     def _schedule_activities_first_reminder_document(self):
         today = fields.Date.today()

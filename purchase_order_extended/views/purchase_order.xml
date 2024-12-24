@@ -23,6 +23,7 @@
                     <button name="button_done" type="object" string="Lock" invisible="state != 'purchase'" data-hotkey="l"/>
                     <button name="button_unlock" type="object" string="Unlock" invisible="state != 'done'" groups="purchase.group_purchase_manager" data-hotkey="l"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,sent,purchase" readonly="1"/>
+                     <button name="button_send_for_approval" type="object" string="Send for a Min Quotes Revision" invisible ="quote_matrix_approval_state in ('draft','approved','to_tax_entity_head')"/>
                 </header>
                 <div
                         class="alert alert-warning mb-0"
@@ -31,6 +32,10 @@
                         <field name="budget_balance_warning" widget="html"/>
                 </div>
                 <sheet>
+                    <field name='quote_matrix_approval_state' class="oe_ribbon" />
+                     <div name="quote_matrix_approval_state" class="float-end fs-6 badge rounded-pill fw-bold text-bg-info" invisible="quote_matrix_approval_state != 'to_department_head'">Awaiting Department Head for a Min Quotes Revision</div>
+                     <div name="quote_matrix_approval_state" class="float-end fs-6 badge rounded-pill fw-bold text-bg-info" invisible="quote_matrix_approval_state != 'to_account_head'">Awaiting Account Head for a Min Quotes Revision</div>
+                     <div name="quote_matrix_approval_state" class="float-end fs-6 badge rounded-pill fw-bold text-bg-info" invisible="quote_matrix_approval_state != 'to_tax_entity_head'">Awaiting Tax Entity Head(Director) for a Min Quotes Revision</div>
                     <div class="oe_button_box" name="button_box">
                         <button type="object"  name="action_view_invoice"
                             class="oe_stat_button"
@@ -306,6 +311,9 @@
                                     <field name="fiscal_position_id" options="{'no_create': True}" readonly="invoice_status == 'invoiced' or state == 'done'"/>
                                 </group>
                             </group>
+                        </page>
+                        <page string="Approval Reason" name="approval_reason" invisible="quote_matrix_approval_state in 'draft'">
+                            <field name="approval_history"/>
                         </page>
                     </notebook>
                 </sheet>

@@ -3,23 +3,23 @@
     <template id="extend_portal_my_details_fields" inherit_id="portal.portal_my_details_fields">
         <xpath expr="//div[@class='clearfix']" position="after">
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment">Attachments</label><br/>
-            <input type="file" name="attachment" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/><br/>
+                <label class="col-form-label" for="attachment">Attachments</label>
+            <input type="file" name="attachment" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
             <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>
             </div>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment1">MSME Certificate</label><br/>
-            <input type="file" name="attachment1" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/><br/>
+                <label class="col-form-label" for="attachment1">MSME certificate</label>
+            <input type="file" name="attachment1" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/>
             <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>
             </div>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment2">GST Certificate/Declaration</label><br/>
-            <input type="file" name="attachment2" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/><br/>
+                <label class="col-form-label" for="attachment2">GST Certificate/declaration</label>
+            <input type="file" name="attachment2" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/>
             <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>
             </div>
              <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment3">PAN Details</label><br/>
-            <input type="file" name="attachment3" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/><br/>
+                <label class="col-form-label" for="attachment3">PAN</label>
+            <input type="file" name="attachment3" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/>
             <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>
             </div>
         </xpath>

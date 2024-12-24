@@ -424,30 +424,31 @@ class MultiApproval(models.Model):
             else:
                 # Base Code for Other Modules
                 print(self.origin_ref._name)
-                if req.type_id.mail_template_id:
-                    req.type_id.mail_template_id.send_mail(req.id)
-                else:
-                    message = self.env["mail.message"].create(
-                        {
-                            "subject": _("Request the approval for: {request_name}").format(
-                                request_name=req.display_name
-                            ),
-                            "model": req._name,
-                            "res_id": req.id,
-                            "body": self.description,
-                        }
-                    )
+                for user in req.pic_id:
+                    if req.type_id.mail_template_id:
+                        req.type_id.mail_template_id.send_mail(req.id)
+                    else:
+                        message = self.env["mail.message"].create(
+                            {
+                                "subject": _("Request the approval for: {request_name}").format(
+                                    request_name=req.display_name
+                                ),
+                                "model": req._name,
+                                "res_id": req.id,
+                                "body": self.description,
+                            }
+                        )
 
-                    self.env["mail.mail"].sudo().create(
-                        {
-                            "mail_message_id": message.id,
-                            "body_html": self.description,
-                            "email_to": req.pic_id.email,
-                            "email_from": req.user_id.email,
-                            "auto_delete": True,
-                            "state": "outgoing",
-                        }
-                    )
+                        self.env["mail.mail"].sudo().create(
+                            {
+                                "mail_message_id": message.id,
+                                "body_html": self.description,
+                                "email_to": user.email,
+                                "email_from": req.user_id.email,
+                                "auto_delete": True,
+                                "state": "outgoing",
+                            }
+                        )
 
     def send_approved_mail(self):
         requests = self.filtered(

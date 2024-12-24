@@ -19,6 +19,7 @@ class EmployeeKra(models.Model):
         ('done', 'Done'),
         ('cancel', 'Cancelled'),
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
+    remarks = fields.Text(string="Remarks")
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
@@ -121,6 +122,7 @@ class EmployeeKra(models.Model):
                 'emp_kra_id': self.id,
                 'category': kra_detail.category,
                 'business_unit': kra_detail.business_unit,
+                'kra_type': kra_detail.kra_type,
                 'goal_description': kra_detail.goal_description,
                 'weightage': kra_detail.weightage,
             })
@@ -136,12 +138,17 @@ class KraDetails(models.Model):
 
     category = fields.Char(string="Category", required=True)
     business_unit = fields.Text(string="Business Unit")
+    kra_type = fields.Char(string="KRA")
     goal_description = fields.Char(string="Goal Description")
     weightage = fields.Float(string="Weightage")
     employee_rating = fields.Float(string="Employee Rating")
     employee_remark = fields.Char(string="Employee Remark")
     manager_rating = fields.Float(string="Manager Rating")
     manager_remark = fields.Char(string="Manager Remark")
+    bu_head_rating = fields.Float(string="BU Head Rating")
+    bu_head_remark = fields.Char(string="BU Head Remark")
+    director_hr_rating = fields.Float(string="Director & HR Rating")
+    director_hr_remark = fields.Char(string="Director & HR Remark")
     final_score = fields.Float(string="Final Score", compute="_compute_final_score", store=True)
 
     @api.depends('weightage', 'employee_rating', 'manager_rating')

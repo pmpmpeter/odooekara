@@ -31,4 +31,4 @@ class EmployeeJoinDocConfig(models.Model):
     subject = fields.Html(string="Subject")
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
-
+    sequence = fields.Integer(string="Sequence")

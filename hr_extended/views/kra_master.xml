@@ -15,6 +15,7 @@
                                 <tree editable="bottom">
                                     <field name="category"/>
                                     <field name="business_unit"/>
+                                    <field name="kra_type"/>
                                     <field name="goal_description"/>
                                     <field name="weightage"/>
                                 </tree>

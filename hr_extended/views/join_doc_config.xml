@@ -11,6 +11,7 @@
                             <field name="name" required="True"/>
                             <field name="document_type" required="True"/>
                             <field name="active"/>
+                            <field name="sequence" invisible="1"/>
                         </group>
                         <group>
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"/>
@@ -39,6 +40,7 @@
         <field name="model">employee.join.doc.config</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="sequence" widget="handle"/>
                 <field name="name" required="True"/>
                 <field name="document_type" required="True"/>
             </tree>
