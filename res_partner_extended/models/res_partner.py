@@ -85,8 +85,6 @@ class ResPartner(models.Model):
             'params': action_to_return  # Include the action that opens contacts
         }
 
-
-
     def action_validate_partner_state(self):
         records = self.env['res.partner'].browse(self._context.get('active_ids', False))
         if records:
@@ -116,7 +114,8 @@ class ResPartner(models.Model):
     def reset_to_draft(self):
         for record in self.filtered(lambda m: m.state not in 'draft'):
             record.write({'state': 'draft'})
-        action = self.env['ir.actions.act_window'].search([('id', '=', self.env.ref('contacts.action_contacts').id)], limit=1)
+        domain1 = [('id', '=', self.env.ref('contacts.action_contacts').id)]
+        action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
         action.context = {'default_is_company': True,'edit':True}
         action_to_return = {
         'type': 'ir.actions.act_window',
