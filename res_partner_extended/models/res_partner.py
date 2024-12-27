@@ -67,7 +67,8 @@ class ResPartner(models.Model):
                     record.write({'vendor_code': vendor_code})
             record.write({'state': 'approve'})
             # Retrieve the action with the ID 'contacts.action_contacts'
-        action = self.env['ir.actions.act_window'].search([('id', '=', self.env.ref('contacts.action_contacts').id)], limit=1)
+        domain1= [('id', '=', self.env.ref('contacts.action_contacts').id)]
+        action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
         action.context = {'default_is_company': True,'edit':False}
         action_to_return = {
         'type': 'ir.actions.act_window',
