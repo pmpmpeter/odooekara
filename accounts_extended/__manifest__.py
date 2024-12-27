@@ -22,8 +22,8 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-	    'security/res_groups.xml',
-	    'data/budget_sequence.xml',
+        'security/res_groups.xml',
+        'data/budget_sequence.xml',
         'data/mail_template.xml',
         'wizard/account_report_view.xml',
         'wizard/budget_revision_reason_view.xml',
