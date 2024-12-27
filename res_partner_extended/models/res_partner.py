@@ -67,23 +67,23 @@ class ResPartner(models.Model):
                     record.write({'vendor_code': vendor_code})
             record.write({'state': 'approve'})
             # Retrieve the action with the ID 'contacts.action_contacts'
-        domain1= [('id', '=', self.env.ref('contacts.action_contacts').id)]
-        action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
-        action.context = {'default_is_company': True,'edit':False}
-        action_to_return = {
-        'type': 'ir.actions.act_window',
-        'name': 'Contacts',
-        'res_model': 'res.partner',
-        'view_mode': 'kanban,tree,form,activity',
-        'context': action.context,
-        }
+        # domain1= [('id', '=', self.env.ref('contacts.action_contacts').id)]
+        # action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
+        # action.context = {'default_is_company': True,'edit':False}
+        # action_to_return = {
+        #     'type': 'ir.actions.act_window',
+        #     'name': 'Contacts',
+        #     'res_model': 'res.partner',
+        #     'view_mode': 'kanban,tree,form,activity',
+        #     'context': action.context,
+        # }
 
-        # Return the action with a page refresh
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',  # This will refresh the page
-            'params': action_to_return  # Include the action that opens contacts
-        }
+        # # Return the action with a page refresh
+        # return {
+        #     'type': 'ir.actions.client',
+        #     'tag': 'reload',  # This will refresh the page
+        #     'params': action_to_return  # Include the action that opens contacts
+        # }
 
     def action_validate_partner_state(self):
         records = self.env['res.partner'].browse(self._context.get('active_ids', False))
@@ -114,23 +114,23 @@ class ResPartner(models.Model):
     def reset_to_draft(self):
         for record in self.filtered(lambda m: m.state not in 'draft'):
             record.write({'state': 'draft'})
-        domain1 = [('id', '=', self.env.ref('contacts.action_contacts').id)]
-        action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
-        action.context = {'default_is_company': True,'edit':True}
-        action_to_return = {
-        'type': 'ir.actions.act_window',
-        'name': 'Contacts',
-        'res_model': 'res.partner',
-        'view_mode': 'kanban,tree,form,activity',
-        'context': action.context,
-        }
+        # domain1 = [('id', '=', self.env.ref('contacts.action_contacts').id)]
+        # action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
+        # action.context = {'default_is_company': True,'edit':True}
+        # action_to_return = {
+        #     'type': 'ir.actions.act_window',
+        #     'name': 'Contacts',
+        #     'res_model': 'res.partner',
+        #     'view_mode': 'kanban,tree,form,activity',
+        #     'context': action.context,
+        # }
 
-        # Return the action with a page refresh
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',  # This will refresh the page
-            'params': action_to_return  # Include the action that opens contacts
-        }
+        # # Return the action with a page refresh
+        # return {
+        #     'type': 'ir.actions.client',
+        #     'tag': 'reload',  # This will refresh the page
+        #     'params': action_to_return  # Include the action that opens contacts
+        # }
 
     def unlink(self):
         if not self.env.user.has_group('account.group_account_manager'):
