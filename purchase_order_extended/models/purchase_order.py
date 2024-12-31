@@ -18,8 +18,8 @@ from markupsafe import Markup
 class PurchaseOrderInherit(models.Model):
     _inherit = "purchase.order"
 
-    purchase_type = fields.Many2one('purchase.orders.type','Purchase Type')
-    budget_id = fields.Many2one('crossovered.budget.lines','Budget Code', copy=False)
+    purchase_type = fields.Many2one('purchase.orders.type','Purchase Type', required=1)
+    budget_id = fields.Many2one('crossovered.budget.lines','Budget Code', copy=False, required=1)
     budget_balance_warning = fields.Html(
         compute='_compute_budget_balance_warning',
     )
