@@ -1,11 +1,23 @@
-# -*- coding: utf-8 -*-
-from odoo import models, fields, api, _, Command
-from odoo.exceptions import UserError, ValidationError
+from odoo import api, fields, models, _, Command
+from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     utr_number = fields.Char('UTR Number', copy=False)
+    is_fund_requsiting = fields.Boolean(string='Fund Requisition', copy=False)
+    is_contra_payment = fields.Boolean(string='Contra Payment', copy=False)
+
+    @api.depends('partner_id', 'journal_id', 'destination_journal_id')
+    def _compute_is_internal_transfer(self):
+        for payment in self:
+            if 'is_internal_transfer' in self.env.context:
+                if self.env.context['is_internal_transfer']:
+                    payment.is_internal_transfer = True
+            else:
+                payment.is_internal_transfer = payment.partner_id \
+                                               and payment.partner_id == payment.journal_id.company_id.partner_id \
+                                               and payment.destination_journal_id
 
     def action_post(self):
         for pay in self:

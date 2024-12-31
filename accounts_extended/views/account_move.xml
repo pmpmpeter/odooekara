@@ -782,9 +782,34 @@
 			<field name="view_mode">form</field>
 			<field name="view_id" ref="cash_flow_wizard_form_view"/>
 			<field name="target">new</field>
-	    </record>
+    </record>
 
-    <menuitem id="cash_flow_report" name="Cash Flow" parent="account.menu_finance_reports"
-              groups="account.group_account_readonly,account.group_account_invoice" action="cash_flow_report_xlsx" sequence="20"/>
+    <record id="open_create_fund_payment_form" model="ir.actions.act_window">
+			<field name="name">Fund Requisition</field>
+			<field name="res_model">account.payment</field>
+			<field name="view_mode">tree,form</field>
+            <field name="context">{'default_is_fund_requsiting': True,'is_internal_transfer': True}</field>
+            <field name="domain">[('is_fund_requsiting', '=', True)]</field>
+    </record>
+
+    <record id="open_create_contra_payment_form" model="ir.actions.act_window">
+			<field name="name">Contra Payment</field>
+			<field name="res_model">account.payment</field>
+			<field name="view_mode">tree,form</field>
+            <field name="context">{'default_is_contra_payment': True}</field>
+            <field name="domain">[('is_internal_transfer','=', True)]</field>
+    </record>
+
+            <menuitem
+            id="menu_fund_requisting"
+            action="open_create_fund_payment_form"
+            sequence="2"
+            parent="account.menu_finance_entries"/>
+            <menuitem
+            id="menu_contra_payment"
+            action="open_create_contra_payment_form"
+            parent="account.menu_finance_entries"
+            sequence="3"/>
+
 
 </odoo>
