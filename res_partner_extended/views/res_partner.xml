@@ -43,6 +43,18 @@
             </field>
         </record>
 
+         <record id="res_partner_extend" model="ir.ui.view">
+            <field name="name">res.partner.inherits</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="l10n_in.l10n_in_view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="l10n_in_pan" position="after">
+                    <field name="msme_status" widget="radio" readonly="state in ('approve', 'done')"/>
+                    <field name="msme_number" invisible="msme_status ==  'unregistered'" readonly="state in ('approve', 'done')"/>
+                </field>
+            </field>
+        </record>
+
         <record id="res_partner_master_extend" model="ir.ui.view">
             <field name="name">res.partner.inherits</field>
             <field name="model">res.partner</field>
@@ -90,7 +102,8 @@
                            placeholder='e.g. "B2B", "VIP", "Consulting", ...'/>
                 </xpath>
                 <xpath expr="//field[@name='vat']" position="attributes">
-                    <attribute name="invisible">1</attribute>
+                    <attribute name="readonly">state in ('approve', 'done')</attribute>
+                    <attribute name="placeholder">'Eg:33AAHHK3869G1Z3'</attribute>
                 </xpath>
                 <xpath expr="//field[@name='property_account_receivable_id']" position="attributes">
                     <attribute name="options">{'no_open': True, 'no_quick_create':True,'no_create': True}</attribute>

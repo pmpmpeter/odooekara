@@ -23,6 +23,62 @@ class ResPartner(models.Model):
         'Maximum TDS Amount', help="By adding maximum limit amount will let users know about the TDS limit")
     tcs_limit_amount_partner = fields.Float(
         'Maximum TCS Amount', help="By adding maximum limit amount will let users know about the TCS limit")
+    msme_status = fields.Selection([
+        ('registered', 'Registered'),
+        ('unregistered', 'Unregistered')
+    ], string="MSME Status", default='unregistered')
+
+    msme_number = fields.Char(string="MSME Number")
+
+
+    @api.constrains('msme_number')
+    def _check_msme_number(self):
+        for record in self:
+            if record.msme_status == 'registered' and record.msme_number:
+                if not record.msme_number.isdigit() or len(record.msme_number) != 12:
+                    raise ValidationError("MSME Number must contain exactly 12 digits.")
+
+
+    @api.constrains('vat', 'state_id', 'l10n_in_pan')
+    def _check_gst_number(self):
+        for res in self:
+            if res.state_id:
+                state = self.env['res.country.state'].sudo().search([('id', '=', res.state_id.id)])
+                
+                if not state.l10n_in_tin:
+                    raise ValidationError(_('First define the GST state code.'))
+                
+                if res.vat:
+                    vat = res.vat.replace(" ", "")  # Remove any spaces in GST number
+
+                    # Check length of GST number
+                    if len(vat) != 15:
+                        raise ValidationError(_("Invalid GST. GST number must be 15 characters. Please check."))
+
+                    # Regex validation for GST format
+                    if not re.match(r"(^\d{2}[A-Z]{5}\d{4}[A-Z]{1}[A-Z\d]{1}[Z]{1}[A-Z\d]{1}$)", vat):
+                        raise ValidationError(_('Please Enter a Valid GST No Eg:33AAHHK3869G1Z3.'))
+
+                    # Check state code in GST number
+                    if state.l10n_in_tin != vat[0:2]:
+                        raise ValidationError(_('The first two characters of GST Number must match the state code.'))
+
+                    # Check PAN in GST number
+                    if res.l10n_in_pan and res.l10n_in_pan != vat[2:12]:
+                        raise ValidationError(
+                            _('The characters between positions 3 and 12 in GST Number must match the PAN Number.'))
+
+                # Check for duplicate GST numbers
+                if res.vat:
+                    duplicate_partner = self.env['res.partner'].sudo().search([
+                        ('vat', '=', res.vat),
+                        ('id', '!=', res.id),
+                        ('company_type', '=', 'company'),
+                        ('parent_id', '!=', res.id)
+                    ])
+                    if duplicate_partner:
+                        raise ValidationError(
+                            _('Alert! GST Number - %s already exists. Please enter a unique GST Number.') % res.vat)
 
     @api.onchange('is_customer','is_vendor')
     def onchange_product(self):
