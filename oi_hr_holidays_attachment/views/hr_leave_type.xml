@@ -10,6 +10,7 @@
 				<field name="attachment_required"/>
 			</field>
 			<field name="leave_validation_type" position="before">
+				<field name="code"/>
 				<field name="type"/>
 			</field>
 		</field>

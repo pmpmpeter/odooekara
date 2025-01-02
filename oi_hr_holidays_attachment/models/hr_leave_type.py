@@ -9,6 +9,7 @@ from odoo import models, fields
 class HolidaysType(models.Model):
     _inherit = "hr.leave.type"
 
+    code = fields.Char(string='Code',copy=False)
     type = fields.Selection([
         ('corporate', 'Corporate (Per Year)'),
         ('unit', 'Unit/Centre (Per Year)')],string="Type")
