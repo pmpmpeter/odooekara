@@ -17,7 +17,7 @@ class PurchaseOrderApprovalWizard(models.TransientModel):
         # Capture reason with user and timestamp
         user = self.env.user
         current_datetime = fields.Datetime.now()
-        approval_entry = f"{user.name} - {current_datetime} - {self.approval_reason}\n"
+        approval_entry = f"User: {user.name}, Reason: {self.approval_reason}, Date: {current_datetime}\n"
         if purchase_order.approval_history:
             purchase_order.approval_history += approval_entry
         else:

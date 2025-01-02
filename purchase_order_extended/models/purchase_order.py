@@ -76,7 +76,7 @@ class PurchaseOrderInherit(models.Model):
             budget_allocated_id = self.env['crossovered.budget.lines'].sudo().search(domain1, limit=1)
             if budget_allocated_id:
                 allocated_amount= budget_allocated_id.planned_amount
-                spent_amount = budget_allocated_id.practical_amount
+                spent_amount = (budget_allocated_id.practical_amount+budget_allocated_id.reserved_amount)
                 available_amount = allocated_amount - spent_amount
                 allocated_amount_formatted = formatLang(self.env, allocated_amount, currency_obj=order.company_id.currency_id)
                 available_amount_formatted = formatLang(self.env, available_amount, currency_obj=order.company_id.currency_id)
@@ -135,7 +135,7 @@ class PurchaseOrderInherit(models.Model):
             budget_allocated_id = self.env['crossovered.budget.lines'].sudo().search(domain1, limit=1)
             if budget_allocated_id:
                 allocated_amount = budget_allocated_id.planned_amount
-                spent_amount = budget_allocated_id.practical_amount
+                spent_amount = (budget_allocated_id.practical_amount+budget_allocated_id.reserved_amount)
                 available_amount = allocated_amount - spent_amount
                 allocated_amount_formatted = formatLang(self.env, allocated_amount,
                                                         currency_obj=order.company_id.currency_id)
@@ -204,6 +204,8 @@ class PurchaseOrderInherit(models.Model):
                     ) % (line.product_id.display_name))
             order.exceed_budget_balance_warning()
             order.write({'state':'sent'})
+            # Update a reserve amount in budget
+            order.budget_id.reserved_amount += order.amount_untaxed
         return super(PurchaseOrderInherit, self).button_confirm()
 
     @api.onchange('requisition_id')

@@ -49,7 +49,11 @@ class AccountQuarterlyReportWizard(models.TransientModel):
     def _fetch_crr_data(self,account_type):
         """Fetch CRR journal entries (Debit - Credit) for each month."""
         crr_data = {}
-        year = fields.Date.today().year
+        start_date = self.start_date
+        end_date = self.end_date
+        start_year = start_date.year
+        end_year = end_date.year
+
         move_line_obj = self.env['account.move.line']
         months = [
             ('April', 4), ('May', 5), ('June', 6),
@@ -63,19 +67,33 @@ class AccountQuarterlyReportWizard(models.TransientModel):
             'Q3': [10, 11, 12],
             'Q4': [1, 2, 3],
         }
-        # selected_accounts = self.account_ids or self.env['account.account'].sudo().search([])
         selected_accounts = self.env['account.account'].sudo().search([('account_type','=',account_type)])
+        expense_code = []
+        month_data = []
+        current_date = start_date
+        while current_date <= end_date:
+            month_data.append((current_date.year, current_date.month))
+            # Move to the first day of the next month
+            next_month = current_date.month % 12 + 1
+            next_year = current_date.year + (1 if next_month == 1 else 0)
+            current_date = current_date.replace(year=next_year, month=next_month, day=1)
         for crr in selected_accounts:
             crr_data[f"{crr.name}"] = {}
+            expense_code.append(crr.code)
             for month_name, month_num in months:
-                last_day = calendar.monthrange(year, month_num)[1]
-                total = move_line_obj.search([
-                    ('account_id', '=', crr.id),
-                    ('move_id.state', '=', 'posted'),
-                    ('date', '>=', f'2024-{month_num:02}-01'),
-                    ('date', '<=', f'2024-{month_num:02}-{last_day}')
-                ]).mapped(lambda l: l.debit - l.credit)
-                crr_data[f"{crr.name}"][month_name] = float(sum(total))
+                total = 0
+                for year ,num_month in month_data:
+                    if month_num == num_month or month_num == num_month:
+                        fn_start_date = datetime(year, month_num, 1).date()
+                        last_day = calendar.monthrange(year, month_num)[1]
+                        fn_end_date = datetime(year, month_num, last_day).date()
+                        total = move_line_obj.search([
+                            ('account_id', '=', crr.id),
+                            ('move_id.state', '=', 'posted'),
+                            ('date', '>=', fn_start_date),
+                            ('date', '<=', fn_end_date),
+                        ]).mapped(lambda l: l.debit - l.credit)
+                crr_data[f"{crr.name}"][month_name] = float(sum(total)) if total else 0
 
             for quarter, months_list in quarters.items():
                 quarter_total = sum(
@@ -83,7 +101,7 @@ class AccountQuarterlyReportWizard(models.TransientModel):
                 )
                 crr_data[f"{crr.name}"][quarter] = quarter_total
 
-        return crr_data
+        return {'crr_data':crr_data,'expense_code':expense_code}
 
 
     def _generate_excel_report(self):
@@ -93,7 +111,12 @@ class AccountQuarterlyReportWizard(models.TransientModel):
         sheet = workbook.add_worksheet('Quarterly CRR Report')
 
         # Define formats
-        title_format = workbook.add_format({'bold': True, 'font_size': 12})
+        title_format = workbook.add_format({'bold': True, 'font_size': 12,'text_wrap': True})
+        sheet.set_column('A:A', 20)  
+        sheet.set_column('B:B',35) 
+        sheet.set_column('C:D',20) 
+        sheet.set_column('E:U',15) 
+        sheet.set_row(13,30) 
         header_format = workbook.add_format({
             'bold': True,
             'bg_color': '#D9E1F2',
@@ -101,7 +124,7 @@ class AccountQuarterlyReportWizard(models.TransientModel):
             'border': 1,
             'align': 'center',
         })
-        cell_format = workbook.add_format({'border': 1})
+        cell_format = workbook.add_format({'border': 1,'text_wrap': True})
         value_format = workbook.add_format({'num_format': '0.00', 'border': 1})  # Float format and border
         total_value_format = workbook.add_format({'num_format': '0.00', 'border': 1,'bold': True,'bg_color': '#F4B084',})  # Float format and border
 
@@ -112,24 +135,24 @@ class AccountQuarterlyReportWizard(models.TransientModel):
         })
 
         # Add company and transaction details
-        sheet.write(0, 0, 'Group Company Name', title_format)
-        sheet.write(0, 1, 'Your Company Name')  # Replace with actual company name
-        sheet.write(1, 0, 'Group Company Code', title_format)
-        sheet.write(1, 1, 'GC01')  # Replace with actual company code
+        sheet.write(0, 1, 'Group Company Name', title_format)
+        sheet.write(0, 2, '')  # Replace with actual company name
+        sheet.write(1, 1, 'Group Company Code', title_format)
+        sheet.write(1, 2, '')  # Replace with actual company code
 
-        sheet.write(3, 0, 'Type of Transaction', title_format)
-        sheet.write(4, 1, 'OPEX', cell_format)
-        sheet.write(4, 2, 'Operating Expenditure', cell_format)
-        sheet.write(5, 1, 'CAPEX', cell_format)
-        sheet.write(5, 2, 'Capital Expenditure', cell_format)
-        sheet.write(6, 1, 'OCIF', cell_format)
-        sheet.write(6, 2, 'Operating Cash In Flow', cell_format)
-        sheet.write(7, 1, 'NOCIF', cell_format)
-        sheet.write(7, 2, 'Non-Operating Cash In Flow', cell_format)
+        sheet.write(3, 1, 'Type of Transaction', title_format)
+        sheet.write(3, 2, 'OPEX', cell_format)
+        sheet.write(3, 3, 'Operating Expenditure', cell_format)
+        sheet.write(4, 2, 'CAPEX', cell_format)
+        sheet.write(4, 3, 'Capital Expenditure', cell_format)
+        sheet.write(5, 2, 'OCIF', cell_format)
+        sheet.write(5, 3, 'Operating Cash In Flow', cell_format)
+        sheet.write(6, 2, 'NOCIF', cell_format)
+        sheet.write(6, 3, 'Non-Operating Cash In Flow', cell_format)
 
         # Headers for the CRR table
         headers = [
-            'Cash Payments','cash OutFlow Heads\nExpense account','Budget Code','Expense Code','Year Total', 'April', 'May', 'June', 'Q1',
+            'Cash Payments','Cash OutFlow Heads\nExpense account','Budget Code','Expense Code','Year Total', 'April', 'May', 'June', 'Q1',
             'July', 'August', 'September', 'Q2',
             'October', 'November', 'December', 'Q3',
             'January', 'February', 'March', 'Q4']
@@ -142,10 +165,11 @@ class AccountQuarterlyReportWizard(models.TransientModel):
         yearly_totals = {key: 0 for key in headers[1:]}  # Initialize totals for all headers except 'CRR'
         account_type = 'expesne'
         income_data = self._fetch_crr_data(account_type)
-        for crr, values in income_data.items():
-            sheet.write(row, 0, crr, cell_format)  # crr
+        exp_row = row
+        for crr, values in income_data['crr_data'].items():
+            sheet.write(row,1, crr, cell_format)  # crr
             year_total = 0
-            for col_num, header in enumerate(headers[1:], start=2):
+            for col_num, header in enumerate(headers[2:], start=2):
                 value = values.get(header, 0)
                 sheet.write(row, col_num, float(value), value_format)
                 yearly_totals[header] += value
@@ -155,25 +179,33 @@ class AccountQuarterlyReportWizard(models.TransientModel):
             # Write Year Total
             sheet.write(row,4, year_total, value_format)
             row += 1
+        for code in income_data['expense_code']:
+            sheet.write(exp_row,2,code, cell_format) 
+            exp_row+=1 
 
         # Write totals row
-        sheet.write(row, 0, 'Total OutFlow(A)', total_format)
-        for col_num, header in enumerate(headers[1:], start=1):
+        sheet.write(row, 1, 'Total OutFlow(A)', total_format)
+        for col_num, header in enumerate(headers[2:], start=2):
             sheet.write(row, col_num, yearly_totals[header], total_value_format)
         row +=2
         yearly_totals = ''
-        sheet.write(row, 0, 'Cash Receipts \n Cash InFlow Heads\nInocme account', header_format)
+        sheet.write(row, 0, 'Cash Receipts ', header_format)
+        sheet.write(row, 1, 'Cash Receipts Cash InFlow Heads\nInocme account', header_format)
+        sheet.set_row(row,30)  # Row B14
         row +=2
 
 
         account_type = 'income'
+        exp_row = 0
         expense_data = self._fetch_crr_data(account_type)
         yearly_totals = {key: 0 for key in headers[1:]}  # Initialize totals for all headers except 'CRR'
-        for crr, values in expense_data.items():
-            sheet.write(row, 0, crr, cell_format)  # CRR
+        exp_row = row
+
+        for crr, values in expense_data['crr_data'].items():
+            sheet.write(row,1, crr, cell_format)  # CRR
             year_total = 0
-            for col_num, header in enumerate(headers[1:], start=1):
-                value = values.get(header, 0)
+            for col_num, header in enumerate(headers[2:], start=2):
+                value = values.get(header,0)
                 sheet.write(row, col_num,float(value), value_format)
                 yearly_totals[header] += value
                 if 'Q' not in header and 'Year Total' not in header:  # Only aggregate monthly values
@@ -182,25 +214,28 @@ class AccountQuarterlyReportWizard(models.TransientModel):
             # Write Year Total
             sheet.write(row,4, year_total, value_format)
             row += 1
+        for code in expense_data['expense_code']:
+            sheet.write(exp_row,2,code, cell_format) 
+            exp_row+=1 
 
         # Write totals row
-        sheet.write(row, 0, 'Total InFlow(B)', total_format)
-        for col_num, header in enumerate(headers[1:], start=1):
+        sheet.write(row, 1, 'Total InFlow(B)', total_format)
+        for col_num, header in enumerate(headers[4:], start=4):
             sheet.write(row, col_num, yearly_totals[header], total_value_format)
         row+=1
-        sheet.write(row, 0, 'SURPLUS/DEFICIT (B-A)',total_format)
+        sheet.write(row, 1, 'SURPLUS/DEFICIT (B-A)',total_format)
         row+=1
-        sheet.write(row, 0, 'Sources of Fund:',total_format)
+        sheet.write(row, 1, 'Sources of Fund:',total_format)
         row+=1
-        sheet.write(row, 0, 'Tax Entity 1',total_format)
+        sheet.write(row, 1, 'Tax Entity 1',total_format)
         row+=1
-        sheet.write(row, 0, 'Tax Entity 2',total_format)
+        sheet.write(row, 1, 'Tax Entity 2',total_format)
         row+=1
-        sheet.write(row, 0, 'Others',total_format)
+        sheet.write(row, 1, 'Others',total_format)
         row+=1
-        sheet.write(row, 0, 'Total Requirement (D = C)',total_format)
+        sheet.write(row, 1, 'Total Requirement (D = C)',total_format)
         row+=1
-        sheet.write(row, 0, 'Difference',total_format)
+        sheet.write(row, 1, 'Difference',total_format)
         workbook.close()
         buffer.seek(0)
         return buffer.read()

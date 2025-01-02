@@ -64,6 +64,7 @@ class Crossoverbudgetlines(models.Model):
     name = fields.Char(compute="_compute_line_name", store=True)
     budget_code = fields.Char('Budget Code')
     is_budget_code = fields.Boolean('Is Budget Code')
+    reserved_amount = fields.Float('Reserved Amount')
 
 
     @api.depends("crossovered_budget_id", "general_budget_id", "analytic_account_id", "budget_code")

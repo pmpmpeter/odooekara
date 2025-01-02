@@ -214,3 +214,10 @@ class AccountMoveInherit(models.Model):
 
         # Write state change to 'cancel'
         self.write({'auto_post': 'no', 'state': 'cancel'})
+
+    def action_post(self):
+        for rec in self:
+            purchase_order = self.line_ids.purchase_line_id.order_id
+            if purchase_order:
+                purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
+        return super(AccountMoveInherit, self).action_post()
