@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!--Reconfigured cheque related action buttons views -->
+    <record id="view_account_payment_form_inherited" model="ir.ui.view">
+        <field name="name">account.payment.view.form.inherit.odoo.print.cheque</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id"
+               ref="account_check_printing.view_account_payment_form_inherited"/>
+        <field name="arch" type="xml">
+<!--            <xpath expr="//button[@name='print_checks']" position="attributes">-->
+<!--                <attribute name="invisible">-->
+<!--                    is_move_sent == True or state in ['draft', 'cancel'] or payment_method_code not in-->
+<!--                    ['check_printing', 'pdc']-->
+<!--                </attribute>-->
+<!--            </xpath>-->
+
+            <xpath expr="//button[@name='unmark_as_sent']" position="after">
+                <button name="action_unmark_sent"
+                        invisible="is_move_sent != True or state in ['draft', 'cancel'] or payment_method_code not in ['check_printing', 'pdc']"
+                        string="Unmark Sent"
+                        type="object"
+                        data-hotkey="l"/>
+
+                <button name="action_void_check"
+                        invisible="is_move_sent != True or state in ['draft', 'cancel'] or payment_method_code not in ['check_printing', 'pdc']"
+                        string="Void Check"
+                        type="object"
+                        data-hotkey="o"/>
+            </xpath>
+            <xpath expr="//field[@name='payment_method_line_id']" position="after">
+                <field name="cheque_format_id" invisible="show_partner_bank_account"/>
+            </xpath>
+            <xpath expr="//group[@name='main_group']" position="after">
+                <notebook>
+                    <page name="check_details" string="Check Details" invisible="show_partner_bank_account">
+                        <group>
+                            <group>
+                                <field name="sr_no"/>
+                                <field name="cheque_number"/>
+                                <field name="assigned_by"/>
+                                <field name="managed_by"/>
+                            </group>
+                            <group>
+                                <field name="authorised_by"/>
+                                <field name="authorised_date"/>
+                                <field name="comments"/>
+                                <field name="towards"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>
