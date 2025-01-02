@@ -12,8 +12,7 @@
     </record>
 
     <template id="print_form_h">
-        <t t-call="web.basic_layout">
-            <t t-foreach="docs" t-as="doc">
+         <t t-call="web.basic_layout">
                 <div class="page">
                     <p>
                         Form-H Report for Company Name (June 2024)<br/>
@@ -24,7 +23,7 @@
                     <table style="width:100%; border-collapse: collapse;  font-size: 14px; ">
                         <tr style="font-weight: bold;">
                             <td colspan="20" style="text-align: center; vertical-align: middle; padding: 10px;">FORM H</td>
-                            <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;"></td>
+                            <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;"/>
                         </tr>
                         <tr>
                             <td colspan="20" style="text-align: center; vertical-align: middle; padding: 10px;">(SEE RULE 9)</td>
@@ -71,36 +70,115 @@
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Of Credi</td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Availed</td>
                         </tr>
-                        <tr>
-                            <td style="text-align: center;  padding: 10px; height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;"></td>
-                        </tr>
+                        <t t-set="count" t-value="1"/>
+                        <t t-set="start_datetime" t-value="start_date + ' 00:00:00'"/>
+                        <t t-set="end_datetime" t-value="end_date + ' 23:59:59'"/>
+                       <t t-set="employee" t-value="request.env['hr.employee'].sudo().search([('state','=','employment')])"/>
+                        <t t-set="current_year" t-value="context_timestamp(datetime.datetime.now()).strftime('%Y')"/>
+                        <t t-foreach="employee" t-as="emp">
+                             <t t-set="overall_leaves" t-value="0.0"/>
+                            <t t-set="leaves_earned" t-value="0.0"/>
+                            <t t-set="contract_id" t-value="emp.contract_id"/>
+                            <t t-set="days" t-value="0"/>
+                            <t t-set="attendance" t-value="request.env['hr.attendance'].sudo().search([('employee_id','=',emp.id),('check_in','&gt;=',start_datetime),('check_in','&lt;=',end_datetime)])"/>
+                            <t t-if="attendance">
+                                <t t-foreach="attendance" t-as="rec">
+                                 <t t-set="days" t-value="round(days + (rec.worked_hours / contract_id.resource_calendar_id.hours_per_day), 2)"/>
+                                    <t t-if="contract_id.resource_calendar_id.full_time_required_hours == 40.00">
+                                        <t t-set="leaves_earned" t-value="1.75"/>
+                                    </t>
+                                    <t t-else="">
+                                        <t t-set="leaves_earned" t-value="1.95"/>
+                                    </t>
+                            </t>
+                            </t>
+                            <t t-set="leaves_initial" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('state','=','validate')])"/>
+                            <t t-foreach="leaves_initial" t-as="leaves">
+                                <t t-set="overall_leaves" t-value="overall_leaves+leaves.number_of_days_display"/>
+                            </t>
+                            <t t-set="total_allocated_sick_leaves" t-value="0.0"/>
+                            <t t-set="timeoff_taken" t-value="0.0"/>
+                            <t t-set="sick_leave" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('holiday_status_id','=','Sick Time Off'),('state','=','validate')])"/>
+                            <t t-set="sick_leave_taken" t-value="request.env['hr.leave'].sudo().search([('employee_id','=',emp.id),('holiday_status_id.name','=','Sick Time Off'),('state','=','validate'),('request_date_from','&gt;=',start_date),('request_date_to','&lt;=',end_date)])"/>
+                            <t t-foreach="sick_leave" t-as="sick_leaves">
+                                <t t-set="total_allocated_sick_leaves" t-value="total_allocated_sick_leaves + sick_leaves.number_of_days_display"/>
+                            </t>
+                            <t t-foreach="sick_leave_taken" t-as="sick_leaves">
+                                <t t-set="timeoff_taken" t-value="timeoff_taken + sick_leaves.number_of_days_display"/>
+                            </t>
 
+                            <tr>
+                            <td style="text-align: center;  padding: 10px; height: 70px;">
+                                <t t-esc="count"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-esc="emp.employee_number"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="emp.employee_type"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-esc="emp.joining_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="emp.name"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="emp.father_name"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-esc="start_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="end_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="days"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-esc="leaves_earned"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="overall_leaves"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-esc="emp.remaining_leaves"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                              <t t-esc="total_allocated_sick_leaves"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-esc="timeoff_taken"/>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                               <t t-esc="total_allocated_sick_leaves - timeoff_taken"/>
+                            </td>
+                        </tr>
+                            <t t-set="count" t-value="count+1"/>
+                        </t>
                     </table>
 
 
 
                 </div>
-            </t>
         </t>
     </template>
 </odoo>

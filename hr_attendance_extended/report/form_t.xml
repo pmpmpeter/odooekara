@@ -13,7 +13,6 @@
 
     <template id="print_form_t">
         <t t-call="web.basic_layout">
-            <t t-foreach="docs" t-as="doc">
                 <div class="page" style="margin:0;">
                     <p>
                         <b style="font-size: 15px;">COMBINE MUSTER ROLL CUM REGISTER OF WAGES<br/>
@@ -42,122 +41,88 @@
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Designation</td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">UAN No</td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">PF No</td>
-                            <td style="text-align: center;  ">1</td>
-                            <td style="text-align: center;  ">2</td>
-                            <td style="text-align: center;  ">3</td>
-                            <td style="text-align: center;  ">4</td>
-                            <td style="text-align: center;  ">5</td>
-                            <td style="text-align: center;  ">6</td>
-                            <td style="text-align: center;  ">7</td>
-                            <td style="text-align: center;  ">8</td>
-                            <td style="text-align: center;  ">9</td>
-                            <td style="text-align: center;  ">10</td>
-                            <td style="text-align: center;  ">11</td>
-                            <td style="text-align: center;  ">12</td>
-                            <td style="text-align: center;  ">13</td>
-                            <td style="text-align: center;  ">14</td>
-                            <td style="text-align: center;  ">15</td>
-                            <td style="text-align: center;  ">16</td>
-                            <td style="text-align: center;  ">17</td>
-                            <td style="text-align: center;  ">18</td>
-                            <td style="text-align: center;  ">19</td>
-                            <td style="text-align: center;  ">20</td>
-                            <td style="text-align: center;  ">21</td>
-                            <td style="text-align: center;  padding: 10px;">2<br/>2</td>
-                            <td style="text-align: center;  padding: 10px;">23</td>
-                            <td style="text-align: center;  padding: 10px;">24</td>
-                            <td style="text-align: center;  padding: 10px;">2<br/>5</td>
-                            <td style="text-align: center;  padding: 10px;">26</td>
-                            <td style="text-align: center;  padding: 10px;">27</td>
-                            <td style="text-align: center;  padding: 10px;">2<br/>8</td>
-                            <td style="text-align: center;  padding: 10px;">29</td>
-                            <td style="text-align: center;  padding: 10px;">30</td>
+                            <td t-foreach="range(1, days_in_month + 1)" style="text-align: left; padding: 5px;" t-as="day">
+                                    <t t-esc="str(day)"/>
+                            </td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Days Payable</td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
-                            <td style="text-align: left; padding: 10px;height: 70px;"></td>
                         </tr>
+                            <t t-foreach="employee" t-as="emp">
+                                <t t-set="employee_rec" t-value="request.env['hr.employee'].sudo().search([('id','=',emp)])"/>
+                                <t t-set="leaves" t-value="request.env['hr.leave'].sudo().search([('employee_ids.id', '=', employee_rec.id)])"/>
+                                <t t-esc="leaves"/><span>rrew</span>
+                                <t t-set="attendance" t-value="request.env['hr.attendance'].sudo().search([('employee_id', '=', employee_rec.id)])"/>
+                                <tr>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                        <t t-esc="employee_rec.employee_number"/>
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                        <t t-esc="employee_rec.employee_type"/>
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                        <t t-esc="employee_rec.name"/>
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                          <t t-esc="employee_rec.work_location_id.name"/>
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                        <t t-esc="employee_rec.department_id.name"/>
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+<!--                                        <t t-esc="employee_rec.pan_no"/>-->
+                                    </td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;">
+                                        <t t-esc="employee_rec.uan_no"/>
+                                    </td>
+
+                                        <td t-foreach="range(1,days_in_month + 1)" t-as="day">
+                                            <t t-if="attendance">
+                                                <t t-foreach="attendance" t-as="att">
+
+                                                <t t-set="date" t-value="att.check_in.strftime('%d')"/>
+<!--                                                <t t-esc="date"/>-->
+<!--                                                <t t-esc="day"/>-->
+                                                <t t-if="str(date) == str(day)">
+                                                   <center><span>P</span></center>
+                                                </t>
+                                            </t>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-if="leaves">
+
+
+                                                                 <t t-foreach="leaves" t-as="rec">
+                                                                     <t t-set="date" t-value="rec.request_date_from.strftime('%d')"/>
+                                                                    <t t-foreach="leaves_types" t-as="type">
+<!--                                                                        <t t-esc="type"/>-->
+                                                                        <t t-if="rec.holiday_status_id.name == type">
+
+                                                                            <t t-if="str(date) == str(day)">
+                                                                              <center><t t-esc="rec.holiday_status_id.code"/></center>
+                                                                        </t>
+                                                                 </t>
+                                                            </t>
+
+                                                    </t>
+                                                </t>
+                                                <t t-else="">
+                                                    <center><span>-</span></center>
+                                                </t>
+                                            </t>
+
+                                    </td>
+
+                                    <td style="text-align: left; padding: 10px;height: 70px;"></td>
+                                </tr>
+                            </t>
 
                     </table>
+                    <t t-set="timeoff_typ" t-value="request.env['hr.leave.type'].sudo().search([])"/>
                     <table style="width:40%; border-collapse: collapse;  font-size: 14px; ">
                         <tr>
                             <td style="text-align: center;  padding: 10px;">Abbreviation</td>
@@ -166,103 +131,130 @@
                             <td style="text-align: left; padding: 10px;"></td>
                             <td style="text-align: left; padding: 10px;"></td>
                             <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">P</td>
-                            <td style="text-align: left; padding: 10px;">Present</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">CL</td>
-                            <td style="text-align: left; padding: 10px;">Casual Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">EL</td>
-                            <td style="text-align: left; padding: 10px;">Earned Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">ML</td>
-                            <td style="text-align: left; padding: 10px;">Maternity Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">PL</td>
-                            <td style="text-align: left; padding: 10px;">Paternity Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">WO</td>
-                            <td style="text-align: left; padding: 10px;">Week Off</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">EH</td>
-                            <td style="text-align: left; padding: 10px;">Half Day Earned Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">CH</td>
-                            <td style="text-align: left; padding: 10px;">Half Day Casual Leave</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">LP</td>
-                            <td style="text-align: left; padding: 10px;">Loss of Pay</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">LH</td>
-                            <td style="text-align: left; padding: 10px;">Half Day Loss of Pay</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">CO</td>
-                            <td style="text-align: left; padding: 10px;">Compensatory Off</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left; padding: 10px;">CC</td>
-                            <td style="text-align: left; padding: 10px;">Work on Holiday</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                        </tr><tr>
-                            <td style="text-align: left;  padding: 10px;">OD</td>
-                            <td style="text-align: left;  padding: 10px;">On-Duty</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
+                            <t t-foreach="timeoff_typ" t-as="rec">
+                                <tr>
+                                     <td style="text-align: left; padding: 10px;"><t t-esc="rec.code"/></td>
+                                    <td style="text-align: left; padding: 10px;"><t t-esc="rec.name"/></td>
+                                    <td style="text-align: left; padding: 10px;"></td>
+                                    <td style="text-align: left; padding: 10px;"></td>
+                                    <td style="text-align: left; padding: 10px;"></td>
+                                    <td style="text-align: left; padding: 10px;"></td>
+                                </tr>
+
+                            </t>
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">P</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Present</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">CL</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Casual Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">EL</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Earned Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">ML</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Maternity Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">PL</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Paternity Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">WO</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Week Off</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">EH</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Half Day Earned Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">CH</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Half Day Casual Leave</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">LP</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Loss of Pay</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">LH</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Half Day Loss of Pay</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">CO</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Compensatory Off</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left; padding: 10px;">CC</td>-->
+<!--                            <td style="text-align: left; padding: 10px;">Work on Holiday</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                        </tr><tr>-->
+<!--                            <td style="text-align: left;  padding: 10px;">OD</td>-->
+<!--                            <td style="text-align: left;  padding: 10px;">On-Duty</td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
+<!--                            <td style="text-align: left; padding: 10px;"></td>-->
                         </tr>
                     </table>
-
+<!--                    <table>-->
+<!--                        <thead>-->
+<!--                            <tr>-->
+<!--                                <th>Date</th>-->
+<!--                                <th t-foreach="range(1, days_in_month + 1)" t-as="day">-->
+<!--                                    <t t-esc="str(day)"/>-->
+<!--                                </th>-->
+<!--                            </tr>-->
+<!--                        </thead>-->
+<!--                        <tbody>-->
+<!--                            <tr>-->
+<!--                                <td>Details</td>-->
+<!--                                <td t-foreach="range(1,days_in_month + 1)" t-as="day">-->
+<!--                                    <t t-esc="str(day)"/>-->
+<!--                                </td>-->
+<!--                            </tr>-->
+<!--                        </tbody>-->
+<!--                    </table>-->
 
                 </div>
             </t>
-        </t>
     </template>
 </odoo>
