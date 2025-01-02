@@ -44,6 +44,20 @@ class AccountPayment(models.Model):
     towards = fields.Text(string="Towards")
     authorised_by = fields.Many2one('res.users',string="Authorised By")
     authorised_date = fields.Date(string="Authorised Date")
+    is_cheque_cleared = fields.Boolean(string="Cheque Cleared")
+    cheque_cleared_date = fields.Date(string="Date of Cheque Cleared")
+
+
+    @api.depends('partner_id', 'journal_id', 'destination_journal_id')
+    def _compute_is_internal_transfer(self):
+        for payment in self:
+            if 'is_internal_transfer' in self.env.context:
+                if self.env.context['is_internal_transfer']:
+                    payment.is_internal_transfer = True
+            else:
+                payment.is_internal_transfer = payment.partner_id \
+                                           and payment.partner_id == payment.journal_id.company_id.partner_id \
+                                           and payment.destination_journal_id
 
 
 
@@ -109,3 +123,33 @@ class AccountPayment(models.Model):
                 'cheque_no_lm': self.cheque_format_id.cheque_no_lm
             }
             return self.env.ref('account.action_report_payment_receipt').report_action(self, data=data)
+
+
+
+class AccountBatchPayment(models.Model):
+    """
+    This class inherits from the 'account.payment' model to add specific
+    features and behavior related to printing checks and handling payment
+    information. It overrides the 'print_checks' method to provide a custom
+    wizard view for selecting and formatting cheque printing options.
+    """
+    _inherit = 'account.batch.payment'
+
+
+
+    cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
+                                       help='Cheque Print Formats')
+    cheque_number = fields.Char(string="Cheque/Tax Number")
+    towards = fields.Text(string="Towards")
+    authorised_by = fields.Many2one('res.users',string="Authorised By")
+    authorised_date = fields.Date(string="Authorised Date")
+    amount_total_words = fields.Char(
+        string="Amount total in words",
+        compute="_compute_amount_total_words",
+    )
+
+
+    @api.depends('amount', 'currency_id')
+    def _compute_amount_total_words(self):
+        for rec in self:
+            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.amount)).replace(',', '')

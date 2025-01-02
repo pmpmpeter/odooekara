@@ -7,7 +7,6 @@
 
              <div style="font-weight:bold;margin-top:30px;padding-bottom: 250px;">
                  <!--<t t-set="data" t-value="o.action_print_cheque_payment()"/>-->
-                 <t t-if="o.payment_method_line_id.name == 'Checks'">
                  <div t-attf-style="width:{{o.cheque_format_id.cheque_width}}px; height:{{o.cheque_format_id.cheque_height}}px; font-size:{{o.cheque_format_id.font_size}}px;">
                     <!--Account payee cheque format-->
                     <!--<div t-if="data.get('is_account_payee')">-->
@@ -42,10 +41,6 @@
                         **<t t-esc="'{:,.2f}'.format(o.amount)"/>
                     </div>
                 </div>
-                </t>
-                <t t-else="">
-                    Checks are not available for this type of Payments...!
-                </t>
                 <!--</t>-->
             </div>
 

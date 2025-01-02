@@ -30,7 +30,7 @@
     'company': 'Cybrosys Techno Solutions',
     'maintainer': 'Cybrosys Techno Solutions',
     'website': "https://www.cybrosys.com",
-    'depends': ['base','account'],
+    'depends': ['base','account','account_check_printing','accounts_extended'],
     'data': [
         'security/ir.model.access.csv',
         'views/res_config_settings_views.xml',
@@ -39,6 +39,7 @@
         'report/cheque_format_templates.xml',
         'report/cheque_format_reports.xml',
         'report/cheque_payment_templates.xml',
+        'report/cheque_batch_payment_templates.xml',
         'wizard/cheque_type_views.xml'
     ],
     'images': ['static/description/banner.jpg'],
