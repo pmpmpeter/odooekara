@@ -356,7 +356,7 @@
                                        options="{'no_create': True}"
                                        context="{'search_default_active': 1, 'search_default_inactive': 1}"/>
                             </div>
-                            <field name="approval_state" invisible="move_type != 'out_invoice'"/>
+                            <field name="approval_state" invisible="move_type not in ['out_invoice','entry']"/>
 
                             <field name="currency_id"
                                    readonly="state != 'draft'"

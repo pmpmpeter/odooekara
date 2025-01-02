@@ -7,6 +7,35 @@ class AccountPayment(models.Model):
     utr_number = fields.Char('UTR Number', copy=False)
     is_fund_requsiting = fields.Boolean(string='Fund Requisition', copy=False)
     is_contra_payment = fields.Boolean(string='Contra Payment', copy=False)
+    approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
+                                 tracking=True)
+    approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
+
+    @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
+    def compute_approval_state(self):
+        for record in self:
+            if record.approval_document:
+                line_states = record.approval_document.line_ids.mapped('state')
+                if all(state == 'Draft' for state in line_states):
+                    record.approval_state = 'Waiting For Approval'
+                elif 'Waiting for Approval' in line_states:
+                    waiting_lines = record.approval_document.line_ids.filtered(
+                        lambda l: l.state == 'Waiting for Approval')
+                    if waiting_lines:
+                        record.approval_state = f"Waiting for {', '.join(waiting_lines.mapped('name'))} Approval"
+                elif all(state == 'Approved' for state in line_states):
+                    record.approval_state = 'Approved'
+                elif 'Refused' in line_states:
+                    record.approval_state = 'Rejected'
+                elif 'Cancel' in line_states:
+                    record.approval_state = 'Cancelled'
+            else:
+                rec = self.env['multi.approval.type'].sudo().search(
+                    [('model_id', '=', 'account.payment'), ('state', '=', 'confirm')], limit=1)
+                if rec:
+                    record.approval_state = 'To Submit for Approval'
+                else:
+                    record.approval_state = 'Not Applicable'
 
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
     def _compute_is_internal_transfer(self):
@@ -33,3 +62,11 @@ class AccountPayment(models.Model):
                         line.name +=('-'+pay.utr_number)
         res = super(AccountPayment, self).action_post()
         return res
+
+    def action_approve_payment(self):
+        for rec in self:
+            rec.write({'state':'approved'})
+
+    def action_reject_payment(self):
+        for rec in self:
+            rec.write({'state':'cancel'})

@@ -68,10 +68,11 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     state = fields.Selection(selection_add=[
-        ('to approve', 'To Approve')],
+        ('to approve', 'To Approve'),
+        ('approved', 'Approved')],
         string="Status",
         index=True, required=True, readonly=True, copy=False, tracking=True,
-        ondelete={'to approve':'set default'},
+        ondelete={'to approve':'set default','approved':'set default'},
         default='draft')
     expense_sequence = fields.Char(string='Task ID')
     expense_type = fields.Selection([
@@ -195,11 +196,18 @@ class AccountMoveInherit(models.Model):
                 elif 'Cancel' in line_states:
                     record.approval_state = 'Cancelled'
             else:
+                entry_rec = self.env['multi.approval.type'].sudo().search([('model_id','=','account.move'),('state','=','confirm'),('description','=','Journal Entries')],limit=1)
                 rec = self.env['multi.approval.type'].sudo().search([('model_id','=','account.move'),('state','=','confirm')],limit=1)
-                if rec:
-                    record.approval_state = 'To Submit for Approval'
-                else:
-                    record.approval_state = 'Not Applicable'
+                if record.move_type == 'entry':
+                    if entry_rec:
+                        record.approval_state = 'To Submit for Approval'
+                    else:
+                        record.approval_state = 'Not Applicable'
+                elif record.move_type == 'out_invoice':
+                    if rec:
+                        record.approval_state = 'To Submit for Approval'
+                    else:
+                        record.approval_state = 'Not Applicable'
 
     def button_cancel(self):
         # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed

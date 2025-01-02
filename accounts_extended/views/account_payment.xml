@@ -9,6 +9,9 @@
                  <field name="ref" position="after">
                     <field name='utr_number' readonly = "state == 'posted'" required ="payment_type == 'outbound'"/>
                 </field>
+                <field name="journal_id" position="before">
+                    <field name="approval_state"/>
+                </field>
             </field>
         </record>
 </odoo>
