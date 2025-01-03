@@ -5,6 +5,7 @@
             name="Document Access Management"
             sequence="185"
             web_icon="document_access_mgmt,static/description/icon.png"
+            groups="document_access_mgmt.group_document_user"
     />
 
         <menuitem

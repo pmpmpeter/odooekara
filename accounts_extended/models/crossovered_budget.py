@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _, Command
 from odoo.osv import expression
 
+
 class BudgetInherit(models.Model):
     _inherit = 'crossovered.budget'
 

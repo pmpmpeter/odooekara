@@ -23,4 +23,7 @@
         <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
     </record>
 
+    <record id="group_appraisal_access_view" model="res.groups">
+        <field name="name">Appraisal Access</field>
+    </record>
 </odoo>

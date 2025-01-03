@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+<menuitem
+        name="Time Off"
+        id="hr_holidays.menu_hr_holidays_root"
+        sequence="225"
+        web_icon="hr_holidays,static/description/icon.png"
+        groups="hr_holiday_extended.group_leave_access_view"/>
+</odoo>

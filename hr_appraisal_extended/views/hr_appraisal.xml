@@ -14,5 +14,12 @@
                 </xpath>
             </field>
         </record>
+
+        <menuitem name="Appraisals"
+                  id="hr_appraisal.menu_hr_appraisal_root"
+                  groups="hr_appraisal_extended.group_appraisal_access_view"
+                  web_icon="hr_appraisal,static/description/icon.png"
+                  sequence="200"/>
+
     </data>
 </odoo>

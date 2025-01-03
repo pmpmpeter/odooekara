@@ -1,0 +1,26 @@
+{
+    'name': 'Hr Holiday extended',
+    'version': '17.0.1.0.1',
+    'summary': """Hr Holiday extended for module access.""",
+    'description': """Hr Holiday extended for module access""",
+    'category': 'Hr Holiday extended for module access',
+    'author': 'NITS',
+    'live_test_url': 'https://youtu.be/OBwVroUPspw',
+    'maintainer': 'NITS',
+    'company': 'nits',
+    'website': 'https://www.openhrms.com',
+    'depends': [
+        'base',
+        'hr',
+        'hr_holidays',
+    ],
+    'data': [
+        'security/security.xml',
+        'view/hr_holiday.xml',
+              ],
+    'images': ['static/description/banner.jpg'],
+    'license': 'LGPL-3',
+    'installable': True,
+    'auto_install': False,
+    'application': False,
+}
