@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="employee_kra_template_pdf" model="ir.actions.report">
-        <field name="name">KRA Template</field>
-        <field name="model">employee.kra</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">hr_extended.print_kra_template</field>
-        <field name="report_file">hr_extended.print_kra_template</field>
-        <field name="print_report_name">'%s - KRA Details' % (object.employee_id.name)</field>
-        <field name="binding_model_id" ref="hr_extended.model_employee_kra"/>
-        <field name="binding_type">report</field>
-    </record>
 
-    <template id="print_kra_template">
-        <t t-call="web.basic_layout">
-            <t t-foreach="docs" t-as="doc">
+    <template id="print_kra_template_report">
+       <t t-call="web.external_layout">
+        <t t-foreach="docs" t-as="doc">
+            <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+            <t t-set="company" t-value="doc.company_id"/>
                 <div class="page" style="margin:0;">
                     <div>
                         <span style="display: inline-block; width: 45%; text-align: left;">
@@ -139,4 +131,25 @@
             </t>
         </t>
     </template>
+
+    <template id="print_kra_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t
+                        t-call="hr_extended.print_kra_template_report"
+                        t-lang="o.user_id.lang"
+                />
+            </t>
+        </t>
+    </template>
+    <record id="employee_kra_template_pdf" model="ir.actions.report">
+        <field name="name">KRA Template</field>
+        <field name="model">employee.kra</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_extended.print_kra_template</field>
+        <field name="report_file">hr_extended.print_kra_template</field>
+        <field name="print_report_name">'%s - KRA Details' % (object.employee_id.name)</field>
+        <field name="binding_model_id" ref="hr_extended.model_employee_kra"/>
+        <field name="binding_type">report</field>
+    </record>
 </odoo>

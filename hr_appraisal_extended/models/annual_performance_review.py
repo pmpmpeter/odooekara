@@ -13,13 +13,8 @@ class AnnualPerformanceReview(models.AbstractModel):
     _inherit = "report.report_xlsx.abstract"
 
 
-    def generate_xlsx_report(self, workbook,data,employee):
+    def generate_xlsx_report(self, workbook,data,rating_id):
 
-        # main_product = data
-        # company_name = main_product['company_name']
-        # company_id = main_product['company_id']
-        # date_from = main_product['date_from']
-        # date_to = main_product['date_to']
 
         worksheet = workbook.add_worksheet('annual_performance_review')
 
@@ -77,9 +72,7 @@ class AnnualPerformanceReview(models.AbstractModel):
         worksheet.set_column('J:J', 15)
 
 
-        # worksheet.merge_range('B2:L2', 'GMC Details', merge_format1)
-
-        # worksheet.merge_range('A2:I2', datetime.datetime.strptime(str(date_from), '%Y-%m-%d').strftime('%d-%m-%Y') +' ' 'To' ' ' + datetime.datetime.strptime(str(date_to), '%Y-%m-%d').strftime('%d-%m-%Y'), format_date)
+        cell_format = workbook.add_format({'border': 1})
         worksheet.write(1, 1, "KRA", merge_format2)
         worksheet.write(1, 2, "Description", merge_format2)
         worksheet.write(1, 3, "Weightage", merge_format2)
@@ -88,18 +81,24 @@ class AnnualPerformanceReview(models.AbstractModel):
         worksheet.write(1, 6, "Manager Weightage", merge_format2)
         worksheet.write(1, 7, "Score", merge_format2)
         worksheet.write(1, 8, "Weighted Score", merge_format2)
-        worksheet.merge_range('B9:E9', 'Total', merge_format3)
-        worksheet.write('F9', "", merge_format3)
-        worksheet.write('F11', "", merge_format3)
-        worksheet.write('I9', "", merge_format3)
-        worksheet.write('I11', "", merge_format3)
-        worksheet.write('F12', "", merge_format4)
-        worksheet.write('I12', "", merge_format4)
-        worksheet.write('H9', "", merge_format3)
-        # worksheet.merge_range('G9:H9', 'Total', merge_format3)
-
-        worksheet.write(10, 4, "Score", merge_format3)
-        worksheet.write(8, 6, "Total", merge_format3)
-        worksheet.write(11, 4, "Employee Final Score", merge_format4)
-        worksheet.write(10, 7, "Manager Score", merge_format3)
-        worksheet.write(11, 7, "Manager Final Score", merge_format4)
+        row = 2 
+        for line in rating_id.review_line_ids:
+            worksheet.write(row, 1, line.kra, cell_format)
+            worksheet.write(row, 2, line.description, cell_format)
+            worksheet.write(row, 3, line.weightage, cell_format)
+            worksheet.write(row, 4, line.employee_score, cell_format)
+            worksheet.write(row, 5, str(line.employee_weighted_score)+'%', cell_format)
+            worksheet.write(row, 6, line.manager_weightage, cell_format)
+            worksheet.write(row, 7, line.manager_score, cell_format)
+            worksheet.write(row, 8, str(line.manager_weighted_score)+'%', cell_format)
+            row +=1
+        merge_row = row+1
+        worksheet.merge_range('B'+str(merge_row)+':E'+str(merge_row), 'Total', merge_format3)
+        worksheet.merge_range('G'+str(merge_row)+':H'+str(merge_row), 'Total', merge_format3)
+        worksheet.write(row, 5, str(rating_id.total_score_employee)+'%', merge_format3)
+        worksheet.write(row, 8, str(rating_id.total_score_manager)+'%', merge_format3)
+        row+=2
+        worksheet.write(row, 4, "Score", merge_format3)
+        worksheet.write(row, 5,rating_id.total_employee_weighted_score, merge_format3)
+        worksheet.write(row, 7, "Total", merge_format3)
+        worksheet.write(row, 8  ,rating_id.total_manager_weighted_score, merge_format3)

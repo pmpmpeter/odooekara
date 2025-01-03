@@ -12,6 +12,8 @@ class InterviewAssessment(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Name of Candidate', required=True)
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     applicant_id = fields.Many2one('hr.applicant', 'Applicant', readonly=False)
     position_interviewed_for = fields.Char(string='Position Interviewed for')
     date_of_interview = fields.Date(string='Date of Interview')
@@ -62,6 +64,8 @@ class InterviewAssessment(models.Model):
     state = fields.Selection([
             ('draft', 'Draft'),
             ('done', 'Done'),], default='draft', string='State')
+    start_time = fields.Datetime(string="Start Time")
+    end_time = fields.Datetime(string="End Time")
 
     def action_submit(self):
         for record in self:

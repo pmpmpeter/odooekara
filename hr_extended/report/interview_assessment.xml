@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="interview_assessment_template" model="ir.actions.report">
-        <field name="name">Interview Assessment</field>
-        <field name="model">interview.assessment</field>
-        <field name="report_type">qweb-pdf</field>
-        <field name="report_name">hr_extended.interview_assessment_form</field>
-        <field name="report_file">hr_extended.interview_assessment_form</field>
-        <field name="print_report_name">'Interview Assessment'</field>
-        <field name="binding_model_id" ref="hr_extended.model_interview_assessment"/>
-        <field name="binding_type">report</field>
-    </record>
 
-    <template id="interview_assessment_form">
-        <t t-call="web.basic_layout">
+    <template id="interview_assessment_report">
+        <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
+            <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+            <t t-set="company" t-value="doc.company_id"/>
                 <div class="page">
                     <!-- Title -->
                     <h4 style="text-align: center;font-weight: bold; text-decoration: underline;">INTERVIEW ASSESSMENT
@@ -277,5 +269,26 @@
             </t>
         </t>
     </template>
+
+    <template id="interview_assessment_form">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t
+                t-call="hr_extended.interview_assessment_report"
+                t-lang="o.user_id.lang"
+                />
+            </t>
+        </t>
+    </template>
+    <record id="interview_assessment_template" model="ir.actions.report">
+        <field name="name">Interview Assessment</field>
+        <field name="model">interview.assessment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hr_extended.interview_assessment_form</field>
+        <field name="report_file">hr_extended.interview_assessment_form</field>
+        <field name="print_report_name">'Interview Assessment'</field>
+        <field name="binding_model_id" ref="hr_extended.model_interview_assessment"/>
+        <field name="binding_type">report</field>
+    </record>
 
 </odoo>

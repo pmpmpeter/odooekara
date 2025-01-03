@@ -26,12 +26,16 @@ class HrPerformanceImprovementPlan(models.Model):
     observations = fields.Text(string="Observations/Previous Discussions")
     areas_of_concern = fields.Text(string="Areas of Concern")
     notes = fields.Text(string="Additional Notes")
+    employee_sign_id = fields.Many2one('hr.employee', string="Employee Name")
     employee_signature = fields.Binary(string="Employee Signature")
     employee_signature_date = fields.Date(string="Employee Signature Date")
+    supervisor_sign_id = fields.Many2one('hr.employee', string="Supervisor Name")
     supervisor_signature = fields.Binary(string="Supervisor Signature")
     supervisor_signature_date = fields.Date(string="Supervisor Signature Date")
+    hod_sign_id = fields.Many2one('hr.employee', string="HOD Name ")
     hod_signature = fields.Binary(string="HOD/Director Signature")
     hod_signature_date = fields.Date(string="HOD/Director Signature Date")
+    hr_head_sign_id = fields.Many2one('hr.employee', string="HR Head Name ")
     hr_head_signature = fields.Binary(string="HR Head Signature")
     hr_head_signature_date = fields.Date(string="HR Head Signature Date")
 
@@ -89,6 +93,7 @@ class HrPipProgress(models.Model):
 
     pip_id = fields.Many2one('hr.pip', string="PIP Reference", ondelete='cascade')
     goal = fields.Char(string="Goal #", required=True)
+    activity = fields.Char(string="Activity", required=True)
     checkpoint_date = fields.Date(string="Checkpoint Date")
     followup_type = fields.Selection([
         ('email', 'Email'),

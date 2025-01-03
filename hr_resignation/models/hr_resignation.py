@@ -91,6 +91,12 @@ class HrResignation(models.Model):
                                      help="Checks , if the user has permission"
                                           " to change the employee")
     employee_contract = fields.Char(String="Contract")
+    is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee", store=True)
+
+    @api.depends('employee_id')
+    def _compute_is_employee(self):
+        for record in self:
+            record.is_employee = record.employee_id.user_id.id == self.env.uid
 
     @api.depends('employee_id')
     def _compute_change_employee(self):

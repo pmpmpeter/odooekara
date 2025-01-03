@@ -40,7 +40,8 @@ class JoiningDocuments(models.Model):
          ('she_nda', 'SHE NDA- 2022 updated Form')],
         string="Document Type")
 
-    company_id = fields.Many2one('res.company', required=True)
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
 
     state = fields.Selection([
@@ -52,7 +53,7 @@ class JoiningDocuments(models.Model):
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
 
     # GMC and GPA details
-    emp_code = fields.Char(string="Employee Number", readonly=True)
+    emp_code = fields.Char(string="Employee Code")
     email = fields.Char(string="Email")
     contact_no = fields.Char(string="Contact Number")
 
@@ -104,7 +105,7 @@ class JoiningDocuments(models.Model):
         if vals.get('employee_id'):
             employee = self.env['hr.employee'].browse(vals['employee_id'])
             vals.update({
-                'emp_code': employee.employee_number,
+                # 'emp_code': employee.employee_number,
                 'email': employee.work_email,
                 'contact_no': employee.work_phone,
                 'designation': employee.job_title,
@@ -151,7 +152,27 @@ class JoiningDocuments(models.Model):
                         "The previous sequence record must be 'Done' before submitting the next one.")
 
             record.state = 'waiting_confirmation'
+            employee = record.employee_id.sudo()
+            hr_user_id = employee.coach_id.user_id
+            if not hr_user_id:
+                raise ValidationError(
+                    f"No HR user (coach) found for the employee {employee.name}. Please set a coach for the employee."
+                )
 
+            # Schedule the activity
+            record.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary=f"Review and Approve Document: {record.name}",
+                note=(
+                    f"<p><b>Document Name:</b> {record.name}</p>"
+                    f"<p><b>Employee:</b> {record.employee_id.name}</p>"
+                    f"<p><b>Department:</b> {record.department_id.name or 'N/A'}</p>"
+                    f"<p><b>Job Position:</b> {record.job_position_id.name or 'N/A'}</p>"
+                    f"<p><b>Direct Link:</b> <a href='#id={record.id}&model=joining.documents' target='_blank'>Access Document</a></p>"
+                ),
+                user_id=hr_user_id.id,
+                date_deadline=fields.Date.today()
+            )
         return True
 
     def action_confirm(self):
@@ -235,38 +256,9 @@ class JoiningDocuments(models.Model):
         if not self.document_type:
             raise UserError("Please select a Document Type before printing.")
 
-        if self.document_type == 'she_nda':
-            return self._print_she_nda()
+        return self.env.ref('hr_extended.report_joining_doc_form_template').report_action(self)
 
-        elif self.document_type == 'app_order_form':
-            return self._print_app_order_form()
-
-        elif self.document_type == 'code_of_conduct':
-            return self._print_code_of_conduct()
-
-        elif self.document_type == 'consent':
-            return self._print_consent()
-
-        elif self.document_type == 'criminal_case':
-            return self._print_criminal_case()
-
-        elif self.document_type == 'emp_verifi_form':
-            return self._print_emp_verifi_form()
-
-        elif self.document_type == 'ex_media_comm':
-            return self._print_ex_media_comm()
-
-        elif self.document_type == 'pf_nomination':
-            return self._print_pf_nomination()
-
-        elif self.document_type == 'gmc':
-            return self._print_gmc_gpa_details()
-
-        elif self.document_type == 'nda':
-            return self._print_nda_details()
-        else:
-            raise UserError(f"Printing for {self.document_type} is not implemented.")
-
+        
     def _print_she_nda(self):
         return self.env.ref('hr_extended.nda_form_template').report_action(self)
 

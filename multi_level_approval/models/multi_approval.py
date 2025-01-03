@@ -408,6 +408,7 @@ class MultiApproval(models.Model):
                             "model": req._name,
                             "res_id": req.id,
                             "body": self.description,
+                            "attachment_ids": [(4, attachment.id)],
                         }
                     )
                     print(message)

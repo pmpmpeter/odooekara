@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--To view their own record only-->
+    <record id="performance_review_rule_user" model="ir.rule">
+        <field name="name">Performance Review - Candidate</field>
+        <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
+        <field name="domain_force">['&amp;',('employee_id.user_id','=',user.id),('is_performance_record','=',True)]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <!--HR To view their own record only-->
+    <record id="performance_review_rule_hr" model="ir.rule">
+        <field name="name">Performance Review HR</field>
+        <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
+     <!--Manager To view their own record only-->
+    <record id="performance_review_rule_manager" model="ir.rule">
+        <field name="name">Performance Review Manager</field>
+        <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
+    </record>
+
+</odoo>

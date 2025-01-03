@@ -2,11 +2,11 @@
 <odoo>
 <record id="get_360_performance_review" model="ir.actions.report">
     <field name="name">360 Performance Review XLSX</field>
-    <field name="model">hr.appraisal</field>
+    <field name="model">threeperformance.review</field>
     <field name="report_type">xlsx</field>
     <field name="report_name">hr_appraisal_extended.report_360_performance_review</field>
     <field name="report_file">hr_appraisal_extended.report_360_performance_review</field>
-    <field name="binding_model_id" ref="hr_appraisal_extended.model_hr_appraisal"/>
+    <field name="binding_model_id" ref="hr_appraisal_extended.model_threeperformance_review"/>
     <field name="binding_type">report</field>
 </record>
 </odoo>

@@ -24,6 +24,8 @@
                             <field name="position_interviewed_for"/>
                             <field name="date_of_interview"/>
                             <field name="nature_of_employment"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
                         </group>
                         <group string="Current Employment">
                             <field name="present_company"/>

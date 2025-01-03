@@ -28,10 +28,20 @@
         <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>
         <field name="binding_type">report</field>
     </record>
-
+    
     <template id="print_appointment_letter_emp">
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="hr_extended.print_appointment_letter_emp_report" t-lang="o.user_id.lang" />
+            </t>
+        </t>
+    </template>
+
+    <template id="print_appointment_letter_emp_report">
+        <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
+                <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+                <t t-set="company" t-value="doc.company_id"/>
                 <div class="page">
                     <div style="text-align: center; margin-top: 20px;">
                         <h3 style="text-decoration: underline;">Appointment Letter</h3>

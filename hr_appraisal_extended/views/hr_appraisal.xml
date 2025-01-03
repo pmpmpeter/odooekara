@@ -1,5 +1,6 @@
 <odoo>
     <data>
+        <!-- Not using -->
         <record model="ir.ui.view" id="view_hr_appraisal_form_inherited">
             <field name="name">hr.appraisal.form.inherited</field>
             <field name="model">hr.appraisal</field>

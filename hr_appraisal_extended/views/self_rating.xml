@@ -5,7 +5,7 @@
         <field name="name">self.rating.tree</field>
         <field name="model">self.rating</field>
         <field name="arch" type="xml">
-            <tree string="Self Rating">
+            <tree string="Performance Review">
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="date_of_joining"/>
@@ -18,51 +18,171 @@
         <field name="name">self.rating.form</field>
         <field name="model">self.rating</field>
         <field name="arch" type="xml">
-            <form string="Self Rating">
+            <form string="Performance Review">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,completed" nolabel="1"/>
-                    <button name="action_submit" type="object" string="Submit" class="oe_highlight"
-                            invisible="state in ('in_progress','completed')"/>
-                    <button name="action_mark_completed" type="object" string="Mark as Completed" class="oe_highlight"
-                            invisible="state in ('draft','completed')"/>
-                    <button name="action_set_to_drat" type="object" string="Reset to Draft"
-                            invisible="state in ('draft', 'in_progress')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="preparation,preparation_clarification,half_year_pending,
+                    half_year_clarification,full_year_pending,full_year_clarification,review_completed" nolabel="1"/>
+                    <button name="send_increment_letter_job_level_approved" string="Send Increment Letter" type="object"
+                            class="oe_highlight"/>
+                    <button name="send_appraisal_letter" string="Send Appraisal Letter" type="object"
+                            class="oe_highlight"/>
+                    <button name="send_annual_increment_promotion_letter" string="Send Annual Promotion Letter"
+                            type="object" class="oe_highlight"/>
+                    <button name="send_increment_redesignation_letter" string="Send Increment Redesignation Letter"
+                            type="object" class="oe_highlight"/>
+                    <button string="Request Appraisal" type="object"
+                            name="action_request_appraisal"
+                            groups="hr.group_hr_user"
+                            invisible="state not in ('request_appraisal')"
+                            class="oe_highlight"/>
+
+                    <button string="Submit" type="object"
+                            name="action_submit_performance_review"
+                            invisible="state not in ('preparation')"
+                            class="oe_highlight"/>
+
+                    <button string="Manager Review" type="object"
+                            name="action_manager_review"
+                            groups="hr_recruitment.group_hr_recruitment_user"
+                            class="oe_highlight"
+                            invisible="state != 'preparation_clarification'"/>
+
+                    <button string="HOD Review" type="object"
+                            name="action_hod_review"
+                            groups="hr_extended.group_hr_recruitment_bu_head"
+                            class="oe_highlight"
+                            invisible="state != 'half_year_pending'"/>
+
+                    <button string="Director Review" type="object"
+                            name="action_director_review"
+                            groups="hr_extended.group_hr_recruitment_director"
+                            class="oe_highlight"
+                            invisible="state != 'full_year_pending'"/>
+
+                    <button string="Refuse" type="object"
+                            name="action_refuse_request"
+                            groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_recruitment_bu_head,hr_recruitment.group_hr_recruitment_user"
+                            class="oe_highlight"
+                            invisible="state in ('preparation','request_appraisal')"/>
+
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="employee_id"/>
-                            <field name="department_id"/>
+                            <field name="employee_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                   required="True"/>
+                            <field name="department_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                   required="True"/>
                             <field name="date_of_joining"/>
-                            <field name="reporting_to_id"/>
-                            <field name="quarterly_review"/>
-                            <field name="half_yearly_review"/>
+                            <field name="reporting_to_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="is_employee" invisible="1"/>
+                            <field name="is_performance_record" invisible="1"/>
+                            <field name="create_date"/>
+                            <field name="create_uid"/>
                         </group>
                         <group>
-                            <field name="designation"/>
+                            <field name="designation" required="True"/>
                             <field name="location"/>
-                            <field name="appraisal_date"/>
-                            <field name="reviewer_id"/>
-                            <field name="annual_review"/>
+                            <field name="appraisal_date" required="True"/>
+                            <field name="reviewer_id" required="True"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="write_date"/>
+                            <field name="write_uid"/>
                         </group>
                     </group>
+                    <separator string="Refuse Reason"></separator>
+                    <group>
+                        <field name="refuse_reason" readonly="1"/>
+                    </group>
                     <notebook>
-                        <page string="KRA Details">
+                        <page string="Goals">
+                            <field name="goal_sets_kras">
+                                <tree editable="bottom">
+                                    <field name="goal_description"/>
+                                    <field name="category"/>
+                                    <field name="kra"/>
+                                    <field name="weightage" string="Weightage (%)"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Self Rating">
                             <field name="kra_ids">
                                 <tree editable="bottom">
+                                    <field name="goal_description"/>
                                     <field name="name" string="KRA" required="1"/>
                                     <field name="weightage" string="Weightage (%)"/>
+                                    <field name="self_rating"/>
+                                    <field name="achieved_percentage"/>
                                     <field name="employee_response" string="Employee's Response"/>
                                     <field name="appraiser_remarks" string="Appraiser's Remarks"/>
                                 </tree>
                                 <form>
                                     <group>
+                                        <field name="goal_description"/>
                                         <field name="name"/>
                                         <field name="weightage"/>
+                                        <field name="self_rating"/>
                                         <field name="employee_response"/>
                                         <field name="appraiser_remarks"/>
                                     </group>
                                 </form>
+                            </field>
+                        </page>
+                        <page string="Manager Ratings" invisible="is_employee == True"
+                              groups="hr_recruitment.group_hr_recruitment_user">
+                            <field name="manager_rating_ids">
+                                <tree editable="bottom">
+                                    <field name="name"/>
+                                    <field name="weightage"/>
+                                    <field name="manager_rating"/>
+                                    <field name="manager_remark"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="BU Head or HOD Remarks" invisible="is_employee == True"
+                              groups="hr_extended.group_hr_recruitment_bu_head">
+                            <group>
+                                <field name="remark"/>
+                            </group>
+                        </page>
+                        <page string="Director Ratings" invisible="is_employee == True"
+                              groups="hr_extended.group_hr_recruitment_director">
+<!--                            <field name="director_rating_ids">-->
+<!--                                <tree editable="bottom">-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="weightage"/>-->
+<!--                                    <field name="overall_final_rating"/>-->
+<!--                                    <field name="director_remark"/>-->
+<!--                                </tree>-->
+<!--                            </field>-->
+                            <group>
+                                <field name="director_remark"/>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="recommended_increment"/>
+                                    <field name="recommended_pbvp_payout"/>
+                                    <field name="eligible_for_promotion"/>
+                                </group>
+                                <group>
+                                    <field name="new_job_level"/>
+                                    <field name="new_designation"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Review Comments" invisible="is_employee == True">
+                            <field name="goal_review_comments">
+                                <tree editable="bottom">
+                                    <field name="commented_by"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="comments"/>
+                                    <field name="commented_date"/>
+                                    <field name="need_response_from"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                </tree>
                             </field>
                         </page>
                         <page string="Assessment KRA">
@@ -79,12 +199,42 @@
                                     <field name="appraiser_overall_rating" string="Appraiser’s Overall Rating"/>
                                     <field name="appraiser_remarks" string="Appraiser’s Remarks"/>
                                 </group>
-                            </group>
-                            <group>
                                 <group>
-                                    <field name="employee_signature" string="Employee’s Signature"/>
-                                    <field name="reporting_manager_signature" string="Reporting Manager’s Signature"/>
-                                    <field name="reviewer_signature" string="Reviewer’s Signature"/>
+                                    <field name="employee_signature"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                           string="Employee’s Signature"/>
+                                    <field name="reporting_manager_signature"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                           string="Reporting Manager’s Signature"/>
+                                    <field name="reviewer_signature"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                           string="Reviewer’s Signature"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Annual Performance Review">
+                            <field name="review_line_ids">
+                                <tree editable="bottom">
+                                    <field name="kra"/>
+                                    <field name="description"/>
+                                    <field name="weightage"/>
+                                    <field name="employee_score"/>
+                                    <field name="employee_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="manager_weightage"/>
+                                    <field name="manager_score"/>
+                                    <field name="manager_weighted_score" readonly="1" force_save="1"/>
+                                </tree>
+                            </field>
+                            <group colspan="2">
+                                <group>
+                                    <field name="total_score_employee" readonly="1" force_save="1"/>
+                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="employee_final_score" readonly="1" force_save="1"/>
+                                </group>
+                                <group>
+                                    <field name="total_score_manager" readonly="1" force_save="1"/>
+                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="manager_final_score" readonly="1" force_save="1"/>
                                 </group>
                             </group>
                         </page>
@@ -106,15 +256,27 @@
                                 </form>
                             </field>
                             <group>
-                                <field name="employee_signature_dev" string="Employee’s Signature"/>
+                                <field name="employee_signature_dev"
+                                       options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                       string="Employee’s Signature"/>
                                 <field name="reporting_manager_signature_dev"
+                                       options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                        string="Reporting Manager’s Signature"/>
+                            </group>
+                        </page>
+                        <page string="Others">
+                            <group>
+                                <field name="supporting_document"/>
+                            </group>
+                            <group>
+                                <field name="action_needed"/>
                             </group>
                         </page>
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
-                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
@@ -123,18 +285,23 @@
 
 
     <record id="self_rating_action" model="ir.actions.act_window">
-        <field name="name">Self Rating</field>
+        <field name="name">Performance Review</field>
         <field name="res_model">self.rating</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Self Rating!
+                Performance Review!
             </p>
         </field>
     </record>
+    <menuitem id="performance_review_main"
+              parent="hr_appraisal.menu_hr_appraisal_root"
+              name="Performance Review"
+              sequence="1"
+    />
     <menuitem id="self_rating_menu"
-              parent="hr_appraisal.menu_open_view_hr_appraisal_tree"
-              name="Self Rating"
+              parent="hr_appraisal_extended.performance_review_main"
+              name="Performance Review"
               action="self_rating_action"
               sequence="2"
     />

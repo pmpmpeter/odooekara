@@ -27,10 +27,20 @@
         <field name="binding_type">report</field>
     </record>
 
-
+ 
     <template id="print_report_nda_intellectual_property_form">
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="hr_extended.print_report_nda_intellectual_property_report" t-lang="o.user_id.lang" />
+            </t>
+        </t>
+    </template>
+
+    <template id="print_report_nda_intellectual_property_report">
+       <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
+                <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+                <t t-set="company" t-value="doc.company_id"/>
                 <div style="font-size:17px; ">
                     <p style="line-height:12px;"> <h6 style="text-decoration:underline;">Confidentiality and Intellectual Property Assignment Agreement</h6>
                         <br/>

@@ -24,6 +24,19 @@ class HrContract(models.Model):
     solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
     indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
 
+    statutory_bonus_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="Statutory Bonus Applicable (per month)", default='no', required=True,
+        copy=False
+    )
+    provident_fund_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="Provident Fund Applicable (per month)", default='no', required=True,
+        copy=False
+    )
+    esi_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="ESI Applicable (per month)", default='no', required=True, copy=False
+    )
+    fixed_pay = fields.Float(string="Fixed Pay", store=False, copy=False)
+    #fixed_pay newly added but not know
     # def action_open_contract_list(self):
     #     self.ensure_one()
     #     action = self.env["ir.actions.actions"]._for_xml_id('hr_contract.action_hr_contract')

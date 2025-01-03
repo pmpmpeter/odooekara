@@ -63,6 +63,7 @@
                             <field name="progress_checkpoint_ids">
                                 <tree editable="bottom">
                                     <field name="goal"/>
+                                    <field name="activity"/>
                                     <field name="checkpoint_date"/>
                                     <field name="followup_type"/>
                                     <field name="progress_expected"/>
@@ -81,26 +82,32 @@
                             </field>
                         </page>
                         <page string="Observations">
+                            <group>
                             <field name="observations"/>
                             <field name="areas_of_concern"/>
+                            </group>
                         </page>
                         <page string="Signatures">
                             <group>
                                 <group>
+                                    <field name="employee_sign_id"/>
                                     <field name="employee_signature" widget="image" class="oe_avatar"/>
                                     <field name="employee_signature_date"/>
                                 </group>
                                 <group>
+                                    <field name="supervisor_sign_id"/>
                                     <field name="supervisor_signature" widget="image" class="oe_avatar"/>
                                     <field name="supervisor_signature_date"/>
                                 </group>
                             </group>
                             <group>
                                 <group>
+                                    <field name="hod_sign_id"/>
                                     <field name="hod_signature" widget="image" class="oe_avatar"/>
                                     <field name="hod_signature_date"/>
                                 </group>
                                 <group>
+                                    <field name="hr_head_sign_id"/>
                                     <field name="hr_head_signature" widget="image" class="oe_avatar"/>
                                     <field name="hr_head_signature_date"/>
                                 </group>
@@ -143,6 +150,6 @@
 
     <!-- Menu Item -->
     <menuitem id="menu_hr_pip" name="Performance Improvement Plan"
-              parent="hr_appraisal.menu_open_view_hr_appraisal_tree"
-              sequence="2" action="action_hr_pip"/>
+              parent="hr_appraisal_extended.performance_review_main"
+              sequence="4" action="action_hr_pip"/>
 </odoo>

@@ -68,6 +68,7 @@
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                 </group>
                                 <group>
+                                    <field name="is_recruitment_manager" invisible="1"/>
                                     <field name="request_date" string="Request Date"
                                            readonly="1"/>
                                     <field name="submit_date" string="Submit Date"
@@ -78,7 +79,7 @@
                                     <field name="employment_type" string="Employment Type" required="1"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="target" string="Target" required="1"
+                                    <field name="target" string="No. of Vacancies" required="1"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="is_replacement" string="Is Replacement?"
                                            readonly="state not in ('draft','cancel')"/>
@@ -87,7 +88,7 @@
                                            options="{'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="expected_indent_closure_date" string="Expected Indent Closure Date"
-                                           required="1" readonly="state not in ('draft','cancel')"/>
+                                           required="1" readonly="not is_recruitment_manager or state not in ('draft','cancel')"/>
                                 </group>
                             </group>
                         </page>
@@ -142,7 +143,7 @@
                                     <field name="business_unit_id"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="source"/>
+                                    <!--<field name="source"/>-->
                                 </group>
                                 <group>
                                     <field name="priority"/>
@@ -166,8 +167,10 @@
                                 </group>
                             </group>
                             <group>
-                                <field name="approved_by_hod_id"/>
-                                <field name="approved_by_director_id"/>
+                                <field name="approved_by_hod"/>
+                                <field name="approved_by_director"/>
+                                <!--<field name="approved_by_hod_id"/>-->
+                                <!--<field name="approved_by_director_id"/>-->
                             </group>
                         </page>
                     </notebook>

@@ -13,7 +13,8 @@
 
 
     <template id="print_experience_relieving_letter">
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
+        <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
                 <div style="font-size:20px; ">
                         <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:20px;width: 100%;">
@@ -57,5 +58,6 @@
                 </div>
             </t>
         </t>
+    </t>
     </template>
 </odoo>

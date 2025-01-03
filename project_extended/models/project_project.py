@@ -63,14 +63,12 @@ class Project(models.Model):
                     else:
                         if project.first_reminder:
                             first_reminder = project.first_reminder
-                            print(last_date - timedelta(days=first_reminder),'aaaaaaaaaaaaaaaaaaaaaaaaa')
                             project.first_reminder_date = last_date - timedelta(days=first_reminder)
                         if project.second_reminder:
                             second_reminder = project.second_reminder
                             project.second_reminder_date = last_date - timedelta(days=second_reminder)
 
     def send_reminder(self):
-
         today = fields.Date.today()
         legal_first_reminder = self.sudo().search([
             ('first_reminder_date', '=', today),('is_legal_notice','=',True)

@@ -27,10 +27,20 @@
         <field name="binding_type">report</field>
     </record>
 
-
     <template id="print_report_nomination_form">
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="hr_extended.print_report_nomination_report" t-lang="o.user_id.lang" />
+            </t>
+        </t>
+    </template>
+
+
+    <template id="print_report_nomination_report">
+        <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
+                <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+                <t t-set="company" t-value="doc.company_id"/>
                 <!--                page1-->
                 <div style="margin-left: 25px; margin-right: 25px;" class="page">
                     <h4 style="text-align: center; font-weight: bold;">

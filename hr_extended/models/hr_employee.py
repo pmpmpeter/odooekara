@@ -2,6 +2,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import *
 from odoo.exceptions import ValidationError, UserError
 
+
 class EmployeeInsurance(models.Model):
     _name = 'employee.insurance'
     _description = 'Employee Insurance Details'
@@ -40,7 +41,7 @@ class MailActivityPlanTemplate(models.Model):
             ('employee_id', '=', employee.id),
             ('state', '!=', 'done')
         ])
-        print(joining_documents,"testingggg")
+        print(joining_documents, "testingggg")
 
         if joining_documents:
             error = _('All joining documents for employee %s must be confirmed by respective officials', employee.name)
@@ -61,12 +62,13 @@ class MailActivityPlanTemplate(models.Model):
             responsible = employee.user_id
             if not responsible:
                 error = _('The employee %s should be linked to a user.', employee.name)
-        print(error,"trusttingggggg")
+        print(error, "trusttingggggg")
         if error or responsible:
             return {
                 'responsible': responsible,
                 'error': error,
             }
+
 
 class HrEmployeeSmartButton(models.Model):
     _inherit = "hr.employee"
@@ -196,7 +198,7 @@ class HrEmployeeSmartButton(models.Model):
 
     emergency_contact_relation = fields.Char(string="Contact Relation")
 
-    #Employee classification
+    # Employee classification
     bu_head = fields.Char(string="BU Head")
     bu_unit = fields.Char(string="BU Unit")
     sub_bu_unit = fields.Char(string="Sub BU Unit")
@@ -221,10 +223,10 @@ class HrEmployeeSmartButton(models.Model):
     )
     budgeting_units = fields.Char(string="Budgeting Units")
 
-    employee_number = fields.Char(string="Employee Number", readonly=True, copy=False)
+    employee_number = fields.Char(string="Employee Number", copy=False)
     type = fields.Selection([
         ('corporate', 'Corporate (Per Year)'),
-        ('unit', 'Unit/Centre (Per Year)')], string="Type")
+        ('unit', 'Unit/Centre (Per Year)')], string="Employment Type")
 
     kra_record_ids = fields.Many2many(
         'employee.kra',
@@ -270,6 +272,47 @@ class HrEmployeeSmartButton(models.Model):
         readonly=True
     )
 
+    sub_location = fields.Char(string="Sub Location", copy=False)
+    last_working_day_current = fields.Date(string="Last Working Day", help="The last working day in our organization",
+                                           copy=False)
+    reason_for_leaving = fields.Text(string="Reason for Leaving", copy=False)
+    notice_period = fields.Float(string="Notice Period", copy=False)
+    notice_period_start_date = fields.Date(string="Notice Period Start Date", copy=False)
+    employee = fields.Char(string="Employee", compute="_compute_employee", store=True, readonly=True, copy=False)
+
+    casual_leave = fields.Integer(string="Casual Leave", default=0)
+    loss_of_pay = fields.Integer(string="Loss of Pay", default=0)
+    comp_off = fields.Integer(string="Comp - Off", default=0)
+    earned_leave = fields.Integer(string="Earned Leave", default=0)
+    professional_development = fields.Boolean(string="Professional Development")
+    paternal_leave = fields.Integer(string="Paternal Leave", default=0)
+    maternal_leave = fields.Integer(string="Maternal Leave", default=0)
+    on_duty = fields.Integer(string="On Duty", default=0)
+    attachment = fields.Binary(string="Attachment")
+    annual_health_check_certificate = fields.Binary(string="Annual Health Check Certificate")
+    additional_documents = fields.Binary(string="Additional Documents")
+    total_year_in_experience = fields.Float(string="Total Year in Experience")
+
+    # other_fields
+    new_emp_no = fields.Char(string="New Employee Number")
+    sum_insured = fields.Float(string="Sum Insured")
+    onboarding_id = fields.Char(string="Onboarding ID")
+    year = fields.Integer(string="Year")
+    appointment_order_form_q = fields.Binary(string="Appointment Order Form Q")
+    mapped_pip = fields.Char(string="Mapped PIP")
+    ats_id = fields.Char(string="ATS ID")
+    address_details_id = fields.Many2one('res.partner', string="Address Details")
+    sections = fields.Many2one('hr.department', string="Sections")
+    business_processes = fields.Char(string="Business Processes")
+
+    @api.depends('name', 'work_email')
+    def _compute_employee(self):
+        for record in self:
+            if record.work_email and record.name:
+                record.employee = f"({record.work_email}) {record.name}"
+            else:
+                record.employee = record.name or record.work_email or ''
+
     @api.depends('joining_documents_ids.state')
     def _compute_all_documents_done(self):
         for employee in self:
@@ -278,19 +321,19 @@ class HrEmployeeSmartButton(models.Model):
             ])
             employee.all_documents_done = all(doc.state == 'done' for doc in joining_documents)
 
-    @api.model
-    def create(self, vals):
-        if not vals.get('employee_number'):
-            company = self.env['res.company'].browse(vals.get('company_id')) or self.env.company
-            acronym = ''.join(word[0].upper() for word in company.name.split())
+    # @api.model
+    # def create(self, vals):
+    #     if not vals.get('employee_number'):
+    #         company = self.env['res.company'].browse(vals.get('company_id')) or self.env.company
+    #         acronym = ''.join(word[0].upper() for word in company.name.split())
+    #
+    #         sequence = self.env['ir.sequence'].next_by_code('hr.employee.number') or '0001'
+    #
+    #         vals['employee_number'] = f"{acronym}{sequence}"
+    #
+    #     return super(HrEmployeeSmartButton, self).create(vals)
 
-            sequence = self.env['ir.sequence'].next_by_code('hr.employee.number') or '0001'
-
-            vals['employee_number'] = f"{acronym}{sequence}"
-
-        return super(HrEmployeeSmartButton, self).create(vals)
-
-    #Pass applicant_id values to context of hr_contract
+    # Pass applicant_id values to context of hr_contract
     def action_open_contract(self):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id('hr_contract.action_hr_contract')
@@ -298,24 +341,26 @@ class HrEmployeeSmartButton(models.Model):
         if not self.contract_ids:
             action['context'] = {
                 'default_employee_id': self.id,
-                'default_basic_da':self.applicant_id.basic_da,
-                'default_house_rent_allowance':self.applicant_id.house_rent_allowance,
-                'default_special_allowance':self.applicant_id.special_allowance,
-                'default_monthly_fixed_salary':self.applicant_id.monthly_fixed_salary,
-                'default_stat_bonus_amount':self.applicant_id.stat_bonus_amount,
-                'default_provident_fund':self.applicant_id.provident_fund,
-                'default_esi_amount':self.applicant_id.esi_amount,
-                'default_variable_pay_percentage':self.applicant_id.variable_pay_percentage,
-                'default_variable_pay_amount':self.applicant_id.variable_pay_amount,
-                'default_annual_store_performance_incentive':self.applicant_id.annual_store_performance_incentive,
-                'default_annual_performance_linked_pay':self.applicant_id.annual_performance_linked_pay,
-                'default_monthly_performance_incentive':self.applicant_id.monthly_performance_incentive,
-                'default_medical_insurance':self.applicant_id.medical_insurance,
-                'default_group_personal_accident_insurance':self.applicant_id.group_personal_accident_insurance,
-                'default_solis_health_benefit_beacon_plan':self.applicant_id.solis_health_benefit_beacon_plan,
-                'default_indicative_take_home_salary':self.applicant_id.indicative_take_home_salary,
+                'default_basic_da': self.applicant_id.basic_da,
+                'default_house_rent_allowance': self.applicant_id.house_rent_allowance,
+                'default_special_allowance': self.applicant_id.special_allowance,
+                'default_monthly_fixed_salary': self.applicant_id.monthly_fixed_salary,
+                'default_stat_bonus_amount': self.applicant_id.stat_bonus_amount,
+                'default_provident_fund': self.applicant_id.provident_fund,
+                'default_esi_amount': self.applicant_id.esi_amount,
+                'default_variable_pay_percentage': self.applicant_id.variable_pay_percentage,
+                'default_variable_pay_amount': self.applicant_id.variable_pay_amount,
+                'default_annual_store_performance_incentive': self.applicant_id.annual_store_performance_incentive,
+                'default_annual_performance_linked_pay': self.applicant_id.annual_performance_linked_pay,
+                'default_monthly_performance_incentive': self.applicant_id.monthly_performance_incentive,
+                'default_medical_insurance': self.applicant_id.medical_insurance,
+                'default_group_personal_accident_insurance': self.applicant_id.group_personal_accident_insurance,
+                'default_solis_health_benefit_beacon_plan': self.applicant_id.solis_health_benefit_beacon_plan,
+                'default_indicative_take_home_salary': self.applicant_id.indicative_take_home_salary,
+                'default_statutory_bonus_applicable': self.applicant_id.statutory_bonus_applicable,
+                'default_provident_fund_applicable': self.applicant_id.provident_fund_applicable,
+                'default_esi_applicable': self.applicant_id.esi_applicable,
             }
-            print(self.applicant_id.house_rent_allowance,"printing something")
             action['target'] = 'new'
             return action
 

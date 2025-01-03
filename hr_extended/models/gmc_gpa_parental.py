@@ -10,7 +10,7 @@ class GmcGpaParental(models.Model):
     _rec_name = "employee_id"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    emp_code = fields.Char(string="Employee Number",readonly=True)
+    emp_code = fields.Char(string="Employee Code")
     employee_id = fields.Many2one('hr.employee', string="Employee Name")
     email = fields.Char(string="Email")
     contact_no = fields.Char(string="Contact Number")
@@ -43,7 +43,7 @@ class GmcGpaParental(models.Model):
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         if self.employee_id:
-            self.emp_code = self.employee_id.employee_number
+            # self.emp_code = self.employee_id.employee_number
             self.email = self.employee_id.work_email
             self.contact_no = self.employee_id.work_phone
             self.designation = self.employee_id.job_title

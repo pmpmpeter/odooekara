@@ -10,13 +10,13 @@
 
         <!--Employee number-->
 
-        <record id="seq_hr_employee_number" model="ir.sequence">
-            <field name="name">Employee Number Sequence</field>
-            <field name="code">hr.employee.number</field>
-            <field name="padding">4</field>
-            <field name="implementation">standard</field>
-            <field name="company_id" eval="False"/> <!-- Shared across companies -->
-        </record>
+<!--        <record id="seq_hr_employee_number" model="ir.sequence">-->
+<!--            <field name="name">Employee Number Sequence</field>-->
+<!--            <field name="code">hr.employee.number</field>-->
+<!--            <field name="padding">4</field>-->
+<!--            <field name="implementation">standard</field>-->
+<!--            <field name="company_id" eval="False"/> &lt;!&ndash; Shared across companies &ndash;&gt;-->
+<!--        </record>-->
     </data>
 
 </odoo>

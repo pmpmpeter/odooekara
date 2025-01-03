@@ -14,5 +14,7 @@
     <record id="group_employee_probation_manager" model="res.groups">
         <field name="name">Probation - Manager</field>
         <field name="category_id" ref="emp_prob_extended.module_category_probation"/>
+        <field name="implied_ids"
+               eval="[(4, ref('emp_prob_extended.group_employee_probation_user'))]"/>
     </record>
 </odoo>

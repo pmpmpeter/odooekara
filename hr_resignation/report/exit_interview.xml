@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="exit_interview_form_report" model="ir.actions.report">
-        <field name="name">Exit Interview Form</field>
+        <field name="name">Exit Interview Print</field>
         <field name="model">exit.interview</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">hr_resignation.print_exit_interview_form</field>
@@ -12,7 +12,8 @@
     </record>
 
     <template id="print_exit_interview_form">
-        <t t-call="web.basic_layout">
+        <t t-call="web.html_container">
+        <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
                 <div class="page">
                     <p>
@@ -38,10 +39,10 @@
                         <br/>
                         <br/>
 
-                        <div style="align-item:center;margin-left:250px;">
+<!--                         <div style="align-item:center;margin-left:250px;">
                             <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo"
                                  style="width:50%;height:75px;  "/>
-                        </div>
+                        </div> -->
                         <br/>
                         <br/>
                         <br/>
@@ -388,5 +389,6 @@
                 </div>
             </t>
         </t>
+    </t>
     </template>
 </odoo>

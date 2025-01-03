@@ -3,6 +3,7 @@ import base64
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import *
+from odoo.exceptions import UserError, ValidationError
 
 
 class Employee(models.Model):
@@ -79,7 +80,7 @@ class EmployeeProbation(models.Model):
 
     start_date = fields.Date('Start Date', compute='_compute_start_date', store=True)
     end_date = fields.Date('End Date', compute='_compute_end_date', store=True)
-    number_of_months = fields.Integer(string='Number of Months', default=3, store=True, copy=False)
+    number_of_months = fields.Integer(string='Number of Months', default=6, store=True, copy=False)
     number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
     review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
 

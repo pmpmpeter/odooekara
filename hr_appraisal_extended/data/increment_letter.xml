@@ -4,8 +4,8 @@
 
         <record id="mail_increment_letters" model="mail.template">
             <field name="name">Increment Letter</field>
-            <field name="model_id" ref="hr_appraisal_extended.model_hr_appraisal"/>
-            <field name="email_from">{{ object.company_id.email }}</field>
+            <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
+            <!--            <field name="email_from">{{ object.company_id.email }}</field>-->
             <field name="email_to">{{object.employee_id.work_email}}</field>
             <field name="subject">Increment Letter</field>
             <field name="body_html" type="html">
@@ -19,14 +19,20 @@
                     <p>
                         <span style="font-weight:bold;">
                             Employee Name:
-                            <!--                            <t t-out="object.name"/>,-->
+                            <t t-out="object.employee_id.name"/>
                         </span>
                         <br/>
-                        <span style="font-weight:bold;">Employee Number:</span>
+                        <span style="font-weight:bold;">Employee Number:
+                            <t t-out="object.employee_id.id"/>
+                        </span>
                         <br/>
-                        <span style="font-weight:bold;">Designation:</span>
+                        <span style="font-weight:bold;">Designation:
+                            <t t-out="object.designation"/>
+                        </span>
                         <br/>
-                        <span style="font-weight:bold;">Job Level:</span>
+                        <span style="font-weight:bold;">Job Level:
+                            <t t-out="object.employee_id.job_id.name"/>
+                        </span>
                         <br/>
                         <br/>
                         <!--                        <span style="font-weight:bold;">Subject : Promotion and Compensation Review.</span>-->
@@ -34,7 +40,9 @@
                         <!--                        <br/>-->
 
 
-                        <span style="font-weight:bold;">Dear,</span>
+                        <span style="font-weight:bold;">Dear
+                            <t t-out="object.employee_id.name"/>,
+                        </span>
                         <br/>
                         <br/>
                         <span style="font-weight:bold;">Subject : Compensation Review.</span>
@@ -47,12 +55,17 @@
                         <table style="width: 100%; border: 1px solid black; text-align: left;">
                             <tr>
                                 <td style="border: 1px solid black; padding: 8px;width: 20%;">Effective Date:</td>
-                                <td style="border: 1px solid black; padding: 8px;"></td>
+                                <td style="border: 1px solid black; padding: 8px;">
+                                    <t t-out="object.appraisal_date.strftime('%d-%m-%Y') if object.appraisal_date else ''"/>
+                                </td>
 
                             </tr>
                             <tr>
-                                <td style="border: 1px solid black; padding: 8px;width: 20%;">Annual CTC (INR)<br/>
-                                    <span>&#160;&#160;&#160;&#160;(In digits)<br/></span>
+                                <td style="border: 1px solid black; padding: 8px;width: 20%;">Annual CTC (INR)
+                                    <br/>
+                                    <span>&#160;&#160;&#160;&#160;(In digits)
+                                        <br/>
+                                    </span>
                                     <span>&#160;&#160;&#160;&#160;(In words)</span>
                                 </td>
                                 <td style="border: 1px solid black; padding: 8px;"></td>
@@ -63,20 +76,23 @@
                         <br/>
                         <br/>
 
-                        Your compensation is subject to tax deductions and other statutory levies as applicable. The break-up of the compensation will be as per annexure below.
+                        Your compensation is subject to tax deductions and other statutory levies as applicable. The
+                        break-up of the compensation will be as per annexure below.
                         <br/>
                         <br/>
 
-                       All other terms and conditions of your employment remains unaltered.
+                        All other terms and conditions of your employment remains unaltered.
 
                         <br/>
                         <br/>
 
-                        Your salary details are strictly private and confidential and details in this letter must not be disclosed or discussed with others. Any deviation would lead to disciplinary action.
+                        Your salary details are strictly private and confidential and details in this letter must not be
+                        disclosed or discussed with others. Any deviation would lead to disciplinary action.
 
                         <br/>
                         <br/>
-                        We look forward to your valuable contribution and wish you all the very best for a rewarding career with the organization.
+                        We look forward to your valuable contribution and wish you all the very best for a rewarding
+                        career with the organization.
                         <br/>
                         <br/>
                         Thank you for being part of Ekara Partnership.
@@ -86,21 +102,33 @@
                         <br/>
                         <br/>
                         <b>
-                            Bhairavi M Shibulal
+                            <t t-out="object.reviewer_id.name"/>
                             <br/>
-                            Director
-                            <br/>
+                            <t t-out="object.reviewer_id.job_id.name"/>
 
                         </b>
                     </p>
                 </div>
                 <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width: 100%;">
-                    <h4 align="center"><u>ANNEXURE</u></h4>
+                    <h4 align="center">
+                        <u>ANNEXURE</u>
+                    </h4>
                     <br/>
-                    <span style="font-weight:bold;" >Employee Name:</span><br/>
-                    <span style="font-weight:bold;">Employee Number:</span><br/>
-                    <span style="font-weight:bold;">Department:</span><br/>
-                    <span style="font-weight:bold;">Job Level:</span>
+                    <span style="font-weight:bold;">Employee Name:
+                        <t t-out="object.employee_id.name"/>
+                    </span>
+                    <br/>
+                    <span style="font-weight:bold;">Employee Number:
+                        <t t-out="object.employee_id.id"/>
+                    </span>
+                    <br/>
+                    <span style="font-weight:bold;">Department:
+                        <t t-out="object.department_id.name"/>
+                    </span>
+                    <br/>
+                    <span style="font-weight:bold;">Job Level:
+                        <t t-out="object.employee_id.job_id.name"/>
+                    </span>
                     <br/>
                     <br/>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid black; text-align: left;">
@@ -108,7 +136,8 @@
                         <tr>
                             <td colspan="3"
                                 style="border: 1px solid black; padding: 8px;text-align: center;font-weight:bold;">
-                                Salary Structure with effect
+                                Salary Structure with effect from
+                                <t t-out="object.appraisal_date.strftime('%d-%m-%Y') if object.appraisal_date else ''"/>
                             </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
@@ -124,23 +153,43 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Basic &amp; DA</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.basic_da or 0.0)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.basic_da / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;House Rent Allowance</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.house_rent_allowance or 0.0)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.house_rent_allowance / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Special Allowance</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.special_allowance or 0.0)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.special_allowance / 12))"/>
+                            </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part A)</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="a_annual_subtotal"
+                                   t-value="(object.employee_id.contract_id.basic_da or 0.0)+ (object.employee_id.contract_id.house_rent_allowance or 0.0)+ (object.employee_id.contract_id.special_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(a_annual_subtotal)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="a_monthly_subtotal"
+                                   t-value="(round(object.employee_id.contract_id.basic_da / 12)) + (round(object.employee_id.contract_id.house_rent_allowance / 12)) + (round(object.employee_id.contract_id.special_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(a_monthly_subtotal)"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – B (Statutory
@@ -151,50 +200,100 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Statutory Bonus</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.stat_bonus_amount or 0.0)"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Provident Fund (Employer's
                                 Contribution)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.provident_fund or 0.0) * 12)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.provident_fund or 0.0)"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;ESIC (Employer's
                                 Contribution)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.esi_amount or 0.0) * 12)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.esi_amount or 0.0)"/>
+                            </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part B)</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="annual_subtotal"
+                                   t-value="(object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 + (object.employee_id.contract_id.provident_fund or 0.0) * 12 + (object.employee_id.contract_id.esi_amount or 0.0) * 12"/>
+                                <t t-esc="'{:,}'.format(annual_subtotal)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="monthly_subtotal"
+                                   t-value="(object.employee_id.contract_id.stat_bonus_amount or 0.0) + (object.employee_id.contract_id.provident_fund or 0.0) + (object.employee_id.contract_id.esi_amount or 0.0)"/>
+                                <t t-esc="'{:,}'.format(monthly_subtotal)"/>
+                            </td>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – C (Performance Linked Pay
+                            <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – C (Performance
+                                Linked Pay
                             </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Variable Pay*</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="variable_pay_amount"
+                                   t-value="object.employee_id.contract_id.variable_pay_amount or 0.0"/>
+                                <t t-esc="'{:,}'.format(variable_pay_amount)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round(variable_pay_amount / 12))"/>
+                            </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part C)</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-set="subtotal_c"
+                                   t-value="variable_pay_amount"/>
+                                <t t-esc="'{:,}'.format(subtotal_c)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round(variable_pay_amount / 12))"/>
+
+                            </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">TOTAL SALARY (A + B +
                                 C)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.basic_da or 0.0) +
+                                 (object.employee_id.contract_id.house_rent_allowance or 0.0) +
+                                 (object.employee_id.contract_id.special_allowance or 0.0) +
+                                (object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 +
+                                (object.employee_id.contract_id.provident_fund or 0.0) * 12 +
+                                (object.employee_id.contract_id.esi_amount or 0.0) * 12 +
+                                (object.employee_id.contract_id.variable_pay_amount or 0.0))"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round((object.employee_id.contract_id.basic_da or 0.0) / 12) +
+                                 round((object.employee_id.contract_id.house_rent_allowance or 0.0) / 12) +
+                                 round((object.employee_id.contract_id.special_allowance or 0.0) / 12)  +
+                                (object.employee_id.contract_id.stat_bonus_amount or 0) +
+                                (object.employee_id.contract_id.provident_fund or 0) +
+                                (object.employee_id.contract_id.esi_amount or 0) +
+                                round((object.employee_id.contract_id.variable_pay_amount or 0.0) / 12))"/>
+                            </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part D (Other
@@ -205,27 +304,54 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Medical Insurance **</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.medical_insurance or 0.0)"/>
+                            </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Group Personal Accidental
                                 Insurance***
                             </td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.group_personal_accident_insurance or 0.0)"/>
+                            </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part D)</td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.medical_insurance or 0.0) + (object.employee_id.contract_id.group_personal_accident_insurance or 0.0))"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">-</td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Total Cost to the
                                 Company (A + B + C + D)
                             </td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
-                            <td style="border: 1px solid black; padding: 8px;"></td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.basic_da or 0.0) +
+                                 (object.employee_id.contract_id.house_rent_allowance or 0.0) +
+                                 (object.employee_id.contract_id.special_allowance or 0.0) +
+                                (object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 +
+                                (object.employee_id.contract_id.provident_fund or 0.0) * 12 +
+                                (object.employee_id.contract_id.esi_amount or 0.0) * 12 +
+                                (object.employee_id.contract_id.variable_pay_amount or 0.0) +
+                                (object.employee_id.contract_id.medical_insurance or 0.0) +
+                                (object.employee_id.contract_id.group_personal_accident_insurance or 0.0))"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(round((object.employee_id.contract_id.basic_da or 0.0) / 12) +
+                                 round((object.employee_id.contract_id.house_rent_allowance or 0.0) / 12) +
+                                 round((object.employee_id.contract_id.special_allowance or 0.0) / 12) +
+                                (object.employee_id.contract_id.stat_bonus_amount or 0) +
+                                (object.employee_id.contract_id.provident_fund or 0) +
+                                (object.employee_id.contract_id.esi_amount or 0) +
+                                round((object.employee_id.contract_id.variable_pay_amount or 0.0) / 12) +
+                                round((object.employee_id.contract_id.medical_insurance or 0.0) / 12) +
+                                round((object.employee_id.contract_id.group_personal_accident_insurance or 0.0) / 12))"/>
+
+                            </td>
                         </tr>
                     </table>
                     <br/>
@@ -241,9 +367,9 @@
                     <br/>
                     <br/>
                     <b>
-                        Bhairavi M Shibulal
+                        <t t-out="object.reviewer_id.name"/>
                         <br/>
-                        Director
+                        <t t-out="object.reviewer_id.job_id.name"/>
                     </b>
                 </div>
             </field>

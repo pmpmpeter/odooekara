@@ -3,7 +3,7 @@ import base64
 
 from odoo import models, fields, api, _
 from odoo.exceptions import *
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class EmployeeIndent(models.Model):
@@ -14,6 +14,8 @@ class EmployeeIndent(models.Model):
     name = fields.Char(string='Name', required=True)
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
     organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     location = fields.Many2one(
         'res.partner', "Job Location",
         domain=lambda self: self._address_id_domain(),
@@ -38,7 +40,7 @@ class EmployeeIndent(models.Model):
 
     employment_type = fields.Many2one('hr.contract.type', string="Employment Type")
 
-    target = fields.Integer(string='Target', required=True, default=1, help="Number of vacancies for this position.")
+    target = fields.Integer(string='No. of Vacancies', required=True, default=1, help="Number of vacancies for this position.")
 
     is_replacement = fields.Boolean(string='Is Replacement?', default=False, copy=False,
                                     help="Indicate if this position is a replacement.")
@@ -52,7 +54,14 @@ class EmployeeIndent(models.Model):
     expected_indent_closure_date = fields.Date(
         string='Expected Indent Closure Date',
         required=True,
+        default=lambda self: self._default_expected_closure_date(),
         help='Select the expected date for closing this indent.'
+    )
+
+    is_recruitment_manager = fields.Boolean(
+        string="Is Recruitment Manager",
+        compute="_compute_is_recruitment_manager",
+        store=False
     )
 
     budgeting_unit = fields.Selection([
@@ -146,16 +155,17 @@ class EmployeeIndent(models.Model):
 
     # business_unit = fields.Char(string="Business Unit")
     business_unit_id = fields.Many2one('business.units', string="Business Units")
-    source = fields.Selection([
-        ('new_role', 'New Role'),
-        ('replacement', 'Replacement')
-    ], string="Source")
+    # source = fields.Selection([
+    #     ('new_role', 'New Role'),
+    #     ('replacement', 'Replacement')
+    # ], string="Source")
     priority = fields.Selection([
         ('low', 'Low'),
         ('medium', 'Medium'),
         ('high', 'High')
     ], string="Priority")
-    no_of_vacancy = fields.Integer(string="Number of Vacancies")
+    no_of_vacancy = fields.Integer(string="Number of Vacancies",
+                                   help="The Target in general Info and this field are same")
     purpose_of_job = fields.Text(string="Purpose of the Job")
     job_description = fields.Text(string="Job Description")
     technical_qualification = fields.Text(string="Technical Qualification")
@@ -169,6 +179,14 @@ class EmployeeIndent(models.Model):
     approved_by_hod_id = fields.Many2one('hr.employee', string="Approved by (HOD)")
     approved_by_director_id = fields.Many2one('hr.employee', string="Approved by (Director)")
     job_id = fields.Many2one('hr.job', string="Job Position")
+    approved_by_hod = fields.Selection([
+        ('yes', 'Yes'),
+        ('no', 'No')
+    ], string='Approved by (HOD)', required=True, default='yes')
+    approved_by_director = fields.Selection([
+        ('yes', 'Yes'),
+        ('no', 'No')
+    ], string='Approved by (Director)', required=True, default='yes')
 
     @api.onchange('business_unit_id')
     def _onchange_business_unit_id(self):
@@ -178,6 +196,21 @@ class EmployeeIndent(models.Model):
                 rec.tax_entity = rec.business_unit_id.tax_entity
             else:
                 rec.tax_entity = False
+
+    @api.onchange('target')
+    def _number_of_vacancy(self):
+        for record in self:
+            record.no_of_vacancy = record.target
+
+    @api.model
+    def _default_expected_closure_date(self):
+        request_date = fields.Date.context_today(self)
+        return request_date + timedelta(days=120)
+
+    @api.depends('expected_indent_closure_date')
+    def _compute_is_recruitment_manager(self):
+        for record in self:
+            record.is_recruitment_manager = self.env.user.has_group('hr_recruitment.group_hr_recruitment_manager')
 
     def unlink(self):
         for record in self:
@@ -316,7 +349,7 @@ class EmployeeIndent(models.Model):
                 })
             record.job_id = existing_job.id or job_id.id
 
-            #To store the job description in documents
+            # To store the job description in documents
             report_action = self.env.ref('hr_extended.action_employee_indent_report')
             if not report_action:
                 raise ValueError("Report action 'hr_extended.action_employee_indent_report' not found.")
@@ -382,7 +415,6 @@ class EmployeeIndent(models.Model):
         if self:
             return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
         return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
-
 
 # class DocumentsDocument(models.Model):
 #     _inherit = 'documents.document'

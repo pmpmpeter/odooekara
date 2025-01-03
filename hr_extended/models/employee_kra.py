@@ -23,6 +23,8 @@ class EmployeeKra(models.Model):
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
@@ -40,6 +42,12 @@ class EmployeeKra(models.Model):
 
             if not record.kra_details_ids:
                 raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
+
+            total_weightage = sum(detail.weightage for detail in record.kra_details_ids)
+            if total_weightage != 100:
+                raise ValidationError(
+                    f"The total weightage of KRA details must equal 100. Currently, it is {total_weightage}."
+                )
 
             if hasattr(self, 'x_has_request_approval'):
                 self.x_has_request_approval = False
@@ -101,6 +109,37 @@ class EmployeeKra(models.Model):
     def action_approve(self):
         for record in self:
             record.state = 'done'
+            self.env['self.rating'].create({
+                'employee_id': record.employee_id.id,
+                'goal_sets_kras': [(0, 0, {
+                    'category': detail.category,
+                    'kra': detail.kra_type,
+                    'goal_description': detail.goal_description,
+                    'weightage': detail.weightage,
+                }) for detail in record.kra_details_ids],
+                'kra_ids': [(0, 0, {
+                    'name': detail.kra_type,
+                    'weightage': detail.weightage,
+                    'goal_description': detail.goal_description,
+                }) for detail in record.kra_details_ids],
+                'manager_rating_ids': [(0, 0, {
+                    'name': detail.goal_description,
+                    'weightage': detail.weightage,
+                }) for detail in record.kra_details_ids],
+                # 'director_rating_ids': [(0, 0, {
+                #     'name': detail.goal_description,
+                #     'weightage': detail.weightage,
+                # }) for detail in record.kra_details_ids],
+                'assessment_kra_ids': [(0, 0, {
+                    'name': detail.kra_type,
+                    'weightage': detail.weightage,
+                }) for detail in record.kra_details_ids],
+                'review_line_ids': [(0, 0, {
+                    'kra': detail.kra_type,
+                    'description': detail.goal_description,
+                    'weightage': detail.weightage,
+                }) for detail in record.kra_details_ids],
+            })
 
     def action_reset(self):
         for record in self:

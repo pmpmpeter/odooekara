@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 
-
+#not using
 class HrAppraisal(models.Model):
     """inherited the model to add some fields"""
     _inherit = 'hr.appraisal'

@@ -458,7 +458,19 @@ class Job_Applicant(models.Model):
                 })
                 self._create_kra_for_employee(employee, self.job_id)
                 self._create_jonining_documents_for_employee(employee, self.job_id)
+                self._attach_documents_to_employee(employee)
         return action
+
+    def _attach_documents_to_employee(self, employee):
+        attachments = self.env['ir.attachment'].search([
+            ('res_model', '=', 'hr.applicant'),
+            ('res_id', '=', self.id)
+        ])
+        for attachment in attachments:
+            attachment.copy({
+                'res_model': 'hr.employee',
+                'res_id': employee.id
+            })
 
     def action_create_interview_assessment(self):
         if not self.interviewer_ids:

@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import *
+from odoo.exceptions import ValidationError, UserError
 
 
 class ClearanceForm(models.Model):

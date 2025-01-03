@@ -45,25 +45,26 @@
                                 <tree editable="bottom">
                                     <field name="category" readonly="parent.state not in ('draft')"/>
                                     <field name="business_unit" readonly="parent.state not in ('draft')"/>
-                                    <field name="kra_type" readonly="parent.state not in ('draft')"/>
-                                    <field name="goal_description" readonly="parent.state not in ('draft')"/>
+                                    <field name="kra_type" readonly="parent.state not in ('draft')" required="True"/>
+                                    <field name="goal_description" readonly="parent.state not in ('draft')" required="True"/>
                                     <field name="weightage" readonly="parent.state not in ('draft')"/>
-                                    <field name="employee_rating" readonly="parent.state not in ('draft')"/>
-                                    <field name="employee_remark" readonly="parent.state not in ('draft')"/>
-                                    <field name="manager_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_ekara_manager"/>
-                                    <field name="manager_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_ekara_manager"/>
+                                    <!-- <field name="employee_rating" readonly="parent.state not in ('draft')"/>-->
+                                    <!-- <field name="employee_remark" readonly="parent.state not in ('draft')"/>-->
+                                    <!-- <field name="manager_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_user"/>-->
+                                    <!-- <field name="manager_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_user"/>-->
 
-                                    <field name="bu_head_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>
-                                    <field name="bu_head_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>
+                                    <!-- <field name="bu_head_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>-->
+                                    <!-- <field name="bu_head_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_extended.group_hr_recruitment_bu_head"/>-->
 
-                                    <field name="director_hr_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>
-                                    <field name="director_hr_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>
-                                    <field name="final_score" sum="Total" readonly="1" force_save="1" groups="hr_recruitment.group_hr_recruitment_manager"/>
+                                    <!-- <field name="director_hr_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>-->
+                                    <!-- <field name="director_hr_remark" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_manager"/>-->
+                                    <!-- <field name="final_score" sum="Total" readonly="1" force_save="1" groups="hr_recruitment.group_hr_recruitment_manager"/>-->
                                 </tree>
                             </field>
                             <group>
                                 <field name="remarks" placeholder="Please give the Remarks here...."
-                                       groups="hr_recruitment.group_hr_recruitment_user" readonly="state not in ('draft', 'submit_to_supervisor')"/>
+                                       groups="hr_recruitment.group_hr_recruitment_user"
+                                       readonly="state not in ('draft', 'submit_to_supervisor')"/>
                             </group>
                         </page>
                     </notebook>

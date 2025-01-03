@@ -87,7 +87,7 @@ class CustomPortalInherit(CustomerPortal):
             if attachment_ids2:
                 partner = request.env['res.partner'].sudo().browse(partner_id)
                 partner.message_post(
-                    body=f"GST Certificate/declaration uploaded.",
+                    body=f"GST Certificate/Declaration uploaded.",
                     attachment_ids=[attachment.id for attachment in attachment_ids2]
                 )
         if uploaded_files3:

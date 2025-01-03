@@ -10,31 +10,46 @@
                 <page string="Salary Breakup">
                     <group>
                         <group string="Compensation Details">
-                            <field name="basic_da"  />
-                            <field name="house_rent_allowance"  />
-                            <field name="special_allowance"  />
-                            <field name="monthly_fixed_salary"  />
-                            <field name="stat_bonus_amount"  />
-                            <field name="provident_fund"  />
-                            <field name="esi_amount"  />
-                        <label for="variable_pay_percentage"/>
-                        <div class="o_row">
-                            <field name="variable_pay_percentage"  />
-                            <field name="variable_pay_amount"  />
-                        </div>
+                            <field name="basic_da"/>
+                            <field name="house_rent_allowance"/>
+                            <field name="special_allowance"/>
+                            <field name="monthly_fixed_salary"/>
+                            <label for="statutory_bonus_applicable"/>
+                            <div class="o_row">
+                                <field name="statutory_bonus_applicable"/>
+                                <field name="stat_bonus_amount" invisible="statutory_bonus_applicable != 'yes'"
+                                       force_save="1"/>
+                            </div>
+                            <label for="provident_fund_applicable"/>
+                            <div class="o_row">
+                                <field name="provident_fund_applicable"/>
+                                <field name="provident_fund" invisible="provident_fund_applicable != 'yes'"
+                                       force_save="1"/>
+                            </div>
+                            <label for="esi_applicable"/>
+                            <div class="o_row">
+                                <field name="esi_applicable"/>
+                                <field name="esi_amount" invisible="esi_applicable != 'yes'" force_save="1"/>
+                            </div>
+                            <label for="variable_pay_percentage"/>
+                            <div class="o_row">
+                                <field name="variable_pay_percentage"/>
+                                <field name="variable_pay_amount"/>
+                            </div>
+                            <field name="fixed_pay" invisible="1"/>
+                        </group>
+                        <group string="Incentives and Benefits">
+                            <field name="annual_store_performance_incentive"/>
+                            <field name="annual_performance_linked_pay"/>
+                            <field name="monthly_performance_incentive"/>
+                            <field name="medical_insurance"/>
+                            <field name="group_personal_accident_insurance"/>
+                            <field name="solis_health_benefit_beacon_plan"/>
+                            <field name="indicative_take_home_salary"/>
+                        </group>
                     </group>
-                    <group string="Incentives and Benefits">
-                        <field name="annual_store_performance_incentive"  />
-                        <field name="annual_performance_linked_pay"  />
-                        <field name="monthly_performance_incentive"  />
-                        <field name="medical_insurance"  />
-                        <field name="group_personal_accident_insurance"  />
-                        <field name="solis_health_benefit_beacon_plan"  />
-                        <field name="indicative_take_home_salary"  />
-                    </group>
-                </group>
-            </page>
-        </xpath>
-    </field>
-</record>
-        </odoo>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
