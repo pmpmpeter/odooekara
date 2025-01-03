@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <odoo>
 
-    <record id="group_expense_access_view" model="res.groups">
+    <record id="group_expense_view" model="res.groups">
         <field name="name">Expense Access</field>
     </record>
 

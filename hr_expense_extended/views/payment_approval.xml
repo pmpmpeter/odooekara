@@ -250,7 +250,7 @@
         <field name="domain">[('is_payment_approval', '=', True)]</field>
     </record>
 
-    <menuitem id="hr_expense.menu_hr_expense_root" name="Expenses" sequence="230" groups="hr_expense_extended.group_expense_access_view" web_icon="hr_expense,static/description/icon.png"/>
+    <menuitem id="hr_expense.menu_hr_expense_root" name="Expenses" sequence="230" groups="hr_expense_extended.group_expense_view" web_icon="hr_expense,static/description/icon.png"/>
 
     <menuitem id="payment_approval_sheet" name="Payment Approval" sequence="2"
               parent="hr_expense_extended.expense_request_sheet" action="payment_approval_action_extend"/>
