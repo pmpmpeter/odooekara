@@ -58,7 +58,7 @@
                             offer_letter_approved == 'yes'"/>
                     <button name="action_send_offer_letter_mail" type="object" class="oe_highlight"
                             string="Send Offer Letter"
-                            invisible="offer_letter_approved == 'no' or application_status == 'refused' or
+                            invisible="document_sent == 'no' or offer_letter_approved == 'no' or application_status == 'refused' or
                              offer_letter_sent == 'yes'"/>
                     <button name="action_create_interview_assessment" type="object" class="oe_highlight"
                             string="Create Interview Assessment"
@@ -67,7 +67,7 @@
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused'"
                             name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
                     <button name="action_offer_accepted" string="Offer Accepted" type="object"
-                            invisible="offer_letter_sent == 'no' or stage_status not in ('shortlist') or application_status == 'refused'"
+                            invisible="document_sent == 'no' or offer_letter_sent == 'no' or stage_status not in ('shortlist') or application_status == 'refused'"
                             class="btn-primary"/>
                     <!--                    <button string="Offer Letter" type="action"-->
                     <!--                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary"-->

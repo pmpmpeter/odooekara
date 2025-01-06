@@ -146,29 +146,29 @@
                                     <!--<field name="source"/>-->
                                 </group>
                                 <group>
-                                    <field name="priority"/>
-                                    <field name="no_of_vacancy"/>
+                                    <field name="priority" readonly="state not in ('draft','cancel')"/>
+                                    <field name="no_of_vacancy" readonly="state not in ('draft','cancel')"/>
                                 </group>
                             </group>
                             <group>
                                 <group>
-                                    <field name="purpose_of_job"/>
-                                    <field name="job_description"/>
-                                    <field name="technical_qualification"/>
-                                    <field name="work_experience"/>
-                                    <field name="industry_preferences"/>
+                                    <field name="purpose_of_job" readonly="state not in ('draft','cancel')"/>
+                                    <field name="job_description" readonly="state not in ('draft','cancel')"/>
+                                    <field name="technical_qualification" readonly="state not in ('draft','cancel')"/>
+                                    <field name="work_experience" readonly="state not in ('draft','cancel')"/>
+                                    <field name="industry_preferences" readonly="state not in ('draft','cancel')"/>
                                 </group>
                                 <group>
-                                    <field name="mandatory_skills"/>
-                                    <field name="job_responsibility"/>
-                                    <field name="professional_requirements"/>
-                                    <field name="educational_requirements"/>
-                                    <field name="desirable"/>
+                                    <field name="mandatory_skills" readonly="state not in ('draft','cancel')"/>
+                                    <field name="job_responsibility" readonly="state not in ('draft','cancel')"/>
+                                    <field name="professional_requirements" readonly="state not in ('draft','cancel')"/>
+                                    <field name="educational_requirements" readonly="state not in ('draft','cancel')"/>
+                                    <field name="desirable" readonly="state not in ('draft','cancel')"/>
                                 </group>
                             </group>
                             <group>
-                                <field name="approved_by_hod"/>
-                                <field name="approved_by_director"/>
+                                <field name="approved_by_hod" readonly="1"/>
+                                <field name="approved_by_director" readonly="1"/>
                                 <!--<field name="approved_by_hod_id"/>-->
                                 <!--<field name="approved_by_director_id"/>-->
                             </group>

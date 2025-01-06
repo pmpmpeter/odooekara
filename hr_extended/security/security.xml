@@ -87,12 +87,12 @@
 
     <!-- Bu head in recruitment -->
     <!--    not needed right now-->
-<!--        <record id="group_hr_recruitment_ekara_manager" model="res.groups">-->
-<!--            <field name="name">Officer: Manager</field>-->
-<!--            <field name="category_id" ref="base.module_category_human_resources_recruitment"/>-->
-<!--            <field name="implied_ids"-->
-<!--                   eval="[(4, ref('hr.group_hr_user')), (4, ref('hr_recruitment.group_hr_recruitment_interviewer'))]"/>-->
-<!--        </record>-->
+    <!--        <record id="group_hr_recruitment_ekara_manager" model="res.groups">-->
+    <!--            <field name="name">Officer: Manager</field>-->
+    <!--            <field name="category_id" ref="base.module_category_human_resources_recruitment"/>-->
+    <!--            <field name="implied_ids"-->
+    <!--                   eval="[(4, ref('hr.group_hr_user')), (4, ref('hr_recruitment.group_hr_recruitment_interviewer'))]"/>-->
+    <!--        </record>-->
     <!--    needed if we want bu head as separate group-->
     <!--    <record id="group_hr_recruitment_bu_head" model="res.groups">-->
     <!--        <field name="name">Officer: BU Head</field>-->

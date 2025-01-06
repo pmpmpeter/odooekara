@@ -41,7 +41,7 @@
                     </group>
                     <notebook>
                         <page string="KRA Questions">
-                            <field name="kra_details_ids">
+                            <field name="kra_details_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
                                     <field name="category" readonly="parent.state not in ('draft')"/>
                                     <field name="business_unit" readonly="parent.state not in ('draft')"/>

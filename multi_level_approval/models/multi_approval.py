@@ -258,6 +258,18 @@ class MultiApproval(models.Model):
                     msg = _("%s approved the request.") % self.env.user.name
                     rec.finalize_activity_or_message("approved", msg)
 
+            #For employee.indent to change the value of the job description page
+            if rec.type_id.model_id == "employee.indent":
+                employee_indent = self.env['employee.indent'].search([('id', '=', rec.origin_ref.id)])
+                if employee_indent:
+                    first_line = rec.line_ids.sorted("sequence")[0]
+                    second_line = rec.line_ids.sorted("sequence")[1]
+                    if first_line.state == "Approved":
+                        employee_indent.approved_by_hod = "yes"
+                    if second_line.state == "Approved":
+                        employee_indent.approved_by_director = "yes"
+
+
             # rec.finalize_related_document()
 
             msg = _("%s approved the request.") % self.env.user.name
@@ -267,6 +279,12 @@ class MultiApproval(models.Model):
         return True
 
     def action_refuse(self, reason=""):
+        # added employee.indent yes or no values here
+        if self.type_id.model_id == "employee.indent":
+            employee_indent = self.env['employee.indent'].search([('id', '=', self.origin_ref.id)])
+            employee_indent.approved_by_hod = "no"
+            employee_indent.approved_by_director = "no"
+
         ret_act = None
         recs = self.filtered(lambda x: x.state == "Submitted")
         for rec in recs:
@@ -306,6 +324,7 @@ class MultiApproval(models.Model):
             line.set_refused(reason)
             msg = _(f"I refused due to this reason: {reason}")
             rec.finalize_activity_or_message("refused", msg)
+
         if ret_act:
             return ret_act
 
@@ -402,7 +421,7 @@ class MultiApproval(models.Model):
                     # else:
                     message = self.env["mail.message"].create(
                         {
-                            "subject": _("Request the approval for: {request_name}").format(
+                            "subject": _("{request_name}").format(
                                 request_name=req.display_name
                             ),
                             "model": req._name,

@@ -45,7 +45,7 @@ class Job_Applicant(models.Model):
     document_sent = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),
-    ], string="Document Sent", copy=False, readonly=True)
+    ], string="Document Sent", default='no', copy=False, readonly=True)
     offer_letter_approved = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),

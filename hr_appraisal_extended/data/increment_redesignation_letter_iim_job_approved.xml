@@ -3,7 +3,7 @@
     <data>
 
         <record id="mail_increment_redesignation_letter_iim_job_approved" model="mail.template">
-            <field name="name">increment_redesignation_letter_iim_job_approved.xml</field>
+            <field name="name">Increment Redesignation Letter</field>
             <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
             <!--            <field name="email_from">{{ object.company_id.email }}</field>-->
             <field name="email_to">{{object.employee_id.work_email}}</field>

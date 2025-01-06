@@ -77,6 +77,8 @@ class SelfRating(models.Model):
     recommended_increment = fields.Float(string="Recommended Increment (%)", help="Recommended Increment percentage")
     recommended_pbvp_payout = fields.Float(string="Recommended PBVP Payout (%)",
                                            help="To be released on a pro-rata basis")
+    pbvp_payout = fields.Float(string="PBVP Payout (%)",
+                                           help="To be released on a pro-rata basis")
     eligible_for_promotion = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Eligible for Promotion?")
     new_job_level = fields.Char(string="Job Level")
     new_designation = fields.Char(string="New Designation (if applicable)")
@@ -102,26 +104,47 @@ class SelfRating(models.Model):
             else:
                 record.is_employee = False
 
-    @api.depends('review_line_ids')
+    @api.depends('kra_ids', 'kra_ids.employee_weighted_score', 'manager_rating_ids',
+                 'manager_rating_ids.manager_weighted_score')
     def _compute_totals(self):
         for record in self:
+            # Initialize totals
             total_employee_score = 0.0
             total_manager_score = 0.0
             total_weightage = 0.0
-            line_count = len(record.review_line_ids) if record.review_line_ids else 1
+            line_count_self = len(record.kra_ids) if record.kra_ids else 1
+            line_count_manager = len(record.manager_rating_ids) if record.manager_rating_ids else 1
 
-            for line in record.review_line_ids:
-                total_employee_score += line.employee_weighted_score
-                total_manager_score += line.manager_weighted_score
-                total_weightage += line.weightage
-                print(total_weightage, 'total_weightage')
+            # Calculate totals based on kra_ids
+            for kra in record.kra_ids:
+                total_employee_score += kra.employee_weighted_score
+                total_weightage += kra.weightage
 
-                record.total_score_employee = total_employee_score
-                record.total_score_manager = total_manager_score
-                record.total_employee_weighted_score = (total_employee_score / 100) * line_count
-                record.total_manager_weighted_score = (total_manager_score / 100) * line_count
-                record.employee_final_score = round(record.total_employee_weighted_score)
-                record.manager_final_score = round(record.total_manager_weighted_score)
+            # Calculate totals based on manager_rating_ids
+            for manager_rating in record.manager_rating_ids:
+                total_manager_score += manager_rating.manager_weighted_score
+
+            # Assign computed values to the record
+            record.total_score_employee = total_employee_score
+            record.total_score_manager = total_manager_score
+            record.total_employee_weighted_score =((record.total_score_employee/100)/100)* line_count_self
+            record.total_manager_weighted_score = ((record.total_score_employee / 100)/100) * line_count_manager
+            record.employee_final_score = round(record.total_employee_weighted_score, 1)
+            record.manager_final_score = round(record.total_manager_weighted_score, 1)
+            if record.manager_final_score > 4.7:
+                record.pbvp_payout = 100
+            elif 4.5 <= record.manager_final_score <= 4.7:
+                record.pbvp_payout = 90
+            elif 4.0 <= record.manager_final_score < 4.5:
+                record.pbvp_payout = 80
+            elif 3.5 <= record.manager_final_score < 4.0:
+                record.pbvp_payout = 70
+            elif 3.0 <= record.manager_final_score < 3.5:
+                record.pbvp_payout = 50
+            elif 2.5 <= record.manager_final_score < 3.0:
+                record.pbvp_payout = 30
+            else:
+                record.pbvp_payout = 0
 
     def action_request_appraisal(self):
         for record in self:
@@ -131,7 +154,7 @@ class SelfRating(models.Model):
         """Move state to 'preparation_clarification' after submission."""
         for record in self:
             if any(not kra.employee_response or not kra.self_rating for kra in record.kra_ids):
-                raise ValidationError(_("You must fill in the Employee Response and Self Rating before submission."))
+                raise ValidationError(_("You must fill in the Employee Justification and Self Rating before submission."))
             record.state = 'preparation_clarification'
 
     def action_manager_review(self):
@@ -140,6 +163,7 @@ class SelfRating(models.Model):
             if any(not manager.manager_rating or not manager.manager_remark for manager in record.manager_rating_ids):
                 raise ValidationError(_("You must fill in the Rating and Remark before proceeding."))
             record.state = 'half_year_pending'
+            record.recommended_pbvp_payout = record.pbvp_payout
 
     def action_hod_review(self):
         """Move state to 'full_year_pending' after HOD Review."""
@@ -290,10 +314,10 @@ class PerformanceReviewKRA(models.Model):
     _description = 'Performance Review KRA'
 
     rating_id = fields.Many2one('self.rating', string="Review")
-    category = fields.Char(string="Category", readonly=True)
-    kra = fields.Char(string="KRA", readonly=True)
-    goal_description = fields.Text(string="Goal Description", readonly=True)
-    weightage = fields.Float(string="Weightage (%)", readonly=True)
+    category = fields.Char(string="Category")
+    kra = fields.Char(string="KRA")
+    goal_description = fields.Text(string="Goal Description")
+    weightage = fields.Float(string="Weightage (%)")
 
 
 class SelfRatingKRA(models.Model):
@@ -301,13 +325,20 @@ class SelfRatingKRA(models.Model):
     _description = 'KRA Details'
 
     rating_id = fields.Many2one('self.rating', string="Self Rating Reference", ondelete='cascade')
-    name = fields.Char(string="KRA", readonly=True)
-    weightage = fields.Float(string="Weightage (%)", readonly=True)
+    name = fields.Char(string="KRA")
+    weightage = fields.Float(string="Weightage (%)")
     employee_response = fields.Text(string="Employee's Justification")
     appraiser_remarks = fields.Text(string="Appraiser's Remarks")
     self_rating = fields.Float(string="Self Rating", help="Rating given by the Employee")
-    goal_description = fields.Text(string="Goal Description", readonly=True)
+    goal_description = fields.Text(string="Goal Description")
     achieved_percentage = fields.Integer(string="Achieved Percentage",compute="_compute_achieved_percentage", store=True)
+    employee_weighted_score = fields.Float(string='Employee Weighted Score', compute='_compute_weighted_scores',
+                                           store=True)
+
+    @api.depends('weightage', 'achieved_percentage')
+    def _compute_weighted_scores(self):
+        for line in self:
+            line.employee_weighted_score = (line.weightage * line.achieved_percentage)
 
     @api.depends('self_rating', 'weightage')
     def _compute_achieved_percentage(self):
@@ -322,10 +353,26 @@ class ManagerRating(models.Model):
     _description = 'Manager Rating'
 
     rating_id = fields.Many2one('self.rating', string="Self Rating", ondelete='cascade')
-    name = fields.Char(string="KRA", readonly=True)
-    weightage = fields.Float(string="Weightage (%)", readonly=True)
+    name = fields.Char(string="KRA")
+    weightage = fields.Float(string="Weightage (%)")
     manager_rating = fields.Float(string="Manager Rating", help="Rating given by the manager")
     manager_remark = fields.Text(string="Manager Remark")
+    achieved_percentage = fields.Integer(string="Achieved Percentage",compute="_compute_achieved_percentage", store=True)
+    manager_weighted_score = fields.Float(string='Manager Weighted Score', compute='_compute_weighted_scores',
+                                          store=True)
+
+    @api.depends('weightage', 'achieved_percentage')
+    def _compute_weighted_scores(self):
+        for line in self:
+            line.manager_weighted_score = (line.weightage * line.achieved_percentage)
+
+    @api.depends('manager_rating', 'weightage')
+    def _compute_achieved_percentage(self):
+        for record in self:
+            if record.weightage:
+                record.achieved_percentage = (record.manager_rating / record.weightage) * 100
+            else:
+                record.achieved_percentage = 0
 
 
 # class DirectorRating(models.Model):

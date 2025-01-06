@@ -115,32 +115,52 @@
                                     <field name="name" string="KRA" required="1"/>
                                     <field name="weightage" string="Weightage (%)"/>
                                     <field name="self_rating"/>
-                                    <field name="achieved_percentage"/>
-                                    <field name="employee_response" string="Employee's Response"/>
+                                    <field name="achieved_percentage" string="Achieved Percentage (%)"/>
+                                    <field name="employee_weighted_score"/>
+                                    <field name="employee_response" string="Employee's Justification"/>
                                     <field name="appraiser_remarks" string="Appraiser's Remarks"/>
                                 </tree>
                                 <form>
                                     <group>
                                         <field name="goal_description"/>
                                         <field name="name"/>
-                                        <field name="weightage"/>
+                                        <field name="weightage" string="Weightage (%)"/>
                                         <field name="self_rating"/>
+                                        <field name="achieved_percentage" string="Achieved Percentage (%)"/>
+                                        <field name="employee_weighted_score"/>
                                         <field name="employee_response"/>
                                         <field name="appraiser_remarks"/>
                                     </group>
                                 </form>
                             </field>
+                            <group colspan="2">
+                                <group>
+                                    <field name="total_score_employee" readonly="1" force_save="1"/>
+                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="employee_final_score" readonly="1" force_save="1"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Manager Ratings" invisible="is_employee == True"
                               groups="hr_recruitment.group_hr_recruitment_user">
                             <field name="manager_rating_ids">
                                 <tree editable="bottom">
                                     <field name="name"/>
-                                    <field name="weightage"/>
+                                    <field name="weightage" string="Weightage (%)"/>
                                     <field name="manager_rating"/>
+                                    <field name="achieved_percentage" string="Achieved Percentage (%)"/>
+                                    <field name="manager_weighted_score"/>
                                     <field name="manager_remark"/>
                                 </tree>
                             </field>
+                            <group colspan="2">
+                                <group>
+                                    <field name="total_score_manager" readonly="1" force_save="1"/>
+                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="manager_final_score" readonly="1" force_save="1"/>
+                                    <field name="pbvp_payout" readonly="1" force_save="1"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="BU Head or HOD Remarks" invisible="is_employee == True"
                               groups="hr_extended.group_hr_recruitment_bu_head">
@@ -212,32 +232,32 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Annual Performance Review">
-                            <field name="review_line_ids">
-                                <tree editable="bottom">
-                                    <field name="kra"/>
-                                    <field name="description"/>
-                                    <field name="weightage"/>
-                                    <field name="employee_score"/>
-                                    <field name="employee_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="manager_weightage"/>
-                                    <field name="manager_score"/>
-                                    <field name="manager_weighted_score" readonly="1" force_save="1"/>
-                                </tree>
-                            </field>
-                            <group colspan="2">
-                                <group>
-                                    <field name="total_score_employee" readonly="1" force_save="1"/>
-                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="employee_final_score" readonly="1" force_save="1"/>
-                                </group>
-                                <group>
-                                    <field name="total_score_manager" readonly="1" force_save="1"/>
-                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="manager_final_score" readonly="1" force_save="1"/>
-                                </group>
-                            </group>
-                        </page>
+<!--                        <page string="Annual Performance Review">-->
+<!--                            <field name="review_line_ids">-->
+<!--                                <tree editable="bottom">-->
+<!--                                    <field name="kra"/>-->
+<!--                                    <field name="description"/>-->
+<!--                                    <field name="weightage"/>-->
+<!--                                    <field name="employee_score"/>-->
+<!--                                    <field name="employee_weighted_score" readonly="1" force_save="1"/>-->
+<!--                                    <field name="manager_weightage"/>-->
+<!--                                    <field name="manager_score"/>-->
+<!--                                    <field name="manager_weighted_score" readonly="1" force_save="1"/>-->
+<!--                                </tree>-->
+<!--                            </field>-->
+<!--                            <group colspan="2">-->
+<!--                                <group>-->
+<!--                                    <field name="total_score_employee" readonly="1" force_save="1"/>-->
+<!--                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>-->
+<!--                                    <field name="employee_final_score" readonly="1" force_save="1"/>-->
+<!--                                </group>-->
+<!--                                <group>-->
+<!--                                    <field name="total_score_manager" readonly="1" force_save="1"/>-->
+<!--                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>-->
+<!--                                    <field name="manager_final_score" readonly="1" force_save="1"/>-->
+<!--                                </group>-->
+<!--                            </group>-->
+<!--                        </page>-->
                         <page string="Employee Development Plan">
                             <field name="development_plan_ids">
                                 <tree editable="bottom">

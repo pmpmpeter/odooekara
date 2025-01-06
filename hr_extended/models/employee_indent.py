@@ -40,7 +40,8 @@ class EmployeeIndent(models.Model):
 
     employment_type = fields.Many2one('hr.contract.type', string="Employment Type")
 
-    target = fields.Integer(string='No. of Vacancies', required=True, default=1, help="Number of vacancies for this position.")
+    target = fields.Integer(string='No. of Vacancies', required=True, default=1,
+                            help="Number of vacancies for this position.")
 
     is_replacement = fields.Boolean(string='Is Replacement?', default=False, copy=False,
                                     help="Indicate if this position is a replacement.")
@@ -182,11 +183,11 @@ class EmployeeIndent(models.Model):
     approved_by_hod = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
-    ], string='Approved by (HOD)', required=True, default='yes')
+    ], string='Approved by (HOD)', required=True, default='no', copy=False)
     approved_by_director = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
-    ], string='Approved by (Director)', required=True, default='yes')
+    ], string='Approved by (Director)', required=True, default='no', copy=False)
 
     @api.onchange('business_unit_id')
     def _onchange_business_unit_id(self):
@@ -416,11 +417,23 @@ class EmployeeIndent(models.Model):
             return f"{base_url}/web#id={self.id}&cids=1&menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=form"
         return f"{base_url}/web#menu_id={menu_id}&action={action_id}&model=employee.indent&view_type=list"
 
-# class DocumentsDocument(models.Model):
-#     _inherit = 'documents.document'
-#
-#     def unlink(self):
-#         for document in self:
-#             if document.res_model == 'employee.indent' and self.env.user.has_group('documents.group_documents_user'):
-#                 raise UserError(_("You are not allowed to delete documents linked to Employee Indent."))
-#         return super(DocumentsDocument, self).unlink()
+
+class DocumentsDocument(models.Model):
+    _inherit = 'documents.document'
+
+    def action_archive(self):
+        job_description_folder = self.env['documents.folder'].search([('name', '=', 'Job Descriptions')], limit=1)
+        if job_description_folder:
+            restricted_documents = self.filtered(lambda doc: doc.folder_id == job_description_folder)
+            if restricted_documents:
+                raise ValidationError(_(
+                    "You cannot move the documents to Trash that belong to the 'Job Descriptions' folder."
+                ))
+
+        return super(DocumentsDocument, self).action_archive()
+
+    # def unlink(self):
+    #     for document in self:
+    #         if document.res_model == 'employee.indent' and self.env.user.has_group('documents.group_documents_user'):
+    #             raise UserError(_("You are not allowed to delete documents linked to Employee Indent."))
+    #     return super(DocumentsDocument, self).unlink()
