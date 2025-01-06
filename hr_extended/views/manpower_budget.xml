@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_manpower_budget_tree" model="ir.ui.view">
+        <field name="name">manpower.budget.tree</field>
+        <field name="model">manpower.budget</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="create_date"/>
+                <field name="tax_entity_id"/>
+                <field name="category_id"/>
+                <field name="manpower_request_type"/>
+                <field name="business_unit_id"/>
+                <field name="department_id"/>
+                <field name="job_id"/>
+                <field name="job_level_id"/>
+                <field name="ctc_month"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_manpower_budget_form" model="ir.ui.view">
+        <field name="name">manpower.budget.form</field>
+        <field name="model">manpower.budget</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id" readonly="1" invisible='1'/>
+                            <field name="company_id" readonly="1" invisible='1'/>
+                            <field name="tax_entity_id"/>
+                            <field name="category_id"/>
+                            <field name="manpower_request_type"/>
+                            <field name="business_unit_id"/>
+                        </group>
+                        <group>
+                            <field name="department_id"/>
+                            <field name="job_id"/>
+                            <field name="job_level_id"/>
+                            <field name="justification"/>
+                            <field name="ctc_month"/>
+                            <field name="create_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Employee Monthly Count">
+                            <field name="employee_monthly_ids" widget="one2many_list" mode="tree" >
+                                <tree editable='bottom' create='false' delete='false'>
+                                    <field name="month" readonly='1'/>
+                                    <field name="employee_count"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_manpower_budget" model="ir.actions.act_window">
+        <field name="name">Manpower Budget</field>
+        <field name="res_model">manpower.budget</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                Manage your manpower budgets here.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_manpower_budget" name="Manpower Budget" parent="hr.menu_hr_employee_payroll" action="action_manpower_budget" sequence="9"/>
+</odoo>

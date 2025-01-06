@@ -14,3 +14,4 @@ from . import hr_contract
 from . import hr_employee
 from . import hr_applicant
 from . import survey
+from . import manpower_budget

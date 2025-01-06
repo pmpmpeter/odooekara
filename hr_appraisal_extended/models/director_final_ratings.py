@@ -11,17 +11,11 @@ class DirectorFinalRatings(models.AbstractModel):
     _name = 'report.hr_appraisal_extended.report_director_final_ratings'
     _inherit = "report.report_xlsx.abstract"
 
-    def generate_xlsx_report(self, workbook,data,employee):
-
-        # main_product = data
-        # company_name = main_product['company_name']
-        # company_id = main_product['company_id']
-        # date_from = main_product['date_from']
-        # date_to = main_product['date_to']
+    def generate_xlsx_report(self, workbook,data,rating_id):
 
         worksheet = workbook.add_worksheet('Sales Collection Wise Report.xlsx')
-
-        # worksheet.protect()
+        worksheet.protect()
+        cell_format = workbook.add_format({'border': 1})
         merge_format1 = workbook.add_format({
             'bold': 1,
             'border': 1,
@@ -41,38 +35,6 @@ class DirectorFinalRatings(models.AbstractModel):
             'text_wrap': True,
         })
 
-        # merge_format3 = workbook.add_format({
-        #     'align': 'center',
-        #     'bold': 1,
-        #     'border': 1,
-        #     'font_size': 14,
-        # })
-        #
-        # merge_format4 = workbook.add_format({
-        #     'align': 'right',
-        #     'bold': 1,
-        #     'valign': 'vcenter', })
-        # merge_format4.set_num_format('#,##0.00')
-        #
-        # merge_format8 = workbook.add_format({
-        #     'align': 'right',
-        #     'bold': 0,
-        #     'valign': 'vcenter', })
-        # merge_format8.set_num_format('#,##0.00')
-        # merge_format200 = workbook.add_format({
-        #     'align': 'right',
-        #     'bold': 0,
-        #     'valign': 'vcenter', })
-        #
-        # merge_format19 = workbook.add_format({
-        #     'align': 'left',
-        #     'bold': 0,
-        #      })
-
-        # format_date = workbook.add_format({
-        #     'num_format': 'd mmm yyyy hh:mm AM/PM',
-        #     'align': 'center',
-        # })
         worksheet.set_row(1, 30)
 
         worksheet.set_column('A:A', 15)
@@ -86,9 +48,6 @@ class DirectorFinalRatings(models.AbstractModel):
         worksheet.set_column('I:I', 30)
         worksheet.set_column('J:J', 30)
         worksheet.set_row(1, 30)
-        # worksheet.merge_range('A1:I1', 'director_final_ratings', merge_format2)
-
-        # worksheet.merge_range('A2:I2', datetime.datetime.strptime(str(date_from), '%Y-%m-%d').strftime('%d-%m-%Y') +' ' 'To' ' ' + datetime.datetime.strptime(str(date_to), '%Y-%m-%d').strftime('%d-%m-%Y'), format_date)
         worksheet.write(1, 0, "Name", merge_format2)
         worksheet.write(1, 1, "Designation", merge_format2)
         worksheet.write(1, 2, "Overall Final Rating", merge_format2)
@@ -97,5 +56,11 @@ class DirectorFinalRatings(models.AbstractModel):
         worksheet.write(1, 5, "Eligible for Promotion? (Y/N)", merge_format2)
         worksheet.write(1, 6, "New Designation (if applicable)", merge_format2)
 
-
+        worksheet.write(2, 0, rating_id.employee_id.name, merge_format1)
+        worksheet.write(2, 1, rating_id.designation, merge_format1)
+        worksheet.write(2, 2, rating_id.manager_final_score, merge_format1)
+        worksheet.write(2, 3, rating_id.recommended_increment, merge_format1)
+        worksheet.write(2, 4, rating_id.recommended_pbvp_payout, merge_format1)
+        worksheet.write(2, 5, rating_id.eligible_for_promotion if rating_id.eligible_for_promotion == 'no' else rating_id.new_job_level, merge_format1)
+        worksheet.write(2, 6, rating_id.new_designation, merge_format1)
 

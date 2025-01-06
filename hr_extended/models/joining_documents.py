@@ -133,13 +133,22 @@ class JoiningDocuments(models.Model):
                 ], limit=1)
 
                 if not previous_record:
+                    previous_doc = self.env['employee.join.doc.config'].search([
+                        ('sequence', '=', record.sequence - 1)
+                    ], limit=1)
+                    previous_doc_name = dict(previous_doc._fields['document_type'].selection).get(
+                        previous_doc.document_type, 'Unknown Document'
+                    )
                     raise ValidationError(
-                        "The previous sequence record must be 'Done' before submitting the next one.")
+                        f"The '{previous_doc_name}' document must be 'Done' before submitting this.")
 
         return super(JoiningDocuments, self).write(vals)
 
     def action_submit(self):
         for record in self:
+            if record.document_type in ['it_declaration', 'ebp_claim', 'bgv'] and not record.submitted_file:
+                raise UserError(_("The attachment is missing. Please attach the required document before submitting."))
+
             if record.sequence > 0:
                 previous_record = self.search([
                     ('employee_id', '=', record.employee_id.id),
@@ -148,8 +157,14 @@ class JoiningDocuments(models.Model):
                 ], limit=1)
 
                 if not previous_record:
+                    previous_doc = self.env['employee.join.doc.config'].search([
+                        ('sequence', '=', record.sequence - 1)
+                    ], limit=1)
+                    previous_doc_name = dict(previous_doc._fields['document_type'].selection).get(
+                        previous_doc.document_type, 'Unknown Document'
+                    )
                     raise ValidationError(
-                        "The previous sequence record must be 'Done' before submitting the next one.")
+                        f"The '{previous_doc_name}' document must be 'Done' before submitting this.")
 
             record.state = 'waiting_confirmation'
             employee = record.employee_id.sudo()

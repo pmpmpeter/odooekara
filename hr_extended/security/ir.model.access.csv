@@ -18,3 +18,7 @@ access_joining_documents_user,joining.documents.user,model_joining_documents,bas
 access_joining_documents_hr,joining.documents.hr,model_joining_documents,hr.group_hr_user,1,1,1,1
 access_employee_insurance,employee.insurance,model_employee_insurance,base.group_user,1,1,1,1
 access_hr_employee_group_user,hr.employee.group.user,hr.model_hr_employee,base.group_user,1,0,0,0
+access_manpower_budget,access_manpower_budget,model_manpower_budget,base.group_user,1,1,1,1
+access_manpower_budget_employee_monthly,access_manpower_budget_employee_monthly,model_manpower_budget_employee_monthly,base.group_user,1,1,1,1
+access_manpower_budget_wizard,access_manpower_budget_wizard,model_manpower_budget_wizard,base.group_user,1,1,1,1
+access_balance_leave_report_wizard,access_balance_leave_report_wizard,model_balance_leave_report_wizard,base.group_user,1,1,1,1

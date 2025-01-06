@@ -87,6 +87,42 @@ class SelfRating(models.Model):
     director_remark = fields.Text(string="Director Remark")
     is_performance_record = fields.Boolean(string="Is Performance Record", compute="_compute_is_performance_record", store=True)
 
+    @api.constrains('kra_ids')
+    def _check_kra_weightage(self):
+        for record in self:
+            total_weightage = sum(line.weightage for line in record.kra_ids)
+            if total_weightage != 100:
+                raise ValidationError(
+                    f"The total weightage of Self Rating must equal 100. Currently, it is {total_weightage}."
+                )
+
+    @api.constrains('manager_rating_ids')
+    def _check_manager_rating_weightage(self):
+        for record in self:
+            total_weightage = sum(line.weightage for line in record.manager_rating_ids)
+            if total_weightage != 100:
+                raise ValidationError(
+                    f"The total weightage of Manager Rating details must equal 100. Currently, it is {total_weightage}."
+                )
+
+    @api.constrains('goal_sets_kras')
+    def _check_goal_sets_weightage(self):
+        for record in self:
+            total_weightage = sum(line.weightage for line in record.goal_sets_kras)
+            if total_weightage != 100:
+                raise ValidationError(
+                    f"The total weightage of Goal Sets KRAs must equal 100. Currently, it is {total_weightage}."
+                )
+
+    @api.constrains('assessment_kra_ids')
+    def _check_assessment_kra_weightage(self):
+        for record in self:
+            total_weightage = sum(line.weightage for line in record.assessment_kra_ids)
+            if total_weightage != 100:
+                raise ValidationError(
+                    f"The total weightage of Assessment KRAs must equal 100. Currently, it is {total_weightage}."
+                )
+
     @api.depends('state')
     def _compute_is_performance_record(self):
         """
@@ -99,7 +135,9 @@ class SelfRating(models.Model):
     def _compute_is_employee(self):
         current_user = self.env.user
         for record in self:
-            if record.employee_id:
+            if self.env.is_admin():
+                record.is_employee = False
+            elif record.employee_id:
                 record.is_employee = record.employee_id.user_id == current_user
             else:
                 record.is_employee = False
@@ -128,7 +166,7 @@ class SelfRating(models.Model):
             record.total_score_employee = total_employee_score
             record.total_score_manager = total_manager_score
             record.total_employee_weighted_score =((record.total_score_employee/100)/100)* line_count_self
-            record.total_manager_weighted_score = ((record.total_score_employee / 100)/100) * line_count_manager
+            record.total_manager_weighted_score = ((record.total_score_manager / 100)/100) * line_count_manager
             record.employee_final_score = round(record.total_employee_weighted_score, 1)
             record.manager_final_score = round(record.total_manager_weighted_score, 1)
             if record.manager_final_score > 4.7:
@@ -348,6 +386,15 @@ class SelfRatingKRA(models.Model):
             else:
                 record.achieved_percentage = 0
 
+    @api.constrains('self_rating', 'weightage')
+    def _validate_self_rating_values(self):
+        for record in self:
+            if record.self_rating < 0 or record.weightage < 0:
+                raise ValidationError("Negative values are not allowed for Self Rating or Weightage.")
+            if record.self_rating > record.weightage:
+                raise ValidationError("Self Rating cannot exceed the given Weightage.")
+
+
 class ManagerRating(models.Model):
     _name = 'manager.rating'
     _description = 'Manager Rating'
@@ -373,6 +420,14 @@ class ManagerRating(models.Model):
                 record.achieved_percentage = (record.manager_rating / record.weightage) * 100
             else:
                 record.achieved_percentage = 0
+
+    @api.constrains('manager_rating', 'weightage')
+    def _validate_manager_rating_values(self):
+        for record in self:
+            if record.manager_rating < 0 or record.weightage < 0:
+                raise ValidationError("Negative values are not allowed for Manager Rating or Weightage.")
+            if record.manager_rating > record.weightage:
+                raise ValidationError("Manager Rating cannot exceed the given Weightage.")
 
 
 # class DirectorRating(models.Model):

@@ -52,7 +52,7 @@
                             type="object"
                             string="Print"
                             class="btn-primary" groups="hr.group_hr_manager"
-                            invisible="state not in ('waiting_confirmation')"
+                            invisible="state not in ('waiting_confirmation','done')"
                     />
                 </header>
                 <sheet>

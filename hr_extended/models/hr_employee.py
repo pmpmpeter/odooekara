@@ -319,7 +319,10 @@ class HrEmployeeSmartButton(models.Model):
             joining_documents = self.env['joining.documents'].search([
                 ('employee_id', '=', employee.id)
             ])
-            employee.all_documents_done = all(doc.state == 'done' for doc in joining_documents)
+            if not joining_documents or any(doc.state != 'done' for doc in joining_documents):
+                employee.all_documents_done = False
+            else:
+                employee.all_documents_done = True
 
     # @api.model
     # def create(self, vals):
