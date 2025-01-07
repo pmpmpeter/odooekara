@@ -1,29 +1,43 @@
 from odoo import models, fields, api
 import calendar
-from datetime import datetime
+from datetime import datetime,date,timedelta
 
 class AttendanceReportWizard(models.TransientModel):
     _name = 'attendance.report.wizard'
     _description = 'Attendance Report Wizard'
 
     company_id = fields.Many2one('res.company', string="Company", required=True, default=lambda self: self.env.company)
-    start_date = fields.Date(string="Start Date")
-    end_date = fields.Date(string="End Date")
+    start_date = fields.Date(string="Start Date", default=lambda self: self._default_start_date())
+    end_date = fields.Date(string="End Date", default=lambda self: self._default_end_date())
 
     report_type = fields.Selection([
         ('hr_compliances','HR Compliances'),
         ('form_f', 'Form F'),
         ('form_h', 'Form H'),
         ('form_t', 'Form T'),
-    ], string='Report Type', required=True)
+    ], string='Report Type', required=True,default='form_f')
     month = fields.Selection(
         [(str(i), calendar.month_name[i]) for i in range(1, 13)],
-        string="Select Month",
+        string="Select Month",default=lambda self: str(datetime.now().month),
     )
     year = fields.Integer(
         string="Year",
         default=lambda self: fields.Date.today().year
     )
+
+    @api.model
+    def _default_start_date(self):
+        """Set the start date to the first day of the current month."""
+        today = date.today()
+        return today.replace(day=1)
+
+    @api.model
+    def _default_end_date(self):
+        """Set the end date to the last day of the current month."""
+        today = date.today()
+        next_month = today.replace(day=28) + timedelta(days=4)  # Go to the next month
+        last_day_of_month = next_month - timedelta(days=next_month.day)
+        return last_day_of_month
 
     @api.model
     def get_days_in_month(self):
@@ -42,7 +56,6 @@ class AttendanceReportWizard(models.TransientModel):
             # Last day of the month
             _, last_day = calendar.monthrange(int(self.year), int(self.month))
             end_datetime = datetime(int(self.year), int(self.month), last_day, 23, 59, 59)
-            print(start_datetime,'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
             return start_datetime
         return None
 
@@ -55,7 +68,6 @@ class AttendanceReportWizard(models.TransientModel):
             # Last day of the month
             _, last_day = calendar.monthrange(int(self.year), int(self.month))
             end_datetime = datetime(int(self.year), int(self.month), last_day, 23, 59, 59)
-            print(end_datetime,'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii')
             return end_datetime
         return None
 
@@ -81,6 +93,12 @@ class AttendanceReportWizard(models.TransientModel):
         days_in_month = self.get_days_in_month()
         startdate = self.get_start_datetime()
         enddate = self.get_end_datetime()
+        month = int(self.month)
+        year = int(self.year)
+        month_start = datetime(year, month, 1).date()
+        _, last_day = calendar.monthrange(year, month)
+        month_end = datetime(year, month, last_day).date()
+        #leave_rec = self.env['hr.leave'].sudo().search([('state','=','validate'),('request_date_from','&gt;=',month_start),('request_date_to','&lt;=',month_end)])
         data1 = {
             'month_name': calendar.month_name[int(self.month)],
             'days_in_month': days_in_month,
@@ -88,6 +106,8 @@ class AttendanceReportWizard(models.TransientModel):
             'leaves_types': leaves_types,
             'startdate':startdate,
             'enddate':enddate,
+            'month_start':month_start,
+            'month_end':month_end,
         }
 
         if self.report_type == 'form_f':

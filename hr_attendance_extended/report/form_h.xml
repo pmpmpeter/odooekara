@@ -12,12 +12,14 @@
     </record>
 
     <template id="print_form_h">
-         <t t-call="web.basic_layout">
+            <t t-call="web.basic_layout">
                 <div class="page">
                     <p>
-                        Form-H Report for Company Name (June 2024)<br/>
-                        Location : BANGALORE <br/>
-                        Sub Location : JP NAGAR-IIM
+                        <t t-set="current_date" t-value="context_timestamp(datetime.datetime.now()).strftime('%B %Y')"/>
+                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',company_id)])"/>
+                        Form-H Report for <t t-esc="company_name.name"/> (<t t-esc="current_date"/>)<br/>
+                        Location : <t t-esc="company_name.city"/> <br/>
+                        Sub Location : <t t-esc="company_name.city"/>
 
                     </p>
                     <table style="width:100%; border-collapse: collapse;  font-size: 14px; ">
@@ -25,14 +27,14 @@
                             <td colspan="20" style="text-align: center; vertical-align: middle; padding: 10px;">FORM H</td>
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;"/>
                         </tr>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td colspan="20" style="text-align: center; vertical-align: middle; padding: 10px;">(SEE RULE 9)</td>
                         </tr>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td colspan="20" style="text-align: center; vertical-align: middle; padding: 10px;"> LEAVE WITH WAGES BOOK
                             </td>
                         </tr>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Sl no</td>
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Emp ID</td>
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Emp Type</td>
@@ -44,7 +46,7 @@
                             <td colspan="4" style="text-align: center; vertical-align: middle; padding: 10px;">PART II Sick Leave
                             </td>
                         </tr>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td colspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">No of days worked</td>
                             <td rowspan="2" style="text-align: center; vertical-align: middle; padding: 10px;">Leave earned</td>
                             <td rowspan="2" style="text-align: center; vertical-align: middle; padding: 10px;">Leave at credit (incl balance if
@@ -60,7 +62,7 @@
                             <td rowspan="2" style="text-align: center; vertical-align: middle; padding: 10px;">Balance at the end of the year
                             </td>
                         </tr>
-                        <tr>
+                        <tr style="font-weight: bold;">
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">From</td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">To</td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Total days worked</td>
@@ -82,23 +84,31 @@
                             <t t-set="days" t-value="0"/>
                             <t t-set="attendance" t-value="request.env['hr.attendance'].sudo().search([('employee_id','=',emp.id),('check_in','&gt;=',start_datetime),('check_in','&lt;=',end_datetime)])"/>
                             <t t-if="attendance">
-                                <t t-foreach="attendance" t-as="rec">
-                                 <t t-set="days" t-value="round(days + (rec.worked_hours / contract_id.resource_calendar_id.hours_per_day), 2)"/>
-                                    <t t-if="contract_id.resource_calendar_id.full_time_required_hours == 40.00">
-                                        <t t-set="leaves_earned" t-value="1.75"/>
+                                <t t-if="contract_id">
+                                     <t t-foreach="attendance" t-as="rec">
+                                         <t t-set="days" t-value="round(days + (rec.worked_hours / contract_id.resource_calendar_id.hours_per_day), 2)"/>
+                                            <t t-if="contract_id.resource_calendar_id.full_time_required_hours == 40.00">
+                                                <t t-set="leaves_earned" t-value="1.75"/>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-set="leaves_earned" t-value="1.95"/>
+                                            </t>
                                     </t>
-                                    <t t-else="">
-                                        <t t-set="leaves_earned" t-value="1.95"/>
-                                    </t>
+                                </t>
+
                             </t>
-                            </t>
-                            <t t-set="leaves_initial" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('state','=','validate')])"/>
+                            <t t-set="leaves_initial" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('state','=','validate'),('date_from','&gt;=',start_date),('date_from','&lt;=',end_date)])"/>
                             <t t-foreach="leaves_initial" t-as="leaves">
                                 <t t-set="overall_leaves" t-value="overall_leaves+leaves.number_of_days_display"/>
                             </t>
+                            <t t-set="total_taken_leaves" t-value="0.0"/>
+                            <t t-set="taken_leaves" t-value="request.env['hr.leave'].sudo().search([('employee_id','=',emp.id),('state','=','validate'),('request_date_from','&gt;=',start_date),('request_date_to','&lt;=',end_date)])"/>
+                             <t t-foreach="taken_leaves" t-as="rec">
+                                <t t-set="total_taken_leaves" t-value="total_taken_leaves + rec.number_of_days_display"/>
+                            </t>
                             <t t-set="total_allocated_sick_leaves" t-value="0.0"/>
                             <t t-set="timeoff_taken" t-value="0.0"/>
-                            <t t-set="sick_leave" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('holiday_status_id','=','Sick Time Off'),('state','=','validate')])"/>
+                            <t t-set="sick_leave" t-value="request.env['hr.leave.allocation'].sudo().search([('employee_id','=',emp.id),('holiday_status_id','=','Sick Time Off'),('state','=','validate'),('date_from','&gt;=',start_date),('date_from','&lt;=',end_date)])"/>
                             <t t-set="sick_leave_taken" t-value="request.env['hr.leave'].sudo().search([('employee_id','=',emp.id),('holiday_status_id.name','=','Sick Time Off'),('state','=','validate'),('request_date_from','&gt;=',start_date),('request_date_to','&lt;=',end_date)])"/>
                             <t t-foreach="sick_leave" t-as="sick_leaves">
                                 <t t-set="total_allocated_sick_leaves" t-value="total_allocated_sick_leaves + sick_leaves.number_of_days_display"/>
@@ -145,16 +155,34 @@
                                  <t t-esc="overall_leaves"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
+                                <t t-foreach="taken_leaves" t-as="rec">
+                                    <t t-esc="rec.date_from" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                </t>
+                            </td>
+                            <td style="text-align: center;  padding: 10px;height: 70px;">
+                                 <t t-foreach="taken_leaves" t-as="rec">
+                                    <t t-esc="rec.date_to" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
+                                     <br/>
+                                     <br/>
+                                     <br/>
+                                </t>
 
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-
+                                 <t t-foreach="taken_leaves" t-as="rec">
+                                    <t t-esc="rec.number_of_days_display"/>
+                                     <br/>
+                                     <br/>
+                                     <br/>
+                                      <br/>
+                                     <br/>
+                                </t>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-
-                            </td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="emp.remaining_leaves"/>
+                                 <t t-esc="overall_leaves-total_taken_leaves"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
 

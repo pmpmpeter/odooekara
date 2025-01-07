@@ -12,12 +12,14 @@
     </record>
 
     <template id="print_form_t">
-        <t t-call="web.basic_layout">
+         <t t-call="web.basic_layout">
                 <div class="page" style="margin:0;">
                     <p>
+                        <t t-set="current_date" t-value="context_timestamp(datetime.datetime.now()).strftime('%B %Y')"/>
+                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',company_id)])"/>
                         <b style="font-size: 15px;">COMBINE MUSTER ROLL CUM REGISTER OF WAGES<br/>
-                        FORM - T FOR THE MONTH OF JUNE 2024</b><br/><br/>
-                        Location : BANGALORE<br/>
+                        FORM - T FOR THE MONTH OF JUNE (<t t-esc="current_date"/>)</b><br/><br/>
+                        Location : <t t-esc="company_name.city"/><br/>
                         Name &amp; Address of the establishment : <br/><br/>
                         Name &amp; Address of Principal Employer :<br/><br/>
                         <ol>(See Rule 24 (9-B) of Karnataka Shops &amp; Commercial Establishment Rules, 1963) in Lieu of )
@@ -45,15 +47,16 @@
                                     <t t-esc="str(day)"/>
                             </td>
                             <td style="text-align: center; vertical-align: middle; padding: 10px;">Days Payable</td>
+                             <t t-set="count" t-value="1"/>
                         </tr>
                             <t t-foreach="employee" t-as="emp">
                                 <t t-set="employee_rec" t-value="request.env['hr.employee'].sudo().search([('id','=',emp)])"/>
-                                <t t-set="leaves" t-value="request.env['hr.leave'].sudo().search([('employee_ids.id', '=', employee_rec.id)])"/>
-                                <t t-esc="leaves"/><span>rrew</span>
+                                <t t-set="leaves" t-value="request.env['hr.leave'].sudo().search([('employee_ids.id', '=', employee_rec.id),('state','=','validate'),('request_date_from','&gt;=',month_start),('request_date_to','&lt;=',month_end)])"/>
+                                <t t-esc="leaves"/>
                                 <t t-set="attendance" t-value="request.env['hr.attendance'].sudo().search([('employee_id', '=', employee_rec.id)])"/>
                                 <tr>
                                     <td style="text-align: left; padding: 10px;height: 70px;">
-
+                                          <t t-esc="count"/>
                                     </td>
                                     <td style="text-align: left; padding: 10px;height: 70px;">
                                         <t t-esc="employee_rec.employee_number"/>
@@ -81,44 +84,28 @@
                                     </td>
 
                                         <td t-foreach="range(1,days_in_month + 1)" t-as="day">
-                                            <t t-if="attendance">
+                                            <!--<t t-if="attendance">-->
                                                 <t t-foreach="attendance" t-as="att">
 
                                                 <t t-set="date" t-value="att.check_in.strftime('%d')"/>
-<!--                                                <t t-esc="date"/>-->
-<!--                                                <t t-esc="day"/>-->
                                                 <t t-if="str(date) == str(day)">
                                                    <center><span>P</span></center>
                                                 </t>
-                                            </t>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-if="leaves">
-
-
-                                                                 <t t-foreach="leaves" t-as="rec">
-                                                                     <t t-set="date" t-value="rec.request_date_from.strftime('%d')"/>
-                                                                    <t t-foreach="leaves_types" t-as="type">
-<!--                                                                        <t t-esc="type"/>-->
-                                                                        <t t-if="rec.holiday_status_id.name == type">
-
+                                                 </t>
+                                                                    <t t-foreach="leaves" t-as="rec">
+                                                                        <t t-set="date" t-value="int(rec.request_date_from.strftime('%d'))"/>
                                                                             <t t-if="str(date) == str(day)">
                                                                               <center><t t-esc="rec.holiday_status_id.code"/></center>
-                                                                        </t>
-                                                                 </t>
-                                                            </t>
+                                                                            </t>
+                                                                    </t>
 
-                                                    </t>
-                                                </t>
-                                                <t t-else="">
-                                                    <center><span>-</span></center>
-                                                </t>
-                                            </t>
 
                                     </td>
 
-                                    <td style="text-align: left; padding: 10px;height: 70px;"></td>
+                                    <td style="text-align: left; padding: 10px;height: 70px;"/>
+
                                 </tr>
+                                <t t-set="count" t-value="count+1"/>
                             </t>
 
                     </table>
@@ -127,133 +114,23 @@
                         <tr>
                             <td style="text-align: center;  padding: 10px;">Abbreviation</td>
                             <td style="text-align: center;  padding: 10px;">Expansion</td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
-                            <td style="text-align: left; padding: 10px;"></td>
+                            <td style="text-align: left; padding: 10px;"/>
+                            <td style="text-align: left; padding: 10px;"/>
+                            <td style="text-align: left; padding: 10px;"/>
+                            <td style="text-align: left; padding: 10px;"/>
                             <t t-foreach="timeoff_typ" t-as="rec">
                                 <tr>
                                      <td style="text-align: left; padding: 10px;"><t t-esc="rec.code"/></td>
                                     <td style="text-align: left; padding: 10px;"><t t-esc="rec.name"/></td>
-                                    <td style="text-align: left; padding: 10px;"></td>
-                                    <td style="text-align: left; padding: 10px;"></td>
-                                    <td style="text-align: left; padding: 10px;"></td>
-                                    <td style="text-align: left; padding: 10px;"></td>
+                                    <td style="text-align: left; padding: 10px;"/>
+                                    <td style="text-align: left; padding: 10px;"/>
+                                    <td style="text-align: left; padding: 10px;"/>
+                                    <td style="text-align: left; padding: 10px;"/>
                                 </tr>
 
                             </t>
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">P</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Present</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">CL</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Casual Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">EL</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Earned Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">ML</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Maternity Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">PL</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Paternity Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">WO</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Week Off</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">EH</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Half Day Earned Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">CH</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Half Day Casual Leave</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">LP</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Loss of Pay</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">LH</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Half Day Loss of Pay</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">CO</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Compensatory Off</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left; padding: 10px;">CC</td>-->
-<!--                            <td style="text-align: left; padding: 10px;">Work on Holiday</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                        </tr><tr>-->
-<!--                            <td style="text-align: left;  padding: 10px;">OD</td>-->
-<!--                            <td style="text-align: left;  padding: 10px;">On-Duty</td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
-<!--                            <td style="text-align: left; padding: 10px;"></td>-->
                         </tr>
                     </table>
-<!--                    <table>-->
-<!--                        <thead>-->
-<!--                            <tr>-->
-<!--                                <th>Date</th>-->
-<!--                                <th t-foreach="range(1, days_in_month + 1)" t-as="day">-->
-<!--                                    <t t-esc="str(day)"/>-->
-<!--                                </th>-->
-<!--                            </tr>-->
-<!--                        </thead>-->
-<!--                        <tbody>-->
-<!--                            <tr>-->
-<!--                                <td>Details</td>-->
-<!--                                <td t-foreach="range(1,days_in_month + 1)" t-as="day">-->
-<!--                                    <t t-esc="str(day)"/>-->
-<!--                                </td>-->
-<!--                            </tr>-->
-<!--                        </tbody>-->
-<!--                    </table>-->
-
                 </div>
             </t>
     </template>
