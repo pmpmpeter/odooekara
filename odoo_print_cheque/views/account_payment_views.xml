@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <!--Reconfigured cheque related action buttons views -->
-    <record id="view_account_payment_form_inherited" model="ir.ui.view">
+    <record id="view_inherited_account_payment_form" model="ir.ui.view">
         <field name="name">account.payment.view.form.inherit.odoo.print.cheque</field>
         <field name="model">account.payment</field>
         <field name="inherit_id"
