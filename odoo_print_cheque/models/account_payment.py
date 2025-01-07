@@ -1,26 +1,13 @@
-# -*- coding: utf-8 -*-
-###############################################################################
-#
-#   Cybrosys Technologies Pvt. Ltd.
-#
-#   Copyright (C) 2023-TODAY Cybrosys Technologies(<https://www.cybrosys.com>).
-#   Author: Aslam A K( odoo@cybrosys.com )
-#
-#   You can modify it under the terms of the GNU AFFERO
-#   GENERAL PUBLIC LICENSE (AGPL v3), Version 3.
-#
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU AFFERO GENERAL PUBLIC LICENSE (AGPL v3) for more details.
-#
-#   You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE
-#   (AGPL v3) along with this program.
-#   If not, see <http://www.gnu.org/licenses/>.
-#
-###############################################################################
 from odoo import models,fields,api
 from num2words import num2words
+import io
+import xlsxwriter
+from odoo.http import request
+import base64
+from datetime import datetime
+from odoo.exceptions import AccessError, UserError, ValidationError
+
+
 
 
 class AccountPayment(models.Model):
@@ -46,6 +33,11 @@ class AccountPayment(models.Model):
     authorised_date = fields.Date(string="Authorised Date")
     is_cheque_cleared = fields.Boolean(string="Cheque Cleared")
     cheque_cleared_date = fields.Date(string="Date of Cheque Cleared")
+    trans_id = fields.Char(string="Transaction ID")
+    sender_account_type = fields.Char(string="Sender Account Type")
+    beneficiary_account_type  = fields.Char(string="Beneficiary Account Type")
+    sender_receiver_info  = fields.Char(string="Sender Receiver Information")
+    sms_email = fields.Selection([('sms','SMS'),('email','Email')], string="SMS / Email")
 
 
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
@@ -149,7 +141,166 @@ class AccountBatchPayment(models.Model):
     )
 
 
+    def action_print_batch_payment_pdf(self):
+        return self.env.ref('odoo_print_cheque.print_cheque_payment_batch').report_action(self)
+
+
     @api.depends('amount', 'currency_id')
     def _compute_amount_total_words(self):
         for rec in self:
             rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.amount)).replace(',', '')
+
+    def action_open_mail_wizard(self):
+        """ Opens a wizard to compose an email, with relevant mail template loaded by default """
+        self.ensure_one()
+        # self.order_line._validate_analytic_distribution()
+        lang = self.env.context.get('lang')
+        mail_template = self.env.ref('odoo_print_cheque.email_template_batch_payment')
+        if mail_template and mail_template.lang:
+            lang = mail_template._render_lang(self.ids)[self.id]
+
+        # Generate attachments (if not already generated)
+        self.action_export_payment_details_xlsx()
+        self.action_generate_pdf_attachment()
+
+        # Search for attachments
+        attachments = (self.env['ir.attachment'].search([
+            ('res_model', '=', 'account.batch.payment'),
+            ('res_id', '=', self.id),
+            ('name', 'ilike', 'Batch_Payment_Details')
+            ],limit=1)
+                       +
+            self.env['ir.attachment'].search([
+            ('res_model', '=', 'account.batch.payment'),
+            ('res_id', '=', self.id),
+            ('name', 'ilike', 'Batch_Cheque_Report')
+            ], limit=1))
+
+
+        # Prepare attachment IDs
+        attachment_ids = [(4, att.id) for att in attachments]
+
+
+
+        ctx = {
+            'default_model': 'account.batch.payment',
+            'default_res_ids': self.ids,
+            'default_template_id': mail_template.id if mail_template else None,
+            'default_composition_mode': 'comment',
+            'default_attachment_ids': attachment_ids,
+            'mark_so_as_sent': True,
+            'default_email_layout_xmlid': 'mail.mail_notification_layout_with_responsible_signature',
+            'force_email': True,
+            'model_description': self.with_context(lang=lang).name,
+        }
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(False, 'form')],
+            'view_id': False,
+            'target': 'new',
+            'context': ctx,
+        }
+
+    def action_generate_pdf_attachment(self):
+        print("confirmed")
+        """ Generate and Attach PDF Report to the Record """
+        self.ensure_one()
+
+
+        pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
+            'odoo_print_cheque.print_cheque_payment_batch',
+            res_ids=self.ids
+        )
+
+        print(self.ids)
+
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Batch_Cheque_Report_{self.name}.pdf',
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content),
+            'res_model': 'account.batch.payment',
+            'res_id': self.id,
+            'mimetype': 'application/pdf',
+        })
+
+        return attachment
+
+
+    def action_export_payment_details_xlsx(self):
+        # Create Excel Report in Memory
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet('Payment Details')
+
+        # Formats
+        bold = workbook.add_format({'bold': True, 'bg_color': '#D7E4BC'})
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+
+        # Define Headers
+        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML','DETAIL','OoR7002 (SENDER NAME)','BENEFICIARY IFSC'
+                   , 'BENEFICIARY ACCOUNT TYPE','BENEFICIARY ACCOUNT NO','BENEFICIARY ACCOUNT NAME','SENDER TO RECEIVER INFORMATION']
+
+        for col, header in enumerate(headers):
+            sheet.write(0, col, header, bold)
+
+        # Populate Data
+        row = 1
+        for index, line in enumerate(self.payment_ids, start=1):
+            sheet.write(row, 0, index or '')
+            sheet.write(row, 1, line.trans_id or '')
+            sheet.write(row, 2, line.amount or 0.0)
+            sheet.write(row, 3, line.sender_account_type or '')
+            sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
+            sheet.write(row, 5, line.journal_id.bank_account_id.acc_holder_name or '')
+            sheet.write(row, 6, line.sms_email or '')
+            sheet.write(row, 7, line.journal_id.bank_account_id.partner_id.email or '')
+            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name  or '')
+            sheet.write(row, 9, line.partner_bank_id.bank_id.bic or '')
+            sheet.write(row, 10, line.beneficiary_account_type or '')
+            sheet.write(row, 11, line.partner_bank_id.acc_number or '')
+            sheet.write(row, 12, line.partner_bank_id.partner_id.name or '')
+            sheet.write(row, 13, line.sender_receiver_info or '')
+            row += 1
+
+        sheet.set_column(0, 0, 5)
+        sheet.set_column(1, 1, 15)
+        sheet.set_column(2, 2, 10)
+        sheet.set_column(3, 3, 20)
+        sheet.set_column(4, 4, 20)
+        sheet.set_column(5, 5, 25)
+        sheet.set_column(6, 6, 15)
+        sheet.set_column(7, 7, 30)
+        sheet.set_column(8, 8, 25)
+        sheet.set_column(9, 9, 20)
+        sheet.set_column(10, 10, 20)
+        sheet.set_column(11, 11, 25)
+        sheet.set_column(12, 12, 30)
+        sheet.set_column(13, 13, 40)
+
+
+        workbook.close()
+        output.seek(0)
+
+        # Encode File to Base64
+        file_data = base64.b64encode(output.read())
+        output.close()
+
+        # Create Attachment
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Batch_Payment_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'type': 'binary',
+            'datas': file_data,
+            'store_fname': f'Batch_Payment_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': 'account.batch.payment',
+            'res_id': self.id,
+        })
+
+        # Return the attachment download URL
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }

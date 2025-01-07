@@ -68,6 +68,7 @@
         'views/hr_employee.xml',
         'views/hr_applicant.xml',
         'views/survey.xml',
+        'wizard/balance_leaves.xml'
     ],
     'installable': True,
     'application': True,

@@ -19,6 +19,7 @@
         'account_budget',
         'multi_level_approval',
         'report_xlsx',
+        'odoo_print_cheque',
     ],
     'data': [
         'security/ir.model.access.csv',

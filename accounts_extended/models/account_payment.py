@@ -50,7 +50,7 @@ class AccountPayment(models.Model):
 
     def action_post(self):
         for pay in self:
-            if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared:
+            if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared and pay.payment_type == 'outbound':
                 raise UserError(_("Alert !! Kindly Clear the cheque and Update the utr number."))
             if not pay.utr_number and pay.payment_type == 'outbound':
                 raise UserError(_("Alert !! Kindly update the UTR Number."))

@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="account.view_account_payment_form"/>
             <field name="arch" type="xml">
                  <field name="ref" position="after">
-                    <field name='utr_number' readonly = "state == 'posted'" required ="payment_type == 'outbound'"/>
+                    <field name='utr_number' readonly = "state == 'posted'" invisible="not show_partner_bank_account and not is_cheque_cleared"/>
                 </field>
                 <field name="journal_id" position="before">
                     <field name="approval_state"/>

@@ -30,9 +30,10 @@
     'company': 'Cybrosys Techno Solutions',
     'maintainer': 'Cybrosys Techno Solutions',
     'website': "https://www.cybrosys.com",
-    'depends': ['base','account','account_check_printing','accounts_extended','account_batch_payment'],
+    'depends': ['base','account','account_check_printing','account_batch_payment'],
     'data': [
         'security/ir.model.access.csv',
+        'data/batch_payment_mail_template.xml',
         'views/res_config_settings_views.xml',
         'views/cheque_format_views.xml',
         'views/account_payment_views.xml',
@@ -40,7 +41,8 @@
         'report/cheque_format_reports.xml',
         'report/cheque_payment_templates.xml',
         'report/cheque_batch_payment_templates.xml',
-        'wizard/cheque_type_views.xml'
+        'wizard/cheque_type_views.xml',
+
     ],
     'images': ['static/description/banner.jpg'],
     # 'license': 'AGPL-3',
