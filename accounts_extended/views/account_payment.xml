@@ -9,6 +9,38 @@
                  <field name="ref" position="after">
                     <field name='utr_number' invisible="not show_partner_bank_account and not is_cheque_cleared"/>
                 </field>
+                <xpath expr="//field[@name='payment_method_line_id']" position="after">
+                <field name="cheque_format_id" invisible="show_partner_bank_account"/>
+                <field name="is_cheque_cleared" invisible="show_partner_bank_account"/>
+                <field name="cheque_cleared_date" invisible="show_partner_bank_account"/>
+            </xpath>
+            <xpath expr="//group[@name='main_group']" position="after">
+                <notebook>
+                    <page name="cheque_details" string="Cheque Details" invisible="show_partner_bank_account">
+                        <group>
+                            <group>
+                                <field name="sr_no"/>
+                                <field name="cheque_number"/>
+                                <field name="assigned_by"/>
+                                <field name="managed_by"/>
+                            </group>
+                            <group>
+                                <field name="authorised_by"/>
+                                <field name="authorised_date"/>
+                                <field name="comments"/>
+                                <field name="towards"/>
+                            </group>
+                            <group>
+                                <field name="trans_id"/>
+                                <field name="sender_account_type"/>
+                                <field name="beneficiary_account_type"/>
+                                <field name="sender_receiver_info"/>
+                                <field name="sms_email"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </xpath>
                 <field name="journal_id" position="before">
                     <field name="is_fund_requsiting" invisible="1"/>
                     <field name="approval_document" invisible="1"/>
@@ -22,4 +54,37 @@
                 </xpath>
             </field>
         </record>
+
+        <record id="view_account_batch_payment_form_inherited" model="ir.ui.view">
+        <field name="name">account.batch.payment.view.form.inherit.odoo.print.cheque</field>
+        <field name="model">account.batch.payment</field>
+        <field name="inherit_id"
+               ref="account_batch_payment.view_batch_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="cheque_format_id"/>
+            </xpath>
+            <xpath expr="//page[@name='batch_content']" position="after">
+                    <page name="check_details" string="Check Details">
+                        <group>
+                            <group>
+                                <field name="cheque_number"/>
+                                <field name="authorised_by"/>
+                                <field name="authorised_date"/>
+                            </group>
+                            <group>
+
+                                <field name="towards"/>
+                            </group>
+                        </group>
+                    </page>
+            </xpath>
+
+            <xpath expr="//page/field/tree/field[@name='state']" position="before">
+                <field name="is_cheque_cleared" column_invisible=""/>
+                <field name="cheque_cleared_date" column_invisible=""/>
+                <field name="utr_number" optional='hide'/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

@@ -11,7 +11,7 @@
                      <button name="action_post" string="Post" class="oe_highlight" type="object"
                              groups="account.group_account_invoice" data-hotkey="q"
                              context="{'validate_analytic': True}"
-                             invisible="hide_post_button or move_type != 'entry'"/>
+                             invisible="1"/>
                     <button name="action_post" string="Confirm" class="oe_highlight" type="object"
                             groups="account.group_account_invoice" data-hotkey="q"
                             context="{'validate_analytic': True}"

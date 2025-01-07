@@ -36,7 +36,7 @@
         'data/batch_payment_mail_template.xml',
         'views/res_config_settings_views.xml',
         'views/cheque_format_views.xml',
-        'views/account_payment_views.xml',
+        # 'views/account_payment_views.xml',
         'report/cheque_format_templates.xml',
         'report/cheque_format_reports.xml',
         'report/cheque_payment_templates.xml',
