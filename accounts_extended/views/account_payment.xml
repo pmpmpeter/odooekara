@@ -61,6 +61,22 @@
         <field name="inherit_id"
                ref="account_batch_payment.view_batch_payment_form"/>
         <field name="arch" type="xml">
+            <header>
+                <button name="action_export_payment_details_xlsx"
+                        string="Export to Excel"
+                        type="object"
+                        class="oe_highlight"/>
+                 <button name="action_print_batch_payment_pdf"
+                                type="object"
+                                string="Print Cheque PDF"
+                                class="btn-primary"
+                                icon="fa-print"/>
+                  <button name="action_open_mail_wizard"
+                        string="Send Mail"
+                        type="object"
+                        class="btn-primary"/>
+
+            </header>
             <xpath expr="//field[@name='name']" position="after">
                 <field name="cheque_format_id"/>
             </xpath>
