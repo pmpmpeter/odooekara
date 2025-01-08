@@ -66,6 +66,8 @@ class RequestApproval(models.TransientModel):
         record = self.env[model_name].browse(res_id)
         if model_name == 'crossovered.budget' and record.crossovered_budget_line:
             for line in record.crossovered_budget_line:
+                if not line.analytic_account_id:
+                    raise UserError('Kinldy add a Analytic Account for a Budget Line')
                 if line.planned_amount <= 0:
                     raise UserError('Warning !! Planned Amount Should be greater than Zero')
 
