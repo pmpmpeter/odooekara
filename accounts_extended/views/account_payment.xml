@@ -45,6 +45,7 @@
                     <field name="is_fund_requsiting" invisible="1"/>
                     <field name="approval_document" invisible="1"/>
                     <field name="x_need_approval" invisible="1"/>
+                    <field name="is_contra_payment" invisible="1"/>
                      <field name="approval_state" invisible="is_contra_payment or (payment_type == 'inbound' and not is_fund_requsiting)"/>
                 </field>
                 <xpath expr="//button[@name='action_post']" position="replace">

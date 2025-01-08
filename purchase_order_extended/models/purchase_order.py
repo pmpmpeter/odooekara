@@ -273,3 +273,31 @@ class PurchaseOrderInherit(models.Model):
             #     taxes_ids=taxes_ids)
             # order_lines.append((0, 0, order_line_values))
         self.order_line = order_lines
+
+class PurchaseOrderLine(models.Model):
+    _inherit = 'purchase.order.line'
+
+    def _prepare_account_move_line(self, move=False):
+        self.ensure_one()
+        aml_currency = move and move.currency_id or self.currency_id
+        date = move and move.date or fields.Date.today()
+        res = {
+            'display_type': self.display_type or 'product',
+            'name': '%s: %s' % (self.order_id.name, self.name),
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_uom.id,
+            'quantity': self.qty_to_invoice,
+            'discount': self.discount,
+            'price_unit': self.currency_id._convert(self.price_unit, aml_currency, self.company_id, date, round=False),
+            'tax_ids': [(6, 0, self.taxes_id.ids)],
+            'purchase_line_id': self.id,
+        }
+        if self.analytic_distribution and not self.display_type:
+            res['analytic_distribution'] = self.analytic_distribution
+        if self.order_id.budget_id.analytic_account_id:
+            distribution = {}
+
+            distribution[self.order_id.budget_id.analytic_account_id.id] = 100.0 
+
+            res['analytic_distribution'] = distribution
+        return res

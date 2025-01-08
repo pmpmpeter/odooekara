@@ -30,6 +30,20 @@ class ResPartner(models.Model):
 
     msme_number = fields.Char(string="MSME Number")
 
+    @api.model
+    def name_get(self):
+        result = []
+        for record in self:
+            name = f"{record.ref} {record.name}" if record.ref else record.name
+            result.append((record.id, name))
+        return result
+
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        args = args or []
+        domain = ['|', ('name', operator, name), ('ref', operator, name)]
+        return self.search(domain + args, limit=limit).name_get()
+
 
     @api.constrains('msme_number')
     def _check_msme_number(self):
