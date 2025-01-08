@@ -27,9 +27,9 @@
                     <button name="action_revise" type="object" string="Revise" class="btn-primary"
                             invisible="state not in 'done'" groups="account.group_account_manager"/>
                 </xpath>
-                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="attributes">
+                <!--  <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="attributes">
                     <attribute name="optional">hide</attribute>
-                </xpath>
+                </xpath> -->
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='percentage']" position="attributes">
                     <attribute name="optional">hide</attribute>
                 </xpath>

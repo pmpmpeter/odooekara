@@ -1,5 +1,7 @@
 from odoo import api, fields, models, _, Command
 from odoo.osv import expression
+from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
+
 
 class BudgetInherit(models.Model):
     _inherit = 'crossovered.budget'
@@ -50,6 +52,13 @@ class BudgetInherit(models.Model):
             'context': {'active_id': self.id},
         }
 
+    def action_budget_confirm(self):
+        for line in self.crossovered_budget_line:
+            if not line.analytic_account_id:
+                raise UserError('Kinldy add a Analytic Account for a Budget Line')
+
+        return super().action_budget_confirm()
+
     def action_budget_done(self):
         for rec in self.crossovered_budget_line:
             if not rec.is_budget_code:
@@ -64,7 +73,7 @@ class Crossoverbudgetlines(models.Model):
     def _compute_balance_amount(self):
         for rec in self:
             rec.balance_amount = rec.planned_amount-(abs(rec.practical_amount)+rec.reserved_amount)
-            
+
     name = fields.Char(compute="_compute_line_name", store=True)
     budget_code = fields.Char('Budget Code')
     is_budget_code = fields.Boolean('Is Budget Code')
