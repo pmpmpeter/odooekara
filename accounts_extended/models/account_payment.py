@@ -60,6 +60,11 @@ class AccountPayment(models.Model):
                 for line in pay.move_id.line_ids:
                     if line.account_id == pay.outstanding_account_id:
                         line.name +=('-'+pay.utr_number)
+            user_email = pay.expense_sheet_id.user_id.email if pay.expense_sheet_id.user_id else ''
+            employee_email = pay.expense_sheet_id.employee_id.work_email if pay.expense_sheet_id.employee_id else ''
+            template = self.env.ref('account.mail_template_data_payment_receipt')
+            template.write({'email_to': ', '.join(filter(None, [user_email, employee_email]))})
+            template.send_mail(self.id, force_send=True)
         res = super(AccountPayment, self).action_post()
         return res
 

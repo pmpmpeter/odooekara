@@ -15,10 +15,11 @@
                     <field name="currency_id" invisible="1"/>
                     <field name="company_currency_id" invisible="1"/>
                     <field name="is_payment_approval" invisible="1"/>
+                    <field name="x_has_request_approval" invisible="1"/>
                     <header>
                         <button name="action_submit_sheet"
                                 string="Submit to Manager"
-                                invisible="state != 'draft'"
+                                invisible="is_payment_approval or state != 'draft'"
                                 type="object"
                                 class="oe_highlight o_expense_sheet_submit"
                                 data-hotkey="l"/>
@@ -27,7 +28,7 @@
                                 type="object"
                                 data-hotkey="q"
                                 context="{'validate_analytic': True}"
-                                invisible="not can_approve or state != 'submit'"
+                                invisible="is_payment_approval or state != 'submit'"
                                 class="oe_highlight o_expense_sheet_approve"/>
                         <button name="action_sheet_move_create"
                                 string="Post Journal Entries"
@@ -46,20 +47,20 @@
                                 groups="account.group_account_invoice"/>
                         <button name="action_refuse_expense_sheets"
                                 string="Refuse"
-                                invisible="state not in ('submit', 'approve')"
+                                invisible="is_payment_approval or state != 'submit'"
                                 type="object"
                                 groups="hr_expense.group_hr_expense_team_approver"
                                 data-hotkey="x"/>
                         <button name="action_reset_approval_expense_sheets"
                                 string="Reset to Draft"
                                 type="object"
-                                invisible="not can_reset or state not in ('submit', 'cancel', 'approve')"
+                                invisible="state != 'cancel' or x_has_request_approval"
                                 data-hotkey="k"/>
                         <button name="action_reset_expense_sheets"
                                 string="Reset to Draft"
                                 type="object"
                                 data-hotkey="c"
-                                invisible="state != 'post'"
+                                invisible="1"
                                 groups="account.group_account_readonly,account.group_account_invoice"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,submit,approve,post,done"
                                force_save="1" invisible="state == 'cancel'"/>
@@ -127,12 +128,15 @@
                             <group>
                                 <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"
                                        invisible="is_payment_approval"/>
+                                <field name="employee_id" widget="many2one_avatar_user" readonly="state != 'draft'"/>
                                 <field name="user_id" widget="many2one_avatar_user" readonly="state != 'draft'"/>
                                 <field name="sequence"/>
                                 <field name="accounting_date"
                                        groups="account.group_account_invoice,account.group_account_readonly"
                                        invisible="state not in ['approve', 'post', 'done']"
                                        readonly="not is_editable"/>
+                                <field name="approval_document" invisible="1"/>
+                                <field name="approval_status"/>
                             </group>
                         </group>
                         <notebook>
@@ -221,6 +225,11 @@
                                     <field name="amount_residual"
                                            class="oe_subtotal_footer_separator"
                                            invisible="state not in ('post', 'done')"/>
+                                </group>
+                            </page>
+                            <page name="Approval Reason" string="Approval Comments">
+                                <group>
+                                    <field name="reason_approved" readonly="1"/>
                                 </group>
                             </page>
                         </notebook>

@@ -34,6 +34,12 @@ class HrExpense(models.Model):
         compute='_compute_expense_total_amount', store=True, readonly=False,
         tracking=True,
     )
+    state = fields.Selection(selection_add=[
+        ('to approve', 'To Approve')],
+        string="Status",
+        index=True, required=True, readonly=True, copy=False, tracking=True,
+        ondelete={'to approve': 'set default'},
+        default='draft')
 
     def action_submit_expenses(self):
         for record in self.filtered(lambda s: s.state in ['draft'] and s.is_payment_approval):
@@ -498,6 +504,63 @@ class HrExpenseSheet(models.Model):
     user_id = fields.Many2one('res.users', string="Requested By", default=lambda self: self.env.user)
     is_payment_approval = fields.Boolean(string="Is Payment Approval", default=False)
     supplier_id = fields.Many2one('res.partner', string="Supplier")
+    state = fields.Selection(selection_add=[
+        ('to approve', 'To Approve')],
+        string="Status",
+        index=True, required=True, readonly=True, copy=False, tracking=True,
+        ondelete={'to approve': 'set default'},
+        default='draft')
+    approval_status = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
+                                 tracking=True)
+    approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
+
+    reason_approved = fields.Text(string='Approval Comments')
+
+    @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
+    def compute_approval_state(self):
+        for record in self:
+            if record.approval_document:
+                line_states = record.approval_document.line_ids.mapped('state')
+                if all(state == 'Draft' for state in line_states):
+                    record.approval_status = 'Waiting For Approval'
+                elif 'Waiting for Approval' in line_states:
+                    waiting_lines = record.approval_document.line_ids.filtered(
+                        lambda l: l.state == 'Waiting for Approval')
+                    if waiting_lines:
+                        record.approval_status = f"Waiting for {', '.join(waiting_lines.mapped('name'))} Approval"
+                elif all(state == 'Approved' for state in line_states):
+                    record.approval_status = 'Approved'
+                elif 'Refused' in line_states:
+                    record.approval_status = 'Rejected'
+                elif 'Cancel' in line_states:
+                    record.approval_status = 'Cancelled'
+            else:
+                rec = self.env['multi.approval.type'].sudo().search(
+                    [('model_id', '=', 'hr.expense.sheet'), ('state', '=', 'confirm')], limit=1)
+                if rec:
+                        record.approval_status = 'To Submit for Approval'
+                else:
+                        record.approval_status = 'Not Applicable'
+
+    def action_approve(self):
+        for rec in self:
+            rec.write({'state':'approve',
+                               'user_id': rec.user_id.id or rec.env.user.id,
+                                'approval_date': fields.Date.context_today(rec),
+            })
+            user_email = rec.user_id.email if rec.user_id else ''
+            employee_email = rec.employee_id.work_email if rec.employee_id else ''
+            template = self.env.ref('hr_expense_extended.email_template_expense_approval_email')
+            template.write({'email_to':', '.join(filter(None, [user_email, employee_email])),
+                            'subject':'Expense Approved - %s'%(rec.name)})
+            template.send_mail(self.id, force_send=True)
+            rec.activity_update()
+
+    def action_reject(self):
+        if self.account_move_ids:  # Todo: in 17.3+, edit it to allow draft entries
+            raise UserError(_("You cannot cancel an expense sheet linked to a journal entry"))
+        self.write({'state':'cancel'})
+        self.activity_update()
 
     @api.model
     def create(self, vals):

@@ -139,6 +139,10 @@ class RequestApproval(models.TransientModel):
             self.origin_ref.approval_document = request
             self.origin_ref.state = 'to approve'
             self.origin_ref.message_post(body='Document is submitted for approval')
+        if res_model == 'hr.expense.sheet':
+            self.origin_ref.approval_document = request
+            self.origin_ref.state = 'to approve'
+            self.origin_ref.message_post(body='Document is submitted for approval')
 
         # update x_has_request_approval
         self.env["multi.approval.type"].update_x_field(

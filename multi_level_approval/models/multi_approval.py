@@ -251,7 +251,6 @@ class MultiApproval(models.Model):
                     rec.line_id = next_line
                     rec.send_request_mail()
                     rec.send_activity_notification()
-
                 # If there are no more lines, finalize the approval process
                 else:
                     rec.set_approved()
@@ -270,8 +269,21 @@ class MultiApproval(models.Model):
                         employee_indent.approved_by_director = "yes"
 
 
-            # rec.finalize_related_document()
+                # rec.finalize_related_document()
 
+
+            if rec.type_id.model_id == 'hr.expense.sheet':
+                rec_id = self.env['hr.expense.sheet'].search([('id', '=', rec.origin_ref.id)])
+                if rec_id:
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Approve Reason',
+                        'res_model': 'approve.reason',
+                        'view_mode': 'form',
+                        'view_id': self.env.ref('multi_level_approval.approve_reason_view_form').id,
+                        'target': 'new',
+                        'context':{'expense':int(rec_id.id),'demo':rec_id.id}
+                    }
             msg = _("%s approved the request.") % self.env.user.name
             rec.finalize_activity_or_message("approved", msg)
         if ret_act:

@@ -184,12 +184,12 @@
                                 </div>
                                 <!-- <field name="total_invoice_value" invisible="not is_payment_approval" readonly="1"/> -->
                                 <t groups="hr_expense.group_hr_expense_team_approver">
-                                    <field name="employee_id" groups="!hr.group_hr_user" invisible="is_payment_approval"
+                                    <field name="employee_id" groups="!hr.group_hr_user" invisible="0"
                                            context="{'default_company_id': company_id}"
                                            widget="many2one_avatar_employee"
                                            options="{'relation': 'hr.employee.public', 'no_create': True}"
                                            readonly="not is_editable"/>
-                                    <field name="employee_id" groups="hr.group_hr_user" invisible="is_payment_approval"
+                                    <field name="employee_id" groups="hr.group_hr_user" invisible="0"
                                            context="{'default_company_id': company_id}"
                                            widget="many2one_avatar_employee"
                                            options="{'relation': 'hr.employee', 'no_create': True}"

@@ -542,13 +542,13 @@ for rec in self:
         f_names = ["x_review_result", "x_has_request_approval"]
         model_id = ResModel._get_id(self.model_id)
         for key,value in f_name_dict.items():
-            field  = self.env['ir.model.fields'].sudo().search([('name','=',key)])
+            field  = self.env['ir.model.fields'].sudo().search([('name','=',key),('id','=',model_id)])
             if not field:
                 self.create_fields(f_name_dict, model_id)
 
         # Create compute field
         compute_field = "x_need_approval"
-        field = self.env['ir.model.fields'].sudo().search([('name', '=', compute_field)])
+        field = self.env['ir.model.fields'].sudo().search([('name', '=', compute_field),('id','=',model_id)])
         if not field:
             self.create_compute_field(compute_field, model_id)
 
@@ -568,6 +568,9 @@ for rec in self:
         if self.model_id == 'account.payment':
             move_ids = self.env['account.payment'].search([('state','=','draft')])
             move_ids.write({'approval_state':'To Submit for Approval'})
+        if self.model_id == 'hr.expense.sheet':
+            move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'To Submit for Approval'})
     def action_draft(self):
         self.state='draft'
         if self.model_id == 'crossovered.budget':
@@ -582,6 +585,9 @@ for rec in self:
         if self.model_id == 'account.payment':
             move_ids = self.env['account.payment'].search([('state','=','draft')])
             move_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'hr.expense.sheet':
+            move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'Not Applicable'})
         self.is_configured = False
     def action_cancelled(self):
         self.state='cancelled'
@@ -597,6 +603,9 @@ for rec in self:
         if self.model_id == 'account.payment':
             move_ids = self.env['account.payment'].search([('state','=','draft')])
             move_ids.write({'approval_state':'Not Applicable'})
+        if self.model_id == 'hr.expense.sheet':
+            move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'Not Applicable'})
         self.is_configured = False
 
     @api.model
