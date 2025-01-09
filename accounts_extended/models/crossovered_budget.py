@@ -6,12 +6,14 @@ from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWar
 class BudgetInherit(models.Model):
     _inherit = 'crossovered.budget'
 
-    state = fields.Selection(selection_add=[
-        ('to approve', 'To Approve')],
-        string="Status",
-        index=True, required=True, readonly=True, copy=False, tracking=True,
-        ondelete={'to approve':'set default'},
-        default='draft')
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('confirm', 'Confirmed'),
+        ('to approve', 'To Approve'),
+        ('validate', 'Validated'),
+        ('done', 'Done'),
+        ('cancel', 'Cancelled')
+    ], 'Status', default='draft', index=True, required=True, readonly=True, copy=False, tracking=True)
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)

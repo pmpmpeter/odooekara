@@ -504,12 +504,24 @@ class HrExpenseSheet(models.Model):
     user_id = fields.Many2one('res.users', string="Requested By", default=lambda self: self.env.user)
     is_payment_approval = fields.Boolean(string="Is Payment Approval", default=False)
     supplier_id = fields.Many2one('res.partner', string="Supplier")
-    state = fields.Selection(selection_add=[
-        ('to approve', 'To Approve')],
+    state = fields.Selection(
+        selection=[
+            ('draft', 'To Submit'),
+            ('submit', 'Submitted'),
+            ('to approve', 'To Approve'),
+            ('approve', 'Approved'),
+            ('post', 'Posted'),
+            ('done', 'Done'),
+            ('cancel', 'Refused')
+        ],
         string="Status",
-        index=True, required=True, readonly=True, copy=False, tracking=True,
-        ondelete={'to approve': 'set default'},
-        default='draft')
+        compute='_compute_state', store=True, readonly=True,
+        index=True,
+        required=True,
+        default='draft',
+        tracking=True,
+        copy=False,
+    )
     approval_status = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)

@@ -7,12 +7,12 @@
             <field name="inherit_id" ref="account.view_account_payment_form"/>
             <field name="arch" type="xml">
                  <field name="ref" position="after">
-                    <field name='utr_number' invisible="not show_partner_bank_account and not is_cheque_cleared"/>
+                    <field name='utr_number' invisible="payment_type != 'outbound' or (not show_partner_bank_account and not is_cheque_cleared)"/>
                 </field>
                 <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account"/>
                 <field name="is_cheque_cleared" invisible="show_partner_bank_account"/>
-                <field name="cheque_cleared_date" invisible="show_partner_bank_account"/>
+                <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared"/>
             </xpath>
             <xpath expr="//group[@name='main_group']" position="after">
                 <notebook>
@@ -48,6 +48,7 @@
                     <field name="x_has_request_approval" invisible="1"/>
                     <field name="is_contra_payment" invisible="1"/>
                      <field name="approval_state" invisible="is_contra_payment or (payment_type == 'inbound' and not is_fund_requsiting)"/>
+                    <field name="reason_approved" invisible="not is_fund_requsiting" readonly="1"/>
                 </field>
                 <xpath expr="//button[@name='action_post']" position="replace">
                         <button name="action_post" string="Confirm" type="object" class="oe_highlight" invisible="payment_type != 'inbound' or state != 'draft' or is_fund_requsiting" data-hotkey="q"/>

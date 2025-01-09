@@ -282,7 +282,19 @@ class MultiApproval(models.Model):
                         'view_mode': 'form',
                         'view_id': self.env.ref('multi_level_approval.approve_reason_view_form').id,
                         'target': 'new',
-                        'context':{'expense':int(rec_id.id),'demo':rec_id.id}
+                        'context':{'expense':int(rec_id.id)}
+                    }
+            if rec.type_id.model_id == 'account.payment':
+                rec_id = self.env['account.payment'].search([('id', '=', rec.origin_ref.id)])
+                if rec_id and rec_id.is_fund_requsiting:
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': 'Approve Reason',
+                        'res_model': 'approve.reason',
+                        'view_mode': 'form',
+                        'view_id': self.env.ref('multi_level_approval.approve_reason_view_form').id,
+                        'target': 'new',
+                        'context':{'fund':int(rec_id.id)}
                     }
             msg = _("%s approved the request.") % self.env.user.name
             rec.finalize_activity_or_message("approved", msg)

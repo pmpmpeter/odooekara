@@ -26,14 +26,25 @@ class ApproveReason(models.TransientModel):
 
     def action_approve_reason_apply(self):
         active_id = self.env.context.get('expense')
-        expense_id = self.env['hr.expense.sheet'].browse(active_id)
-        user = self.env.user
-        current_datetime = fields.Datetime.now()
-        approval_entry = f"User: {user.name}, Reason: {self.reason}, Date: {current_datetime}\n"
-        if expense_id.reason_approved:
-            expense_id.reason_approved += approval_entry
-        else:
-            expense_id.reason_approved = approval_entry
+        active_id_fund = self.env.context.get('fund')
+        if active_id:
+            expense_id = self.env['hr.expense.sheet'].browse(active_id)
+            user = self.env.user
+            current_datetime = fields.Datetime.now()
+            approval_entry = f"User: {user.name}, Reason: {self.reason}, Date: {current_datetime}\n"
+            if expense_id.reason_approved:
+                expense_id.reason_approved += approval_entry
+            else:
+                expense_id.reason_approved = approval_entry
+        if active_id_fund:
+            expense_id = self.env['account.payment'].browse(active_id_fund)
+            user = self.env.user
+            current_datetime = fields.Datetime.now()
+            approval_entry = f"User: {user.name}, Reason: {self.reason}, Date: {current_datetime}\n"
+            if expense_id.reason_approved:
+                expense_id.reason_approved += approval_entry
+            else:
+                expense_id.reason_approved = approval_entry
 
         # approval = self.env["multi.approval"].browse(self.env.context.get("active_ids"))
         return True

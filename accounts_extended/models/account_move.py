@@ -67,13 +67,21 @@ BILL_APPR = ['in_invoice', 'in_receipt', 'in_refund']
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    state = fields.Selection(selection_add=[
-        ('to approve', 'To Approve'),
-        ('approved', 'Approved')],
-        string="Status",
-        index=True, required=True, readonly=True, copy=False, tracking=True,
-        ondelete={'to approve':'set default','approved':'set default'},
-        default='draft')
+    state = fields.Selection(
+        selection=[
+            ('draft', 'Draft'),
+            ('to approve', 'To Approve'),
+            ('approved', 'Approved'),
+            ('posted', 'Posted'),
+            ('cancel', 'Cancelled'),
+        ],
+        string='Status',
+        required=True,
+        readonly=True,
+        copy=False,
+        tracking=True,
+        default='draft',
+    )
     expense_sequence = fields.Char(string='Task ID')
     expense_type = fields.Selection([
     ("capex", "Capex"),
