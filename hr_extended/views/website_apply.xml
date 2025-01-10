@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="apply_inherit" inherit_id="website_hr_recruitment.apply">
+        <xpath expr="//input[@name='partner_phone']" position="attributes">
+            <attribute name="pattern">^\+91[0-9]{10}$</attribute>
+            <attribute name="title">Please enter a valid phone number in the format +919812309890 without spaces.</attribute>
+        </xpath>
+    </template>
+</odoo>

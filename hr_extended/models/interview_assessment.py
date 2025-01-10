@@ -3,7 +3,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import *
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime
+from datetime import timedelta, datetime
 
 
 class InterviewAssessment(models.Model):
@@ -51,7 +51,7 @@ class InterviewAssessment(models.Model):
         default='selected',
     )
 
-    position_offered = fields.Many2one('hr.job',string='Designation / Position to be Offered')
+    position_offered = fields.Many2one('hr.job', string='Designation / Position to be Offered')
     division = fields.Char(string='Division / Business Unit')
     grade_level = fields.Char(string='Grade / Level')
     ctc_recommended = fields.Float(string='CTC Recommended')
@@ -62,10 +62,19 @@ class InterviewAssessment(models.Model):
         'interview_assessment_id',
     )
     state = fields.Selection([
-            ('draft', 'Draft'),
-            ('done', 'Done'),], default='draft', string='State')
-    start_time = fields.Datetime(string="Start Time")
-    end_time = fields.Datetime(string="End Time")
+        ('draft', 'Draft'),
+        ('done', 'Done'), ], default='draft', string='State')
+    start_time = fields.Datetime(string="Start Time", required=True)
+    end_time = fields.Datetime(string="End Time", required=True)
+    adjusted_time_start = fields.Datetime('Adjusted Time Start', compute='_compute_adjusted_time')
+    adjusted_time_end = fields.Datetime('Adjusted Time End', compute='_compute_adjusted_time')
+
+    @api.onchange('start_time', 'end_time')
+    def _compute_adjusted_time(self):
+        for record in self:
+            if record.start_time and record.end_time:
+                record.adjusted_time_start = record.start_time + timedelta(hours=5, minutes=30)
+                record.adjusted_time_end = record.end_time + timedelta(hours=5, minutes=30)
 
     def action_submit(self):
         for record in self:
@@ -93,7 +102,7 @@ class InterviewPanelComments(models.Model):
     )
     panel_member_name = fields.Many2one('hr.employee', string='Name of Panel Member')
     panel_member_department = fields.Many2one('hr.department', string='Department')
-    panel_member_designation = fields.Many2one('hr.job',string='Job Position')
+    panel_member_designation = fields.Many2one('hr.job', string='Job Position')
     final_comments = fields.Text(string='Final Comments')
 
     @api.onchange('panel_member_name')

@@ -17,4 +17,52 @@
         <field name="implied_ids"
                eval="[(4, ref('emp_prob_extended.group_employee_probation_user'))]"/>
     </record>
+
+    <!--Record rules for Employee Probation -->
+    <record id="employee_probation_rule_base_user" model="ir.rule">
+        <field name="name">Employee Probation</field>
+        <field name="model_id" ref="emp_prob_extended.model_employee_probation"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="employee_probation_rule_user" model="ir.rule">
+        <field name="name">Employee Probation - User</field>
+        <field name="model_id" ref="emp_prob_extended.model_employee_probation"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('emp_prob_extended.group_employee_probation_user'))]"/>
+    </record>
+
+    <record id="employee_probation_rule_manager" model="ir.rule">
+        <field name="name">Employee Probation - Manager</field>
+        <field name="model_id" ref="emp_prob_extended.model_employee_probation"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('emp_prob_extended.group_employee_probation_manager'))]"/>
+    </record>
+
+    <!--Record rules for Employee Probation Review Form -->
+    <record id="employee_probation_review_form_rule_base_user" model="ir.rule">
+        <field name="name">Employee Probation Review Form</field>
+        <field name="model_id" ref="emp_prob_extended.model_prob_review_form"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="employee_probation_review_form_rule_user" model="ir.rule">
+        <field name="name">Employee Probation Review Form - User</field>
+        <field name="model_id" ref="emp_prob_extended.model_prob_review_form"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('emp_prob_extended.group_employee_probation_user'))]"/>
+    </record>
+
+    <record id="employee_probation_review_form_rule_manager" model="ir.rule">
+        <field name="name">Employee Probation Review Form - Manager</field>
+        <field name="model_id" ref="emp_prob_extended.model_prob_review_form"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('emp_prob_extended.group_employee_probation_manager'))]"/>
+    </record>
 </odoo>

@@ -75,25 +75,25 @@ class EmployeeIndent(models.Model):
                                  help="Indicate if this position is budgeted.")
 
     # have to add the BU/Department Total Approved Budget (dont know about that)
-    start_date = fields.Date(string='Fiscal Year', default=fields.Date.today)
-    end_date = fields.Date(string='End Date')
+    start_date = fields.Date(string='Fiscal Year', default=fields.Date.today, copy=False)
+    end_date = fields.Date(string='End Date', copy=False)
 
     approved_budget = fields.Monetary(
         string='BU/Department Total Approved Budget',
         currency_field='currency_id',
-        help="Specify the total approved budget for the Business Unit (BU) or Department."
+        help="Specify the total approved budget for the Business Unit (BU) or Department.", copy=False
     )
 
     budgeted_amount = fields.Monetary(
         string='Budgeted Amount for Position',
         currency_field='currency_id',
-        help="Specify the budgeted amount for this position."
+        help="Specify the budgeted amount for this position.", copy=False
     )
 
     utilized_budget = fields.Monetary(
         string='Utilized Budget',
         currency_field='currency_id',
-        help="Amount already utilized from the budget for this position."
+        help="Amount already utilized from the budget for this position.", copy=False
     )
 
     balance_budget = fields.Monetary(
@@ -101,7 +101,7 @@ class EmployeeIndent(models.Model):
         compute='_compute_balance_budget',
         currency_field='currency_id',
         store=True,
-        help="Remaining budget after utilization."
+        help="Remaining budget after utilization.", copy=False
     )
 
     currency_id = fields.Many2one(
@@ -161,10 +161,10 @@ class EmployeeIndent(models.Model):
     #     ('replacement', 'Replacement')
     # ], string="Source")
     priority = fields.Selection([
-        ('low', 'Low'),
-        ('medium', 'Medium'),
-        ('high', 'High')
-    ], string="Priority")
+        ("0", "Normal"),
+        ("1", "Medium"),
+        ("2", "High"),
+        ("3", "Very High")], string="Priority", copy=False)
     no_of_vacancy = fields.Integer(string="Number of Vacancies",
                                    help="The Target in general Info and this field are same")
     purpose_of_job = fields.Text(string="Purpose of the Job")
@@ -202,6 +202,14 @@ class EmployeeIndent(models.Model):
     def _number_of_vacancy(self):
         for record in self:
             record.no_of_vacancy = record.target
+
+    @api.constrains('is_replacement')
+    def _is_replacement_or_not(self):
+        for record in self:
+            if record.is_replacement and not record.replacement_employee_id:
+                raise UserError(_("Please select the Replacement Employee Name"))
+            if not record.is_replacement:
+                record.replacement_employee_id = ''
 
     @api.model
     def _default_expected_closure_date(self):

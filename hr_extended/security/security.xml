@@ -83,7 +83,24 @@
             level.
         </field>
     </record>
+    <record id="seq_manpower_budget" model="ir.sequence">
+            <field name="name">Manpower Budget Sequence</field>
+            <field name="code">manpower.budget</field>
+            <field name="prefix">MPB-</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+    </record>
+     <!-- User Group -->
+    <record id="group_manpower_budget_user" model="res.groups">
+        <field name="name">Manpower Budget User</field>
+    </record>
 
+    <!-- Manager Group -->
+    <record id="group_manpower_budget_manager" model="res.groups">
+        <field name="name">Manpower Budget Manager</field>
+        <field name="implied_ids" eval="[(4, ref('group_manpower_budget_user'))]"/>
+    </record>
 
     <!-- Bu head in recruitment -->
     <!--    not needed right now-->

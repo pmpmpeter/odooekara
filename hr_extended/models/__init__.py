@@ -10,6 +10,7 @@ from . import employee_indent
 from . import cmg_and_gpa_details
 from . import manpower_budget_sheet
 from . import joining_documents
+from . import mail_compose_message
 from . import hr_contract
 from . import hr_employee
 from . import hr_applicant

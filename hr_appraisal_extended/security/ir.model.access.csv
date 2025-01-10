@@ -17,6 +17,8 @@ access_perform_review_comment,access.perform.review.comment,hr_appraisal_extende
 access_manager_rating,access.manager.rating,hr_appraisal_extended.model_manager_rating,,1,1,1,1
 access_performance_config,access.performance.config,hr_appraisal_extended.model_performance_config,,1,1,1,1
 access_threeperformance_review_line,access.threeperformance.review.line,hr_appraisal_extended.model_threeperformance_review_line,,1,1,1,1
-access_threeperformance_review,access.threeperformance.review,hr_appraisal_extended.model_threeperformance_review,,1,1,1,1
+access_threeperformance_review_hr,access.threeperformance.review.hr,hr_appraisal_extended.model_threeperformance_review,hr.group_hr_user,1,1,1,1
+access_threeperformance_review_manager,access.threeperformance.review.manager,hr_appraisal_extended.model_threeperformance_review,hr.group_hr_manager,1,1,1,1
+access_threeperformance_review_user,access.threeperformance.review.user,hr_appraisal_extended.model_threeperformance_review,base.group_user,1,0,0,0
 access_perform_review_line,access.perform.review.line,hr_appraisal_extended.model_performance_review_line,,1,1,1,1
 access_perform_refuse,access.perform.refuse,hr_appraisal_extended.model_performance_review_refuse_popup,,1,1,1,1

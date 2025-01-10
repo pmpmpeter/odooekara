@@ -111,7 +111,7 @@ class ManpowerBudgetSheet(models.AbstractModel):
         sheet.set_row(1,40) 
         sheet.set_row(5,30) 
         row = 6
-        manpower_ids = self.env['manpower.budget'].search([('create_date','>=',wiz_data.start_date),('create_date','<=',wiz_data.end_date)])
+        manpower_ids = self.env['manpower.budget'].search([('create_date','>=',wiz_data.start_date),('create_date','<=',wiz_data.end_date),('state','=','done')])
         if manpower_ids:
             for manpower in manpower_ids:
                 sheet.write(row, 0,manpower.tax_entity_id.name)

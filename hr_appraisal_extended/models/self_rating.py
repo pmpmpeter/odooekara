@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import *
 from odoo.exceptions import ValidationError, UserError
+from num2words import num2words
 
 
 class SelfRating(models.Model):
@@ -9,15 +10,26 @@ class SelfRating(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
-
-    employee_id = fields.Many2one('hr.employee',string='Employee', tracking=True)
-    department_id = fields.Many2one('hr.department', string='Department', tracking=True, related='employee_id.department_id')
+    employee_id = fields.Many2one('hr.employee', string='Employee', tracking=True)
+    department_id = fields.Many2one('hr.department', string='Department', tracking=True,
+                                    related='employee_id.department_id')
     date_of_joining = fields.Date(string='Date of Joining', tracking=True, related='employee_id.joining_date')
     designation = fields.Char(string="Designation")
-    reporting_to_id = fields.Many2one('hr.employee',string='Reporting to', tracking=True, related='employee_id.parent_id',)
-    location = fields.Char('Location', tracking=True)
+    reporting_to_id = fields.Many2one('hr.employee', string='Reporting to', tracking=True,
+                                      related='employee_id.parent_id', )
+    location = fields.Selection([
+        ('corporate', 'Corporate'),
+        ('bangalore', 'Bangalore'),
+        ('ttc', 'TTC'),
+        ('ttk', 'TTK'),
+        ('cbm', 'CBM'),
+        ('lilac1', 'Lilac 1'),
+        ('lilac2', 'Lilac 2'),
+        ('tta', 'TTA'),
+        ('tvm_obt', 'TVM/OBT'),
+    ], default='corporate', string="Location", tracking=True, required=True)
     appraisal_date = fields.Date(string='Appraisal Date', tracking=True)
-    reviewer_id = fields.Many2one('hr.employee',string='Reviewer', tracking=True)
+    reviewer_id = fields.Many2one('hr.employee', string='Reviewer', tracking=True)
     state = fields.Selection([
         ('request_appraisal', 'Request Appraisal'),
         ('preparation', 'Preparation'),
@@ -70,22 +82,341 @@ class SelfRating(models.Model):
     total_score_manager = fields.Float(string='Total', compute='_compute_totals', store=True)
     total_manager_weighted_score = fields.Float(string='Total Manager Weighted Score', compute='_compute_totals',
                                                 store=True)
-    employee_final_score = fields.Float(string='Employee Final Score', compute='_compute_totals', store=True)
-    manager_final_score = fields.Float(string='Manager Final Score', compute='_compute_totals', store=True)
+    employee_final_score = fields.Float(string='Overall Rating', compute='_compute_totals', store=True)
+    manager_final_score = fields.Float(string='Manager Overall Rating', compute='_compute_totals', store=True)
     is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee", store=False)
 
     recommended_increment = fields.Float(string="Recommended Increment (%)", help="Recommended Increment percentage")
-    recommended_pbvp_payout = fields.Float(string="Recommended PBVP Payout (%)",
+    recommended_pbvp_payout = fields.Float(string="Recommended PBVP Payout (%) based on overall rating",
                                            help="To be released on a pro-rata basis")
     pbvp_payout = fields.Float(string="PBVP Payout (%)",
-                                           help="To be released on a pro-rata basis")
+                               help="To be released on a pro-rata basis")
     eligible_for_promotion = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Eligible for Promotion?")
     new_job_level = fields.Char(string="Job Level")
     new_designation = fields.Char(string="New Designation (if applicable)")
     remark = fields.Char(string="Remark")
     refuse_reason = fields.Text(string="Refuse Reason")
     director_remark = fields.Text(string="Director Remark")
-    is_performance_record = fields.Boolean(string="Is Performance Record", compute="_compute_is_performance_record", store=True)
+    is_performance_record = fields.Boolean(string="Is Performance Record", compute="_compute_is_performance_record",
+                                           store=True)
+
+    basic_da_per_annum = fields.Float(string='Basic & DA (Per Annum)', copy=False)
+    basic_da_per_month = fields.Float(string='Basic & DA (Per Month)', copy=False)
+    hra_per_annum = fields.Float(string='House Rent Allowance (Per Annum)', copy=False)
+    hra_per_month = fields.Float(string='House Rent Allowance (Per Month)', copy=False)
+    special_allowance_per_annum = fields.Float(string='Special Allowance (Per Annum)', copy=False)
+    special_allowance_per_month = fields.Float(string='Special Allowance (Per Month)', copy=False)
+    sub_total_a_per_annum = fields.Float(string='Sub-total Part A (Per Annum)', copy=False)
+    sub_total_a_per_month = fields.Float(string='Sub-total Part A (Per Month)', copy=False)
+    statutory_bonus_per_annum = fields.Float(string='Statutory Bonus (Per Annum)', copy=False)
+    statutory_bonus_per_month = fields.Float(string='Statutory Bonus (Per Month)', copy=False)
+    pf_employer_per_annum = fields.Float(string="Provident Fund (Employer's Contribution Per Annum)", copy=False)
+    pf_employer_per_month = fields.Float(string="Provident Fund (Employer's Contribution Per Month)", copy=False)
+    esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution Per Annum)', copy=False)
+    esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution Per Month)', copy=False)
+    sub_total_b_per_annum = fields.Float(string='Sub-total Part B (Per Annum)', copy=False)
+    sub_total_b_per_month = fields.Float(string='Sub-total Part B (Per Month)', copy=False)
+    variable_pay_per_annum = fields.Float(string='Variable Pay (Per Annum)', copy=False)
+    variable_pay_per_month = fields.Float(string='Variable Pay (Per Month)', copy=False)
+    sub_total_c_per_annum = fields.Float(string='Sub-total Part C (Per Annum)', copy=False)
+    sub_total_c_per_month = fields.Float(string='Sub-total Part C (Per Month)', copy=False)
+    total_salary_per_annum = fields.Float(string='Total Salary (Per Annum)', copy=False)
+    total_salary_per_month = fields.Float(string='Total Salary (Per Month)', copy=False)
+    medical_insurances = fields.Float(string='Medical Insurance', copy=False)
+    group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance', copy=False)
+    sub_total_d = fields.Float(string='Sub-total Part D', copy=False)
+    total_ctc_annum = fields.Float(string='Total Cost to Company', copy=False)
+    total_ctc_month = fields.Float(string='Total Cost to Company', copy=False)
+    monthly_fixed_salary = fields.Float(string="Monthly Fixed Salary (excl PF & all incentive pay)", copy=False)
+    stat_bonus_amount = fields.Float(string="Statutory Bonus Amount", store=True, copy=False)
+    provident_fund = fields.Float(string="Provident Fund", store=True, copy=False)
+    esi_amount = fields.Float(string="ESI Amount", store=True, copy=False)
+    variable_pay_percentage = fields.Float(string="Percentage of Variable Pay", store=True, copy=False)
+    annual_store_performance_incentive = fields.Float(string="Annual Store Performance Incentive", store=True,
+                                                      copy=False)
+    store_performance_incentive_annum = fields.Float(string="Store Performance Incentive (per annum)", store=True,
+                                                     copy=False)
+    store_performance_incentive_month = fields.Float(string="Store Performance Incentive (per month)", store=True,
+                                                     copy=False)
+    annual_performance_linked_pay = fields.Float(string="Annual Performance Linked Pay", store=True, copy=False)
+    performance_linked_pay_annum = fields.Float(string="Performance Linked Pay (per annum)", store=True, copy=False)
+    performance_linked_pay_month = fields.Float(string="Performance Linked Pay (per month)", store=True, copy=False)
+    monthly_performance_incentive = fields.Float(string="Monthly Performance Incentive", store=True, copy=False)
+    monthly_performance_incentive_annum = fields.Float(string="Monthly Performance Incentive (per annum)", store=True,
+                                                       copy=False)
+    monthly_performance_incentive_month = fields.Float(string="Monthly Performance Incentive (per month)", store=True,
+                                                       copy=False)
+    medical_insurance = fields.Float(string="Medical Insurance", store=True, copy=False)
+    group_personal_accident_insurance = fields.Float(string="Group Personal Accident Insurance", store=True, copy=False)
+    solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
+    indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
+    statutory_bonus_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="Statutory Bonus Applicable (per month)", default='no', required=True,
+        copy=False
+    )
+    provident_fund_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="Provident Fund Applicable (per month)", default='no', required=True,
+        copy=False
+    )
+    esi_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="ESI Applicable (per month)", default='no', required=True, copy=False
+    )
+    grade = fields.Selection([
+        ('spl_grade', 'Spl Grade'),
+        ('grade_a', 'Grade A'),
+        ('grade_b', 'Grade B'),
+        ('grade_c', 'Grade C'),
+        ('grade_d', 'Grade D'),
+        ('grade_e', 'Grade E'),
+        ('grade_f', 'Grade F'),
+        ('grade_g', 'Grade G'),
+    ], default='spl_grade', string="Grade", tracking=True)
+
+    contract_self_rating_ids = fields.Many2many('hr.contract',
+                                                compute='_compute_contract_self_rating',
+                                                string='Compensation Master', copy=False)
+    contract_self_rating_count = fields.Integer("Compensation Master Count",
+                                                compute='_compute_contract_self_rating', default=0,
+                                                copy=False)
+
+    total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+
+    @api.onchange('total_ctc_annum')
+    def _compute_total_ctc_in_words(self):
+        for record in self:
+            if record.total_ctc_annum:
+                total_ctc_integer = int(record.total_ctc_annum)
+                record.total_ctc_in_words = num2words(total_ctc_integer, lang='en').title()
+            else:
+                record.total_ctc_in_words = 'None'
+
+    @api.onchange('location', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
+                  'esi_applicable',
+                  'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
+                  'monthly_performance_incentive',
+                  'medical_insurance', 'group_personal_accident_insurance')
+    def _onchange_calculate_salary_breakup(self):
+        for record in self:
+            # Initialize values
+            record.basic_da_per_annum = 0
+            record.hra_per_annum = 0
+            record.statutory_bonus_per_annum = 0
+            record.statutory_bonus_per_month = 0
+            record.special_allowance_per_annum = 0
+            record.special_allowance_per_month = 0
+
+            if (record.location not in ['tta', 'tvm_obt']) or (record.monthly_fixed_salary >= 54000):
+                # Calculate Basic & DA (Per Annum)
+                record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000, 0) * 12000
+                record.hra_per_annum = record.basic_da_per_annum * 0.40
+
+                # Calculate (Per Month)
+                record.basic_da_per_month = round(record.basic_da_per_annum / 12, 0)
+                record.hra_per_month = round(record.hra_per_annum / 12, 0)
+
+                # Calculate Statutory Bonus (Per Annum) if applicable
+                if record.statutory_bonus_applicable == 'yes':
+                    if (record.basic_da_per_annum / 12) <= 21000:
+                        record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
+                    else:
+                        record.statutory_bonus_per_annum = 0
+
+                    # Calculate Statutory Bonus (Per Month)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+
+                # Calculate Special Allowance (Per Annum)
+                record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - (
+                        record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum
+                )
+                record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
+
+                # Calculate Special Allowance (Per Month)
+                record.special_allowance_per_month = round(record.special_allowance_per_annum / 12, 0)
+                record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12, 0)
+                # Calculate Provident Fund (Employer's Contribution Per Month)
+                if record.provident_fund_applicable == 'yes':
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12, 0)
+                else:
+                    record.pf_employer_per_annum = 0
+
+                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                if record.esi_applicable == 'yes':
+                    if record.monthly_fixed_salary <= 21000:
+                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                    else:
+                        record.esic_employer_per_month = 0
+                else:
+                    record.esic_employer_per_annum = 0
+
+                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
+                record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
+                record.store_performance_incentive_annum = record.annual_store_performance_incentive
+                record.store_performance_incentive_month = round(record.store_performance_incentive_annum / 12, 0)
+                record.performance_linked_pay_annum = record.annual_performance_linked_pay
+                record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
+                record.monthly_performance_incentive_annum = record.monthly_performance_incentive
+                record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12, 0)
+                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                        record.variable_pay_percentage / 100)
+                record.variable_pay_per_month = round(record.variable_pay_per_annum / 12, 0)
+                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12, 0)
+                record.total_salary_per_annum = record.sub_total_c_per_annum + record.sub_total_b_per_annum + record.sub_total_a_per_annum
+                record.total_salary_per_month = round(record.total_salary_per_annum / 12, 0)
+                record.medical_insurances = record.medical_insurance
+                record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.sub_total_d = record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.sub_total_d
+                record.total_ctc_month = round(record.total_ctc_annum / 12, 0)
+                record.indicative_take_home_salary = record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                    record.esic_employer_per_month / 0.0325 * 0.75 / 100)
+            else:
+                record.basic_da_per_annum = 0
+                record.hra_per_annum = 0
+                record.statutory_bonus_per_annum = 0
+                record.statutory_bonus_per_month = 0
+                record.special_allowance_per_annum = 0
+                record.special_allowance_per_month = 0
+                record.statutory_bonus_per_annum = 0
+                record.statutory_bonus_per_month = 0
+                record.sub_total_a_per_annum = 0
+                if record.provident_fund_applicable == 'yes':
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12, 0)
+                else:
+                    record.pf_employer_per_annum = 0
+
+                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                if record.esi_applicable == 'yes':
+                    if record.monthly_fixed_salary <= 21000:
+                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                    else:
+                        record.esic_employer_per_month = 0
+                else:
+                    record.esic_employer_per_annum = 0
+                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.sub_total_b_per_annum = record.pf_employer_per_annum + record.esic_employer_per_annum
+                record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
+                record.store_performance_incentive_annum = record.annual_store_performance_incentive
+                record.store_performance_incentive_month = round(record.store_performance_incentive_annum / 12, 0)
+                record.performance_linked_pay_annum = record.annual_performance_linked_pay
+                record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
+                record.monthly_performance_incentive_annum = record.monthly_performance_incentive
+                record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12, 0)
+                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                        record.variable_pay_percentage / 100)
+                record.variable_pay_per_month = round(record.variable_pay_per_annum / 12, 0)
+                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12, 0)
+                record.total_salary_per_annum = record.sub_total_c_per_annum + record.sub_total_b_per_annum + record.sub_total_a_per_annum
+                record.total_salary_per_month = round(record.total_salary_per_annum / 12, 0)
+                record.medical_insurances = record.medical_insurance
+                record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.sub_total_d = record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.sub_total_d
+                record.total_ctc_month = round(record.total_ctc_annum / 12, 0)
+                record.indicative_take_home_salary = record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                    record.esic_employer_per_month / 0.0325 * 0.75 / 100)
+
+
+    def _compute_contract_self_rating(self):
+        for record in self:
+            domain = [('employee_id', '=', record.employee_id.id)]
+            contract_self_rating_ids = self.env['hr.contract'].sudo().search(domain)
+            record.contract_self_rating_ids = contract_self_rating_ids
+            record.contract_self_rating_count = len(contract_self_rating_ids)
+
+    def action_open_contract_self_rating(self):
+        action = self.env.ref('hr_contract.action_hr_contract')
+        result = action.sudo().read()[0]
+        result.pop('id', None)
+        result['context'] = {}
+        if len(self.contract_self_rating_ids.ids) > 1:
+            result['domain'] = "[('id','in',[" + ','.join(map(str, self.contract_self_rating_ids.ids)) + "])]"
+        elif len(self.contract_self_rating_ids.ids) == 1:
+            res = self.env.ref('hr_contract.hr_contract_view_form', False)
+            result['views'] = [(res and res.id or False, 'form')]
+            result['res_id'] = self.contract_self_rating_ids.ids and self.contract_self_rating_ids.ids[
+                0] or False
+        return result
+
+    def action_create_new_contract(self):
+        if not self.monthly_fixed_salary:
+            raise ValidationError("Please fill the Salary Breakup Details")
+        if self.employee_id:
+            contract_vals = {
+                'name':  f'{self.employee_id.name} Compensation master',
+                'employee_id': self.employee_id.id,
+                'date_start': fields.Date.today(),
+                'wage': 0.0,
+                'department_id': self.employee_id.department_id.id,
+                'job_id': self.employee_id.job_id.id,
+                'basic_da_per_annum': self.basic_da_per_annum,
+                'basic_da_per_month': self.basic_da_per_month,
+                'hra_per_annum': self.hra_per_annum,
+                'hra_per_month': self.hra_per_month,
+                'special_allowance_per_annum': self.special_allowance_per_annum,
+                'special_allowance_per_month': self.special_allowance_per_month,
+                'sub_total_a_per_annum': self.sub_total_a_per_annum,
+                'sub_total_a_per_month': self.sub_total_a_per_month,
+                'statutory_bonus_per_annum': self.statutory_bonus_per_annum,
+                'statutory_bonus_per_month': self.statutory_bonus_per_month,
+                'pf_employer_per_annum': self.pf_employer_per_annum,
+                'pf_employer_per_month': self.pf_employer_per_month,
+                'esic_employer_per_annum': self.esic_employer_per_annum,
+                'esic_employer_per_month': self.esic_employer_per_month,
+                'sub_total_b_per_annum': self.sub_total_b_per_annum,
+                'sub_total_b_per_month': self.sub_total_b_per_month,
+                'variable_pay_per_annum': self.variable_pay_per_annum,
+                'variable_pay_per_month': self.variable_pay_per_month,
+                'sub_total_c_per_annum': self.sub_total_c_per_annum,
+                'sub_total_c_per_month': self.sub_total_c_per_month,
+                'total_salary_per_annum': self.total_salary_per_annum,
+                'total_salary_per_month': self.total_salary_per_month,
+                'medical_insurances': self.medical_insurances,
+                'group_personal_acc_insurance': self.group_personal_acc_insurance,
+                'sub_total_d': self.sub_total_d,
+                'total_ctc_annum': self.total_ctc_annum,
+                'total_ctc_month': self.total_ctc_month,
+                'monthly_fixed_salary': self.monthly_fixed_salary,
+                'stat_bonus_amount': self.stat_bonus_amount,
+                'provident_fund': self.provident_fund,
+                'esi_amount': self.esi_amount,
+                'variable_pay_percentage': self.variable_pay_percentage,
+                'annual_store_performance_incentive': self.annual_store_performance_incentive,
+                'store_performance_incentive_annum': self.store_performance_incentive_annum,
+                'store_performance_incentive_month': self.store_performance_incentive_month,
+                'annual_performance_linked_pay': self.annual_performance_linked_pay,
+                'performance_linked_pay_annum': self.performance_linked_pay_annum,
+                'performance_linked_pay_month': self.performance_linked_pay_month,
+                'monthly_performance_incentive': self.monthly_performance_incentive,
+                'monthly_performance_incentive_annum': self.monthly_performance_incentive_annum,
+                'monthly_performance_incentive_month': self.monthly_performance_incentive_month,
+                'medical_insurance': self.medical_insurance,
+                'group_personal_accident_insurance': self.group_personal_accident_insurance,
+                'solis_health_benefit_beacon_plan': self.solis_health_benefit_beacon_plan,
+                'indicative_take_home_salary': self.indicative_take_home_salary,
+                'statutory_bonus_applicable': self.statutory_bonus_applicable,
+                'provident_fund_applicable': self.provident_fund_applicable,
+                'esi_applicable': self.esi_applicable,
+                'location': self.location,
+                'grade': self.grade,
+            }
+
+            contract = self.env['hr.contract'].create(contract_vals)
+            action = self.env.ref('hr_contract.action_hr_contract')
+            result = action.sudo().read()[0]
+            result.pop('id', None)  # Remove action ID
+            result['views'] = [(self.env.ref('hr_contract.hr_contract_view_form').id, 'form')]
+            result['res_id'] = contract.id
+
+            return result
 
     @api.constrains('kra_ids')
     def _check_kra_weightage(self):
@@ -165,8 +496,8 @@ class SelfRating(models.Model):
             # Assign computed values to the record
             record.total_score_employee = total_employee_score
             record.total_score_manager = total_manager_score
-            record.total_employee_weighted_score =((record.total_score_employee/100)/100)* line_count_self
-            record.total_manager_weighted_score = ((record.total_score_manager / 100)/100) * line_count_manager
+            record.total_employee_weighted_score = ((record.total_score_employee / 100) / 100) * line_count_self
+            record.total_manager_weighted_score = ((record.total_score_manager / 100) / 100) * line_count_manager
             record.employee_final_score = round(record.total_employee_weighted_score, 1)
             record.manager_final_score = round(record.total_manager_weighted_score, 1)
             if record.manager_final_score > 4.7:
@@ -192,7 +523,8 @@ class SelfRating(models.Model):
         """Move state to 'preparation_clarification' after submission."""
         for record in self:
             if any(not kra.employee_response or not kra.self_rating for kra in record.kra_ids):
-                raise ValidationError(_("You must fill in the Employee Justification and Self Rating before submission."))
+                raise ValidationError(
+                    _("You must fill in the Employee Justification and Self Rating before submission."))
             record.state = 'preparation_clarification'
 
     def action_manager_review(self):
@@ -237,8 +569,11 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
+            if record.monthly_fixed_salary <=0:
+                raise ValidationError("Please fill the Salary Breakup Details")
+
             ctx = dict(
-                default_model='hr.appraisal',
+                default_model='self.rating',
                 default_res_ids=record.ids,
                 default_template_id=template_id.id,
                 default_composition_mode='comment',
@@ -267,8 +602,11 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
+            if record.monthly_fixed_salary <=0:
+                raise ValidationError("Please fill the Salary Breakup Details")
+
             ctx = dict(
-                default_model='hr.appraisal',
+                default_model='self.rating',
                 default_res_ids=record.ids,
                 default_template_id=template_id.id,
                 default_composition_mode='comment',
@@ -297,8 +635,11 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
+            if record.monthly_fixed_salary <=0:
+                raise ValidationError("Please fill the Salary Breakup Details")
+
             ctx = dict(
-                default_model='hr.appraisal',
+                default_model='self.rating',
                 default_res_ids=record.ids,
                 default_template_id=template_id.id,
                 default_composition_mode='comment',
@@ -327,8 +668,11 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
+            if record.monthly_fixed_salary <=0:
+                raise ValidationError("Please fill the Salary Breakup Details")
+
             ctx = dict(
-                default_model='hr.appraisal',
+                default_model='self.rating',
                 default_res_ids=record.ids,
                 default_template_id=template_id.id,
                 default_composition_mode='comment',
@@ -369,7 +713,8 @@ class SelfRatingKRA(models.Model):
     appraiser_remarks = fields.Text(string="Appraiser's Remarks")
     self_rating = fields.Float(string="Self Rating", help="Rating given by the Employee")
     goal_description = fields.Text(string="Goal Description")
-    achieved_percentage = fields.Integer(string="Achieved Percentage",compute="_compute_achieved_percentage", store=True)
+    achieved_percentage = fields.Integer(string="Achieved Percentage", compute="_compute_achieved_percentage",
+                                         store=True)
     employee_weighted_score = fields.Float(string='Employee Weighted Score', compute='_compute_weighted_scores',
                                            store=True)
 
@@ -404,7 +749,8 @@ class ManagerRating(models.Model):
     weightage = fields.Float(string="Weightage (%)")
     manager_rating = fields.Float(string="Manager Rating", help="Rating given by the manager")
     manager_remark = fields.Text(string="Manager Remark")
-    achieved_percentage = fields.Integer(string="Achieved Percentage",compute="_compute_achieved_percentage", store=True)
+    achieved_percentage = fields.Integer(string="Achieved Percentage", compute="_compute_achieved_percentage",
+                                         store=True)
     manager_weighted_score = fields.Float(string='Manager Weighted Score', compute='_compute_weighted_scores',
                                           store=True)
 
@@ -463,6 +809,7 @@ class SelfRatingAssessmentKRA(models.Model):
         ('5', '5 - Excellent'),
     ], string="Appraiser's Rating")
 
+
 class SelfRatingDevelopmentPlan(models.Model):
     _name = 'self.rating.development.plan'
     _description = 'Employee Development Plan'
@@ -484,6 +831,7 @@ class PerformanceReviewComment(models.Model):
     commented_date = fields.Datetime(string="Commented Date", default=fields.Datetime.now)
     need_response_from = fields.Many2one('hr.employee', string="Need Response From")
 
+
 class PerformanceReviewLine(models.Model):
     _name = 'performance.review.line'
     _description = 'Performance Review Line'
@@ -493,10 +841,12 @@ class PerformanceReviewLine(models.Model):
     description = fields.Char(string='Description')
     weightage = fields.Float(string='Weightage (%)')
     employee_score = fields.Float(string='Employee Score (%)')
-    employee_weighted_score = fields.Float(string='Employee Weighted Score', compute='_compute_weighted_scores', store=True)
+    employee_weighted_score = fields.Float(string='Employee Weighted Score', compute='_compute_weighted_scores',
+                                           store=True)
     manager_weightage = fields.Float(string='Manager Weightage (%)')
     manager_score = fields.Float(string='Manager Score (%)')
-    manager_weighted_score = fields.Float(string='Manager Weighted Score', compute='_compute_weighted_scores', store=True)
+    manager_weighted_score = fields.Float(string='Manager Weighted Score', compute='_compute_weighted_scores',
+                                          store=True)
 
     @api.depends('weightage', 'employee_score', 'manager_weightage', 'manager_score')
     def _compute_weighted_scores(self):

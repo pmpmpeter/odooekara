@@ -26,13 +26,13 @@
                 </xpath>
 
                 <xpath expr="//div[@class='oe_button_box']" position="inside">
-<!--                    <field name="is_pre_emp_form_clicked" invisible="1"/>-->
+                    <!--                    <field name="is_pre_emp_form_clicked" invisible="1"/>-->
                     <field name="last_stage_id" invisible="1"/>
                     <field name="stage_status" invisible="1"/>
-<!--                    <button class="oe_stat_button" type="object" string="Referral Form"-->
-<!--                            invisible="not is_pre_emp_form_clicked"-->
-<!--                            name="action_open_related_candidate" icon="fa-user-plus">-->
-<!--                    </button>-->
+                    <!--                    <button class="oe_stat_button" type="object" string="Referral Form"-->
+                    <!--                            invisible="not is_pre_emp_form_clicked"-->
+                    <!--                            name="action_open_related_candidate" icon="fa-user-plus">-->
+                    <!--                    </button>-->
                     <!--                    <button name="action_open_interview_assessment"-->
                     <!--                            type="object"-->
                     <!--                            class="oe_stat_button"-->
@@ -109,19 +109,19 @@
                 <xpath expr="//group[@name='recruitment_contract']" position="before">
                     <group string="Additional Information">
                         <field name="verification_date"/>
-<!--                        <field name="sourcing_type" readonly="is_pre_emp_form_clicked"/>-->
-<!--                        <field name="referred_by" invisible="sourcing_type not in ('internal_sourcing')"-->
-<!--                               readonly="is_pre_emp_form_clicked"-->
-<!--                               options="{'no_quick_create':True,'no_create': True,}"/>-->
-<!--                        <button name="action_create_pre_form" string="Pre-Employment Form"-->
-<!--                                type="object"-->
-<!--                                class="oe_highlight pre-emp-form-btn"-->
-<!--                                invisible="sourcing_type not in ('internal_sourcing') or is_pre_emp_form_clicked"/>-->
-<!--                        <style>-->
-<!--                            .pre-emp-form-btn{-->
-<!--                            width:175px;-->
-<!--                            }-->
-<!--                        </style>-->
+                        <!--                        <field name="sourcing_type" readonly="is_pre_emp_form_clicked"/>-->
+                        <!--                        <field name="referred_by" invisible="sourcing_type not in ('internal_sourcing')"-->
+                        <!--                               readonly="is_pre_emp_form_clicked"-->
+                        <!--                               options="{'no_quick_create':True,'no_create': True,}"/>-->
+                        <!--                        <button name="action_create_pre_form" string="Pre-Employment Form"-->
+                        <!--                                type="object"-->
+                        <!--                                class="oe_highlight pre-emp-form-btn"-->
+                        <!--                                invisible="sourcing_type not in ('internal_sourcing') or is_pre_emp_form_clicked"/>-->
+                        <!--                        <style>-->
+                        <!--                            .pre-emp-form-btn{-->
+                        <!--                            width:175px;-->
+                        <!--                            }-->
+                        <!--                        </style>-->
                     </group>
                 </xpath>
             </field>
@@ -172,45 +172,118 @@
                     <page string="Salary Breakup" invisible="stage_status not in ('shortlist','offer_accepted')">
                         <group>
                             <group string="Compensation Details">
-                                <field name="basic_da"/>
-                                <field name="house_rent_allowance"/>
-                                <field name="special_allowance"/>
                                 <field name="monthly_fixed_salary"/>
                                 <label for="statutory_bonus_applicable"/>
                                 <div class="o_row">
                                     <field name="statutory_bonus_applicable"/>
-                                    <field name="stat_bonus_amount" invisible="statutory_bonus_applicable != 'yes'"
-                                           force_save="1"/>
                                 </div>
                                 <label for="provident_fund_applicable"/>
                                 <div class="o_row">
                                     <field name="provident_fund_applicable"/>
-                                    <field name="provident_fund" invisible="provident_fund_applicable != 'yes'"
-                                           force_save="1"/>
                                 </div>
                                 <label for="esi_applicable"/>
                                 <div class="o_row">
                                     <field name="esi_applicable"/>
-                                    <field name="esi_amount" invisible="esi_applicable != 'yes'" force_save="1"/>
                                 </div>
                                 <label for="variable_pay_percentage"/>
                                 <div class="o_row">
                                     <field name="variable_pay_percentage"/>
-                                    <field name="variable_pay_amount" force_save="1"/>
                                 </div>
                             </group>
-                            <group string="Incentives and Benefits">
-                                <field name="grade_id" options="{'no_quick_create':True,'no_create': True,}"/>
-                                <field name="location_id" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <group string="Compensation Details">
+                                <field name="grade"/>
+                                <field name="location"/>
                                 <field name="annual_store_performance_incentive"/>
                                 <field name="annual_performance_linked_pay"/>
                                 <field name="monthly_performance_incentive"/>
                                 <field name="medical_insurance"/>
                                 <field name="group_personal_accident_insurance"/>
-                                <field name="solis_health_benefit_beacon_plan"/>
-                                <field name="indicative_take_home_salary"/>
+                                <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
+                            </group>
+                            <group string="Salary Break-up">
+                                <field name="basic_da_per_annum" readonly="1" force_save="1"/>
+                                <field name="hra_per_annum" readonly="1" force_save="1"/>
+                                <field name="special_allowance_per_annum" readonly="1" force_save="1"/>
+                                <field name="sub_total_a_per_annum" readonly="1" force_save="1"/>
+                                <field name="statutory_bonus_per_annum" readonly="1" force_save="1"/>
+                                <field name="pf_employer_per_annum" readonly="1" force_save="1"/>
+                                <field name="esic_employer_per_annum" readonly="1" force_save="1"/>
+                                <field name="sub_total_b_per_annum" readonly="1" force_save="1"/>
+                                <field name="store_performance_incentive_annum" readonly="1" force_save="1"/>
+                                <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"/>
+                                <field name="variable_pay_per_annum" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_annum" readonly="1" force_save="1"/>
+                                <field name="sub_total_c_per_annum" readonly="1" force_save="1"/>
+                                <field name="total_salary_per_annum" readonly="1" force_save="1"/>
+                                <field name="medical_insurances" readonly="1" force_save="1"/>
+                                <field name="group_personal_acc_insurance" readonly="1" force_save="1"/>
+                                <field name="sub_total_d" readonly="1" force_save="1"/>
+
+                            </group>
+                            <group string="Salary Break-up">
+                                <field name="basic_da_per_month" readonly="1" force_save="1"/>
+                                <field name="hra_per_month" readonly="1" force_save="1"/>
+                                <field name="special_allowance_per_month" readonly="1" force_save="1"/>
+                                <field name="sub_total_a_per_month" readonly="1" force_save="1"/>
+                                <field name="statutory_bonus_per_month" readonly="1" force_save="1"/>
+                                <field name="pf_employer_per_month" readonly="1" force_save="1"/>
+                                <field name="esic_employer_per_month" readonly="1" force_save="1"/>
+                                <field name="sub_total_b_per_month" readonly="1" force_save="1"/>
+                                <field name="store_performance_incentive_month" readonly="1" force_save="1"/>
+                                <field name="monthly_performance_incentive_month" readonly="1" force_save="1"/>
+                                <field name="variable_pay_per_month" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_month" readonly="1" force_save="1"/>
+                                <field name="sub_total_c_per_month" readonly="1" force_save="1"/>
+                                <field name="total_salary_per_month" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="total_ctc_annum" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="total_ctc_month" readonly="1" force_save="1"/>
                             </group>
                         </group>
+                        <!--                        <group>-->
+                        <!--                            <group string="Compensation Details">-->
+                        <!--                                <field name="basic_da"/>-->
+                        <!--                                <field name="house_rent_allowance"/>-->
+                        <!--                                <field name="special_allowance"/>-->
+                        <!--                                <field name="monthly_fixed_salary"/>-->
+                        <!--                                <label for="statutory_bonus_applicable"/>-->
+                        <!--                                <div class="o_row">-->
+                        <!--                                    <field name="statutory_bonus_applicable"/>-->
+                        <!--                                    <field name="stat_bonus_amount" invisible="statutory_bonus_applicable != 'yes'"-->
+                        <!--                                           force_save="1"/>-->
+                        <!--                                </div>-->
+                        <!--                                <label for="provident_fund_applicable"/>-->
+                        <!--                                <div class="o_row">-->
+                        <!--                                    <field name="provident_fund_applicable"/>-->
+                        <!--                                    <field name="provident_fund" invisible="provident_fund_applicable != 'yes'"-->
+                        <!--                                           force_save="1"/>-->
+                        <!--                                </div>-->
+                        <!--                                <label for="esi_applicable"/>-->
+                        <!--                                <div class="o_row">-->
+                        <!--                                    <field name="esi_applicable"/>-->
+                        <!--                                    <field name="esi_amount" invisible="esi_applicable != 'yes'" force_save="1"/>-->
+                        <!--                                </div>-->
+                        <!--                                <label for="variable_pay_percentage"/>-->
+                        <!--                                <div class="o_row">-->
+                        <!--                                    <field name="variable_pay_percentage"/>-->
+                        <!--                                    <field name="variable_pay_amount" force_save="1"/>-->
+                        <!--                                </div>-->
+                        <!--                            </group>-->
+                        <!--                            <group string="Incentives and Benefits">-->
+                        <!--                                <field name="grade_id" options="{'no_quick_create':True,'no_create': True,}"/>-->
+                        <!--                                <field name="location_id" options="{'no_quick_create':True,'no_create': True,}"/>-->
+                        <!--                                <field name="annual_store_performance_incentive"/>-->
+                        <!--                                <field name="annual_performance_linked_pay"/>-->
+                        <!--                                <field name="monthly_performance_incentive"/>-->
+                        <!--                                <field name="medical_insurance"/>-->
+                        <!--                                <field name="group_personal_accident_insurance"/>-->
+                        <!--                                <field name="solis_health_benefit_beacon_plan"/>-->
+                        <!--                                <field name="indicative_take_home_salary"/>-->
+                        <!--                            </group>-->
+                        <!--                        </group>-->
                     </page>
                 </notebook>
             </field>

@@ -190,6 +190,12 @@ class KraDetails(models.Model):
     director_hr_remark = fields.Char(string="Director & HR Remark")
     final_score = fields.Float(string="Final Score", compute="_compute_final_score", store=True)
 
+    @api.constrains('weightage')
+    def _validate_weightage_values(self):
+        for record in self:
+            if record.weightage < 0:
+                raise ValidationError("Negative values are not allowed for Weightage.")
+
     @api.depends('weightage', 'employee_rating', 'manager_rating')
     def _compute_final_score(self):
         for record in self:

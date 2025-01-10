@@ -23,18 +23,24 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,completed" nolabel="1"/>
                     <button name="action_generate_review_lines" type="object"
                             string="Generate Review Lines" class="btn-primary"
+                            groups="hr.group_hr_user"
                             invisible="line_created"/>
                     <button name="action_submit" type="object" string="Submit" class="oe_highlight"
+                            groups="hr.group_hr_user"
                             invisible="not line_created or state in ('in_progress','completed')"/>
                     <button name="action_mark_completed" type="object" string="Mark as Completed" class="oe_highlight"
+                            groups="hr.group_hr_user"
                             invisible="state in ('draft','completed')"/>
                     <button string="Print PDF" type="action"
+                            groups="hr.group_hr_user"
                             invisible="state in ('draft', 'in_progress')"
                             name="%(hr_appraisal_extended.360_performance_review_report)d" class="btn-primary"/>
                     <button string="Print Excel" type="action"
+                            groups="hr.group_hr_user"
                             invisible="state in ('draft', 'in_progress')"
                             name="%(hr_appraisal_extended.get_360_performance_review)d" class="btn-primary"/>
                     <button name="action_set_to_drat" type="object" string="Reset to Draft"
+                            groups="hr.group_hr_user"
                             invisible="state in ('draft', 'in_progress')"/>
                 </header>
                 <sheet>
@@ -65,11 +71,11 @@
                             <field name="review_department" readonly="state in ('completed')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
-                            <field name="review_bu_ids" readonly="state in ('completed')"
-                                   widget="many2many_tags"
+                            <field name="review_bu_ids" readonly="state in ('completed')" groups="hr.group_hr_user"
+                                   widget="many2many_tags_avatar" force_save="1"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
-                            <field name="review_date_time"/>
+                            <field name="review_date_time" readonly="1"/>
                         </group>
                     </group>
                     <notebook>

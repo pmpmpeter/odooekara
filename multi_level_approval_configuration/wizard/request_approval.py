@@ -74,6 +74,11 @@ class RequestApproval(models.TransientModel):
         record_name = record.display_name or _("this object")
         model_display_name = self.env['ir.model'].sudo().search([('model', '=', model_name)], limit=1).name or _("Unknown Model")
         title = _("Request approval for {} - {}").format(model_display_name, record_name)
+        priority = '0'
+        if model_name == "employee.indent":
+            employee_indent = self.env['employee.indent'].browse(res_id)
+            if employee_indent.priority:
+                priority = employee_indent.priority
         record_url = self._get_obj_url(record)
         if approval_type.request_tmpl:
             request_tmpl = werkzeug.urls.url_unquote(_(approval_type.request_tmpl))
@@ -88,6 +93,7 @@ class RequestApproval(models.TransientModel):
                 "type_id": approval_type.id,
                 "origin_ref": f"{model_name},{res_id}",
                 "description": descr,
+                "priority": priority,
             }
         )
         return res

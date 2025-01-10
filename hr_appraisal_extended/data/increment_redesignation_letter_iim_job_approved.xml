@@ -79,7 +79,12 @@
                                 <td style="border: 1px solid black; padding: 8px;width: 20%;">Annual CTC (INR)<br/>(In
                                     digits)<br/>(In words
                                 </td>
-                                <td style="border: 1px solid black; padding: 8px;"></td>
+                                <td style="border: 1px solid black; padding: 8px;">
+                                    Rs.<t t-out="round(object.total_ctc_annum)"/>/-
+                                    <br/>
+                                    <t t-out="object.total_ctc_in_words"/>
+                                    only
+                                </td>
 
                             </tr>
 
@@ -171,41 +176,37 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Basic &amp; DA</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.basic_da or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.basic_da_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.basic_da / 12))"/>
+                                <t t-esc="'{:,}'.format(object.basic_da_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;House Rent Allowance</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.house_rent_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.hra_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.house_rent_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(object.hra_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Special Allowance</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.special_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.special_allowance_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round(object.employee_id.contract_id.special_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(object.special_allowance_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part A)</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="a_annual_subtotal"
-                                   t-value="(object.employee_id.contract_id.basic_da or 0.0)+ (object.employee_id.contract_id.house_rent_allowance or 0.0)+ (object.employee_id.contract_id.special_allowance or 0.0)"/>
-                                <t t-esc="'{:,}'.format(a_annual_subtotal)"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_a_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="a_monthly_subtotal"
-                                   t-value="(round(object.employee_id.contract_id.basic_da / 12)) + (round(object.employee_id.contract_id.house_rent_allowance / 12)) + (round(object.employee_id.contract_id.special_allowance / 12))"/>
-                                <t t-esc="'{:,}'.format(a_monthly_subtotal)"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_a_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -218,10 +219,10 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Statutory Bonus</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(object.statutory_bonus_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.stat_bonus_amount or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.statutory_bonus_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -229,10 +230,10 @@
                                 Contribution)
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.provident_fund or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(object.pf_employer_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.provident_fund or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.pf_employer_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -240,28 +241,24 @@
                                 Contribution)
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.esi_amount or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(object.esic_employer_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.esi_amount or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.esic_employer_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part B)</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="annual_subtotal"
-                                   t-value="(object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 + (object.employee_id.contract_id.provident_fund or 0.0) * 12 + (object.employee_id.contract_id.esi_amount or 0.0) * 12"/>
-                                <t t-esc="'{:,}'.format(annual_subtotal)"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_b_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="monthly_subtotal"
-                                   t-value="(object.employee_id.contract_id.stat_bonus_amount or 0.0) + (object.employee_id.contract_id.provident_fund or 0.0) + (object.employee_id.contract_id.esi_amount or 0.0)"/>
-                                <t t-esc="'{:,}'.format(monthly_subtotal)"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_b_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Part – C (Performance
-                                Linked Pay
+                                Linked Pay)
                             </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
@@ -269,23 +266,19 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Variable Pay*</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="variable_pay_amount"
-                                   t-value="object.employee_id.contract_id.variable_pay_amount or 0.0"/>
-                                <t t-esc="'{:,}'.format(variable_pay_amount)"/>
+                                <t t-esc="'{:,}'.format(object.variable_pay_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round(variable_pay_amount / 12))"/>
+                                <t t-esc="'{:,}'.format(object.variable_pay_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part C)</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-set="subtotal_c"
-                                   t-value="variable_pay_amount"/>
-                                <t t-esc="'{:,}'.format(subtotal_c)"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_c_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round(variable_pay_amount / 12))"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_c_per_month or 0.0)"/>
 
                             </td>
                         </tr>
@@ -294,22 +287,10 @@
                                 C)
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.basic_da or 0.0) +
-                                 (object.employee_id.contract_id.house_rent_allowance or 0.0) +
-                                 (object.employee_id.contract_id.special_allowance or 0.0) +
-                                (object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 +
-                                (object.employee_id.contract_id.provident_fund or 0.0) * 12 +
-                                (object.employee_id.contract_id.esi_amount or 0.0) * 12 +
-                                (object.employee_id.contract_id.variable_pay_amount or 0.0))"/>
+                                <t t-esc="'{:,}'.format(object.total_salary_per_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round((object.employee_id.contract_id.basic_da or 0.0) / 12) +
-                                 round((object.employee_id.contract_id.house_rent_allowance or 0.0) / 12) +
-                                 round((object.employee_id.contract_id.special_allowance or 0.0) / 12)  +
-                                (object.employee_id.contract_id.stat_bonus_amount or 0) +
-                                (object.employee_id.contract_id.provident_fund or 0) +
-                                (object.employee_id.contract_id.esi_amount or 0) +
-                                round((object.employee_id.contract_id.variable_pay_amount or 0.0) / 12))"/>
+                                <t t-esc="'{:,}'.format(object.total_salary_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -322,7 +303,7 @@
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Medical Insurance **</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.medical_insurance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.medical_insurances or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
@@ -331,14 +312,14 @@
                                 Insurance***
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(object.employee_id.contract_id.group_personal_accident_insurance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(object.group_personal_acc_insurance or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr style="background-color:#e7e6e6;">
                             <td style="border: 1px solid black; padding: 8px;font-weight:bold;">Sub-total (Part D)</td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.medical_insurance or 0.0) + (object.employee_id.contract_id.group_personal_accident_insurance or 0.0))"/>
+                                <t t-esc="'{:,}'.format(object.sub_total_d or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">-</td>
                         </tr>
@@ -347,26 +328,10 @@
                                 Company (A + B + C + D)
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format((object.employee_id.contract_id.basic_da or 0.0) +
-                                 (object.employee_id.contract_id.house_rent_allowance or 0.0) +
-                                 (object.employee_id.contract_id.special_allowance or 0.0) +
-                                (object.employee_id.contract_id.stat_bonus_amount or 0.0) * 12 +
-                                (object.employee_id.contract_id.provident_fund or 0.0) * 12 +
-                                (object.employee_id.contract_id.esi_amount or 0.0) * 12 +
-                                (object.employee_id.contract_id.variable_pay_amount or 0.0) +
-                                (object.employee_id.contract_id.medical_insurance or 0.0) +
-                                (object.employee_id.contract_id.group_personal_accident_insurance or 0.0))"/>
+                                <t t-esc="'{:,}'.format(object.total_ctc_annum or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
-                                <t t-esc="'{:,}'.format(round((object.employee_id.contract_id.basic_da or 0.0) / 12) +
-                                 round((object.employee_id.contract_id.house_rent_allowance or 0.0) / 12) +
-                                 round((object.employee_id.contract_id.special_allowance or 0.0) / 12) +
-                                (object.employee_id.contract_id.stat_bonus_amount or 0) +
-                                (object.employee_id.contract_id.provident_fund or 0) +
-                                (object.employee_id.contract_id.esi_amount or 0) +
-                                round((object.employee_id.contract_id.variable_pay_amount or 0.0) / 12) +
-                                round((object.employee_id.contract_id.medical_insurance or 0.0) / 12) +
-                                round((object.employee_id.contract_id.group_personal_accident_insurance or 0.0) / 12))"/>
+                                <t t-esc="'{:,}'.format(object.total_ctc_month or 0.0)"/>
 
                             </td>
                         </tr>

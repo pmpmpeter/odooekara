@@ -4,8 +4,8 @@
     <template id="interview_assessment_report">
         <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
-            <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
-            <t t-set="company" t-value="doc.company_id"/>
+                <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
+                <t t-set="company" t-value="doc.company_id"/>
                 <div class="page">
                     <!-- Title -->
                     <h4 style="text-align: center;font-weight: bold; text-decoration: underline;">INTERVIEW ASSESSMENT
@@ -75,6 +75,16 @@
                                 <td style="border: 1px solid black; padding: 5px;">
                                     <strong>Expected CTC:</strong>
                                     <t t-esc="'{:,}'.format(doc.expected_ctc)"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>Start Time:</strong>
+                                    <t t-esc="doc.adjusted_time_start.strftime('%d-%m-%Y  %H:%M')"/>
+                                </td>
+                                <td style="border: 1px solid black; padding: 5px;">
+                                    <strong>End Time:</strong>
+                                    <t t-esc="doc.adjusted_time_end.strftime('%d-%m-%Y  %H:%M')"/>
                                 </td>
                             </tr>
                         </tbody>
@@ -274,8 +284,8 @@
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
                 <t
-                t-call="hr_extended.interview_assessment_report"
-                t-lang="o.user_id.lang"
+                        t-call="hr_extended.interview_assessment_report"
+                        t-lang="o.user_id.lang"
                 />
             </t>
         </t>

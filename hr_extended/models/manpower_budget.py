@@ -6,7 +6,7 @@ class ManpowerBudget(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']  # Enable chatter functionality
     _rec_name = 'tax_entity_id'
 
-
+    name = fields.Char(string='Reference', required=True, readonly=True, default='New')
     create_date = fields.Datetime(string="Creation Date", readonly=True, default=fields.Datetime.now)
     user_id = fields.Many2one('res.users', string="User", default=lambda self: self.env.user, readonly=True)
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, readonly=True)
@@ -29,6 +29,34 @@ class ManpowerBudget(models.Model):
         default=lambda self: self._default_employee_monthly_ids(),
         tracking=True
     )
+    state = fields.Selection(
+        [
+            ('draft', 'Draft'),
+            ('in_progress', 'In Progress'),
+            ('done', 'Done')
+        ],
+        string='Status',
+        default='draft',
+        required=True
+    )
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') == 'New':
+            vals['name'] = self.env['ir.sequence'].next_by_code('manpower.budget') or 'New'
+        return super(ManpowerBudget, self).create(vals)
+
+    def action_set_in_progress(self):
+        self.write({'state': 'in_progress'})
+
+    def action_set_done(self):
+        self.write({'state': 'done'})
+
+    def action_reset_to_draft(self):
+        self.write({'state': 'draft'})
+
+
+ 
 
     @api.model
     def _default_employee_monthly_ids(self):
@@ -41,7 +69,6 @@ class ManpowerBudget(models.Model):
         ]
         current_year = fields.Date.today().year
         next_year = current_year + 1
-
         employee_lines = []
         for month_code, month_name in financial_year_months:
             year = current_year if int(month_code) >= 4 else next_year
@@ -64,5 +91,5 @@ class ManpowerBudgetEmployeeMonthly(models.Model):
         ('07', 'July'), ('08', 'August'), ('09', 'September'),
         ('10', 'October'), ('11', 'November'), ('12', 'December'),
         ('01', 'January'), ('02', 'February'), ('03', 'March'),
-    ], string="Month", required=True)
+    ], string="Month")
     employee_count = fields.Integer(string="Employee Count", required=True)

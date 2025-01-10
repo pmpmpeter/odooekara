@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!--    <record model="ir.ui.view" id="email_compose_message_wizard_form_inherit">-->
+<!--        <field name="name">mail.compose.message.form.inherit</field>-->
+<!--        <field name="model">mail.compose.message</field>-->
+<!--        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='template_id']" position="before">-->
+<!--                <field name="load_template_readonly"/>-->
+<!--            </xpath>-->
+<!--            <xpath expr="//field[@name='template_id']" position="attributes">-->
+<!--                <attribute name="readonly">load_template_readonly</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+</odoo>

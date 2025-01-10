@@ -37,7 +37,7 @@
                         <t t-esc="doc.department_id.name"/>
                         <br/>
                         <b>Work Location:</b>
-                        <t t-esc="doc.location_id.name"/>
+                        <t t-esc="dict(doc._fields['location'].selection).get(doc.location, '')"/>
                         <br/>
                     </p>
 
@@ -84,28 +84,28 @@
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Basic and DA</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.basic_da or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.basic_da_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(doc.basic_da / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.basic_da_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">House Rent Allowance</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.house_rent_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.hra_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(doc.house_rent_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.hra_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Special Allowance</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.special_allowance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.special_allowance_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(doc.special_allowance / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.special_allowance_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -113,14 +113,10 @@
                                 Sub-total (Part A)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-set="a_annual_subtotal"
-                                   t-value="(doc.basic_da or 0.0)+ (doc.house_rent_allowance or 0.0)+ (doc.special_allowance or 0.0)"/>
-                                <t t-esc="'{:,}'.format(a_annual_subtotal)"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_a_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-set="a_monthly_subtotal"
-                                   t-value="(round(doc.basic_da / 12)) + (round(doc.house_rent_allowance / 12)) + (round(doc.special_allowance / 12))"/>
-                                <t t-esc="'{:,}'.format(a_monthly_subtotal)"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_a_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <!-- Details: Part B -->
@@ -132,10 +128,10 @@
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Statutory Bonus</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.stat_bonus_amount or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(doc.statutory_bonus_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.stat_bonus_amount or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.statutory_bonus_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -143,19 +139,19 @@
                                 Contribution)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.provident_fund or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(doc.pf_employer_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.provident_fund or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.pf_employer_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">ESIC (Employer's Contribution)</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.esi_amount or 0.0) * 12)"/>
+                                <t t-esc="'{:,}'.format(doc.esic_employer_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.esi_amount or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.esic_employer_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -163,14 +159,10 @@
                                 Sub-total (Part B)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-set="annual_subtotal"
-                                   t-value="(doc.stat_bonus_amount or 0.0) * 12 + (doc.provident_fund or 0.0) * 12 + (doc.esi_amount or 0.0) * 12"/>
-                                <t t-esc="'{:,}'.format(annual_subtotal)"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_b_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-set="monthly_subtotal"
-                                   t-value="(doc.stat_bonus_amount or 0.0) + (doc.provident_fund or 0.0) + (doc.esi_amount or 0.0)"/>
-                                <t t-esc="'{:,}'.format(monthly_subtotal)"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_b_per_month or 0.0)"/>
                             </td>
                         </tr>
 
@@ -184,44 +176,37 @@
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Store Performance Incentive</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-set="annual_store_performance_incentive"
-                                   t-value="doc.annual_store_performance_incentive or 0.0"/>
-                                <t t-esc="'{:,}'.format(annual_store_performance_incentive)"/>
+                                <t t-esc="'{:,}'.format(doc.store_performance_incentive_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(annual_store_performance_incentive / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.store_performance_incentive_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Monthly Performance Incentive</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-set="monthly_performance_incentive"
-                                   t-value="doc.monthly_performance_incentive or 0.0"/>
-                                <t t-esc="'{:,}'.format(monthly_performance_incentive)"/>
+                                <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(monthly_performance_incentive / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Variable Pay</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-set="variable_pay_amount" t-value="doc.variable_pay_amount or 0.0"/>
-                                <t t-esc="'{:,}'.format(variable_pay_amount)"/>
+                                <t t-esc="'{:,}'.format(doc.variable_pay_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(variable_pay_amount / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.variable_pay_per_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Performance Linked Pay</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-set="annual_performance_linked_pay"
-                                   t-value="doc.annual_performance_linked_pay or 0.0"/>
-                                <t t-esc="'{:,}'.format(annual_performance_linked_pay)"/>
+                                <t t-esc="'{:,}'.format(doc.performance_linked_pay_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(round(annual_performance_linked_pay / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.performance_linked_pay_month or 0.0)"/>
                             </td>
                         </tr>
                         <tr>
@@ -229,12 +214,10 @@
                                 Sub-total (Part C)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-set="subtotal_c"
-                                   t-value="annual_store_performance_incentive + monthly_performance_incentive + variable_pay_amount + annual_performance_linked_pay"/>
-                                <t t-esc="'{:,}'.format(subtotal_c)"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_c_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(round(annual_store_performance_incentive / 12 + monthly_performance_incentive / 12 + variable_pay_amount / 12 + annual_performance_linked_pay / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_c_per_month or 0.0)"/>
                             </td>
                         </tr>
 
@@ -243,28 +226,10 @@
                                 TOTAL SALARY (A + B + C)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.basic_da or 0.0) +
-                                 (doc.house_rent_allowance or 0.0) +
-                                 (doc.special_allowance or 0.0) +
-                                (doc.stat_bonus_amount or 0.0) * 12 +
-                                (doc.provident_fund or 0.0) * 12 +
-                                (doc.esi_amount or 0.0) * 12 +
-                                (doc.annual_store_performance_incentive or 0.0) +
-                                (doc.monthly_performance_incentive or 0.0) +
-                                (doc.variable_pay_amount or 0.0) +
-                                (doc.annual_performance_linked_pay or 0.0))"/>
+                                <t t-esc="'{:,}'.format(doc.total_salary_per_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(round((doc.basic_da or 0.0) / 12) +
-                                 round((doc.house_rent_allowance or 0.0) / 12) +
-                                 round((doc.special_allowance or 0.0) / 12)  +
-                                (doc.stat_bonus_amount or 0) +
-                                (doc.provident_fund or 0) +
-                                (doc.esi_amount or 0) +
-                                round((doc.annual_store_performance_incentive or 0.0) / 12) +
-                                round((doc.monthly_performance_incentive or 0.0) / 12) +
-                                round((doc.variable_pay_amount or 0.0) / 12) +
-                                round((doc.annual_performance_linked_pay or 0.0) / 12))"/>
+                                <t t-esc="'{:,}'.format(doc.total_salary_per_month or 0.0)"/>
                             </td>
                         </tr>
 
@@ -277,7 +242,7 @@
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000;">Medical Insurance**</td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.medical_insurance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.medical_insurances or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
                         </tr>
@@ -285,24 +250,24 @@
                             <td style="padding: 10px; border: 1px solid #000;">Group Personal Accidental Insurance***
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.group_personal_accident_insurance or 0.0)"/>
+                                <t t-esc="'{:,}'.format(doc.group_personal_acc_insurance or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
                         </tr>
-                        <tr>
-                            <td style="padding: 10px; border: 1px solid #000;">Solis Health Benefit Beacon Plan****
-                            </td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                <t t-esc="'{:,}'.format(doc.solis_health_benefit_beacon_plan or 0.0)"/>
-                            </td>
-                            <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
-                        </tr>
+                        <!--                        <tr>-->
+                        <!--                            <td style="padding: 10px; border: 1px solid #000;">Solis Health Benefit Beacon Plan****-->
+                        <!--                            </td>-->
+                        <!--                            <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                        <!--                                <t t-esc="'{:,}'.format(doc.solis_health_benefit_beacon_plan or 0.0)"/>-->
+                        <!--                            </td>-->
+                        <!--                            <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>-->
+                        <!--                        </tr>-->
                         <tr>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6;">
                                 Sub-total (Part D)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.medical_insurance or 0.0) + (doc.group_personal_accident_insurance or 0.0) + (doc.solis_health_benefit_beacon_plan or 0.0))"/>
+                                <t t-esc="'{:,}'.format(doc.sub_total_d or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
                                 -
@@ -313,34 +278,10 @@
                                 Total Cost to the Company (A + B + C + D)
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format((doc.basic_da or 0.0) +
-                                 (doc.house_rent_allowance or 0.0) +
-                                 (doc.special_allowance or 0.0) +
-                                (doc.stat_bonus_amount or 0.0) * 12 +
-                                (doc.provident_fund or 0.0) * 12 +
-                                (doc.esi_amount or 0.0) * 12 +
-                                (doc.annual_store_performance_incentive or 0.0) +
-                                (doc.monthly_performance_incentive or 0.0) +
-                                (doc.variable_pay_amount or 0.0) +
-                                (doc.annual_performance_linked_pay or 0.0) +
-                                (doc.medical_insurance or 0.0) +
-                                (doc.group_personal_accident_insurance or 0.0) +
-                                (doc.solis_health_benefit_beacon_plan or 0.0) )"/>
+                                <t t-esc="'{:,}'.format(doc.total_ctc_annum or 0.0)"/>
                             </td>
                             <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6; text-align: right">
-                                <t t-esc="'{:,}'.format(round((doc.basic_da or 0.0) / 12) +
-                                 round((doc.house_rent_allowance or 0.0) / 12) +
-                                 round((doc.special_allowance or 0.0) / 12) +
-                                (doc.stat_bonus_amount or 0) +
-                                (doc.provident_fund or 0) +
-                                (doc.esi_amount or 0) +
-                                round((doc.annual_store_performance_incentive or 0.0) / 12) +
-                                round((doc.monthly_performance_incentive or 0.0) / 12) +
-                                round((doc.variable_pay_amount or 0.0) / 12) +
-                                round((doc.annual_performance_linked_pay or 0.0) / 12) +
-                                round((doc.medical_insurance or 0.0) / 12) +
-                                round((doc.group_personal_accident_insurance or 0.0) / 12) +
-                                round((doc.solis_health_benefit_beacon_plan or 0.0) /12))"/>
+                                <t t-esc="'{:,}'.format(doc.total_ctc_month or 0.0)"/>
                             </td>
                         </tr>
 

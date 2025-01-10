@@ -28,6 +28,8 @@
                 <field name="employee_id"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
+                <field name="state" widget='badge' decoration-info="state == 'review'"
+                       decoration-success="state =='confirm'" decoration-danger="state =='cancel'"/>
             </tree>
         </field>
     </record>
@@ -78,7 +80,7 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-file-text-o"
-                                invisible="review_form_count == 0">
+                                invisible="review_form_count == 0" groups="emp_prob_extended.group_employee_probation_user">
                             <field name="review_form_count" widget="statinfo" string="Review Form"/>
                         </button>
                     </div>
@@ -93,12 +95,12 @@
                     </div>
                     <group>
                         <group string="EMPLOYEE">
-                            <field name="employee_id" options="{'no_quick_create':True,'no_create': True,}"
+                            <field name="employee_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']" required="True"/>
                             <field name="email" widget="email" readonly="state in ['confirm','cancel']"/>
-                            <field name="department_id" options="{'no_quick_create':True,'no_create': True,}"
+                            <field name="department_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']"/>
-                            <field name="parent_id" options="{'no_quick_create':True,'no_create': True,}"
+                            <field name="parent_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']"/>
                         </group>
                         <group string="PROBATION">

@@ -176,8 +176,10 @@
                 </button>
             </xpath>
             <xpath expr="//header" position="inside">
+                <field name="appointment_letter_sent" invisible="1"/>
                 <button name="action_send_appointment_letter_emp_mail" type="object" class="oe_highlight"
-                        string="Send Appointment Letter"/>
+                        string="Send Appointment Letter"
+                        invisible="state in ('relieved','terminate') or appointment_letter_sent"/>
                 <button string="NDA" type="action"
                         name="%(hr_extended.nda_form_template)d" class="btn-primary" invisible="1"/>
                 <button string="Media Declare" type="action"
@@ -194,7 +196,7 @@
                         name="%(hr_extended.appointment_order_form_template)d" class="btn-primary" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="before">
-                 <field name="employee_number" invisible="1" string="Employee Number"/>
+                <field name="employee_number" invisible="1" string="Employee Number"/>
                 <field name="create_date" string="Created On"/>
                 <field name="employee" readonly="True"/>
             </xpath>
@@ -216,5 +218,24 @@
     <record id="hr.menu_hr_employee_payroll" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
     </record>
+
+    <record id="hr_employee_view_form_inherit_appraisal_update" model="ir.ui.view">
+        <field name="name">hr.employee.view.form.inherit.appraisal.update</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_appraisal.hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_send_appraisal_request'][1]"
+                   position="attributes">
+                <attribute name="invisible">parent_user_id != uid and ongoing_appraisal_count != 0 or state in ('relieved','terminate')
+                </attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_send_appraisal_request'][2]"
+                   position="attributes">
+                <attribute name="invisible">ongoing_appraisal_count != 0 or state in ('relieved','terminate')
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+
 
 </odoo>
