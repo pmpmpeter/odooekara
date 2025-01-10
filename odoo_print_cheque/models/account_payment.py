@@ -22,22 +22,22 @@ class AccountPayment(models.Model):
 
 
     cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
-                                       help='Cheque Print Formats')
-    sr_no = fields.Char(string="Sr.No")
-    assigned_by = fields.Many2one('res.users',string="Assigned By")
-    managed_by = fields.Many2one('res.users',string="Managed By")
-    comments = fields.Text(string="Comments")
-    cheque_number = fields.Char(string="Cheque/Tax Number")
-    towards = fields.Text(string="Towards")
-    authorised_by = fields.Many2one('res.users',string="Authorised By")
-    authorised_date = fields.Date(string="Authorised Date")
-    is_cheque_cleared = fields.Boolean(string="Cheque Cleared")
-    cheque_cleared_date = fields.Date(string="Date of Cheque Cleared")
-    trans_id = fields.Char(string="Transaction ID")
-    sender_account_type = fields.Char(string="Sender Account Type")
-    beneficiary_account_type  = fields.Char(string="Beneficiary Account Type")
-    sender_receiver_info  = fields.Char(string="Sender Receiver Information")
-    sms_email = fields.Selection([('sms','SMS'),('email','Email')], string="SMS / Email")
+                                       help='Cheque Print Formats',copy=False)
+    sr_no = fields.Char(string="Sr.No",copy=False)
+    assigned_by = fields.Many2one('res.users',string="Assigned By",copy=False)
+    managed_by = fields.Many2one('res.users',string="Managed By",copy=False)
+    comments = fields.Text(string="Comments",copy=False)
+    cheque_number = fields.Char(string="Cheque/Tax Number",copy=False)
+    towards = fields.Text(string="Towards",copy=False)
+    authorised_by = fields.Many2one('res.users',string="Authorised By",copy=False)
+    authorised_date = fields.Date(string="Authorised Date",copy=False)
+    is_cheque_cleared = fields.Boolean(string="Cheque Cleared",copy=False)
+    cheque_cleared_date = fields.Date(string="Date of Cheque Cleared",copy=False)
+    trans_id = fields.Char(string="Transaction ID",copy=False)
+    sender_account_type = fields.Char(string="Sender Account Type",copy=False)
+    beneficiary_account_type  = fields.Char(string="Beneficiary Account Type",copy=False)
+    sender_receiver_info  = fields.Char(string="Sender Receiver Information",copy=False)
+    sms_email = fields.Selection([('sms','SMS'),('email','Email')], string="SMS / Email",copy=False)
 
 
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
@@ -130,11 +130,11 @@ class AccountBatchPayment(models.Model):
 
 
     cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
-                                       help='Cheque Print Formats')
-    cheque_number = fields.Char(string="Cheque/Tax Number")
-    towards = fields.Text(string="Towards")
-    authorised_by = fields.Many2one('res.users',string="Authorised By")
-    authorised_date = fields.Date(string="Authorised Date")
+                                       help='Cheque Print Formats',copy=False)
+    cheque_number = fields.Char(string="Cheque/Tax Number",copy=False)
+    towards = fields.Text(string="Towards",copy=False)
+    authorised_by = fields.Many2one('res.users',string="Authorised By",copy=False)
+    authorised_date = fields.Date(string="Authorised Date",copy=False)
     amount_total_words = fields.Char(
         string="Amount total in words",
         compute="_compute_amount_total_words",

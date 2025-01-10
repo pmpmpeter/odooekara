@@ -52,6 +52,8 @@ class AccountPayment(models.Model):
 
     def action_post(self):
         for pay in self:
+            if pay.state != 'approved':
+                raise ValidationError('You cannot confirm payments that are not Approved.')
             if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared and pay.payment_type == 'outbound':
                 raise UserError(_("Alert !! Kindly Clear the cheque and Update the utr number."))
             if not pay.utr_number and pay.payment_type == 'outbound':
@@ -66,7 +68,7 @@ class AccountPayment(models.Model):
             employee_email = pay.expense_sheet_id.employee_id.work_email if pay.expense_sheet_id.employee_id else ''
             template = self.env.ref('account.mail_template_data_payment_receipt')
             template.write({'email_to': ', '.join(filter(None, [user_email, employee_email]))})
-            template.send_mail(self.id, force_send=True)
+            template.send_mail(pay.id, force_send=True)
         res = super(AccountPayment, self).action_post()
         return res
 
