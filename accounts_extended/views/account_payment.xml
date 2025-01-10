@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+      <record id="view_account_payment_form_inherit_view" model="ir.ui.view">
+            <field name="name">view.account.payment.form.view</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account_check_printing.view_account_payment_form_inherited"/>
+            <field name="arch" type="xml">
+                <button name='print_checks' position='attributes'>
+                    <attribute name='invisible'>1</attribute>
+                </button>
+            </field>
+        </record>
 
       <record id="view_account_payment_form_view_inherit" model="ir.ui.view">
             <field name="name">view.account.payment.form.view</field>
@@ -9,14 +19,17 @@
                  <field name="ref" position="after">
                     <field name='utr_number' invisible="payment_type != 'outbound' or (not show_partner_bank_account and not is_cheque_cleared)"/>
                 </field>
+                <xpath expr="//field[@name='partner_bank_id']" position="after">
+                                <field name="partner_bank_id" string="Vendor Bank Account" context="{'default_partner_id': partner_id, 'display_account_trust': True}" invisible=" show_partner_bank_account or partner_type != 'supplier' or is_internal_transfer or payment_type == 'inbound'" required="require_partner_bank_account and not is_internal_transfer"/>
+                </xpath>                      
                 <xpath expr="//field[@name='payment_method_line_id']" position="after">
-                <field name="cheque_format_id" invisible="show_partner_bank_account"/>
-                <field name="is_cheque_cleared" invisible="show_partner_bank_account"/>
+                <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'"/>
+                <field name="is_cheque_cleared" invisible="show_partner_bank_account or payment_type != 'outbound'"/>
                 <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared"/>
             </xpath>
             <xpath expr="//group[@name='main_group']" position="after">
                 <notebook>
-                    <page name="cheque_details" string="Cheque Details" invisible="show_partner_bank_account">
+                    <page name="cheque_details" string="Cheque Details" invisible="show_partner_bank_account or payment_type != 'outbound'">
                         <group>
                             <group>
                                 <field name="sr_no"/>
@@ -39,6 +52,9 @@
                             </group>
                         </group>
                     </page>
+                    <page name="Approval Comments" invisible="not is_fund_requsiting">
+                        <field name="reason_approved" invisible="not is_fund_requsiting" readonly="1"/>
+                    </page>
                 </notebook>
             </xpath>
                 <field name="journal_id" position="before">
@@ -48,7 +64,6 @@
                     <field name="x_has_request_approval" invisible="1"/>
                     <field name="is_contra_payment" invisible="1"/>
                      <field name="approval_state" invisible="is_contra_payment or (payment_type == 'inbound' and not is_fund_requsiting)"/>
-                    <field name="reason_approved" invisible="not is_fund_requsiting" readonly="1"/>
                 </field>
                 <xpath expr="//button[@name='action_post']" position="replace">
                         <button name="action_post" string="Confirm" type="object" class="oe_highlight" invisible="payment_type != 'inbound' or state != 'draft' or is_fund_requsiting" data-hotkey="q"/>
