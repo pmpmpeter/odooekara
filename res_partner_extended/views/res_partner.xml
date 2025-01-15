@@ -25,8 +25,8 @@
             <field name="inherit_id" ref="base.view_res_partner_filter"/>
             <field name="arch" type="xml">
                 <xpath expr="//search" position="inside">
-                    <field name="customer_code" string="Customer Code"/>
-                    <field name="vendor_code" string="Vendor Code"/>
+<!--                    <field name="customer_code" string="Customer Code"/>-->
+                    <field name="vendor_code" string="Partner Code"/>
                 </xpath>
                 <xpath expr="//filter[@name='customer']" position="after">
                     <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
@@ -51,6 +51,9 @@
                 <field name="l10n_in_pan" position="after">
                     <field name="msme_status" widget="radio" readonly="state in ('approve', 'done')"/>
                     <field name="msme_number" invisible="msme_status ==  'unregistered'" readonly="state in ('approve', 'done')"/>
+                </field>
+                 <field name="l10n_in_gst_treatment" position="before">
+                    <field name="vendor_code" readonly="1"/>
                 </field>
             </field>
         </record>
@@ -134,7 +137,7 @@
                 </xpath>
                 <xpath expr="//page[@name='sales_purchases']//field[@name='user_id']" position="before">
                     <field name="is_customer"/>
-                    <field name="customer_code" invisible="is_customer != True"/>
+<!--                    <field name="customer_code" invisible="is_customer != True"/>-->
                 </xpath>
                 <xpath expr="//field[@name='commercial_partner_id']" position="attributes">
                     <attribute name="readonly">state in ('approve', 'done')</attribute>
@@ -236,7 +239,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='buyer_id']" position="before">
                     <field name="is_vendor"/>
-                    <field name="vendor_code" invisible="is_vendor != True"/>
+<!--                    <field name="vendor_code" invisible="is_vendor != True"/>-->
                 </xpath>
                 <xpath expr="//field[@name='buyer_id']" position="attributes">
                     <attribute name="invisible">not is_vendor</attribute>

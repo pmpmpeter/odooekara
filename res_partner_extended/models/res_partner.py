@@ -12,7 +12,7 @@ class ResPartner(models.Model):
         string='Status', default='draft', readonly=True, copy=False, tracking=True,)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
-    vendor_code = fields.Char(string='Supplier Code',readonly=1, copy=False)
+    vendor_code = fields.Char(string='Partner Code',readonly=1, copy=False)
     customer_code = fields.Char(string='Customer Code', readonly=1, copy=False)
     vat = fields.Char(string='GSTIN')
     tds_applicable = fields.Boolean('TDS Applicable?')
@@ -34,14 +34,17 @@ class ResPartner(models.Model):
     def name_get(self):
         result = []
         for record in self:
-            name = f"{record.ref} {record.name}" if record.ref else record.name
+            if record.vendor_code:
+                name = f"{record.vendor_code} {record.name}"
+            else:
+                name= record.name
             result.append((record.id, name))
         return result
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         args = args or []
-        domain = ['|', ('name', operator, name), ('ref', operator, name)]
+        domain = ['|',('name', operator, name),('vendor_code', operator, name)]
         return self.search(domain + args, limit=limit).name_get()
 
     @api.depends('complete_name', 'email', 'vat', 'state_id', 'country_id', 'commercial_company_name')
@@ -49,8 +52,10 @@ class ResPartner(models.Model):
     def _compute_display_name(self):
         for partner in self:
             name = partner.with_context(lang=self.env.lang)._get_complete_name()
-            if partner.ref:
-                name = partner.ref + " " + name
+            if not partner.vendor_code:
+                name = name
+            if partner.vendor_code:
+                name = partner.vendor_code + " " + name
             if partner._context.get('show_address'):
                 name = name + "\n" + partner._display_address(without_company=True)
             name = re.sub(r'\s+\n', '\n', name)
@@ -148,13 +153,8 @@ class ResPartner(models.Model):
         for record in self.filtered(lambda m: m.state in 'done'):
             if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
                 raise UserError(_("Alert !! Kindly update Supplier Currency."))
-            if record.is_customer:
-                customer_code = self.env['ir.sequence'].next_by_code('contact.debtor.code')
-                if customer_code != '' and not self.customer_code:
-                    record.write({'customer_code': customer_code})
-            if record.is_vendor:
-                vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
-                if vendor_code != '' and not self.vendor_code:
+            vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
+            if vendor_code != '' and not self.vendor_code:
                     record.write({'vendor_code': vendor_code})
             record.write({'state': 'approve'})
             # Retrieve the action with the ID 'contacts.action_contacts'
