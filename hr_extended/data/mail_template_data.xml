@@ -321,6 +321,33 @@
         </field>
     </record>
 
+    <record id="mail_template_epf_11" model="mail.template">
+        <field name="name">EPF Form 11 Declaration Email Template</field>
+        <field name="model_id" ref="hr_extended.model_joining_documents"/>
+        <field name="email_from">${object.employee_id.work_email or user.email}</field>
+        <field name="email_to">{{object.contact_id.email}}</field>
+        <field name="subject">EPF Form 11 Declaration Submission Email</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+
+                    Dear
+                    <t t-out="object.contact_id.name"/>,
+                    <br/>
+
+                    Please find attached the filled EPF Form 11 Declaration form for your review and approval. Kindly let me know
+                    if any further information is required.
+                    <br/>
+
+                    Thank you,
+                    <br/>
+                    <t t-out="object.employee_id.name"/>
+                </p>
+            </div>
+
+        </field>
+    </record>
+
     <record id="mail_template_ebp_claim_form" model="mail.template">
         <field name="name">EBP claim form Email Template</field>
         <field name="model_id" ref="hr_extended.model_joining_documents"/>

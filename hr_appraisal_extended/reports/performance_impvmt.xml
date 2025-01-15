@@ -7,12 +7,12 @@
         <field name="page_height">0</field>
         <field name="page_width">0</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">20</field>
-        <field name="margin_bottom">20</field>
-        <field name="margin_left">20</field>
-        <field name="margin_right">20</field>
+        <field name="margin_top">50</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">35</field>
+        <field name="header_spacing">48</field>
         <field name="dpi">90</field>
     </record>
     <record id="performance_impvmt_report" model="ir.actions.report">
@@ -112,6 +112,8 @@
                             <br/>
                             <br/>
                             <br/>
+                            <div style="page-break-before: always;">
+                            </div>
                             <span>
                                 <b>Step 1: Improvement Goals:</b>
                                 These are the goals related to areas of concern to be improved
@@ -228,6 +230,8 @@
                             </table>
                             <br/>
                             <br/>
+                            <div style="page-break-before: always;">
+                            </div>
                             <span>
                                 <b>Step 5 Progress Checkpoints:</b>
                                 The following schedule will be used to evaluate your progress

@@ -146,7 +146,7 @@ class JoiningDocuments(models.Model):
 
     def action_submit(self):
         for record in self:
-            if record.document_type in ['it_declaration', 'ebp_claim', 'bgv'] and not record.submitted_file:
+            if record.document_type in ['it_declaration', 'ebp_claim', 'bgv', 'epf'] and not record.submitted_file:
                 raise UserError(_("The attachment is missing. Please attach the required document before submitting."))
 
             if record.sequence > 0:
@@ -216,6 +216,7 @@ class JoiningDocuments(models.Model):
             'bgv': 'hr_extended.mail_template_bgv',
             'it_declaration': 'hr_extended.mail_template_it_declaration',
             'ebp_claim': 'hr_extended.mail_template_ebp_claim_form',
+            'epf': 'hr_extended.mail_template_epf_11'
         }
 
         if self.document_type not in template_mapping:

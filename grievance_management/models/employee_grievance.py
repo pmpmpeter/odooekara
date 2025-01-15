@@ -60,6 +60,57 @@ class GrievanceManagement(models.Model):
     #         else:
     #             record.is_manager = False
 
+    def send_activity_notification(self):
+        notify_type = self.env.ref("mail.mail_activity_data_todo", False)
+        if not notify_type:
+            return
+
+        for req in self:
+            users_to_notify = set()
+            if req.manager_id:
+                users_to_notify.add(req.manager_id.user_id.id)
+            else:
+                raise ValidationError("The manager is not set for this user.")
+
+            if req.type and req.type.respective_hod_id:
+                users_to_notify.add(req.type.respective_hod_id.user_id.id)
+            else:
+                raise ValidationError("The HOD for the grievance type is not set.")
+
+            summary = _("The grievance {code} needs to be reviewed by the respective persons.").format(
+                code=req.type.name)
+
+            for user_id in users_to_notify:
+                self.env["mail.activity"].create(
+                    {
+                        "res_id": req.id,
+                        "res_model_id": self.env["ir.model"]._get(req._name).id,
+                        "activity_type_id": notify_type.id,
+                        "summary": summary,
+                        "user_id": user_id,
+                    }
+                )
+
+    def finalize_activity_or_message(self, msg):
+        users_to_notify = set()
+        if self.manager_id:
+            users_to_notify.add(self.manager_id.user_id.id)
+
+        if self.type and self.type.respective_hod_id:
+            users_to_notify.add(self.type.respective_hod_id.user_id.id)
+
+        notify_type = self.env.ref("mail.mail_activity_data_todo", False)
+        if not notify_type:
+            return
+        if self.env.user.id in users_to_notify:
+            for user_id in users_to_notify:
+                activities = self.activity_ids.filtered(
+                    lambda a: a.activity_type_id == notify_type and a.user_id.id == user_id
+                )
+                activities._action_done(msg)
+
+        self.message_post(body=msg)
+
     def action_submit_to_manager(self):
         # if not self.manager_id.work_email:
         #     raise ValidationError("The manager work mail is required to send a mail.")
@@ -68,7 +119,7 @@ class GrievanceManagement(models.Model):
         # for rec in self:
         #     if rec.manager_id.work_email:
         #         template.send_mail(rec.id, force_send=True)
-
+        self.send_activity_notification()
         self.state = 'submit'
 
     def send_mail_to_employee(self):
@@ -134,6 +185,8 @@ class GrievanceManagement(models.Model):
 
     def action_satisfied(self):
         for record in self:
+            msg = _("%s submitted the request.") % self.env.user.name
+            self.finalize_activity_or_message(msg)
             record.state = 'satisfied'
 
     def unlink(self):

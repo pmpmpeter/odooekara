@@ -68,6 +68,9 @@
                             groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_recruitment_bu_head,hr_recruitment.group_hr_recruitment_user"
                             class="oe_highlight"
                             invisible="state in ('preparation','request_appraisal')"/>
+                    <button name="action_create_new_contract" type="object" groups="hr_extended.group_hr_recruitment_director"
+                                        class="oe_highlight new-compensation-btn"
+                                        string="Update Compensation"/>
 
                 </header>
                 <sheet>
@@ -238,7 +241,7 @@
                                     <field name="group_personal_accident_insurance"/>
                                     <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                                 </group>
-                                <group string="Salary Break-up">
+                                <group string="Salary Break-up (Per Annum)">
                                     <field name="basic_da_per_annum" readonly="1" force_save="1"/>
                                     <field name="hra_per_annum" readonly="1" force_save="1"/>
                                     <field name="special_allowance_per_annum" readonly="1" force_save="1"/>
@@ -258,7 +261,7 @@
                                     <field name="sub_total_d" readonly="1" force_save="1"/>
 
                                 </group>
-                                <group string="Salary Break-up">
+                                <group string="Salary Break-up (Per Month)">
                                     <field name="basic_da_per_month" readonly="1" force_save="1"/>
                                     <field name="hra_per_month" readonly="1" force_save="1"/>
                                     <field name="special_allowance_per_month" readonly="1" force_save="1"/>
@@ -280,16 +283,16 @@
                                 <group>
                                     <field name="total_ctc_month" readonly="1" force_save="1"/>
                                 </group>
-                                <br/><br/>
-                                <button name="action_create_new_contract" type="object"
-                                        class="oe_highlight new-compensation-btn"
-                                        string="New Compensation"/>
-                                <style>
-                                    .new-compensation-btn{
-                                    width:150px;
-                                    margin-left: 15px;
-                                    }
-                                </style>
+<!--                                <br/><br/>-->
+<!--                                <button name="action_create_new_contract" type="object"-->
+<!--                                        class="oe_highlight new-compensation-btn"-->
+<!--                                        string="New Compensation"/>-->
+<!--                                <style>-->
+<!--                                    .new-compensation-btn{-->
+<!--                                    width:150px;-->
+<!--                                    margin-left: 15px;-->
+<!--                                    }-->
+<!--                                </style>-->
                             </group>
                         </page>
                         <page string="Review Comments" invisible="is_employee == True">
@@ -413,6 +416,65 @@
             </p>
         </field>
     </record>
+
+    <record id="view_salary_structure_form" model="ir.ui.view">
+        <field name="name">view.salary.structure.form</field>
+        <field name="model">salary.structure</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="True"/>
+                            <field name="location" required="True"/>
+                            <field name="grade" required="True"/>
+                        </group>
+                        <group>
+                            <field name="monthly_salary" required="True"/>
+                            <field name="annual_salary" required="True"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_salary_structure_tree" model="ir.ui.view">
+        <field name="name">view.salary.structure.tree</field>
+        <field name="model">salary.structure</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="location"/>
+                <field name="grade"/>
+                <field name="monthly_salary"/>
+                <field name="annual_salary"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_salary_structure_search" model="ir.ui.view">
+        <field name="name">view.salary.structure.form.search</field>
+        <field name="model">salary.structure</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Name"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_view_salary_structure" model="ir.actions.act_window">
+        <field name="name">Salary Structure</field>
+        <field name="res_model">salary.structure</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_salary_structure_tree"/>
+        <field name="search_view_id" ref="view_salary_structure_search"/>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="menu_config_salary_structure" name="Salary Structure" parent="hr_appraisal.menu_hr_appraisal_configuration"
+              action="action_view_salary_structure" sequence="5"/>
+
     <menuitem id="performance_review_main"
               parent="hr_appraisal.menu_hr_appraisal_root"
               name="Performance Review"

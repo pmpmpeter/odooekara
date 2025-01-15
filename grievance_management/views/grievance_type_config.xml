@@ -8,8 +8,10 @@
             <field name="arch" type="xml">
                 <tree string="Grievance Type" editable="bottom">
                     <field name="sequence" widget="handle"/>
-                    <field name="name"/>
+                    <field name="name" required="1"/>
                     <field name="code" groups="base.group_no_one"/>
+                    <field name="respective_hod_id" required="1"
+                           options="{'no_open': True, 'no_create': True, 'no_quick_create': True}"/>
                     <field name="active"/>
                 </tree>
             </field>
@@ -21,8 +23,10 @@
                 <form>
                     <group>
                         <group>
-                            <field name="name"/>
+                            <field name="name" required="1"/>
                             <field name="code" groups="base.group_no_one"/>
+                            <field name="respective_hod_id" required="1"
+                           options="{'no_open': True, 'no_create': True, 'no_quick_create': True}"/>
                             <field name="active"/>
                         </group>
                     </group>

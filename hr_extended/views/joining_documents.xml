@@ -40,7 +40,7 @@
                             invisible="state not in ('waiting_confirmation')"
                             string="Reject"/>
                     <button name="action_send_document_by_email" type="object"
-                            invisible="document_type not in ('bgv','it_declaration','ebp_claim')"
+                            invisible="document_type not in ('bgv','it_declaration','ebp_claim','epf')"
                             string="Send Mail"/>
                     <!--                    <button name="action_send_it_declaration_by_email" type="object"-->
                     <!--                            invisible="document_type not in ('it_declaration')"-->
@@ -52,7 +52,7 @@
                             type="object"
                             string="Print"
                             class="btn-primary" groups="hr.group_hr_manager"
-                            invisible="state not in ('waiting_confirmation','done')"
+                            invisible="state not in ('waiting_confirmation','done') or document_type in ('bgv','it_declaration','ebp_claim','epf')"
                     />
                 </header>
                 <sheet>
@@ -71,10 +71,10 @@
                             <field name="document_type" readonly="True"/>
                             <field name="reference_filename" invisible="1"/>
                             <field name="reference_file" filename="reference_filename"
-                                   invisible="document_type not in ('it_declaration','gmc','ebp_claim')"
+                                   invisible="document_type not in ('it_declaration','gmc','ebp_claim','epf')"
                                    readonly="True"/>
                             <field name="submitted_file" filename="submitted_filename"
-                                   invisible="document_type not in ('it_declaration','bgv','ebp_claim')"
+                                   invisible="document_type not in ('it_declaration','bgv','ebp_claim','epf')"
                                    readonly="state not in ('draft')"/>
                             <field name="submitted_filename" invisible="1"/>
                             <field name="join_doc_id" invisible="1" />
@@ -88,7 +88,7 @@
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"
                                    readonly="True"/>
                             <field name="contact_id"
-                                   invisible="document_type not in ('it_declaration','ebp_claim','bgv')" readonly="True"
+                                   invisible="document_type not in ('it_declaration','ebp_claim','bgv','epf')" readonly="True"
                                    options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="joining_date" readonly="state in ('done')" groups="hr.group_hr_user"/>
                         </group>

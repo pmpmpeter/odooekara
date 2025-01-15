@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="paperformat_interview_assessment_pdf_A4" model="report.paperformat">
+        <field name="name">Interview Assessment - Applicant</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">50</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">48</field>
+        <field name="dpi">90</field>
+    </record>
+
     <template id="interview_assessment_report">
         <t t-call="web.external_layout">
             <t t-foreach="docs" t-as="doc">
@@ -296,6 +312,7 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">hr_extended.interview_assessment_form</field>
         <field name="report_file">hr_extended.interview_assessment_form</field>
+        <field name="paperformat_id" ref="hr_extended.paperformat_appointment_letter_emp_pdf_A4"/>
         <field name="print_report_name">'Interview Assessment'</field>
         <field name="binding_model_id" ref="hr_extended.model_interview_assessment"/>
         <field name="binding_type">report</field>

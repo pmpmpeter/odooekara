@@ -161,7 +161,6 @@ class EmployeeIndent(models.Model):
     #     ('replacement', 'Replacement')
     # ], string="Source")
     priority = fields.Selection([
-        ("0", "Normal"),
         ("1", "Medium"),
         ("2", "High"),
         ("3", "Very High")], string="Priority", copy=False)

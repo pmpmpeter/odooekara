@@ -12,6 +12,7 @@ class PositionNames(models.Model):
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
+    respective_hod_id = fields.Many2one('hr.employee',string="HOD", copy=False)
 
 
     @api.depends('name')

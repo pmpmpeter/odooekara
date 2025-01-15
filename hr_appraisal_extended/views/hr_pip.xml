@@ -12,6 +12,8 @@
                             invisible="state in ('draft','completed')"/>
                     <button name="action_set_to_drat" type="object" string="Reset to Draft"
                             invisible="state in ('draft', 'in_progress')"/>
+                    <button string="Print" type="action"
+                        name="%(hr_appraisal_extended.performance_impvmt_report)d" class="btn-primary" invisible="state in ('draft', 'in_progress')"/>
                 </header>
                 <sheet>
                     <group>

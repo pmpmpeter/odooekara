@@ -200,7 +200,7 @@
                                 <field name="group_personal_accident_insurance"/>
                                 <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                             </group>
-                            <group string="Salary Break-up">
+                            <group string="Salary Break-up (Per Annum)">
                                 <field name="basic_da_per_annum" readonly="1" force_save="1"/>
                                 <field name="hra_per_annum" readonly="1" force_save="1"/>
                                 <field name="special_allowance_per_annum" readonly="1" force_save="1"/>
@@ -220,7 +220,7 @@
                                 <field name="sub_total_d" readonly="1" force_save="1"/>
 
                             </group>
-                            <group string="Salary Break-up">
+                            <group string="Salary Break-up (Per Month)">
                                 <field name="basic_da_per_month" readonly="1" force_save="1"/>
                                 <field name="hra_per_month" readonly="1" force_save="1"/>
                                 <field name="special_allowance_per_month" readonly="1" force_save="1"/>

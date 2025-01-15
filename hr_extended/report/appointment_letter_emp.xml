@@ -8,12 +8,12 @@
         <field name="page_height">0</field>
         <field name="page_width">0</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">15</field>
-        <field name="margin_bottom">15</field>
-        <field name="margin_left">20</field>
-        <field name="margin_right">20</field>
+        <field name="margin_top">50</field>
+        <field name="margin_bottom">25</field>
+        <field name="margin_left">15</field>
+        <field name="margin_right">15</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">35</field>
+        <field name="header_spacing">48</field>
         <field name="dpi">90</field>
     </record>
 
@@ -28,11 +28,11 @@
         <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>
         <field name="binding_type">report</field>
     </record>
-    
+
     <template id="print_appointment_letter_emp">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="hr_extended.print_appointment_letter_emp_report" t-lang="o.user_id.lang" />
+                <t t-call="hr_extended.print_appointment_letter_emp_report" t-lang="o.user_id.lang"/>
             </t>
         </t>
     </template>
@@ -991,8 +991,10 @@
                                                                     round((doc.applicant_id.annual_performance_linked_pay or 0.0) / 12))"/>
                                 </td>
                             </tr>
-
+                        </table>
+                            <div style="page-break-before: always;"></div>
                             <!-- Details: Part D -->
+                        <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px;">
                             <tr>
                                 <td colspan="3" style="padding: 10px; border: 1px solid #000; font-weight: bold;">Part D
                                     (Other Benefits)

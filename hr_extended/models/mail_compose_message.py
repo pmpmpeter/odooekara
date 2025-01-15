@@ -5,16 +5,16 @@ import ast
 class MailComposeMessage(models.TransientModel):
     _inherit = 'mail.compose.message'
 
-    # load_template_readonly = fields.Boolean(string="Load Template Readonly", default=False)
-    #
-    # @api.depends('template_id')
-    # def _change_readonly_template_id(self):
-    #     for record in self:
-    #         template_appointment_letter = self.env.ref('hr_extended.mail_appointment_letter_employee',
-    #                                                    raise_if_not_found=False)
-    #         print(record.model, record.template_id.id, record.load_template_readonly,"testing tam")
-    #         if record.model == 'hr.employee' and record.template_id.id == template_appointment_letter.id:
-    #             record.load_template_readonly=True
+    load_template_readonly = fields.Boolean(string="Load Template Readonly", default=False)
+
+    @api.onchange('template_id')
+    def _change_readonly_template_id(self):
+        for record in self:
+            template_appointment_letter = self.env.ref('hr_extended.mail_appointment_letter_employee',
+                                                       raise_if_not_found=False)
+            print(record.model, record.template_id.id, record.load_template_readonly,"testing tam")
+            if record.model == 'hr.employee' and record.template_id.id == template_appointment_letter.id:
+                record.load_template_readonly=True
 
     def _action_send_mail(self, auto_commit=False):
         result_mails_su, result_messages = super(MailComposeMessage, self)._action_send_mail(auto_commit=auto_commit)
