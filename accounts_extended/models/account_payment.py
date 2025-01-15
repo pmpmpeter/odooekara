@@ -60,7 +60,7 @@ class AccountPayment(models.Model):
                 raise UserError(_("Alert !! Kindly update the UTR Number."))
             if pay.amount <=0:
                 raise UserError(_("Alert !! Amount should be greated than Zero"))
-            if pay.move_id and pay.payment_type == 'outbound':
+            if pay.move_id and (pay.payment_type == 'outbound' or pay.is_fund_requsiting):
                 for line in pay.move_id.line_ids:
                     if line.account_id == pay.outstanding_account_id:
                         line.name +=('-'+pay.utr_number)
