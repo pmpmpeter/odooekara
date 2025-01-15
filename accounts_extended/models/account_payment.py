@@ -5,12 +5,25 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     utr_number = fields.Char('UTR Number', copy=False)
+    old_utr_number = fields.Char('OLD UTR Number', copy=False)
     is_fund_requsiting = fields.Boolean(string='Fund Requisition', copy=False)
     is_contra_payment = fields.Boolean(string='Contra Payment', copy=False)
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     reason_approved = fields.Text(string='Approval comments',copy=False)
+
+    def action_update_utr_number(self):
+        for rec in self:
+            if rec.state=='posted' and rec.utr_number:
+                if rec.move_id:
+                    for line in rec.move_id.line_ids:
+                        if line.account_id == rec.outstanding_account_id:
+                            if rec.old_utr_number:
+                                line.name = line.name.replace(rec.old_utr_number, rec.utr_number)
+                            else:
+                                line.name +=('-'+rec.utr_number) 
+                    rec.old_utr_number = rec.utr_number
 
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
@@ -56,14 +69,15 @@ class AccountPayment(models.Model):
                 raise ValidationError('You cannot confirm payments that are not Approved.')
             if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared and pay.payment_type == 'outbound':
                 raise UserError(_("Alert !! Kindly Clear the cheque"))
-            if not pay.utr_number and (pay.payment_type == 'outbound' or pay.is_fund_requsiting):
-                raise UserError(_("Alert !! Kindly update the UTR Number."))
+            # if not pay.utr_number and (pay.payment_type == 'outbound' or pay.is_fund_requsiting):
+            #     raise UserError(_("Alert !! Kindly update the UTR Number."))
             if pay.amount <=0:
                 raise UserError(_("Alert !! Amount should be greated than Zero"))
-            if pay.move_id and (pay.payment_type == 'outbound' or pay.is_fund_requsiting):
+            if pay.move_id and pay.utr_number:
                 for line in pay.move_id.line_ids:
                     if line.account_id == pay.outstanding_account_id:
                         line.name +=('-'+pay.utr_number)
+                pay.old_utr_number = pay.utr_number
             user_email = pay.expense_sheet_id.user_id.email if pay.expense_sheet_id.user_id else ''
             employee_email = pay.expense_sheet_id.employee_id.work_email if pay.expense_sheet_id.employee_id else ''
             template = self.env.ref('account.mail_template_data_payment_receipt')

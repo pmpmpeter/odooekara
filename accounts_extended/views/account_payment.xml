@@ -18,7 +18,8 @@
             <field name="arch" type="xml">
                  <field name="ref" position="after">
                     <field name='utr_number' invisible="state not in  ('approved','posted') or (payment_type =='inbound' and not is_fund_requsiting) or 
-                        (not show_partner_bank_account and not is_cheque_cleared)" readonly="state == 'posted'"/>
+                        (not show_partner_bank_account and not is_cheque_cleared)" />
+                    <field name='old_utr_number' invisible='1'/>
                 </field>
                 <xpath expr="//field[@name='partner_bank_id']" position="after">
                                 <field name="partner_bank_id" string="Vendor Bank Account" context="{'default_partner_id': partner_id, 'display_account_trust': True}" invisible=" show_partner_bank_account or partner_type != 'supplier' or is_internal_transfer or payment_type == 'inbound'" required="require_partner_bank_account and not is_internal_transfer"/>
@@ -72,7 +73,10 @@
                         <button name="action_post" string="Confirm" type="object" class="oe_highlight" invisible="not is_fund_requsiting or state != 'approved'" data-hotkey="q"/>
                 </xpath>
                 <xpath expr="//button[@name='action_draft']" position="replace">
-                        <button name="action_draft" string="Reset To Draft" type="object" class="btn btn-secondary" invisible="state != 'cancel' or x_has_request_approval" groups="account.group_account_manager" data-hotkey="w"/>
+                        <button name="action_draft" string="Reset To Draft" type="object" class="btn btn-secondary" invisible="state != 'cancel' or x_has_request_approval" groups="account.group_account_invoice" data-hotkey="w"/>
+                </xpath>
+                <xpath expr="//button[@name='action_post']" position="after">
+                     <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight" invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting)"/>
                 </xpath>
             </field>
         </record>
