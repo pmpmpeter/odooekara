@@ -9,6 +9,7 @@ import werkzeug.urls
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import format_amount, format_date, formatLang, groupby
 
 
 class RequestApproval(models.TransientModel):
@@ -117,6 +118,23 @@ class RequestApproval(models.TransientModel):
             )
         if self.origin_ref.x_has_request_approval and not self.type_id.is_free_create:
             raise UserError(_("Request has been created before !"))
+        active_res_model = self._context.get('active_model')
+        if active_res_model == 'purchase.order':
+            domain1 = [('id', '=', self.origin_ref.budget_id.id)]
+            budget_allocated_id = self.env['crossovered.budget.lines'].sudo().search(domain1, limit=1)
+            if budget_allocated_id:
+                allocated_amount = budget_allocated_id.planned_amount
+                spent_amount = (abs(budget_allocated_id.practical_amount) + budget_allocated_id.reserved_amount)
+                available_amount = allocated_amount - spent_amount
+                allocated_amount_formatted = formatLang(self.env, allocated_amount,
+                                                        currency_obj=self.origin_ref.company_id.currency_id)
+                available_amount_formatted = formatLang(self.env, available_amount,
+                                                        currency_obj=self.origin_ref.company_id.currency_id)
+                if self.origin_ref.amount_total > available_amount:
+                    raise UserError(
+                        _("Alert !! Budget is exceeding for %s."
+                              "Allocated budget is %s and Available balance is %s.")% (self.origin_ref.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
+                    )
         # create request
         vals = {
             "name": self.name,

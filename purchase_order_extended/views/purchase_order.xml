@@ -18,7 +18,7 @@
                     <button name="action_rfq_send" invisible="state != 'purchase'" string="Send PO by Email111" type="object" context="{'send_rfq':False}" data-hotkey="g"/>
                     <button name="confirm_reminder_mail" string="Confirm Receipt Date" type="object" invisible="state not in ('purchase', 'done') or mail_reminder_confirmed or not date_planned" groups="base.group_no_one" data-hotkey="o"/>
                     <button name="action_create_invoice" string="Create Bill" type="object" context="{'create_bill':True}" invisible="state not in ('purchase', 'done') or invoice_status not in ('no', 'invoiced') or not order_line" data-hotkey="w"/>
-                    <button name="button_draft" invisible="state != 'cancel' or x_has_request_approval" string="Set to Draft" type="object" data-hotkey="o"/>
+                    <button name="button_draft" invisible="state != 'cancel' or x_has_request_approval" string="Set to Draft" type="object" data-hotkey="o" groups="purchase.group_purchase_manager"/>                   
                     <button name="button_cancel" invisible="state not in ('draft', 'to approve', 'sent', 'purchase')" string="Cancel" type="object" data-hotkey="x" />
                     <button name="button_done" type="object" string="Lock" invisible="state != 'purchase'" data-hotkey="l"/>
                     <button name="button_unlock" type="object" string="Unlock" invisible="state != 'done'" groups="purchase.group_purchase_manager" data-hotkey="l"/>
