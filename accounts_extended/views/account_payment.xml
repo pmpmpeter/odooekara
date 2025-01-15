@@ -17,7 +17,7 @@
             <field name="inherit_id" ref="account.view_account_payment_form"/>
             <field name="arch" type="xml">
                  <field name="ref" position="after">
-                    <field name='utr_number' invisible="state != ('approved','posted') or (not show_partner_bank_account and not is_cheque_cleared)"/>
+                    <field name='utr_number' invisible="state not in ('approved','posted') or (not is_cheque_cleared)"/>
                 </field>
                 <xpath expr="//field[@name='partner_bank_id']" position="after">
                                 <field name="partner_bank_id" string="Vendor Bank Account" context="{'default_partner_id': partner_id, 'display_account_trust': True}" invisible=" show_partner_bank_account or partner_type != 'supplier' or is_internal_transfer or payment_type == 'inbound'" required="require_partner_bank_account and not is_internal_transfer"/>
