@@ -10,7 +10,7 @@ class AccountPayment(models.Model):
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
-    reason_approved = fields.Text(string='Approval comments')
+    reason_approved = fields.Text(string='Approval comments',copy=False)
 
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
