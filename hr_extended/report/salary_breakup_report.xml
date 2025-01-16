@@ -56,7 +56,7 @@
                             <t t-esc="doc.department_id.name"/>
                             <br/>
                             <b>Work Location:</b>
-                            <t t-esc="dict(doc._fields['location'].selection).get(doc.location, '')"/>
+                            <t t-esc="doc.locations_id.name"/>
                             <br/>
                         </p>
 

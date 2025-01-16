@@ -55,7 +55,7 @@
                                             <t t-esc="doc.department_id.name"/>
                                         </td>
                                         <td style="height: 70px; width: 50%">Location:
-                                            <t t-esc="doc.location"/>
+                                            <t t-esc="doc.location_id.name"/>
                                         </td>
                                     </tr>
                                     <tr>

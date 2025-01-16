@@ -3,6 +3,7 @@
 from odoo import models, fields, api, _, Command, tools
 from odoo.exceptions import *
 from odoo.exceptions import UserError, ValidationError
+import math
 
 
 class RecruitmentStage(models.Model):
@@ -131,6 +132,7 @@ class Job_Applicant(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
+    locations_id = fields.Many2one('ekara.location', string="Location", tracking=True)
     grade = fields.Selection([
         ('spl_grade', 'Spl Grade'),
         ('grade_a', 'Grade A'),
@@ -161,7 +163,7 @@ class Job_Applicant(models.Model):
                                                        compute='_compute_interview_assessment_letter', default=0,
                                                        copy=False)
 
-    @api.onchange('location', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
+    @api.onchange('locations_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
                   'esi_applicable', 'grade',
                   'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
                   'monthly_performance_incentive',
@@ -170,7 +172,7 @@ class Job_Applicant(models.Model):
         for record in self:
             # Fetch the salary structure based on location and grade
             salary_structure = self.env['salary.structure'].search([
-                ('location', '=', record.location),
+                ('location_id', '=', record.locations_id.id),
                 ('grade', '=', record.grade)
             ], limit=1)
 
@@ -178,34 +180,48 @@ class Job_Applicant(models.Model):
                 record.basic_da_per_annum = salary_structure.annual_salary
                 record.basic_da_per_month = salary_structure.monthly_salary
                 record.hra_per_annum = 0
-                record.hra_per_annum = 0
                 record.hra_per_month = 0
                 record.statutory_bonus_per_annum = 0
                 record.statutory_bonus_per_month = 0
                 record.special_allowance_per_annum = 0
                 record.special_allowance_per_month = 0
-                record.statutory_bonus_per_annum = 0
-                record.statutory_bonus_per_month = 0
                 record.sub_total_a_per_annum = record.basic_da_per_annum
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12, 0)
+
+                # New logic for statutory bonus when location is TTA and grade is D
+                if record.locations_id.name == 'TTA' and record.grade == 'grade_d':
+                    record.statutory_bonus_per_annum = min(16800, (
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                else:
+                    if record.statutory_bonus_applicable == 'yes':
+                        if (record.basic_da_per_annum / 12) <= 21000:
+                            record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
+                        else:
+                            record.statutory_bonus_per_annum = 0
+
+                        # Calculate Statutory Bonus (Per Month)
+                        record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+
+                # Continue with the rest of the calculations
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12) * 12
                     else:
-                        record.pf_employer_per_month = round(15000 * 0.12, 0)
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 else:
-                    record.pf_employer_per_annum = 0
+                    record.pf_employer_per_month = 0
 
-                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                record.pf_employer_per_annum = round(record.pf_employer_per_month * 12)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
                         record.esic_employer_per_month = 0
                 else:
-                    record.esic_employer_per_annum = 0
+                    record.esic_employer_per_month = 0
 
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive
@@ -229,7 +245,7 @@ class Job_Applicant(models.Model):
                 record.indicative_take_home_salary = record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
                     record.esic_employer_per_month / 0.0325 * 0.75 / 100)
 
-            elif (record.location not in ['tta', 'tvm_obt']) or (record.monthly_fixed_salary >= 54000):
+            elif (record.locations_id.name not in ['tta', 'tvm_obt']) or (record.monthly_fixed_salary >= 54000):
                 # Calculate Basic & DA (Per Annum)
                 record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000, 0) * 12000
                 record.hra_per_annum = record.basic_da_per_annum * 0.40
@@ -239,7 +255,11 @@ class Job_Applicant(models.Model):
                 record.hra_per_month = round(record.hra_per_annum / 12, 0)
 
                 # Calculate Statutory Bonus (Per Annum) if applicable
-                if record.statutory_bonus_applicable == 'yes':
+                if record.locations_id.name == 'TTA' and record.grade == 'grade_d':
+                    record.statutory_bonus_per_annum = min(16800, (
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                elif record.statutory_bonus_applicable == 'yes':
                     if (record.basic_da_per_annum / 12) <= 21000:
                         record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
                     else:
@@ -269,13 +289,13 @@ class Job_Applicant(models.Model):
                 record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_month = 0
+                        record.esic_employer_per_annum = 0
                 else:
-                    record.esic_employer_per_annum = 0
+                    record.esic_employer_per_month = 0
 
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive
@@ -307,27 +327,25 @@ class Job_Applicant(models.Model):
                 record.statutory_bonus_per_month = 0
                 record.special_allowance_per_annum = 0
                 record.special_allowance_per_month = 0
-                record.statutory_bonus_per_annum = 0
-                record.statutory_bonus_per_month = 0
                 record.sub_total_a_per_annum = 0
                 record.sub_total_a_per_month = 0
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12) * 12
                     else:
                         record.pf_employer_per_month = round(15000 * 0.12, 0)
                 else:
                     record.pf_employer_per_annum = 0
 
-                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                record.pf_employer_per_annum = round(record.pf_employer_per_month * 12)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_month = 0
+                        record.esic_employer_per_annum = 0
                 else:
-                    record.esic_employer_per_annum = 0
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                    record.esic_employer_per_month = 0
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive
@@ -405,6 +423,10 @@ class Job_Applicant(models.Model):
         return next_stage.name if next_stage else "No Next Stage Defined"
 
     def action_send_first_invitiation(self):
+        if not self.interviewer_ids:
+            raise ValidationError("The 'Interviewer' field is required to create an Invitation.")
+        if not self.job_id:
+            raise ValidationError("Please fill the Job details.")
         if not self.partner_name:
             raise UserError(_("Please fill the name of the Applicant"))
         if not self.email_from:
@@ -425,6 +447,7 @@ class Job_Applicant(models.Model):
         vals = {
             'applicant_id': self.id,
             'user_id': self.user_id.id,
+            'interviewer_ids': self.interviewer_ids.ids,
             'letter_heading': letter_heading,
             # 'stage_id':self.stage_id.name
         }
@@ -584,7 +607,7 @@ class Job_Applicant(models.Model):
     def _create_jonining_documents_for_employee(self, employee, job_position):
         for record in self:
             joining_doc_employee = self.env['joining.documents']
-            domain1 = [('active', '=', True)]
+            domain1 = [('active', '=', True), ('company_id', '=', self.company_id.id)]
             joining_docs = self.env['employee.join.doc.config'].sudo().search(domain1)
             if joining_docs:
                 for doc in joining_docs:
@@ -618,7 +641,7 @@ class Job_Applicant(models.Model):
         if not self.grade_job_level_id:
             raise ValidationError("Please set the Job Level before creating an employee.")
         if not self.job_id:
-            raise ValidationError("Please set the Job Position before creating an employee.")
+            raise ValidationError("Please set the Applied Job before creating an employee.")
         if not self.department_id:
             raise ValidationError("Please set the Department before creating an employee.")
         action = super(Job_Applicant, self).create_employee_from_applicant()

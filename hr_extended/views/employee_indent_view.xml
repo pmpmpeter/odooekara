@@ -49,23 +49,23 @@
                             <group>
                                 <group>
                                     <field name="tax_entity" string="Tax Entity"
-                                           options="{'no_quick_create':True,'no_create': True,}"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="organization" string="Organization" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="location" string="Location" required="1"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="location_id" string="Location" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="department" string="Department" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="grade_job_level" string="Grade/ Job Level" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="position_name" string="Position Name / Designations" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                 </group>
                                 <group>
                                     <field name="is_recruitment_manager" invisible="1"/>
@@ -75,17 +75,17 @@
                                            readonly="1"/>
                                     <field name="reporting_to" string="Reporting To"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="employment_type" string="Employment Type" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="target" string="No. of Vacancies" required="1"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="is_replacement" string="Is Replacement?"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="replacement_employee_id" string="Replacement Employee Name"
                                            invisible="not is_replacement"
-                                           options="{'no_quick_create':True,'no_create': True,}"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="expected_indent_closure_date" string="Expected Indent Closure Date"
                                            required="1" readonly="not is_recruitment_manager or state not in ('draft','cancel')"/>
@@ -96,7 +96,7 @@
                             <group>
                                 <group string="Budget Details">
                                     <field name="currency_id" required="1"
-                                           options="{'no_quick_create':True,'no_create': True,}"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="budgeting_unit" string="Budgeting Units" required="1"
                                            readonly="state not in ('draft','cancel')"/>
@@ -118,15 +118,15 @@
                                 </group>
 
                                 <group string="Lead Details">
-                                    <field name="unit_head_id" string="Unit Head"
-                                           options="{'no_quick_create':True,'no_create': True,}"
+                                    <field name="unit_head_id" string="1st approval / HOD"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
-                                    <field name="recruitment_spoc_mgr_id" string="Recruitment SPOC/Mgr"
+                                    <field name="recruitment_spoc_mgr_id" string="2nd approval / Recruitment SPOC / Mgr"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="director_approval_id" string="Director Approval"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="director_approval_id" string="3rd approval / Director"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                 </group>
 
                                 <group string="Review">
@@ -140,9 +140,9 @@
                         <page string="Job Description Details">
                             <group>
                                 <group>
-                                    <field name="business_unit_id"
+                                    <field name="business_unit_id" required="1"
                                            readonly="state not in ('draft','cancel')"
-                                           options="{'no_quick_create':True,'no_create': True,}"/>
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <!--<field name="source"/>-->
                                 </group>
                                 <group>
@@ -192,7 +192,7 @@
                 <field name="currency_id" column_invisible="1"/>
                 <field name="name"/>
                 <field name="organization"/>
-                <field name="location"/>
+                <field name="location_id"/>
                 <field name="department"/>
                 <field name="employment_type"/>
                 <field name="target" sum="Total"/>

@@ -73,7 +73,7 @@ class MailActivityPlanTemplate(models.Model):
 class HrEmployeeSmartButton(models.Model):
     _inherit = "hr.employee"
 
-    appointment_letter_sent = fields.Boolean(string="Appointment Letter Sent", default=False)
+    appointment_letter_sent = fields.Boolean(string="Appointment Letter Sent", default=False, copy=False)
     employee_master_insurance_ids = fields.One2many('employee.insurance', 'employee_id', string='Insurance Details')
 
     # Family Status
@@ -393,7 +393,7 @@ class HrEmployeeSmartButton(models.Model):
                 'default_statutory_bonus_applicable': self.applicant_id.statutory_bonus_applicable,
                 'default_provident_fund_applicable': self.applicant_id.provident_fund_applicable,
                 'default_esi_applicable': self.applicant_id.esi_applicable,
-                'default_location': self.applicant_id.location,
+                'default_location_id': self.applicant_id.locations_id.id,
                 'default_grade': self.applicant_id.grade,
 
                 # 'default_basic_da': self.applicant_id.basic_da,
@@ -502,7 +502,7 @@ class HrEmployeeSmartButton(models.Model):
         self.ensure_one()
 
         if not self.private_email:
-            raise UserError(_("The recipient does not have a valid email address."))
+            raise UserError(_("The recipient does not have a valid email address in 'Private Information'."))
 
         template = self.env.ref('hr_extended.mail_appointment_letter_employee', raise_if_not_found=False)
         if not template:

@@ -1,4 +1,5 @@
 from odoo import fields, models, api
+import math
 
 
 class HrContract(models.Model):
@@ -76,6 +77,7 @@ class HrContract(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
+    location_id = fields.Many2one('ekara.location', string="Location",tracking=True, required=True)
     grade = fields.Selection([
         ('spl_grade', 'Spl Grade'),
         ('grade_a', 'Grade A'),
@@ -87,7 +89,7 @@ class HrContract(models.Model):
         ('grade_g', 'Grade G'),
     ], default='spl_grade', string="Grade", tracking=True, required=True)
 
-    @api.onchange('location', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
+    @api.onchange('location_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
                   'esi_applicable', 'grade',
                   'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
                   'monthly_performance_incentive',
@@ -96,7 +98,7 @@ class HrContract(models.Model):
         for record in self:
             # Fetch the salary structure based on location and grade
             salary_structure = self.env['salary.structure'].search([
-                ('location', '=', record.location),
+                ('location_id', '=', record.location_id.id),
                 ('grade', '=', record.grade)
             ], limit=1)
 
@@ -104,34 +106,48 @@ class HrContract(models.Model):
                 record.basic_da_per_annum = salary_structure.annual_salary
                 record.basic_da_per_month = salary_structure.monthly_salary
                 record.hra_per_annum = 0
-                record.hra_per_annum = 0
                 record.hra_per_month = 0
                 record.statutory_bonus_per_annum = 0
                 record.statutory_bonus_per_month = 0
                 record.special_allowance_per_annum = 0
                 record.special_allowance_per_month = 0
-                record.statutory_bonus_per_annum = 0
-                record.statutory_bonus_per_month = 0
                 record.sub_total_a_per_annum = record.basic_da_per_annum
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12, 0)
+
+                # New logic for statutory bonus when location is TTA and grade is D
+                if record.location_id.name == 'TTA' and record.grade == 'grade_d':
+                    record.statutory_bonus_per_annum = min(16800, (
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                else:
+                    if record.statutory_bonus_applicable == 'yes':
+                        if (record.basic_da_per_annum / 12) <= 21000:
+                            record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
+                        else:
+                            record.statutory_bonus_per_annum = 0
+
+                        # Calculate Statutory Bonus (Per Month)
+                        record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+
+                # Continue with the rest of the calculations
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12) * 12
                     else:
-                        record.pf_employer_per_month = round(15000 * 0.12, 0)
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 else:
-                    record.pf_employer_per_annum = 0
+                    record.pf_employer_per_month = 0
 
-                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                record.pf_employer_per_annum = round(record.pf_employer_per_month * 12)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
                         record.esic_employer_per_month = 0
                 else:
-                    record.esic_employer_per_annum = 0
+                    record.esic_employer_per_month = 0
 
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive
@@ -155,7 +171,7 @@ class HrContract(models.Model):
                 record.indicative_take_home_salary = record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
                     record.esic_employer_per_month / 0.0325 * 0.75 / 100)
 
-            elif (record.location not in ['tta', 'tvm_obt']) or (record.monthly_fixed_salary >= 54000):
+            elif (record.location_id.name not in ['tta', 'tvm_obt']) or (record.monthly_fixed_salary >= 54000):
                 # Calculate Basic & DA (Per Annum)
                 record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000, 0) * 12000
                 record.hra_per_annum = record.basic_da_per_annum * 0.40
@@ -165,7 +181,11 @@ class HrContract(models.Model):
                 record.hra_per_month = round(record.hra_per_annum / 12, 0)
 
                 # Calculate Statutory Bonus (Per Annum) if applicable
-                if record.statutory_bonus_applicable == 'yes':
+                if record.location_id.name == 'TTA' and record.grade == 'grade_d':
+                    record.statutory_bonus_per_annum = min(16800, (
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                elif record.statutory_bonus_applicable == 'yes':
                     if (record.basic_da_per_annum / 12) <= 21000:
                         record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
                     else:
@@ -195,13 +215,13 @@ class HrContract(models.Model):
                 record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_month = 0
+                        record.esic_employer_per_annum = 0
                 else:
-                    record.esic_employer_per_annum = 0
+                    record.esic_employer_per_month = 0
 
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive
@@ -233,27 +253,25 @@ class HrContract(models.Model):
                 record.statutory_bonus_per_month = 0
                 record.special_allowance_per_annum = 0
                 record.special_allowance_per_month = 0
-                record.statutory_bonus_per_annum = 0
-                record.statutory_bonus_per_month = 0
                 record.sub_total_a_per_annum = 0
                 record.sub_total_a_per_month = 0
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12) * 12
                     else:
                         record.pf_employer_per_month = round(15000 * 0.12, 0)
                 else:
                     record.pf_employer_per_annum = 0
 
-                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                record.pf_employer_per_annum = round(record.pf_employer_per_month * 12)
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
-                        record.esic_employer_per_annum = (record.monthly_fixed_salary * 0.0325) * 12
+                        record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_month = 0
+                        record.esic_employer_per_annum = 0
                 else:
-                    record.esic_employer_per_annum = 0
-                record.esic_employer_per_month = round(record.esic_employer_per_annum / 12, 0)
+                    record.esic_employer_per_month = 0
+                record.esic_employer_per_annum = record.esic_employer_per_month * 12
                 record.sub_total_b_per_annum = record.pf_employer_per_annum + record.esic_employer_per_annum
                 record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
                 record.store_performance_incentive_annum = record.annual_store_performance_incentive

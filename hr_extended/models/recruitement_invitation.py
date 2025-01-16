@@ -51,6 +51,7 @@ class ApplicantInvitation(models.Model):
     # stage_id = fields.Char(string="Stage_id")
     user_id = fields.Many2one('res.users', 'Responsible', readonly=False)
     job_id = fields.Many2one('hr.job', 'Job Position', readonly=True, related='applicant_id.job_id', store=True)
+    interviewer_ids = fields.Many2many('res.users', string='Interviewers', readonly=True, store=True)
     company_id = fields.Many2one('res.company', 'Company', readonly=True, related='applicant_id.company_id', store=True)
     active = fields.Boolean('Active', default=True)
     invitation_date = fields.Date("Date", default=fields.Datetime.now)
@@ -92,7 +93,6 @@ class ApplicantInvitation(models.Model):
     #                 view_data['toolbar']['print'] = [print_data for print_data in print_data_list if
     #                                                  print_data['id'] in get_print_values]
     #     return res
-
 
     # def get_subject_data(self, subject, lines, partner_id):
     #     product = ', '.join(map(lambda x: x.name, lines))        
@@ -211,4 +211,13 @@ class ApplicantInvitation(models.Model):
             ).send_mail(
                 record.id, force_send=True
             )
+            for interviewer in record.interviewer_ids:
+                if not interviewer.partner_id:
+                    raise UserError(_("The Partner Id does not exist."))
+                record.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Interview Notification",
+                    note="You have been notified about the interview process.",
+                    user_id=interviewer.id,
+                )
             record.write({'state': 'sent'})

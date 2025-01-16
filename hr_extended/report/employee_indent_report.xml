@@ -16,7 +16,7 @@
             <!--            <t t-call="web.external_layout">-->
             <t t-foreach="docs" t-as="doc">
                 <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
-                <t t-set="company" t-value="doc.company_id"/>
+                <t t-set="company" t-value="doc.organization"/>
                 <div class="header">
                     <img t-if="doc.business_unit_id.tax_entity.logo"
                          t-att-src="image_data_uri(doc.business_unit_id.tax_entity.logo)" alt="Logo"
@@ -100,7 +100,7 @@
                                 <strong>Location:</strong>
                             </td>
                             <td style="border: 1px solid black; padding: 5px;">
-                                <t t-esc="doc.location.name"/>
+                                <t t-esc="doc.location_id.name"/>
                             </td>
                             <td style="border: 1px solid black; padding: 5px; background-color: #f2f2f2;">
                                 <strong>No. of Vacancy:</strong>

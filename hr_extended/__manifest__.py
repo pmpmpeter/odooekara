@@ -67,7 +67,7 @@
         'views/website_apply.xml',
         'views/hr_contract.xml',
         'views/menuitem_rename.xml',
-        'views/mail_compose_message.xml',
+        # 'views/mail_compose_message.xml',
         'views/hr_employee.xml',
         'views/hr_applicant.xml',
         'views/survey.xml',

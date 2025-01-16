@@ -159,4 +159,42 @@
             name="Compensation Master"
             parent="hr_work_entry_contract_enterprise.menu_hr_payroll_configuration"
             sequence="25"/>
+
+    <menuitem
+        name="Leaves"
+        id="hr_holidays.menu_hr_holidays_root"
+        sequence="225"
+        web_icon="hr_holidays,static/description/icon.png"
+        groups="base.group_user"/>
+
+    <menuitem
+        id="hr_holidays.menu_open_department_leave_approve"
+        name="Leaves"
+        parent="hr_holidays.menu_hr_holidays_management"
+        action="hr_holidays.hr_leave_action_action_approve_department"
+        sequence="1"/>
+
+    <menuitem
+        id="hr_holidays.hr_holidays_status_menu_configuration"
+        action="hr_holidays.open_view_holiday_status"
+        name="Leave Types"
+        parent="hr_holidays.menu_hr_holidays_configuration"
+        groups="hr_holidays.group_hr_holidays_manager"
+        sequence="1"/>
+
+    <record id="hr_holidays.hr_leave_action_my" model="ir.actions.act_window">
+        <field name="name">My Leaves</field>
+    </record>
+
+    <menuitem
+        id="hr_holidays.hr_leave_menu_my"
+        parent="hr_holidays.menu_hr_holidays_my_leaves"
+        action="hr_holidays.hr_leave_action_my"
+        name="My Leaves"
+        sequence="2"/>
+
+    <record id="hr_holidays.open_view_holiday_status" model="ir.actions.act_window">
+        <field name="name">Leave Types</field>
+    </record>
+
 </odoo>

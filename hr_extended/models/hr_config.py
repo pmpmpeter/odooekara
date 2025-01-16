@@ -55,3 +55,23 @@ class BusinessUnits(models.Model):
             if business_units.code:
                 continue
             business_units.code = business_units.name
+
+
+class EkaraLocation(models.Model):
+    _name = 'ekara.location'
+    _description = 'Location'
+    _order = 'sequence'
+
+    name = fields.Char(required=True, translate=True)
+    code = fields.Char(compute='_compute_code', store=True, readonly=False)
+    sequence = fields.Integer()
+    active = fields.Boolean('Active', default=True, copy=False)
+
+    @api.depends('name')
+    def _compute_code(self):
+        for ekara_location in self:
+            if ekara_location.code:
+                continue
+            ekara_location.code = ekara_location.name
+
+

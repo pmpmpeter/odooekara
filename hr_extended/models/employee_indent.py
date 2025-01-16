@@ -4,6 +4,7 @@ import base64
 from odoo import models, fields, api, _
 from odoo.exceptions import *
 from datetime import datetime, timedelta
+from odoo.exceptions import ValidationError, UserError
 
 
 class EmployeeIndent(models.Model):
@@ -13,18 +14,20 @@ class EmployeeIndent(models.Model):
 
     name = fields.Char(string='Name', required=True)
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
-    organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company)
-    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company, domain=lambda self: self._organization_domain())
+    # company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
-    location = fields.Many2one(
-        'res.partner', "Job Location",
-        domain=lambda self: self._address_id_domain(),
-        help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
+    # location = fields.Many2one(
+    #     'res.partner', "Job Location", copy=False
+    #     domain=lambda self: self._address_id_domain(),
+    #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
+    location_id = fields.Many2one('ekara.location', string="Location")
 
     department = fields.Many2one(
         'hr.department',  # The model name of the HR department
         string='Department',
         required=True,
+        domain="[('company_id', '=', organization)]",
         help="Select the department from HR departments"
     )
 
@@ -113,19 +116,19 @@ class EmployeeIndent(models.Model):
 
     unit_head_id = fields.Many2one(
         'res.users',
-        string='Unit Head', required=True,
+        string='1st approval / HOD', required=True,
         help="Select the Unit Head from available employees."
     )
 
     recruitment_spoc_mgr_id = fields.Many2one(
         'res.users',
-        string='Recruitment SPOC/Mgr', required=True,
+        string='2nd approval / Recruitment SPOC/ Mgr', required=True,
         help="Select the Recruitment SPOC/Mgr from available employees."
     )
 
     director_approval_id = fields.Many2one(
         'res.users',
-        string='Director Approval', required=True,
+        string='3rd approval / Director', required=True,
         help="Select the Director for approval."
     )
 
@@ -187,6 +190,9 @@ class EmployeeIndent(models.Model):
         ('yes', 'Yes'),
         ('no', 'No')
     ], string='Approved by (Director)', required=True, default='no', copy=False)
+
+    def _organization_domain(self):
+        return [('id', '=', self.env.companies.ids)]
 
     @api.onchange('business_unit_id')
     def _onchange_business_unit_id(self):
@@ -348,7 +354,7 @@ class EmployeeIndent(models.Model):
                 job_id = hr_job_model.create({
                     'name': record.position_name.name,
                     'department_id': record.department.id,
-                    'address_id': record.location.id,
+                    'address_id': record.organization.partner_id.id,
                     'contract_type_id': record.employment_type.id,
                     'company_id': record.organization.id,
                     'no_of_recruitment': record.target,
