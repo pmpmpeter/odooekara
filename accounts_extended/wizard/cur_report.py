@@ -80,7 +80,8 @@ class AccountCURReportWizard(models.TransientModel):
             'bold': True,
             'bg_color': '#D9E1F2',
             'border': 1,
-            'align': 'right'
+            'align': 'right',
+            'num_format': '#,##0',
         })
         formatted_date = self.start_date.strftime('%d-%b-%Y')
         sheet.write(0, 0, 'Particulars  ', header_format)
