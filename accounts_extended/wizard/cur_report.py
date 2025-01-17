@@ -127,8 +127,7 @@ ORDER BY
         JOIN 
             account_account aa ON aml.account_id = aa.id
         WHERE 
-            aj.type IN ('bank', 'cash') 
-            AND aa.account_type IN ('asset_cash')
+            aa.account_type IN ('asset_cash')
             AND aml.date <= %s
         GROUP BY 
             aa.name,aa.code
@@ -150,8 +149,7 @@ ORDER BY
                 JOIN 
                     account_account aa ON aml.account_id = aa.id
                 WHERE 
-                    aj.type IN ('bank', 'cash') 
-                    AND aa.account_type IN ('asset_cash')
+                    aa.account_type IN ('asset_cash')
                     AND aml.date <= %s
                 GROUP BY 
                     aa.name,aa.code
