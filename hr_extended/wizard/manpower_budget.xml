@@ -6,8 +6,14 @@
         <field name="arch" type="xml">
             <form string="Manpower Budget Report">
                 <group>
-                    <field name="start_date"/>
-                    <field name="end_date"/>
+                    <group>
+                        <group>
+                        <field name="start_date"/>
+                        <field name="end_date"/>
+                    </group>
+                    </group>
+                    <group>
+                    </group>
                 </group>
                 <footer>
                     <button string="Generate Report" type="object" name="generate_report" class="btn-primary"/>
