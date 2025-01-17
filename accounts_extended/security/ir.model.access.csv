@@ -3,3 +3,4 @@ access_cash_flow_wizard,cash_flow_wizard,model_cash_flow_wizard,,1,1,1,1
 access_cash_flow_wizard,account.report.wizard,model_account_report_wizard,,1,1,1,1
 access_budget_revision_wizard,access_budget_revision_wizard,model_budget_revision_wizard,,1,1,1,1
 account_quarterly_report_wizard_user,account_quarterly_report_wizard_user,model_account_quarterly_report_wizard,base.group_user,1,1,1,1
+account_cur_report_wizard_user,account_cur_report_wizard_user,model_account_cur_report_wizard,base.group_user,1,1,1,1

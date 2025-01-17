@@ -29,6 +29,7 @@
         'wizard/account_report_view.xml',
         'wizard/budget_revision_reason_view.xml',
         'wizard/crr_report_view.xml',
+        'wizard/cur_report_view.xml',
         'wizard/account_payment_register_views.xml',
         'report/reports.xml',
         'report/proforma_invoice.xml',

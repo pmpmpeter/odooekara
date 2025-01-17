@@ -102,6 +102,20 @@ class AccountMoveInherit(models.Model):
         groups="account.group_account_invoice,account.group_account_readonly",
     )
 
+    @api.depends('company_id', 'invoice_filter_type_domain')
+    def _compute_suitable_journal_ids(self):
+        for m in self:
+            if m.invoice_filter_type_domain:
+                journal_type = [m.invoice_filter_type_domain]
+            else:
+                journal_type = ['cash', 'bank', 'general']
+            # pdb.set_trace()
+            company = m.company_id or self.env.company
+            m.suitable_journal_ids = self.env['account.journal'].search([
+                *self.env['account.journal']._check_company_domain(company),
+                ('type', 'in', journal_type),
+            ])
+
     @api.depends('company_id', 'partner_id', 'amount_total', 'currency_id', 'invoice_line_ids.quantity', 'invoice_line_ids.price_unit','amount_untaxed_signed')
     def _compute_partner_tcs_warning(self):
         msg=''
