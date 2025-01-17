@@ -178,9 +178,9 @@ ORDER BY
         end_total_c = 0
         end_total_d = 0
         for rec in end_credit_accounts:
-            end_total_c = end_total_c + rec['total_debit']
+            end_total_d = end_total_d + rec['total_debit']
         for rec in end_debit_accounts:
-            end_total_d = end_total_d + rec['total_credit']
+            end_total_c = end_total_c + rec['total_credit']
 
         print(records,'uuuuuuuuuuuuu')
         credit_accounts = [record for record in records if record['total_credit'] > 0]
