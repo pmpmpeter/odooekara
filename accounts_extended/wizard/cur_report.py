@@ -82,11 +82,12 @@ class AccountCURReportWizard(models.TransientModel):
             'border': 1,
             'align': 'right'
         })
+        formatted_date = self.start_date.strftime('%d-%b-%Y')
         sheet.write(0, 0, 'Particulars  ', header_format)
         sheet.write(0, 1, 'GL Code', header_format)
         sheet.write(0, 2, 'Amount', header_format)
         sheet.write(0, 3, 'Amount', header_format)
-        sheet.write(1, 0, 'Opening Balance as on %s'%(self.start_date),value_format)
+        sheet.write(1, 0, 'Opening Balance as on %s'%(formatted_date),value_format)
         sheet.write(2, 0, 'Receipts:', header_format1)
         query = """
            SELECT 
@@ -111,8 +112,77 @@ GROUP BY
 ORDER BY 
     aa.name,aa.code;   
         """
+        query1 = """
+                   SELECT 
+            aa.name AS account_name,
+            aa.code As account_code,
+            SUM(aml.debit) AS total_debit,
+            SUM(aml.credit) AS total_credit
+        FROM 
+            account_move_line aml
+        JOIN 
+            account_move am ON aml.move_id = am.id
+        JOIN 
+            account_journal aj ON aml.journal_id = aj.id
+        JOIN 
+            account_account aa ON aml.account_id = aa.id
+        WHERE 
+            aj.type IN ('bank', 'cash') 
+            AND aa.account_type NOT IN ('asset_cash')
+            AND aml.date <= %s
+        GROUP BY 
+            aa.name,aa.code
+        ORDER BY 
+            aa.name,aa.code;   
+                """
+        query2 = """
+                           SELECT 
+                    aa.name AS account_name,
+                    aa.code As account_code,
+                    SUM(aml.debit) AS total_debit,
+                    SUM(aml.credit) AS total_credit
+                FROM 
+                    account_move_line aml
+                JOIN 
+                    account_move am ON aml.move_id = am.id
+                JOIN 
+                    account_journal aj ON aml.journal_id = aj.id
+                JOIN 
+                    account_account aa ON aml.account_id = aa.id
+                WHERE 
+                    aj.type IN ('bank', 'cash') 
+                    AND aa.account_type NOT IN ('asset_cash')
+                    AND aml.date <= %s
+                GROUP BY 
+                    aa.name,aa.code
+                ORDER BY 
+                    aa.name,aa.code;   
+                        """
+
         self.env.cr.execute(query,(self.start_date,self.end_date))
         records = self.env.cr.dictfetchall()
+        self.env.cr.execute(query1,(self.start_date,))
+        records1 = self.env.cr.dictfetchall()
+        opening_credit_accounts = [record for record in records1]
+        opening_debit_accounts = [record for record in records1]
+        opening_total_c = 0
+        opening_total_d = 0
+        for rec in opening_credit_accounts:
+            opening_total_d =opening_total_d+ rec['total_debit']
+        for rec in opening_debit_accounts:
+            opening_total_c =opening_total_c+ rec['total_credit']
+        print(opening_total_d,opening_total_c,'pddddddddddd')
+        sheet.write(1, 3, opening_total_d - opening_total_c, value_format)
+        self.env.cr.execute(query2, (self.end_date,))
+        records2 = self.env.cr.dictfetchall()
+        end_credit_accounts = [record for record in records2]
+        end_debit_accounts = [record for record in records2]
+        end_total_c = 0
+        end_total_d = 0
+        for rec in end_credit_accounts:
+            end_total_c = end_total_c + rec['total_debit']
+        for rec in end_debit_accounts:
+            end_total_d = end_total_d + rec['total_credit']
 
         print(records,'uuuuuuuuuuuuu')
         credit_accounts = [record for record in records if record['total_credit'] > 0]
@@ -136,6 +206,8 @@ ORDER BY
             row_num += 1
         total_d =0.0
         total_c =0.0
+        from_date = self.start_date.strftime('%d-%m-%Y')
+        to_date = self.end_date.strftime('%d-%m-%Y')
         for rec in debit_accounts:
             total_d =total_d+ rec['total_debit']
         for rec in credit_accounts:
@@ -144,14 +216,14 @@ ORDER BY
         sheet.write(row_num, 2, total_d, total_format1)
         sheet.write(row_num, 3, total_c, total_format1)
         row_num +=2
-        sheet.write(row_num, 0, 'Total expense as on  %s' %(self.end_date) ,header_format1)
+        sheet.write(row_num, 0, 'Total expense as on  %s' %(to_date) ,header_format1)
         sheet.write(row_num, 2, total_d,value_format)
         row_num += 1
-        sheet.write(row_num, 0, 'Total receipts as on  %s' %(self.end_date),header_format1)
+        sheet.write(row_num, 0, 'Total receipts as on  %s' %(to_date),header_format1)
         sheet.write(row_num, 2, total_c,value_format)
         row_num += 2
-        sheet.write(row_num, 0, 'Balance as per book as on %s' %(self.end_date), header_format1)
-        sheet.write(row_num, 3, total_d - total_c, total_format)
+        sheet.write(row_num, 0, 'Balance as per book as on %s' %(to_date), header_format1)
+        sheet.write(row_num, 3, end_total_d - end_total_c, total_format)
 
 
         workbook.close()
