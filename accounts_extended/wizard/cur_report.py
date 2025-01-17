@@ -104,7 +104,7 @@ JOIN
     account_account aa ON aml.account_id = aa.id
 WHERE 
     aj.type IN ('bank', 'cash') 
-    AND aa.account_type NOT IN ('bank', 'cash')
+    AND aa.account_type NOT IN ('asset_cash')
     AND aml.date BETWEEN %s AND %s
 GROUP BY 
     aa.name,aa.code
