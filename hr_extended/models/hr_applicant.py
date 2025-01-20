@@ -201,12 +201,12 @@ class Job_Applicant(models.Model):
                             record.statutory_bonus_per_annum = 0
 
                         # Calculate Statutory Bonus (Per Month)
-                        record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                        record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
 
                 # Continue with the rest of the calculations
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12)
                     else:
                         record.pf_employer_per_month = round(15000 * 0.12)
                 else:
@@ -266,7 +266,7 @@ class Job_Applicant(models.Model):
                         record.statutory_bonus_per_annum = 0
 
                     # Calculate Statutory Bonus (Per Month)
-                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12, 0)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
 
                 # Calculate Special Allowance (Per Annum)
                 record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - (
@@ -280,18 +280,18 @@ class Job_Applicant(models.Model):
                 # Calculate Provident Fund (Employer's Contribution Per Month)
                 if record.provident_fund_applicable == 'yes':
                     if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_annum = (record.monthly_fixed_salary * 0.12) * 12
+                        record.pf_employer_per_month = (record.monthly_fixed_salary * 0.12)
                     else:
-                        record.pf_employer_per_month = round(15000 * 0.12, 0)
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 else:
-                    record.pf_employer_per_annum = 0
+                    record.pf_employer_per_month = 0
 
-                record.pf_employer_per_month = round(record.pf_employer_per_annum / 12, 0)
+                record.pf_employer_per_annum = record.pf_employer_per_annum * 12
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
                         record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_annum = 0
+                        record.esic_employer_per_month = 0
                 else:
                     record.esic_employer_per_month = 0
 
@@ -335,14 +335,14 @@ class Job_Applicant(models.Model):
                     else:
                         record.pf_employer_per_month = round(15000 * 0.12, 0)
                 else:
-                    record.pf_employer_per_annum = 0
+                    record.pf_employer_per_month = 0
 
-                record.pf_employer_per_annum = round(record.pf_employer_per_month * 12)
+                record.pf_employer_per_annum = record.pf_employer_per_month * 12
                 if record.esi_applicable == 'yes':
                     if record.monthly_fixed_salary <= 21000:
                         record.esic_employer_per_month = math.ceil(record.monthly_fixed_salary * 0.0325)
                     else:
-                        record.esic_employer_per_annum = 0
+                        record.esic_employer_per_month = 0
                 else:
                     record.esic_employer_per_month = 0
                 record.esic_employer_per_annum = record.esic_employer_per_month * 12

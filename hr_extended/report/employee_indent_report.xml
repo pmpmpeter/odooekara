@@ -106,7 +106,7 @@
                                 <strong>No. of Vacancy:</strong>
                             </td>
                             <td style="border: 1px solid black; padding: 5px;">
-                                <t t-esc="doc.no_of_vacancy"/>
+                                <t t-esc="doc.target"/>
                             </td>
                         </tr>
 

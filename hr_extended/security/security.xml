@@ -29,15 +29,47 @@
         </field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
     </record>
-    <!--    HR permission to view all record   -->
+    <!--    HR permission to view record   -->
     <record id="joining_document_rule_hr" model="ir.rule">
         <field name="name">Joining Document - HR</field>
         <field name="model_id" ref="hr_extended.model_joining_documents"/>
         <field name="domain_force">
-            ['|',('employee_id.user_id','!=',user.id),('employee_id.user_id','=',False)]
+            [('employee_id.user_id','=',user.id)]
         </field>
         <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
     </record>
+    <record id="joining_document_rule_manager" model="ir.rule">
+        <field name="name">Joining Document - Manager</field>
+        <field name="model_id" ref="hr_extended.model_joining_documents"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
+    </record>
+
+    <!-- Employee KRA rule -->
+    <!--To view their own record only-->
+    <record id="employee_kra_rule_user" model="ir.rule">
+        <field name="name">Employee KRA - Candidate</field>
+        <field name="model_id" ref="hr_extended.model_employee_kra"/>
+        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <!--    HR permission to view record   -->
+    <record id="employee_kra_rule_hr" model="ir.rule">
+        <field name="name">Employee KRA - HR</field>
+        <field name="model_id" ref="hr_extended.model_employee_kra"/>
+        <field name="domain_force">
+            [('employee_id.user_id','=',user.id)]
+        </field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
+    </record>
+    <record id="employee_kra_rule_manager" model="ir.rule">
+        <field name="name">Employee KRA - Manager</field>
+        <field name="model_id" ref="hr_extended.model_employee_kra"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('hr.group_hr_manager'))]"/>
+    </record>
+
     <!--Employee To view their own record only-->
     <record id="hr_employee_public_rule_user" model="ir.rule">
         <field name="name">Employee User</field>

@@ -2,6 +2,64 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
+
+
+class HRDepartment(models.Model):
+    _inherit = 'hr.department'
+
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'hr.department'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(HRDepartment, self).unlink()
+
+
+class HRContractType(models.Model):
+    _inherit = 'hr.contract.type'
+
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'hr.contract.type'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(HRContractType, self).unlink()
+
 
 class PositionNames(models.Model):
     _name = 'hr.position.names'
@@ -19,6 +77,31 @@ class PositionNames(models.Model):
             if position_names.code:
                 continue
             position_names.code = position_names.name
+
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'hr.position.names'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(PositionNames, self).unlink()
+
 
 class ContractType(models.Model):
     _name = 'hr.job.levels'
@@ -38,6 +121,31 @@ class ContractType(models.Model):
                 continue
             job_levels.code = job_levels.name
 
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'hr.job.levels'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(ContractType, self).unlink()
+
+
 class BusinessUnits(models.Model):
     _name = 'business.units'
     _description = 'Business Units'
@@ -55,6 +163,30 @@ class BusinessUnits(models.Model):
             if business_units.code:
                 continue
             business_units.code = business_units.name
+
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'business.units'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(BusinessUnits, self).unlink()
 
 
 class EkaraLocation(models.Model):
@@ -74,4 +206,26 @@ class EkaraLocation(models.Model):
                 continue
             ekara_location.code = ekara_location.name
 
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'ekara.location'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
 
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(EkaraLocation, self).unlink()

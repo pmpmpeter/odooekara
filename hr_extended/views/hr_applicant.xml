@@ -192,7 +192,7 @@
                             </group>
                             <group string="Compensation Details">
                                 <field name="grade"/>
-                                <field name="locations_id" options="{'no_quick_create':True,'no_create': True,}"/>
+                                <field name="locations_id" options="{'no_quick_create':True,'no_create': True,}" required="stage_status in ('shortlist')"/>
                                 <field name="annual_store_performance_incentive"/>
                                 <field name="annual_performance_linked_pay"/>
                                 <field name="monthly_performance_incentive"/>

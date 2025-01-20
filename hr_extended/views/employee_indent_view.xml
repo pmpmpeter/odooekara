@@ -147,7 +147,7 @@
                                 </group>
                                 <group>
                                     <field name="priority" readonly="state not in ('draft','cancel')"/>
-                                    <field name="no_of_vacancy" readonly="state not in ('draft','cancel')"/>
+<!--                                    <field name="no_of_vacancy" readonly="state not in ('draft','cancel')"/>-->
                                 </group>
                             </group>
                             <group>

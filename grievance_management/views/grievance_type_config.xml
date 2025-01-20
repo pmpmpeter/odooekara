@@ -26,7 +26,7 @@
                             <field name="name" required="1"/>
                             <field name="code" groups="base.group_no_one"/>
                             <field name="respective_hod_id" required="1"
-                           options="{'no_open': True, 'no_create': True, 'no_quick_create': True}"/>
+                                   options="{'no_open': True, 'no_create': True, 'no_quick_create': True}"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -47,7 +47,8 @@
 
         <menuitem id="menu_grievance_configuration" name="Grievance Configuration"
                   parent="hr.menu_human_resources_configuration"
-                  sequence="4"/>
+                  sequence="4"
+                  groups="hr.group_hr_manager"/>
 
         <menuitem id="menu_grievance_type_names" name="Grievance Types"
                   parent="grievance_management.menu_grievance_configuration"

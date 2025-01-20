@@ -21,7 +21,7 @@ class EmployeeIndent(models.Model):
     #     'res.partner', "Job Location", copy=False
     #     domain=lambda self: self._address_id_domain(),
     #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
-    location_id = fields.Many2one('ekara.location', string="Location")
+    location_id = fields.Many2one('ekara.location', string="Location", required=True)
 
     department = fields.Many2one(
         'hr.department',  # The model name of the HR department
@@ -158,7 +158,7 @@ class EmployeeIndent(models.Model):
     # Job Description template details
 
     # business_unit = fields.Char(string="Business Unit")
-    business_unit_id = fields.Many2one('business.units', string="Business Units")
+    business_unit_id = fields.Many2one('business.units', string="Business Units", required=True)
     # source = fields.Selection([
     #     ('new_role', 'New Role'),
     #     ('replacement', 'Replacement')
@@ -203,10 +203,16 @@ class EmployeeIndent(models.Model):
             else:
                 rec.tax_entity = False
 
-    @api.onchange('target')
-    def _number_of_vacancy(self):
+    # @api.onchange('target')
+    # def _number_of_vacancy(self):
+    #     for record in self:
+    #         record.no_of_vacancy = record.target
+
+    @api.constrains('target')
+    def _validate_negative(self):
         for record in self:
-            record.no_of_vacancy = record.target
+            if record.target <=0:
+                raise UserError(_("Please give the positive values in No. of Vacancies"))
 
     @api.constrains('is_replacement')
     def _is_replacement_or_not(self):

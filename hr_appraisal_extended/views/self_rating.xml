@@ -98,7 +98,7 @@
                             <field name="is_employee" invisible="1"/>
                             <field name="is_performance_record" invisible="1"/>
                             <field name="create_date"/>
-                            <field name="create_uid"/>
+                            <field name="create_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group>
                             <field name="designation" required="True"/>
@@ -108,13 +108,14 @@
                             <field name="reviewer_id" required="True"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="write_date"/>
-                            <field name="write_uid"/>
+                            <field name="write_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                     </group>
                     <separator string="Refuse Reason"></separator>
                     <group>
                         <field name="refuse_reason" readonly="1"/>
                     </group>
+                    <separator></separator>
                     <notebook>
                         <page string="Goals">
                             <field name="goal_sets_kras">

@@ -12,5 +12,6 @@
     <menuitem id="menu_attendance_form_f_report"
               name="Form F,H,T"
               parent="menu_hr_attendance_submenu"
+              groups="hr_attendance.group_hr_attendance_manager"
               action="action_attendance_report_form_f_h_t" sequence="10"/>
 </odoo>

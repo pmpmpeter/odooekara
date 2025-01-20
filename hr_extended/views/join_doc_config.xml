@@ -67,7 +67,7 @@
     </record>
 
     <menuitem id="menu_joining_document" name="Joining Document" parent="hr.menu_human_resources_configuration"
-              sequence="4"/>
+              sequence="4" groups="hr.group_hr_manager"/>
 
     <menuitem id="menu_hr_recruitment_joining_doc" name="Joining Document Configuration"
               parent="hr_extended.menu_joining_document"

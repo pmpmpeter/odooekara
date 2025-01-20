@@ -51,7 +51,7 @@ class JoiningDocuments(models.Model):
         ('done', 'Done'),
         ('reject', 'Rejected')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
-
+    is_manager = fields.Boolean(string="Is Manager", store=False, copy=False)
     # GMC and GPA details
     emp_code = fields.Char(string="Employee Code")
     email = fields.Char(string="Email")
@@ -100,6 +100,14 @@ class JoiningDocuments(models.Model):
     def _compute_sequence(self):
         for record in self:
             record.sequence = record.join_doc_id.sequence
+
+    @api.model
+    def default_get(self, fields):
+        """Set default values for 'is_manager' when creating a record."""
+        defaults = super(JoiningDocuments, self).default_get(fields)
+        if 'is_manager' in fields:
+            defaults['is_manager'] = self.env.user.has_group('hr.group_hr_manager')
+        return defaults
 
     def create(self, vals):
         if vals.get('employee_id'):

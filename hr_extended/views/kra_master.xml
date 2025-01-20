@@ -63,5 +63,5 @@
     </record>
 
     <menuitem id="menu_hr_recruitment_config_kra" name="KRA" parent="hr.menu_config_recruitment"
-              action="action_view_kra_master" sequence="11"/>
+              action="action_view_kra_master" sequence="11" groups="hr.group_hr_manager"/>
 </odoo>
