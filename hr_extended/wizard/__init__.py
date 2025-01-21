@@ -4,3 +4,4 @@
 from . import mail_activity_schedule
 from . import balance_leaves
 from . import manpower_budget
+from . import payroll_report_wizard
