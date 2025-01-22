@@ -178,7 +178,7 @@
             <xpath expr="//header" position="inside">
                 <field name="appointment_letter_sent" invisible="1"/>
                 <button name="action_send_appointment_letter_emp_mail" type="object" class="oe_highlight"
-                        string="Send Appointment Letter"
+                        string="Send Appointment Letter" groups="hr.group_hr_manager"
                         invisible="state in ('relieved','terminate') or appointment_letter_sent"/>
                 <button string="NDA" type="action"
                         name="%(hr_extended.nda_form_template)d" class="btn-primary" invisible="1"/>

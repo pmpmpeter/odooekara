@@ -64,8 +64,8 @@ class InterviewAssessment(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('done', 'Done'), ], default='draft', string='State')
-    start_time = fields.Datetime(string="Start Time", required=True)
-    end_time = fields.Datetime(string="End Time", required=True)
+    start_time = fields.Datetime(string="Start Time")
+    end_time = fields.Datetime(string="End Time")
     adjusted_time_start = fields.Datetime('Adjusted Time Start', compute='_compute_adjusted_time')
     adjusted_time_end = fields.Datetime('Adjusted Time End', compute='_compute_adjusted_time')
     applicant_original_ids = fields.Many2many('hr.applicant',
@@ -100,9 +100,14 @@ class InterviewAssessment(models.Model):
             if record.start_time and record.end_time:
                 record.adjusted_time_start = record.start_time + timedelta(hours=5, minutes=30)
                 record.adjusted_time_end = record.end_time + timedelta(hours=5, minutes=30)
+            else:
+                record.adjusted_time_start = False
+                record.adjusted_time_end = False
 
     def action_submit(self):
         for record in self:
+            if not record.start_time or not record.end_time:
+                raise UserError(_("Start Time and End Time are required to submit."))
             record.state = 'done'
 
     def action_reset_to_draft(self):

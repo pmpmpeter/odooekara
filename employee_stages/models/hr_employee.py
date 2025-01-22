@@ -19,7 +19,8 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class HrEmployee(models.Model):
@@ -54,10 +55,29 @@ class HrEmployee(models.Model):
 
     def action_start_grounding(self):
         """This is used to create the ground stage on staging history"""
+        self.ensure_one()
+        vals = {
+            'employee_id': self.id,
+        }
+        employee_probation = self.env['employee.probation'].create(vals)
+        if not employee_probation:
+            raise UserError(_("Failed to create the Employee Probation record."))
+
         self.state = 'grounding'
         self.stages_history_ids.sudo().create({'start_date': fields.Date.today(),
                                                'employee_id': self.id,
                                                'state': 'grounding'})
+        return {
+            'name': _('Employee Probation'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'employee.probation',
+            'view_id': self.env.ref('emp_prob_extended.employee_probation_form_view').id,
+            'context': {
+                'default_employee_id': self.id,
+            },
+            'res_id': employee_probation.id,
+        }
 
     def set_as_employee(self):
         """This is used to create the employee stage on staging history"""

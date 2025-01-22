@@ -1,6 +1,18 @@
 <?xml version="1.0"?>
 <odoo>
     <data>
+        <!-- HR applicant kanban view draggable and quick create stop-->
+        <record model="ir.ui.view" id="hr_kanban_view_applicant_inherited">
+            <field name="name">Hr Applicants kanban Inherited</field>
+            <field name="model">hr.applicant</field>
+            <field name="inherit_id" ref="hr_recruitment.hr_kanban_view_applicant"/>
+            <field name="arch" type="xml">
+                <kanban position="attributes">
+                    <attribute name="group_create">false</attribute>
+                    <attribute name="records_draggable">false</attribute>
+                </kanban>
+            </field>
+        </record>
 
         <!-- Hr Job view inherited to show the KRA -->
         <record id="inherit_hr_job_view_form" model="ir.ui.view">
@@ -192,7 +204,8 @@
                             </group>
                             <group string="Compensation Details">
                                 <field name="grade"/>
-                                <field name="locations_id" options="{'no_quick_create':True,'no_create': True,}" required="stage_status in ('shortlist')"/>
+                                <field name="locations_id" options="{'no_quick_create':True,'no_create': True,}"
+                                       required="stage_status in ('shortlist')"/>
                                 <field name="annual_store_performance_incentive"/>
                                 <field name="annual_performance_linked_pay"/>
                                 <field name="monthly_performance_incentive"/>

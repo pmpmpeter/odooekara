@@ -44,7 +44,7 @@ class MultiApproval(models.Model):
             ("Submitted", "Submitted"),
             ("Approved", "Approved"),
             ("Refused", "Refused"),
-            ("Cancel", "Cancel"),
+            ("Cancel", "Cancelled"),
         ],
         default="Draft",
         tracking=True,

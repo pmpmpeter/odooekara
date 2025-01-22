@@ -84,7 +84,7 @@ class EmployeeProbation(models.Model):
     number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
     review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
 
-    @api.onchange('employee_id')
+    @api.depends('employee_id')
     def _compute_start_date(self):
         for record in self:
             if record.employee_id:
@@ -126,8 +126,8 @@ class EmployeeProbation(models.Model):
 
     def unlink(self):
         for record in self:
-            if record.state == 'confirm':
-                raise UserError("You cannot delete a record in the 'Confirmed' state.")
+            if record.state != 'draft':
+                raise UserError("You can delete a record only in the 'draft' state.")
         return super(EmployeeProbation, self).unlink()
 
     # def print_employee_probation(self):

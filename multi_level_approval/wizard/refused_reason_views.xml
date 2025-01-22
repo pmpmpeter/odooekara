@@ -4,7 +4,7 @@
             <field name="name">refused_reason_view_form</field>
             <field name="model">refused.reason</field>
             <field name="arch" type="xml">
-                <form string="Refused Reason">
+                <form string="Refuse Reason">
                     <group class="oe_title">
                         <field name="reason" />
                     </group>
@@ -26,7 +26,7 @@
         </record>
 
         <record id="refused_reason_action" model="ir.actions.act_window">
-            <field name="name">Refused Reason</field>
+            <field name="name">Refuse Reason</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">refused.reason</field>
             <field name="view_mode">form</field>

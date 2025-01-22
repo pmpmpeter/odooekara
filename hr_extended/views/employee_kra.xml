@@ -28,19 +28,19 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="employee_id" required="True" widget="many2one_avatar_user"
-                                   options="{'no_quick_create':True,'no_create': True}"
+                            <field name="employee_id" required="True"
+                                   options="{'no_quick_create':True,'no_create': True,'no_open': True}"
                                    readonly="state not in ('draft')"/>
-                            <field name="employee_parent_id" readonly="state not in ('draft')"/>
+                            <field name="employee_parent_id" readonly="state not in ('draft')" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                             <field name="kra_date" required="True" readonly="state not in ('draft')"/>
                         </group>
                         <group>
-                            <field name="emp_job_id" readonly="1" force_save="1"/>
-                            <field name="kra_master" readonly="1" force_save="1"/>
+                            <field name="emp_job_id" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
+                            <field name="kra_master" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="KRA Questions">
+                        <page string="KRA">
                             <field name="kra_details_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
                                     <field name="category" readonly="parent.state not in ('draft')"/>

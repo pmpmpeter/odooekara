@@ -55,6 +55,12 @@ class PreEmpCheck(models.Model):
         ('done', 'Done')
     ], string='Status', default='to_submit', required=True, tracking=True, copy=False)
 
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_("Alert !! Only records in the 'Draft' state can be deleted."))
+        return super(PreEmpCheck, self).unlink()
+
     def action_done(self):
         for rec in self:
             rec.state='done'

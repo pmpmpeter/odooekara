@@ -34,7 +34,7 @@
     'company': 'Cybrosys Techno Solutions',
     'maintainer': 'Cybrosys Techno Solutions',
     'website': "https://www.cybrosys.com",
-    'depends': ['hr'],
+    'depends': ['hr','emp_prob_extended'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/employee_stage_views.xml',

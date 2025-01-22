@@ -1,5 +1,5 @@
 from odoo import models, fields, api
-
+from odoo.exceptions import UserError
 
 class EmployeeJoinDocConfig(models.Model):
     _name = "employee.join.doc.config"
@@ -32,3 +32,9 @@ class EmployeeJoinDocConfig(models.Model):
     company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
     sequence = fields.Integer(string="Sequence")
+
+    def unlink(self):
+        for record in self:
+            if record.active:
+                raise UserError("You can't delete a record in Active.")
+        return super(EmployeeJoinDocConfig, self).unlink()

@@ -96,11 +96,11 @@
                             <tr>
                                 <td style="border: 1px solid black; padding: 5px;">
                                     <strong>Start Time:</strong>
-                                    <t t-esc="doc.adjusted_time_start.strftime('%d-%m-%Y  %H:%M')"/>
+                                    <t t-esc="doc.adjusted_time_start.strftime('%d-%m-%Y  %H:%M') if doc.adjusted_time_start else ''"/>
                                 </td>
                                 <td style="border: 1px solid black; padding: 5px;">
                                     <strong>End Time:</strong>
-                                    <t t-esc="doc.adjusted_time_end.strftime('%d-%m-%Y  %H:%M')"/>
+                                    <t t-esc="doc.adjusted_time_end.strftime('%d-%m-%Y  %H:%M') if doc.adjusted_time_end else ''"/>
                                 </td>
                             </tr>
                         </tbody>

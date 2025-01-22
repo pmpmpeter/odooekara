@@ -44,10 +44,10 @@
                             string="Send by Email"/>
                     <button name="action_set_as_accepted" type="object" class="oe_highlight"
                             invisible="state not in ('sent')"
-                            string="Accepted"/>
+                            string="Accept"/>
                     <button name="action_cancel" type="object" class="oe_highlight"
                             invisible="state not in ('sent')"
-                            string="Cancelled"/>
+                            string="Cancel"/>
                     <button name="action_draft" type="object" class="oe_highlight"
                             invisible="state in ('draft','active')"
                             string="Reset to Draft"/>

@@ -15,9 +15,11 @@
                         </group>
                         <group>
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="contact_id" invisible="document_type not in ('it_declaration','ebp_claim','bgv', 'epf')" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="contact_id"
+                                   invisible="document_type not in ('it_declaration','ebp_claim','bgv', 'epf')"
+                                   options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="file" filename="file_name"/>
-                            <field name="file_name" invisible="1"/>                            
+                            <field name="file_name" invisible="1"/>
                         </group>
                         <notebook>
                             <page string="Subject">
@@ -41,8 +43,9 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="sequence" widget="handle"/>
-                <field name="name" required="True"/>
-                <field name="document_type" required="True"/>
+                <field name="name"/>
+                <field name="document_type"/>
+                <field name="active"/>
             </tree>
         </field>
     </record>
@@ -52,8 +55,11 @@
         <field name="model">employee.join.doc.config</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" required="True"/>
-                <field name="document_type" required="True"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+           
+                <field name="name"/>
+                <field name="document_type"/>
             </search>
         </field>
     </record>

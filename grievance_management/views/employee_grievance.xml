@@ -58,17 +58,17 @@
                         <group>
                             <group>
                                 <field name="employee_id" readonly="state not in ('draft')"
-                                       options="{'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
+                                       options="{'no_open':True, 'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
                                        required="True"/>
                                 <field name="manager_id" readonly="state not in ('draft')"
-                                       options="{'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
+                                       options="{'no_open':True, 'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
                                        required="True"/>
                                 <field name="create_date"/>
                             </group>
                             <group>
                                 <field name="subject" readonly="state not in ('draft')" required="True"/>
                                 <field name="type" readonly="state not in ('draft')" required="True"
-                                       options="{'no_create_edit':True,'no_create': True, 'no_quick_create':True}"/>
+                                       options="{'no_open':True, 'no_create_edit':True,'no_create': True, 'no_quick_create':True}"/>
                             </group>
                         </group>
                         <notebook>
@@ -85,14 +85,14 @@
                                         -->
                                         <field name="date_timeline" readonly="state in ('satisfied')"/>
                                         <field name="representative_id"
-                                               options="{'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
+                                               options="{'no_open': True, 'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
                                                readonly="state in ('satisfied')"/>
                                         <field name="resolution" readonly="state in ('satisfied')"/>
                                     </group>
                                     <group>
                                         <field name="unsatisfied" invisible="1"/>
                                         <field name="management_representative_id"
-                                               options="{'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
+                                               options="{'no_open': True, 'no_create_edit':True, 'no_create': True, 'no_quick_create':True}"
                                                invisible="not unsatisfied"
                                                readonly="state in ('satisfied')"/>
                                         <field name="management_resolution" invisible="not unsatisfied"

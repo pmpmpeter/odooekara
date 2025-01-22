@@ -7,7 +7,8 @@
         <field name="arch" type="xml">
             <form string="Set as Employee">
                 <group>
-                    <field name="related_user_id"/>
+                    <field name="related_user_id"
+                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                 </group>
                 <footer>
                     <button name="set_as_employee" string="Set as Employee"

@@ -22,7 +22,7 @@ class EmployeeIndent(models.Model):
     #     'res.partner', "Job Location", copy=False
     #     domain=lambda self: self._address_id_domain(),
     #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
-    location_id = fields.Many2one('ekara.location', string="Location", copy=False)
+    # location_id = fields.Many2one('ekara.location', string="Location", copy=False)
     locations_id = fields.Many2one('location.master', string="Location")
 
     department = fields.Many2one(
@@ -247,11 +247,13 @@ class EmployeeIndent(models.Model):
     #     for record in self:
     #         record.no_of_vacancy = record.target
 
-    @api.constrains('target')
+    @api.constrains('target','locations_id')
     def _validate_negative(self):
         for record in self:
             if record.target <= 0:
                 raise UserError(_("Please give the positive values in No. of Vacancies"))
+            if not record.locations_id:
+                raise UserError(_("Please select the Location"))
 
     @api.constrains('is_replacement')
     def _is_replacement_or_not(self):

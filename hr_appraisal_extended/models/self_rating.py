@@ -236,7 +236,6 @@ class SelfRating(models.Model):
             record.total_ctc_annum = 0
             record.total_ctc_month = 0
             record.indicative_take_home_salary = 0
-            profession_tax = 200 if (record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
             if salary_structure and (record.monthly_fixed_salary < 54000):
                 record.basic_da_per_annum = salary_structure.annual_salary
@@ -256,12 +255,15 @@ class SelfRating(models.Model):
 
                 # Calculate Provident Fund
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = min(record.monthly_fixed_salary * 0.12, 15000 * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # Calculate ESIC
                 if record.esi_applicable == 'yes':
-                    record.esic_employer_per_month = math.ceil(
+                    record.esic_employer_per_month = round(
                         record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
                 record.esic_employer_per_annum = record.esic_employer_per_month * 12
 
@@ -276,8 +278,8 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
-                            record.variable_pay_percentage / 100)
+                record.variable_pay_per_annum = math.ceil((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                            record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
                 record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
@@ -291,10 +293,12 @@ class SelfRating(models.Model):
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
+                profession_tax = 200 if (
+                                                    record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
                 record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.75 / 100) - profession_tax)
+                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif salary_structure and (record.monthly_fixed_salary >= 54000):
                 record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000
@@ -309,14 +313,16 @@ class SelfRating(models.Model):
                 record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
 
-                # Provident Fund Calculation
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = min(record.monthly_fixed_salary * 0.12, 15000 * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # ESIC Calculation
                 if record.esi_applicable == 'yes':
-                    record.esic_employer_per_month = math.ceil(
+                    record.esic_employer_per_month = round(
                         record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
                 record.esic_employer_per_annum = record.esic_employer_per_month * 12
 
@@ -331,8 +337,8 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
-                            record.variable_pay_percentage / 100)
+                record.variable_pay_per_annum = math.ceil((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                            record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
                 record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
@@ -346,10 +352,12 @@ class SelfRating(models.Model):
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
+                profession_tax = 200 if (
+                                                record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
                 record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.75 / 100) - profession_tax)
+                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif (record.location_id.name not in ['tta', 'tvm_obt']) and (record.monthly_fixed_salary >= 54000):
                 # Calculate Basic & DA (Per Annum)
@@ -379,12 +387,15 @@ class SelfRating(models.Model):
 
                 # Provident Fund Calculation
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = min(record.monthly_fixed_salary * 0.12, 15000 * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # ESIC Calculation
                 if record.esi_applicable == 'yes':
-                    record.esic_employer_per_month = math.ceil(
+                    record.esic_employer_per_month = round(
                         record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
                 record.esic_employer_per_annum = record.esic_employer_per_month * 12
 
@@ -399,8 +410,8 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
-                            record.variable_pay_percentage / 100)
+                record.variable_pay_per_annum = math.ceil((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                            record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
                 record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
@@ -414,10 +425,12 @@ class SelfRating(models.Model):
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
+                profession_tax = 200 if (
+                                                record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
                 record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.75 / 100) - profession_tax)
+                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif (record.location_id.name not in ['tta', 'tvm_obt']) and (record.monthly_fixed_salary < 54000):
                 # Calculate Basic & DA (Per Annum)
@@ -447,12 +460,15 @@ class SelfRating(models.Model):
 
                 # Provident Fund Calculation
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = min(record.monthly_fixed_salary * 0.12, 15000 * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # ESIC Calculation
                 if record.esi_applicable == 'yes':
-                    record.esic_employer_per_month = math.ceil(
+                    record.esic_employer_per_month = round(
                         record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
                 record.esic_employer_per_annum = record.esic_employer_per_month * 12
 
@@ -467,8 +483,8 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
-                            record.variable_pay_percentage / 100)
+                record.variable_pay_per_annum = math.ceil((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                            record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
                 record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
@@ -482,10 +498,12 @@ class SelfRating(models.Model):
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
+                profession_tax = 200 if (
+                                                record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
                 record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.75 / 100) - profession_tax)
+                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             else:
                 pass

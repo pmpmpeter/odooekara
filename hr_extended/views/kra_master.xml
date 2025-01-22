@@ -7,7 +7,12 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="name" required="True"/>
+                        <group>
+                            <field name="name" required="True"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
                     </group>
                     <notebook>
                         <page string="KRA Details">
@@ -39,6 +44,7 @@
             <tree>
                 <field name="name"/>
                 <field name="details_ids"/>
+                <field name="active"/>
             </tree>
         </field>
     </record>
@@ -49,6 +55,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name" string="Name"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
             </search>
         </field>
     </record>

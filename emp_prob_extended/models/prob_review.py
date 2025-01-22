@@ -152,6 +152,12 @@ class ProbationReviewForm(models.Model):
         for record in self:
             record.state = 'done'
 
+    def unlink(self):
+        for record in self:
+            if record.state != 'draft':
+                raise UserError("You can delete a record only in the 'draft' state.")
+        return super(ProbationReviewForm, self).unlink()
+
     def write(self, vals):
         res = super(ProbationReviewForm, self).write(vals)
         if 'state' in vals and self.employee_probation_id:

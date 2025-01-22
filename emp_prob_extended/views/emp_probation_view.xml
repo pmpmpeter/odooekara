@@ -80,7 +80,8 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-file-text-o"
-                                invisible="review_form_count == 0" groups="emp_prob_extended.group_employee_probation_user">
+                                invisible="review_form_count == 0"
+                                groups="emp_prob_extended.group_employee_probation_user">
                             <field name="review_form_count" widget="statinfo" string="Review Form"/>
                         </button>
                     </div>
@@ -95,10 +96,12 @@
                     </div>
                     <group>
                         <group string="EMPLOYEE">
-                            <field name="employee_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
+                            <field name="employee_id"
+                                   options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']" required="True"/>
-                            <field name="email" widget="email" readonly="state in ['confirm','cancel']"/>
-                            <field name="department_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
+                            <field name="email" readonly="state in ['confirm','cancel']"/>
+                            <field name="department_id"
+                                   options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']"/>
                             <field name="parent_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
                                    readonly="state in ['confirm','cancel']"/>
@@ -113,19 +116,19 @@
                             <field name="end_date" readonly="state in ['confirm','cancel']"/>
                         </group>
                     </group>
-                    <notebook>
-                        <page string="Employee Reviews">
-                            <field name="employee_reviews_ids" readonly="state in ['confirm','cancel']">
-                                <tree editable="bottom">
-                                    <field name="date"/>
-                                    <field name="reviewer" options="{'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="review_details" force_save="1"/>
-                                    <field name="performance"/>
-                                    <field name="rating" widget="priority"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
+                    <!--                    <notebook>-->
+                    <!--                        <page string="Employee Reviews">-->
+                    <!--                            <field name="employee_reviews_ids" readonly="state in ['confirm','cancel']">-->
+                    <!--                                <tree editable="bottom">-->
+                    <!--                                    <field name="date"/>-->
+                    <!--                                    <field name="reviewer" options="{'no_quick_create':True,'no_create': True,}"/>-->
+                    <!--                                    <field name="review_details" force_save="1"/>-->
+                    <!--                                    <field name="performance"/>-->
+                    <!--                                    <field name="rating" widget="priority"/>-->
+                    <!--                                </tree>-->
+                    <!--                            </field>-->
+                    <!--                        </page>-->
+                    <!--                    </notebook>-->
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" groups="base.group_user"/>

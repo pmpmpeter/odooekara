@@ -7,19 +7,25 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_start_grounding" string="Start Grounding"
+                <button name="action_start_grounding" string="Start Probation"
+                        groups="hr.group_hr_manager"
                         type="object" invisible="state not in ('joined')"/>
                 <button name="action_start_test_period" string="Start Test Period"
+                        groups="hr.group_hr_manager"
                         type="object" invisible="state not in ('grounding')"/>
                 <button name="%(employee_stages.employee_stage_action)d"
+                        groups="hr.group_hr_manager"
                         string="Set as Employee" type="action"
-                        invisible="state not in ('joined', 'test_period')"
+                        invisible="state not in ('test_period')"
                         context="{'employee_id':id}"/>
                 <button name="action_start_notice_period" string="Start Notice Period"
+                        groups="hr.group_hr_manager"
                         type="object" invisible="state not in ('employment')"/>
                 <button name="action_relived" string="Relieved" type="object"
+                        groups="hr.group_hr_manager"
                         invisible="state not in ('notice_period')"/>
                 <button name="action_terminate" string="Terminate" type="object"
+                        groups="hr.group_hr_manager"
                         invisible="state not in ('grounding','employment')"/>
                 <field name="state" widget="statusbar"
                        statusbar_visible="joined,grounding,employment"/>
