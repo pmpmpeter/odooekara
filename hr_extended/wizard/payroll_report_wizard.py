@@ -58,10 +58,7 @@ class PayrollReportWizard(models.TransientModel):
 
         # Title
         sheet.merge_range('A1:Z1','ENTITY - '+self.env.company.name, title_format)
-        if self.to_date:
-            sheet.merge_range('A2:Z2', f'Payroll Data for {self.to_date.strftime("%B %Y")}', title_format)
-        else :
-            sheet.merge_range('A2:Z2', f'Payroll Data for {self.batch_id.name}', title_format)
+        sheet.merge_range('A2:Z2', f'Payroll Data for {datetime.now().strftime("%B %Y")}', title_format)
         sheet.set_column('A:B',10)
         sheet.set_column('C:C',20)
         sheet.set_column('D:E',10)
@@ -108,6 +105,7 @@ class PayrollReportWizard(models.TransientModel):
         for comp_name in payslips.struct_id.rule_ids.mapped('name'):
             sheet.write(row,comp_col,comp_name,header_format)
             comp_col +=1
+        sheet.merge_range(2,comp_col,3,comp_col,'Remarks',merge_format)
         sheet.merge_range(2,col,2,work_col-1, 'Worked and Leave Days', merge_format)
         sheet.merge_range(2,work_col,2,comp_col-1, 'Components', merge_format)
         comp_names = payslips.struct_id.rule_ids.mapped('name')
@@ -155,10 +153,11 @@ class PayrollReportWizard(models.TransientModel):
             sheet.write(row, col + 4, slip.employee_id.uan_no if slip.employee_id.uan_no else '', char_format)  # UAN
             sheet.write(row, col + 5, datetime.strftime((slip.employee_id.joining_date),"%d-%m-%Y") if slip.employee_id.joining_date else '' , char_format)  # Date of Joining
             sheet.write(row, col + 6, datetime.strftime((resig_date.hr_approved_reliving_date),"%d-%m-%Y") if resig_date else '', char_format)  # Date of Resignation Acceptance
-            sheet.write(row, col + 7, datetime.strftime(slip.employee_id.last_working_day,"%d-%m-%Y") if slip.employee_id.last_working_day else '' , data_format)  # Last Working Day
+            sheet.write(row, col + 7, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
             sheet.write(row, col + 8, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
             sheet.write(row, col + 9, slip.contract_id.final_yearly_costs, data_format)  # Annual Compensation
             sheet.write(row, col + 10, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
+            sheet.write(row, col + comp_col,'', data_format) 
             row += 1
 
         workbook.close()
