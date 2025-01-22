@@ -106,7 +106,7 @@ class PayrollReportWizard(models.TransientModel):
             sheet.write(row,comp_col,comp_name,header_format)
             comp_col +=1
         sheet.merge_range(2,comp_col,3,comp_col,'Remarks',merge_format)
-        sheet.merge_range(2,col,2,work_col-1, 'Worked and Leave Days', merge_format)
+        sheet.merge_range(2,col,2,work_col-1, 'Worked and Leave Days', merge_format) if len(wrk_names) > 1 else sheet.write(2,col,'Worked and Leave Days',header_format)
         sheet.merge_range(2,work_col,2,comp_col-1, 'Components', merge_format)
         comp_names = payslips.struct_id.rule_ids.mapped('name')
         row = 4
