@@ -138,17 +138,17 @@
         </record>
 
         <!-- Ekara Location data-->
-        <record id="ekara_location_1" model="ekara.location">
+        <record id="location_1" model="location.master">
             <field name="name">Bangalore</field>
             <field name="sequence">1</field>
         </record>
 
-        <!--        <record id="ekara_location_1" model="ekara.location">-->
+        <!--        <record id="ekara_location_1" model="location.master">-->
         <!--            <field name="name">Hyderabad</field>-->
         <!--            <field name="sequence">2</field>-->
         <!--        </record>-->
 
-        <!--        <record id="ekara_location_1" model="ekara.location">-->
+        <!--        <record id="ekara_location_1" model="location.master">-->
         <!--            <field name="name">Telehealth</field>-->
         <!--            <field name="sequence">3</field>-->
         <!--        </record>-->

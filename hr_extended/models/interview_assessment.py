@@ -68,6 +68,31 @@ class InterviewAssessment(models.Model):
     end_time = fields.Datetime(string="End Time", required=True)
     adjusted_time_start = fields.Datetime('Adjusted Time Start', compute='_compute_adjusted_time')
     adjusted_time_end = fields.Datetime('Adjusted Time End', compute='_compute_adjusted_time')
+    applicant_original_ids = fields.Many2many('hr.applicant',
+                                              compute='_compute_applicant_record',
+                                              string='Applicant', copy=False)
+    applicant_original_count = fields.Integer("Applicant",
+                                              compute='_compute_applicant_record', default=0, copy=False)
+
+    def _compute_applicant_record(self):
+        for record in self:
+            domain = [('id', '=', record.applicant_id.id)]
+            applicant_original_ids = self.env['hr.applicant'].sudo().search(domain)
+            record.applicant_original_ids = applicant_original_ids
+            record.applicant_original_count = len(applicant_original_ids)
+
+    def action_open_applicant_record(self):
+        action = self.env.ref('hr_recruitment.crm_case_categ0_act_job')
+        result = action.sudo().read()[0]
+        result.pop('id', None)
+        result['context'] = {}
+        if len(self.applicant_original_ids.ids) > 1:
+            result['domain'] = "[('id','in',[" + ','.join(map(str, self.applicant_original_ids.ids)) + "])]"
+        elif len(self.applicant_original_ids.ids) == 1:
+            res = self.env.ref('hr_recruitment.hr_applicant_view_form', False)
+            result['views'] = [(res and res.id or False, 'form')]
+            result['res_id'] = self.applicant_original_ids.ids and self.applicant_original_ids.ids[0] or False
+        return result
 
     @api.onchange('start_time', 'end_time')
     def _compute_adjusted_time(self):

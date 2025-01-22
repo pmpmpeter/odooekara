@@ -418,9 +418,9 @@
         </field>
     </record>
 
-    <record id="view_salary_structure_form" model="ir.ui.view">
-        <field name="name">view.salary.structure.form</field>
-        <field name="model">salary.structure</field>
+    <record id="view_salary_master_form" model="ir.ui.view">
+        <field name="name">view.salary.master.form</field>
+        <field name="model">salary.master</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -440,9 +440,9 @@
         </field>
     </record>
 
-    <record id="view_salary_structure_tree" model="ir.ui.view">
-        <field name="name">view.salary.structure.tree</field>
-        <field name="model">salary.structure</field>
+    <record id="view_salary_master_tree" model="ir.ui.view">
+        <field name="name">view.salary.master.tree</field>
+        <field name="model">salary.master</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
@@ -454,9 +454,9 @@
         </field>
     </record>
 
-    <record id="view_salary_structure_search" model="ir.ui.view">
-        <field name="name">view.salary.structure.form.search</field>
-        <field name="model">salary.structure</field>
+    <record id="view_salary_master_search" model="ir.ui.view">
+        <field name="name">view.salary.master.form.search</field>
+        <field name="model">salary.master</field>
         <field name="arch" type="xml">
             <search>
                 <field name="name" string="Name"/>
@@ -464,17 +464,17 @@
         </field>
     </record>
 
-    <record id="action_view_salary_structure" model="ir.actions.act_window">
-        <field name="name">Salary Structure</field>
-        <field name="res_model">salary.structure</field>
+    <record id="action_view_salary_master" model="ir.actions.act_window">
+        <field name="name">Salary Master</field>
+        <field name="res_model">salary.master</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_salary_structure_tree"/>
-        <field name="search_view_id" ref="view_salary_structure_search"/>
+        <field name="view_id" ref="view_salary_master_tree"/>
+        <field name="search_view_id" ref="view_salary_master_search"/>
         <field name="target">current</field>
     </record>
 
-    <menuitem id="menu_config_salary_structure" name="Salary Structure" parent="hr_appraisal.menu_hr_appraisal_configuration"
-              action="action_view_salary_structure" sequence="5"/>
+    <menuitem id="menu_config_salary_master" name="Salary Breakup Master" parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+              action="action_view_salary_master" sequence="7"/>
 
     <menuitem id="performance_review_main"
               parent="hr_appraisal.menu_hr_appraisal_root"

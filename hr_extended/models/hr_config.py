@@ -189,8 +189,8 @@ class BusinessUnits(models.Model):
         return super(BusinessUnits, self).unlink()
 
 
-class EkaraLocation(models.Model):
-    _name = 'ekara.location'
+class LocationMaster(models.Model):
+    _name = 'location.master'
     _description = 'Location'
     _order = 'sequence'
 
@@ -210,7 +210,7 @@ class EkaraLocation(models.Model):
         """Check if the record is referenced before deletion."""
         related_fields = self.env['ir.model.fields'].search([
             ('ttype', 'in', ['many2one', 'many2many']),
-            ('relation', '=', 'ekara.location'),
+            ('relation', '=', 'location.master'),
         ])
         for record in self:
             for field in related_fields:
@@ -228,4 +228,4 @@ class EkaraLocation(models.Model):
                     raise ValidationError(
                         f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
                     )
-        return super(EkaraLocation, self).unlink()
+        return super(LocationMaster, self).unlink()

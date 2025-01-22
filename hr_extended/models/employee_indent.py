@@ -14,14 +14,16 @@ class EmployeeIndent(models.Model):
 
     name = fields.Char(string='Name', required=True)
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
-    organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company, domain=lambda self: self._organization_domain())
+    organization = fields.Many2one('res.company', string='Organization', default=lambda self: self.env.company,
+                                   domain=lambda self: self._organization_domain())
     # company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     # location = fields.Many2one(
     #     'res.partner', "Job Location", copy=False
     #     domain=lambda self: self._address_id_domain(),
     #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
-    location_id = fields.Many2one('ekara.location', string="Location", required=True)
+    location_id = fields.Many2one('ekara.location', string="Location", copy=False)
+    locations_id = fields.Many2one('location.master', string="Location")
 
     department = fields.Many2one(
         'hr.department',  # The model name of the HR department
@@ -203,6 +205,43 @@ class EmployeeIndent(models.Model):
             else:
                 rec.tax_entity = False
 
+    # to check the fields values are active
+    def write(self, vals):
+        for record in self:
+            position_id = vals.get('position_name', record.position_name.id)
+            if position_id:
+                position = self.env['hr.position.names'].browse(position_id)
+                if not position.active:
+                    raise ValidationError(
+                        "The selected Position Name/Designation is not active. Please choose an active position."
+                    )
+
+            location_id = vals.get('locations_id', record.locations_id.id)
+            if location_id:
+                location = self.env['location.master'].browse(location_id)
+                if not location.active:
+                    raise ValidationError(
+                        "The selected Location is not active. Please choose an active location."
+                    )
+
+            grade_id = vals.get('grade_job_level', record.grade_job_level.id)
+            if grade_id:
+                grade = self.env['hr.job.levels'].browse(grade_id)
+                if not grade.active:
+                    raise ValidationError(
+                        "The selected Grade/Job Level is not active. Please choose an active grade."
+                    )
+
+            bu_unit_id = vals.get('business_unit_id', record.business_unit_id.id)
+            if grade_id:
+                grade = self.env['business.units'].browse(bu_unit_id)
+                if not grade.active:
+                    raise ValidationError(
+                        "The selected Business Unit is not active. Please choose an active business unit."
+                    )
+
+        return super(EmployeeIndent, self).write(vals)
+
     # @api.onchange('target')
     # def _number_of_vacancy(self):
     #     for record in self:
@@ -211,7 +250,7 @@ class EmployeeIndent(models.Model):
     @api.constrains('target')
     def _validate_negative(self):
         for record in self:
-            if record.target <=0:
+            if record.target <= 0:
                 raise UserError(_("Please give the positive values in No. of Vacancies"))
 
     @api.constrains('is_replacement')

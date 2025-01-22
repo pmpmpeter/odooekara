@@ -54,7 +54,7 @@
                                     <field name="organization" string="Organization" required="1"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="location_id" string="Location" required="1"
+                                    <field name="locations_id" string="Location" required="0"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="department" string="Department" required="1"
@@ -192,7 +192,7 @@
                 <field name="currency_id" column_invisible="1"/>
                 <field name="name"/>
                 <field name="organization"/>
-                <field name="location_id"/>
+                <field name="locations_id"/>
                 <field name="department"/>
                 <field name="employment_type"/>
                 <field name="target" sum="Total"/>

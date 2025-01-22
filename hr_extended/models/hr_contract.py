@@ -77,7 +77,7 @@ class HrContract(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
-    location_id = fields.Many2one('ekara.location', string="Location",tracking=True, required=True)
+    location_id = fields.Many2one('location.master', string="Location",tracking=True)
     grade = fields.Selection([
         ('spl_grade', 'Spl Grade'),
         ('grade_a', 'Grade A'),
@@ -97,7 +97,7 @@ class HrContract(models.Model):
     def _onchange_calculate_salary_breakup(self):
         for record in self:
             # Fetch the salary structure based on location and grade
-            salary_structure = self.env['salary.structure'].search([
+            salary_structure = self.env['salary.master'].search([
                 ('location_id', '=', record.location_id.id),
                 ('grade', '=', record.grade)
             ], limit=1)

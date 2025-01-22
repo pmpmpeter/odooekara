@@ -100,7 +100,7 @@
                                 <strong>Location:</strong>
                             </td>
                             <td style="border: 1px solid black; padding: 5px;">
-                                <t t-esc="doc.location_id.name"/>
+                                <t t-esc="doc.locations_id.name"/>
                             </td>
                             <td style="border: 1px solid black; padding: 5px; background-color: #f2f2f2;">
                                 <strong>No. of Vacancy:</strong>
