@@ -20,7 +20,7 @@ class AttendanceReportWizard(models.TransientModel):
         [(str(i), calendar.month_name[i]) for i in range(1, 13)],
         string="Select Month",default=lambda self: str(datetime.now().month),
     )
-    year = fields.Integer(
+    year = fields.Char(
         string="Year",
         default=lambda self: fields.Date.today().year
     )
@@ -44,7 +44,7 @@ class AttendanceReportWizard(models.TransientModel):
         if self.month and self.year:
             month = int(self.month)
             year = self.year
-            return calendar.monthrange(year, month)[1]  # Returns (weekday, number_of_days)
+            return calendar.monthrange(int(year), month)[1]  # Returns (weekday, number_of_days)
         return 0
 
     @api.model

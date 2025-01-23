@@ -15,7 +15,7 @@ class SurveyXlsReport(models.TransientModel):
 
     partner_id = fields.Many2one('res.partner', string="Partner",
                                  help="Select for getting the report of the "
-                                      "user")
+                                      "user",default=lambda self: self.env.user.partner_id)
     survey_ids = fields.Many2many('survey.survey', string="Survey Ids",
                                   help="This field stores survey ids",
                                   readonly=False)
