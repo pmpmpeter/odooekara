@@ -50,7 +50,7 @@ class ProjectProject(models.Model):
             self.validity_end_date = self.validity_start_date = False
         if self.document_type_id and self.validity_start_date:
             self.validity_end_date = self.validity_start_date + timedelta(
-                days=self.document_type_id.default_validity_period)
+                days=self.document_type_id.default_validity_period) 
 
     @api.onchange('validity_end_date','document_reminder')
     def _onchange_validity_dates(self):
@@ -79,7 +79,7 @@ class ProjectProject(models.Model):
     def send_reminder_document(self):
         today = fields.Date.today()
         document_first_reminder = self.sudo().search([
-            ('first_reminder_date', '=', today),('is_document_validity_management','=',True)
+            ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
         ])
         if document_first_reminder:
             self._schedule_activities_first_reminder_document()
@@ -97,7 +97,7 @@ class ProjectProject(models.Model):
     def _schedule_activities_first_reminder_document(self):
         today = fields.Date.today()
         projects = self.search([
-            ('first_reminder_date', '=', today),('is_document_validity_management','=',True)
+            ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
         ])
         for project in projects:
             project.activity_schedule(
@@ -177,6 +177,7 @@ class ProjectTask(models.Model):
         expired_tasks = self.search([
             ('validity_end_date', '<', fields.Date.today()),
             ('stage_id.name', '!=', 'Expired'),
+            ('project_id.document_type_id.default_validity_period', '>',0),
         ])
         for task in expired_tasks:
             task.stage_id = self.env['project.task.type'].search([('name', '=', 'Expired'),

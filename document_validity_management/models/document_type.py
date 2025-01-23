@@ -8,7 +8,7 @@ class DocumentType(models.Model):
     description = fields.Text(string="Description")
     default_validity_period = fields.Integer(string="Default Validity Period (Days)",
                                               help="Default validity duration for this document type.")
-    active = fields.Boolean(string="Active")
+    active = fields.Boolean(string="Active",default=True)
 
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=100):

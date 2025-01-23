@@ -38,11 +38,11 @@
                 <field name="name" options="{'line_breaks': False}" widget="text" class="o_text_overflow" invisible="is_legal_notice or is_statuory_notice or is_document_validity_management" placeholder="e.g. Office Party"/>
         </xpath>
             <xpath expr="//header" position="inside">
-                <button name="document_closed" type="object" string="Closed" class="btn-primary" invisible="not is_document_validity_management"/>
+                <button name="document_closed" type="object" string="Closed" class="btn-primary" invisible="not is_document_validity_management and not is_statuory_notice"/>
             </xpath>
             <field name='tag_ids' position="after">
-                <field name="closed_date" invisible="not is_document_validity_management"/>
-                <field name="closed_by" invisible="not is_document_validity_management"/>
+                <field name="closed_date" invisible="not is_document_validity_management and not is_statuory_notice"/>
+                <field name="closed_by" invisible="not is_document_validity_management and not is_statuory_notice"/>
             </field>
         </field>
     </record>

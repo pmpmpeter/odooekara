@@ -9,6 +9,7 @@ class DocumentController(http.Controller):
         record = request.env['document.request'].sudo().browse(record_id)
         if not record or not record.pdf_document:
             raise UserError("The requested file does not exist.")
+        record.multi_download = True
         pdf_content = base64.b64decode(record.pdf_document)
         return request.make_response(
             pdf_content,
@@ -17,3 +18,4 @@ class DocumentController(http.Controller):
                 ('Content-Disposition', f'attachment; filename={record.pdf_filename}'),
             ]
         )
+

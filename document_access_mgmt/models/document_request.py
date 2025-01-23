@@ -30,6 +30,9 @@ class DocumentRequest(models.Model):
         ('rejected','Rejected'),
         ('expired','Expired'),
     ], default='draft', string="State", tracking=True, copy=False, readonly=True)
+    multi_download = fields.Boolean("Multiple Download")
+    download_reason = fields.Text("Download Reason")
+
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -114,7 +117,17 @@ class DocumentRequest(models.Model):
     def download_pdf(self):
         for rec in self.filtered(lambda d: d.state in ['approved']):
             # pdb.set_trace()
+            if rec.multi_download == True:
+                 return {
+                    'name': 'Multiple Download Reason',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'download.reason.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {'active_id': self.id},
+                }
             if rec.pdf_expiry_date and fields.Datetime.now() < rec.pdf_expiry_date:
+                rec.multi_download = True
                 return {
                     'type': 'ir.actions.act_url',
                     'url': f'/document/download/pdf/{rec.id}',

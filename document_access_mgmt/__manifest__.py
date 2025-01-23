@@ -23,6 +23,7 @@
         'views/document_view.xml',
         'views/document_request_view.xml',
         'views/menu_items.xml',
+        'wizard/multi_download_reason_view.xml',
     ],
     
     'license': 'LGPL-3',

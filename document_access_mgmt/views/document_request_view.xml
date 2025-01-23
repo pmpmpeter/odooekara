@@ -49,7 +49,7 @@
                             <field name="document_id" required="True" readonly="state != 'draft'" 
                                 options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
                             <field name="pdf_document" readonly="1" invisible="state not in ['approved']" 
-                                widget="binary" filename="pdf_filename"/>
+                                widget="binary" filename="pdf_filename" />
                             <field name="pdf_filename" readonly="1" invisible="1"/>
                         </group>
                         <group>
@@ -60,6 +60,11 @@
                             <field name="pdf_expiry_date" readonly="1" invisible="state not in ('approved','expired')"/>
                         </group>
                     </group>
+                    <notebook>
+                         <page string="Download Reason" invisible='not download_reason'>
+                            <field name='download_reason'/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>
