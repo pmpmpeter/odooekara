@@ -100,7 +100,7 @@ class SurveyXlsReport(models.TransientModel):
                 title_format1 = workbook.add_format({'bold': True, 'font_size': 14, 'align': 'center','valign': 'vcenter','bg_color': '#D3D3D3'})
                 title_format = workbook.add_format({'bold': True, 'font_size': 14, 'align': 'left','valign': 'vcenter','bg_color': '#D3D3D3'})
                 question_format1 = workbook.add_format(
-                    {'bold': True, 'font_size': 12, 'align': 'left', 'text_wrap': True})
+                    {'bold': True, 'font_size': 12, 'align': 'left'})
                 question_format = workbook.add_format({'bold': True, 'font_size': 12, 'align': 'left','bg_color':'#D3D3D3'})
                 participant_format = workbook.add_format({'bold': True, 'font_size': 10, 'align': 'left'})
                 answer_format = workbook.add_format({'font_size': 10, 'align': 'left'})
@@ -136,11 +136,6 @@ class SurveyXlsReport(models.TransientModel):
                             worksheet.write(row, col+2, "Score", question_format)
                             col = 0
                             row += 1
-                            # for question in questions:
-                            #     worksheet.write(row, col, question, question_format)
-                            #     row += 1
-                            #
-                            # col += 1
 
                             for participant in participants:
                                     worksheet.write(row, col,participant['participant'], answer_format)
@@ -162,14 +157,10 @@ class SurveyXlsReport(models.TransientModel):
                     else:
                         worksheet.write(row, 0, "No participants", answer_format)
                         row += 1
-
-                    # Add spacing between surveys
                     row += 1
 
                 workbook.close()
                 output.seek(0)
-
-                # Return the generated Excel file
                 report = output.read()
                 self.report_file = base64.b64encode(report)
                 self.file_name = f"Survey_Report.xlsx"
@@ -231,29 +222,29 @@ class SurveyXlsReport(models.TransientModel):
                                         data_dict[survey_name] = []
                                     data_dict[survey_name].append(data)
                     else:
+                        sur = self.env['survey.survey'].sudo().search([])
                         for doc in sur:
-                            partners = self.env['res.partner'].sudo().search([])
-                            for partner in partners:
-                                survey_inp = self.env['survey.user_input'].search([('survey_id', '=', doc.id),('state','=','done'),('partner_id','=',partner.id)])
-                                for record in survey_inp:
-                                    part_data.append({'survey_name': record.survey_id.title, 'user_name': record.partner_id.name})
-                                    for rec in self.env['survey.user_input.line'].search(
-                                            [('user_input_id', '=', record.id)]):
+                            survey_inp = self.env['survey.user_input'].search(
+                                [('survey_id', '=', doc.id),('state', '=', 'done')])
+                            for record in survey_inp:
+                                part_data.append({'survey_name': record.survey_id.title, 'user_name': record.partner_id.name})
+                                for rec in self.env['survey.user_input.line'].search(
+                                        [('user_input_id', '=', record.id)]):
 
-                                        data = {
-                                            'survey_name': rec.survey_id.title,
-                                            'create_date': rec.create_date,
-                                            'user_name': rec.user_input_id.partner_id.name,
-                                            'question': rec.question_id.title,
-                                            'answer': rec.display_name,
-                                            'score': rec.answer_score
-                                        }
-                                        survey_name = data['survey_name']
-                                        if survey_name not in data_dict:
-                                            data_dict[survey_name] = []
-                                        data_dict[survey_name].append(data)
+                                    data = {
+                                        'survey_name': rec.survey_id.title,
+                                        'create_date': rec.create_date,
+                                        'user_name': rec.user_input_id.partner_id.name,
+                                        'question': rec.question_id.title,
+                                        'answer': rec.display_name,
+                                        'score': rec.answer_score
+                                    }
+                                    survey_name = data['survey_name']
+                                    if survey_name not in data_dict:
+                                        data_dict[survey_name] = []
+                                    data_dict[survey_name].append(data)
             grouped_data_list = [
-                {'survey_name': survey_name, 'partner_id': self.partner_id.name,
+                {'survey_name': survey_name,
                  'data': survey_data} for survey_name, survey_data in
                 data_dict.items()]
             dict_data = {
@@ -312,17 +303,18 @@ class SurveyXlsReport(models.TransientModel):
                             row += 1
                             a = 1
                             for datas in records.get('data'):
-                                sheet.write(row, 0, a, font_size_8)
-                                a = a + 1
-                                sheet.write(row, 1, str(datas.get('create_date').strftime('%d-%m-%Y')),
-                                            font_size_8)
-                                sheet.write(row, 2, datas.get('question'),
-                                            font_size_8)
-                                sheet.write(row, 3, datas.get('answer'),
-                                            font_size_8)
-                                sheet.write(row, 4, datas.get('score'),
-                                            font_size_8)
-                                row += 1
+                                if part['user_name'] == datas['user_name']:
+                                    sheet.write(row, 0, a, font_size_8)
+                                    a = a + 1
+                                    sheet.write(row, 1, str(datas.get('create_date').strftime('%d-%m-%Y')),
+                                                font_size_8)
+                                    sheet.write(row, 2, datas.get('question'),
+                                                font_size_8)
+                                    sheet.write(row, 3, datas.get('answer'),
+                                                font_size_8)
+                                    sheet.write(row, 4, datas.get('score'),
+                                                font_size_8)
+                                    row += 1
                 workbook.close()
                 output.seek(0)
                 return output.read()
