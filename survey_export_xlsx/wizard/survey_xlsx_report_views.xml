@@ -16,7 +16,7 @@
         <field name="name">survey.xlsx.report.view.form</field>
         <field name="model">survey.xlsx.report</field>
         <field name="arch" type="xml">
-            <form string="Survey Answer Xls Report">
+            <form string="Survey Report">
                 <group>
                     <group>
                         <field name="survey_ids" widget="many2many_tags" domain="[('survey_type', '!=', 'appraisal')]"
@@ -43,7 +43,7 @@
     </record>
 
     <record id="action_survey_xlsx_report" model="ir.actions.act_window">
-    <field name="name">Survey XLSX Report</field>
+    <field name="name">Survey Report</field>
     <field name="res_model">survey.xlsx.report</field>
     <field name="view_mode">form</field>
     <field name="target">new</field>
@@ -55,7 +55,7 @@
           sequence="50"/>
 
 <menuitem id="menu_survey_xlsx_report"
-          name="Survey XLSX Report"
+          name="Survey XLS Report"
           parent="menu_survey_xlsx_report_root"
           action="action_survey_xlsx_report"
           sequence="10"/>

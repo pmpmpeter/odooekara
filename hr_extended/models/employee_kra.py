@@ -175,6 +175,11 @@ class EmployeeKra(models.Model):
                 'goal_description': kra_detail.goal_description,
                 'weightage': kra_detail.weightage,
             })
+        overall = 0.0
+        for rec in self.kra_details_ids:
+            overall += rec.weightage
+        self.overall_weightage = int(overall)
+        self.remaining = "Remaining weightage %s" % (100 - int(overall))
 
         return True
 

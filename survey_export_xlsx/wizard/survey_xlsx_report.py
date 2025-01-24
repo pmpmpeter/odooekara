@@ -11,12 +11,12 @@ import base64
 
 class SurveyXlsReport(models.TransientModel):
     _name = 'survey.xlsx.report'
-    _description = 'Survey XLSX Report '
+    _description = 'Survey Report '
 
     partner_id = fields.Many2one('res.partner', string="Partner",
                                  help="Select for getting the report of the "
                                       "user",default=lambda self: self.env.user.partner_id)
-    survey_ids = fields.Many2many('survey.survey', string="Survey Ids",
+    survey_ids = fields.Many2many('survey.survey', string="Survey",
                                   help="This field stores survey ids",
                                   readonly=False)
     report_file = fields.Binary(string="Report File", readonly=True)
@@ -230,6 +230,28 @@ class SurveyXlsReport(models.TransientModel):
                                     if survey_name not in data_dict:
                                         data_dict[survey_name] = []
                                     data_dict[survey_name].append(data)
+                    else:
+                        for doc in sur:
+                            partners = self.env['res.partner'].sudo().search([])
+                            for partner in partners:
+                                survey_inp = self.env['survey.user_input'].search([('survey_id', '=', doc.id),('state','=','done'),('partner_id','=',partner.id)])
+                                for record in survey_inp:
+                                    part_data.append({'survey_name': record.survey_id.title, 'user_name': record.partner_id.name})
+                                    for rec in self.env['survey.user_input.line'].search(
+                                            [('user_input_id', '=', record.id)]):
+
+                                        data = {
+                                            'survey_name': rec.survey_id.title,
+                                            'create_date': rec.create_date,
+                                            'user_name': rec.user_input_id.partner_id.name,
+                                            'question': rec.question_id.title,
+                                            'answer': rec.display_name,
+                                            'score': rec.answer_score
+                                        }
+                                        survey_name = data['survey_name']
+                                        if survey_name not in data_dict:
+                                            data_dict[survey_name] = []
+                                        data_dict[survey_name].append(data)
             grouped_data_list = [
                 {'survey_name': survey_name, 'partner_id': self.partner_id.name,
                  'data': survey_data} for survey_name, survey_data in
@@ -238,7 +260,6 @@ class SurveyXlsReport(models.TransientModel):
                 'record': grouped_data_list,
                 'part_data':part_data
             }
-            print(dict_data,'ffffffff')
             report = self.get_xlsx_report(dict_data)
             self.report_file = base64.b64encode(report)
             self.file_name = f"Survey_Report.xlsx"
@@ -258,9 +279,9 @@ class SurveyXlsReport(models.TransientModel):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         sheet = workbook.add_worksheet()
-        format21 = workbook.add_format({'font_size': 10, 'bold': True})
-        format22 = workbook.add_format({'font_size': 14, 'bold': True,'align':'center','bg_color': '#D3D3D3','border': 1})
-        font_size_8 = workbook.add_format({'font_size': 8})
+        format21 = workbook.add_format({'font_size': 12, 'bold': True})
+        format22 = workbook.add_format({'font_size': 14, 'bold': True,'align':'left','bg_color': '#D3D3D3','border': 1})
+        font_size_8 = workbook.add_format({'font_size': 10})
         head = workbook.add_format(
             {'align': 'center', 'bold': True, 'font_size': '20px'})
         heading_row_height = 30
@@ -277,7 +298,7 @@ class SurveyXlsReport(models.TransientModel):
                     for part in dict_data.get('part_data'):
                         if part['survey_name'] == records['survey_name']:
                             sheet.merge_range(row,0,row,1,'Participant:',format22)
-                            sheet.write(row,2,part['user_name'],format22)
+                            sheet.merge_range(row,2,row,4,part['user_name'],format22)
                             row += 1
                             sheet.set_column('A:A', 5)
                             sheet.set_column('B:B', 15)
