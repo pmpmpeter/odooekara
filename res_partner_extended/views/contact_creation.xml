@@ -43,6 +43,9 @@
                             <group>
                                 <field name="is_customer" readonly="user_created == True"/>
                                 <field name="is_vendor" readonly="user_created == True"/>
+                                <field name="msme_status" widget="radio" />
+                                <field name="msme_number" invisible="msme_status ==  'unregistered'" />
+                                <field name="msme_validity" invisible="msme_status ==  'unregistered'"/>
                                 <field name="user_id" 
                                     options="{'no_quick_create':True,'no_create': True,}" 
                                     readonly='1' invisible='1'/>

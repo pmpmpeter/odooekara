@@ -29,6 +29,7 @@ class ResPartner(models.Model):
     ], string="MSME Status", default='unregistered')
 
     msme_number = fields.Char(string="MSME Number")
+    msme_validity = fields.Date(string="MSME Validity")
 
     @api.model
     def name_get(self):

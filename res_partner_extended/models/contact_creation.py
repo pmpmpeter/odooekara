@@ -29,6 +29,13 @@ class ContactCreation(models.Model):
     password = fields.Char(string='Password', copy=False, required=True)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
+    msme_status = fields.Selection([
+        ('registered', 'Registered'),
+        ('unregistered', 'Unregistered')
+    ], string="MSME Status", default='unregistered')
+
+    msme_number = fields.Char(string="MSME Number")
+    msme_validity = fields.Date(string="MSME Validity")
 
     def portal_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -117,6 +124,9 @@ class ContactCreation(models.Model):
                     'is_customer': record.is_customer,
                     'is_vendor': record.is_vendor,
                     'is_company': True,
+                    'msme_status':record.msme_status,
+                    'msme_number':record.msme_number,
+                    'msme_validity':record.msme_validity,
                 })
             user._change_password(record.password)
             record.user_created = True
