@@ -37,7 +37,9 @@
                         <group>
                             <field name="emp_job_id" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                             <field name="kra_master" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
-                        </group>
+                            <field name="overall_weightage" widget="progressbar" class="d-block"/>
+                            <field name="remaining" no_label="1" string=""/>
+			</group>
                     </group>
                     <notebook>
                         <page string="KRA">
@@ -61,11 +63,13 @@
                                     <!-- <field name="final_score" sum="Total" readonly="1" force_save="1" groups="hr_recruitment.group_hr_recruitment_manager"/>-->
                                 </tree>
                             </field>
-                            <group>
-                                <field name="remarks" placeholder="Please give the Remarks here...."
-                                       groups="hr_recruitment.group_hr_recruitment_user"
-                                       readonly="state not in ('draft', 'submit_to_supervisor')"/>
-                            </group>
+                            <div class="float-end fs-6">
+                                         <label for="overall_weightage"/>
+                                          <field name="overall_weightage" string="" readonly="1" style="text-align:right;padding-left:20px;"/>
+                                    </div>
+                                <group>
+                                     <field name="remarks" placeholder="Please give the Remarks here...." groups="hr_recruitment.group_hr_recruitment_user" readonly="state not in ('draft', 'submit_to_supervisor')"/>
+                                </group>
                         </page>
                     </notebook>
                 </sheet>

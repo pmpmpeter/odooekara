@@ -25,6 +25,16 @@ class EmployeeKra(models.Model):
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
     company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
+    overall_weightage = fields.Integer(string='Total Weightage',copy=False)
+    remaining = fields.Char(copy=False,redaonly=1)
+
+    @api.onchange('kra_details_ids')
+    def onchange_weightage(self):
+        overall = 0.0
+        for rec in self.kra_details_ids:
+            overall += rec.weightage
+        self.overall_weightage = int(overall)
+        self.remaining = "Remaining weightage %s"%(100-int(overall))
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
