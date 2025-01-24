@@ -32,16 +32,16 @@
         <t t-call="web.html_container">
             <t t-call="web.external_layout">
                 <t t-foreach="docs" t-as="doc">
-                    <div class="header" style="width:100%;height:20%; float:left;">
-                        <div style="width:100%; float:left;">
-                            <br/>
-                            <img t-if="res_company.logo"
-                                 style="max-width:100px;max-height:100px; float:left;"
-                                 t-att-src="image_data_uri(res_company.logo)"
-                                 alt="Logo"/>
-                        </div>
-                    </div>
-                    <div class="page" style="margin-top:0px;">
+                    <!--                    <div class="header" style="width:100%;height:20%; float:left;">-->
+                    <!--                        <div style="width:100%; float:left;">-->
+                    <!--                            <br/>-->
+                    <!--                            <img t-if="res_company.logo"-->
+                    <!--                                 style="max-width:100px;max-height:100px; float:left;"-->
+                    <!--                                 t-att-src="image_data_uri(res_company.logo)"-->
+                    <!--                                 alt="Logo"/>-->
+                    <!--                        </div>-->
+                    <!--                    </div>-->
+                    <div class="page">
                         <!--                    <table align="right"-->
                         <!--                           style="width: 50%; border-collapse: collapse;  font-size: 14px; ">-->
                         <!--                        <tr>-->
@@ -56,24 +56,24 @@
                         <!--                        </tr>-->
 
                         <!--                    </table>-->
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
 
                         <!--                    <div style="align-item:center;margin-left:250px;">-->
                         <!--                        <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo"-->
                         <!--                             style="width:50%;height:75px;  "/>-->
                         <!--                    </div>-->
-                        <br/>
-                        <br/>
-                        <br/>
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
 
                         <h4 style="text-align: center; font-weight: bold;">CLEARANCE FORM</h4>
                         <br/>
                         <br/>
-                        <br/>
+                        <!--                        <br/>-->
                         <div>
                             <table style="width: 100%; font-size: 16px; border-collapse: collapse; border:1px solid white;">
                                 <tr>
@@ -115,8 +115,8 @@
                             </table>
                         </div>
                         <br/>
-                        <br/>
-                        <br/>
+                        <!--                        <br/>-->
+                        <!--                        <br/>-->
 
 
                         <h5 style="text-align: center; font-weight: bold;">Handing Over Assets</h5>
@@ -211,6 +211,7 @@
 
                         <br/>
                         <br/>
+                        <div style="page-break-before: always;"></div>
                         <h4 style="text-align: center; font-weight: bold;">Clearance by Function Heads</h4>
                         <br/>
                         <br/>

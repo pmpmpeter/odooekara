@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError, UserError
 class ClearanceForm(models.Model):
     _name = 'clearance.form'
     _description = 'Clearance Form'
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
 
@@ -51,6 +51,10 @@ class ClearanceForm(models.Model):
     def clearance_form_complete(self):
         for record in self:
             record.state = 'completed'
+
+    def clearance_form_draft(self):
+        for record in self:
+            record.state = 'draft'
 
 class ClearanceAsset(models.Model):
     _name = 'clearance.asset'

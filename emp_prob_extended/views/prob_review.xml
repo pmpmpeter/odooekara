@@ -142,64 +142,64 @@
                         <page string="PART 2" invisible="state in ('draft')">
                             <group string="Final Review">
                                 <group>
-                                    <field name="quality_of_work_fr" readonly="state not in ('review1_done')"/>
-                                    <field name="efficiency_fr" readonly="state not in ('review1_done')"/>
-                                    <field name="attendance_fr" readonly="state not in ('review1_done')"/>
+                                    <field name="quality_of_work_fr" readonly="state in ('draft','review2_done','done')"/>
+                                    <field name="efficiency_fr" readonly="state in ('draft','review2_done','done')"/>
+                                    <field name="attendance_fr" readonly="state in ('draft','review2_done','done')"/>
                                 </group>
                                 <group>
-                                    <field name="time_keeping_fr" readonly="state not in ('review1_done')"/>
-                                    <field name="work_relationships_fr" readonly="state not in ('review1_done')"/>
-                                    <field name="competency_in_role_fr" readonly="state not in ('review1_done')"/>
+                                    <field name="time_keeping_fr" readonly="state in ('draft','review2_done','done')"/>
+                                    <field name="work_relationships_fr" readonly="state in ('draft','review2_done','done')"/>
+                                    <field name="competency_in_role_fr" readonly="state in ('draft','review2_done','done')"/>
                                 </group>
                                 <separator/>
-                                <label for="objectives_met_fr" readonly="state not in ('review1_done')"/>
-                                <field name="objectives_met_fr" readonly="state not in ('review1_done')"/>
+                                <label for="objectives_met_fr" readonly="state in ('draft','review2_done','done')"/>
+                                <field name="objectives_met_fr" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="objectives_met_reason_fr" invisible="objectives_met_fr != 'no'"/>
                                 <field name="objectives_met_reason_fr" placeholder="Enter Comments here..."
-                                       invisible="objectives_met_fr != 'no'" readonly="state not in ('review1_done')"/>
+                                       invisible="objectives_met_fr != 'no'" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="training_needs_met_fr"/>
-                                <field name="training_needs_met_fr" readonly="state not in ('review1_done')"/>
+                                <field name="training_needs_met_fr" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="training_needs_met_reason_fr" invisible="training_needs_met_fr != 'no'"/>
                                 <field name="training_needs_met_reason_fr" placeholder="Enter Comments here..."
                                        invisible="training_needs_met_fr != 'no'"
-                                       readonly="state not in ('review1_done')"/>
+                                       readonly="state in ('draft','review2_done','done')"/>
                                 <label for="performance_progress_summary_fr"/>
                                 <field name="performance_progress_summary_fr" placeholder="Enter Comments here..."
-                                       no_label="1" readonly="state not in ('review1_done')"/>
+                                       no_label="1" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="emp_appointment_fr"/>
-                                <field name="emp_appointment_fr" no_label="1" readonly="state not in ('review1_done')"/>
+                                <field name="emp_appointment_fr" no_label="1" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="emp_appointment_reason_fr" invisible="emp_appointment_fr != 'no'"/>
                                 <field name="emp_appointment_reason_fr" placeholder="Enter Comments here..."
-                                       invisible="emp_appointment_fr != 'no'" readonly="state not in ('review1_done')"/>
+                                       invisible="emp_appointment_fr != 'no'" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="employee_comment"/>
                                 <field name="employee_comment" placeholder="Enter Comments here..."
-                                       no_label="1" readonly="state not in ('review1_done')"/>
+                                       no_label="1" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="emp_probation_extend"/>
-                                <field name="emp_probation_extend" readonly="state not in ('review1_done')"/>
+                                <field name="emp_probation_extend" readonly="state in ('draft','review2_done','done')"/>
                                 <label for="emp_probation_extend_reason" invisible="emp_probation_extend == 'no'"/>
                                 <field name="emp_probation_extend_reason" placeholder="Enter Comments here..."
                                        invisible="emp_probation_extend == 'no'"
-                                       readonly="state not in ('review1_done')"/>
+                                       readonly="state in ('draft','review2_done','done')"/>
                                 <label for="probation_extend_length_" invisible="emp_probation_extend == 'no'"/>
                                 <field name="probation_extend_length_"
                                        placeholder="Enter the probation extend length here..."
                                        invisible="emp_probation_extend == 'no'"
-                                       readonly="state not in ('review1_done')"/>
+                                       readonly="state in ('draft','review2_done','done')"/>
                                 <label for="completion_date" invisible="emp_probation_extend == 'no'"/>
                                 <field name="completion_date" placeholder="Enter the probation extend length here..."
                                        invisible="emp_probation_extend == 'no'"
-                                       readonly="state not in ('review1_done')"/>
+                                       readonly="state in ('draft','review2_done','done')"/>
                                 <group>
-                                    <field name="employee_signature_fr_id" readonly="state not in ('review1_done')"
+                                    <field name="employee_signature_fr_id" readonly="state in ('draft','review2_done','done')"
                                            options="{'no_create':True,'no_quick_create':True,'no_create': True,}"
                                            placeholder="Employee's Signature"/>
-                                    <field name="manager_signature_fr_id" readonly="state not in ('review1_done')"
+                                    <field name="manager_signature_fr_id" readonly="state in ('draft','review2_done','done')"
                                            options="{'no_create':True,'no_quick_create':True,'no_create': True,}"
                                            placeholder="Manager's Signature"/>
-                                    <field name="date_fr" readonly="state not in ('review1_done')"/>
+                                    <field name="date_fr" readonly="state in ('draft','review2_done','done')"/>
                                 </group>
                                 <label for="confirm_letter"/>
-                                <field name="confirm_letter" readonly="state not in ('review1_done')"/>
+                                <field name="confirm_letter" readonly="state in ('draft','review2_done','done')"/>
 
                             </group>
                         </page>

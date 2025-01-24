@@ -5,7 +5,7 @@ from odoo.exceptions import *
 class ExitInterview(models.Model):
     _name = 'exit.interview'
     _description = 'Exit Interview'
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
 
@@ -100,6 +100,10 @@ class ExitInterview(models.Model):
     def exit_interview_submit(self):
         for record in self:
             record.state = 'submitted'
+
+    def exit_interview_draft(self):
+        for record in self:
+            record.state = 'draft'
 
     def exit_interview_complete(self):
         for record in self:

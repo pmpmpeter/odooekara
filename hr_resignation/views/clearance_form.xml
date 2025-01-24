@@ -9,6 +9,8 @@
                 <field name="designation_id"/>
                 <field name="date_of_joining"/>
                 <field name="last_working_day"/>
+                <field name="state" widget='badge' decoration-info="state == 'submitted'"
+                       decoration-success="state =='completed'"/>
             </tree>
         </field>
     </record>
@@ -20,37 +22,46 @@
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,completed" nolabel="1"/>
                     <button name="clearance_form_submit" string="Submit" type="object"
-                            class="oe_highlight" invisible="state == 'completed'"
+                            class="oe_highlight" invisible="state != 'draft'"
                     />
                     <button name="clearance_form_complete" string="Complete" type="object"
-                            class="oe_highlight" invisible="state == 'draft'"
+                            class="oe_highlight" invisible="state != 'submitted'"
                     />
+                    <button name="clearance_form_draft" string="Reset to Draft" type="object"
+                            class="oe_highlight" invisible="state != 'completed'"
+                    />
+                    <button string="Print" type="action"
+                            name="%(hr_resignation.clearance_form_report)d" class="btn-primary"
+                            invisible="state in ('draft')"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="employee_id"  options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="designation_id"  options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="date_of_joining"/>
+                            <field name="employee_id" readonly="state not in ('draft')"
+                                   options="{'no_open': True,'no_quick_create':True,'no_create': True,}"/>
+                            <field name="designation_id" readonly="state not in ('draft')"
+                                   options="{'no_open': True,'no_quick_create':True,'no_create': True,}"/>
+                            <field name="date_of_joining" readonly="state not in ('draft')"/>
                         </group>
                         <group>
-                            <field name="department_id"  options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="last_working_day"/>
+                            <field name="department_id" readonly="state not in ('draft')"
+                                   options="{'no_open': True,'no_quick_create':True,'no_create': True,}"/>
+                            <field name="last_working_day" readonly="state not in ('draft')"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Handing Over Assets">
-                            <field name="asset_ids">
+                            <field name="asset_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
                                     <field name="asset_type"/>
-                                    <field name="returned_to"  options="{'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="returned_to" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="remarks"/>
                                     <field name="signature"/>
                                 </tree>
                             </field>
                         </page>
                         <page string="Clearance by Function Heads">
-                            <field name="function_head_ids">
+                            <field name="function_head_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
                                     <field name="function"/>
                                     <field name="remarks"/>
@@ -62,6 +73,7 @@
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids" widget="mail_activity"/>
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>

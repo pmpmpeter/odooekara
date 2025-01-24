@@ -174,7 +174,7 @@ class HrContract(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = math.ceil(
+                record.variable_pay_per_annum = round(
                     (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
@@ -235,7 +235,7 @@ class HrContract(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = math.ceil(
+                record.variable_pay_per_annum = round(
                     (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
@@ -310,7 +310,7 @@ class HrContract(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = math.ceil(
+                record.variable_pay_per_annum = round(
                     (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
@@ -385,7 +385,7 @@ class HrContract(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = math.ceil(
+                record.variable_pay_per_annum = round(
                     (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)

@@ -15,7 +15,8 @@
                 <field name="hr_approved_reliving_date"/>
                 <field name="resignation_type"/>
                 <field name="notice_period"/>
-                <field name="state"/>
+                <field name="state" widget='badge' decoration-info="state in ('confirm','manager_approved')"
+                       decoration-success="state =='hr_approved'" decoration-danger="state == 'cancel'"/>
             </tree>
         </field>
     </record>
@@ -35,16 +36,16 @@
                             name="action_cancel_resignation"
                             invisible="state in ('manager_approved','hr_approved','confirm','cancel')"
                             class="oe_highlight"/>
-                    <button string="Manager Approve" type="object"
-                            groups="hr.group_hr_user"
-                            name="action_manager_approve_resignation"
-                            invisible="state in ('draft','manager_approved','hr_approved','cancel')"
-                            class="oe_highlight"/>
-                    <button string="HR Approve" type="object"
-                            groups="hr.group_hr_user"
-                            name="action_hr_approve_resignation"
-                            invisible="state in ('draft','confirm','hr_approved','cancel')"
-                            class="oe_highlight"/>
+<!--                    <button string="Manager Approve" type="object"-->
+<!--                            groups="hr.group_hr_user"-->
+<!--                            name="action_manager_approve_resignation"-->
+<!--                            invisible="state in ('draft','manager_approved','hr_approved','cancel')"-->
+<!--                            class="oe_highlight"/>-->
+<!--                    <button string="HR Approve" type="object"-->
+<!--                            groups="hr.group_hr_user"-->
+<!--                            name="action_hr_approve_resignation"-->
+<!--                            invisible="state in ('draft','confirm','hr_approved','cancel')"-->
+<!--                            class="oe_highlight"/>-->
                     <button string="Reject" type="object"
                             groups="hr.group_hr_user"
                             name="action_reject_resignation"
@@ -71,31 +72,36 @@
                     <group>
                         <group string="Employee Details">
                             <field name="change_employee" invisible="1"/>
-                            <field name="employee_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
-                                   readonly="change_employee == False or state == 'approved'"/>
-                            <field name="department_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                            <field name="employee_contract" groups="hr.group_hr_user"/>
-                            <field name="employee_parent_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                            <field name="coach_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="employee_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                   readonly="change_employee == False or state != 'draft'"/>
+                            <field name="department_id" readonly="1"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="employee_contract" groups="hr.group_hr_user" readonly="1" force_save="1"/>
+                            <field name="employee_parent_id" readonly="1"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="coach_id" readonly="1"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group string="Dates">
                             <field name="is_employee" invisible="1"/>
-                            <field name="joined_date" readonly="is_employee == True"/>
+                            <field name="joined_date" readonly="1" force_save="1"/>
                             <field name="resign_confirm_date"
                                    readonly="1"
                                    invisible="resign_confirm_date == False"/>
                             <field name="expected_revealing_date"
-                                   readonly="state == 'approved' or is_employee == True"/>
-                            <field name="manager_approved_date" readonly="1"/>
-                            <field name="hr_approved_reliving_date" readonly="is_employee == True"/>
-                            <field name="notice_period" readonly="is_employee == True"/>
+                                   readonly="state != 'draft'"/>
+                            <field name="manager_approved_date" readonly="1" invisible="manager_approved_date == False"/>
+                            <field name="hr_approved_date" readonly="1" invisible="hr_approved_date == False"/>
+                            <field name="hr_approved_reliving_date" readonly="is_employee == True" invisible="manager_approved_date == False"/>
+                            <field name="notice_period" readonly="is_employee == True" force_save="1"/>
                         </group>
                         <group string="Resignation Details">
                             <field name="resignation_type" string="Type"
                                    groups="hr.group_hr_user"
-                                   readonly="state == 'approved'"/>
+                                   readonly="state == 'hr_approved'"/>
                             <field name="reason"
-                                   readonly="state == 'approved'"/>
+                                   readonly="state == 'hr_approved'"/>
                         </group>
                     </group>
                 </sheet>
@@ -113,7 +119,7 @@
         <field name="res_model">hr.resignation</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('state', 'in', ('draft',
-            'confirm','cancel'))]
+            'confirm', 'manager_approved', 'cancel'))]
         </field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Create the First Resignation
@@ -125,13 +131,13 @@
         <field name="name">Approved Resignation</field>
         <field name="res_model">hr.resignation</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('state', '=', 'approved')]</field>
+        <field name="domain">[('state', '=', 'hr_approved')]</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Approved Resignation
             </p>
         </field>
     </record>
-<!--    Root menu item for Resignation -->
+    <!--    Root menu item for Resignation -->
     <menuitem id="hr_resignation_menu_root" name="Resignation"
               groups="base.group_user" parent="hr.menu_hr_employee_payroll"
               sequence="9"/>

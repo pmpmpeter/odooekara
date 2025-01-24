@@ -34,35 +34,35 @@
                 <t t-foreach="docs" t-as="doc">
                     <div class="page">
                         <p>
-                            <table align="right"
-                                   style="width: 50%; border-collapse: collapse;  font-size: 14px; ">
-                                <tr>
-                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Solis/HR/PROCESS
-                                        /7.5
-                                    </th>
-                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Separation Process
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: center;  padding: 10px;">Solis/HR/SP/Exit interview Form/1.1
-                                    </td>
-                                    <td style="text-align: center;  padding: 10px;">Exit interview Form</td>
-                                </tr>
+                            <!--                            <table align="right"-->
+                            <!--                                   style="width: 50%; border-collapse: collapse;  font-size: 14px; ">-->
+                            <!--                                <tr>-->
+                            <!--                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Solis/HR/PROCESS-->
+                            <!--                                        /7.5-->
+                            <!--                                    </th>-->
+                            <!--                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Separation Process-->
+                            <!--                                    </th>-->
+                            <!--                                </tr>-->
+                            <!--                                <tr>-->
+                            <!--                                    <td style="text-align: center;  padding: 10px;">Solis/HR/SP/Exit interview Form/1.1-->
+                            <!--                                    </td>-->
+                            <!--                                    <td style="text-align: center;  padding: 10px;">Exit interview Form</td>-->
+                            <!--                                </tr>-->
 
-                            </table>
-                            <br/>
-                            <br/>
-                            <br/>
-                            <br/>
-                            <br/>
+                            <!--                            </table>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
 
                             <!--                         <div style="align-item:center;margin-left:250px;">
                                                         <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo"
                                                              style="width:50%;height:75px;  "/>
                                                     </div> -->
-                            <br/>
-                            <br/>
-                            <br/>
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
                             <p>
                                 <b>Note:</b>
                                 <br/>
@@ -81,13 +81,13 @@
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Name:</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.employee_id.name"/>
                                     </td>
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Employee Code:</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.employee_code"/>
                                     </td>
                                 </tr>
@@ -95,13 +95,13 @@
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Department</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.department_id.name"/>
                                     </td>
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Designation</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.designation"/>
                                     </td>
                                 </tr>
@@ -109,13 +109,13 @@
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Date of Joining:</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.date_of_joining"/>
                                     </td>
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Date of Exit:</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.date_of_exit"/>
                                     </td>
                                 </tr>
@@ -125,13 +125,13 @@
                                             Email ID:
                                         </b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.email"/>
                                     </td>
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Mob #:</b>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;  padding: 10px; ">
                                         <t t-esc="doc.mobile"/>
                                     </td>
                                 </tr>
@@ -153,8 +153,8 @@
                                     <td style="text-align: left;  padding: 10px; ">
                                         <b>Reasons for separation</b>
                                     </td>
-                                    <td>
-                                        <t t-esc="doc.reason_for_separation"/>
+                                    <td style="text-align: left;  padding: 10px; ">
+                                        <t t-esc="dict(doc._fields['reason_for_separation'].selection).get(doc.reason_for_separation, '')"/>
                                     </td>
                                 </tr>
                             </table>
@@ -162,52 +162,52 @@
                             <br/>
                             <br/>
 
-                            <table align="right"
-                                   style="width: 50%; border-collapse: collapse;  font-size: 14px; ">
-                                <tr>
-                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Solis/HR/PROCESS
-                                        /7.5
-                                    </th>
-                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Separation Process
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <td style="text-align: center;  padding: 10px;">Solis/HR/SP/Exit interview Form/1.1
-                                    </td>
-                                    <td style="text-align: center;  padding: 10px;">Exit interview Form</td>
-                                </tr>
+                            <!--                            <table align="right"-->
+                            <!--                                   style="width: 50%; border-collapse: collapse;  font-size: 14px; ">-->
+                            <!--                                <tr>-->
+                            <!--                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Solis/HR/PROCESS-->
+                            <!--                                        /7.5-->
+                            <!--                                    </th>-->
+                            <!--                                    <th style="text-align: center; font-weight: bold; padding: 10px;">Separation Process-->
+                            <!--                                    </th>-->
+                            <!--                                </tr>-->
+                            <!--                                <tr>-->
+                            <!--                                    <td style="text-align: center;  padding: 10px;">Solis/HR/SP/Exit interview Form/1.1-->
+                            <!--                                    </td>-->
+                            <!--                                    <td style="text-align: center;  padding: 10px;">Exit interview Form</td>-->
+                            <!--                                </tr>-->
 
-                            </table>
-                            <br/>
-                            <br/>
-                            <br/>
-                            <br/>
-                            <br/>
+                            <!--                            </table>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
 
                             <!--                            <div style="align-item:center;margin-left:250px;">-->
                             <!--                                <img t-if="res_company.logo" t-att-src="image_data_uri(res_company.logo)" alt="Logo"-->
                             <!--                                     style="width:50%;height:75px;  "/>-->
                             <!--                            </div>-->
-                            <br/>
-                            <br/>
+                            <!--                            <br/>-->
+                            <!--                            <br/>-->
                             <b>Kindly elaborate the reasons:</b>
                             <br/>
                             <br/>
                             <br/>
                             <ol>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Reason for looking for a Job Outside?</b>
                                     <t t-esc="doc.reason_for_looking_job"/>
                                     <br/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Did you inform your superior/HR Manager that you were planning to leave?</b>
                                     <br/>
                                     <br/>
                                     <table style="width: 100%; border-collapse: collapse; border:1px solid white;">
                                         <td>
-                                            <t t-esc="doc.inform_manager"/>
+                                            <t t-esc="dict(doc._fields['inform_manager'].selection).get(doc.inform_manager, '')"/>
                                         </td>
                                     </table>
                                     <br/>
@@ -220,13 +220,13 @@
                                     </td>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Did they make any efforts to retain you?</b>
                                     <br/>
                                     <br/>
                                     <table style="width: 100%; border-collapse: collapse; border:1px solid white;">
                                         <td>
-                                            <t t-esc="doc.retain_effort"/>
+                                            <t t-esc="dict(doc._fields['retain_effort'].selection).get(doc.retain_effort, '')"/>
                                         </td>
                                     </table>
                                     <br/>
@@ -239,32 +239,32 @@
                                     </td>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>When you joined, did you feel the following were satisfactorily explained to
                                         you?
                                     </b>
                                     <br/>
                                     <br/>
                                     <ol type="a">
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Company Policies :</b>
                                             <td></td>
                                             <t t-esc="doc.company_policies_explained"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Rules &amp; Regulations :</b>
                                             <td></td>
                                             <t t-esc="doc.rules_regulations_explained"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Entitlements &amp; Benefits :</b>
                                             <td></td>
                                             <t t-esc="doc.entitlements_benefits_explained"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Nature of work :</b>
                                             <td></td>
                                             <t t-esc="doc.nature_of_work_explained"/>
@@ -272,7 +272,7 @@
                                     </ol>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Do you like the work you were doing?</b>
                                     <br/>
                                     <br/>
@@ -280,75 +280,83 @@
                                     <br/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>How do you feel about the following?</b>
                                     <br/>
                                     <br/>
                                     <ol type="a">
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Your career progress with the company :</b>
+                                            <br/>
                                             <br/>
                                             <t t-esc="doc.career_progress_feedback"/>
                                         </li>
-                                        <li>
+                                        <br/>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Training and Development inputs received by you :</b>
                                             <br/>
                                             <br/>
                                             <t t-esc="doc.training_development_feedback"/>
                                         </li>
-                                        <li>
+                                        <br/>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Compensation policy &amp; levels in the company :</b>
                                             <br/>
                                             <br/>
                                             <t t-esc="doc.compensation_policy_feedback"/>
                                         </li>
-                                        <li>
+                                        <br/>
+                                        <li style="page-break-inside: avoid;">
                                             <b>HR Policies and Systems :</b>
                                             <br/>
                                             <br/>
                                             <t t-esc="doc.hr_policies_feedback"/>
                                         </li>
+                                        <br/>
 
                                     </ol>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>What are your suggestions to improve:</b>
                                     <br/>
                                     <br/>
                                     <ol type="a">
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>The work you were doing :</b>
+                                            <br/>
                                             <br/>
                                             <t t-esc="doc.suggestions_work_improvement"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>Training &amp; Development activities :</b>
                                             <br/>
                                             <br/>
                                             <t t-esc="doc.suggestions_training_improvement"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>H.R. policies and systems :</b>
+                                            <br/>
                                             <br/>
                                             <t t-esc="doc.suggestions_hr_improvement"/>
                                         </li>
+                                        <br/>
                                     </ol>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>How was the working environment?</b>
                                     <br/>
                                     <br/>
                                     <ol type="a">
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>In the company :</b>
                                             <t t-esc="doc.working_environment_company"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>In the department:</b>
                                             <t t-esc="doc.working_environment_department"/>
                                         </li>
@@ -356,7 +364,7 @@
 
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>How do you feel about the communication channels in the company – Were you
                                         briefed from
                                         time to time regarding the development pertaining the organisation – changes in
@@ -367,7 +375,7 @@
                                     <t t-esc="doc.communication_feedback"/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Were the higher authorities easily approachable? How do you feel about the
                                         communication
                                         within your department?
@@ -377,7 +385,7 @@
                                     <t t-esc="doc.approachability_feedback"/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Do you get along with your superior? Was he helpful and accessible? How did he
                                         handle
                                         grievances / complaints?
@@ -387,20 +395,20 @@
                                     <t t-esc="doc.superior_feedback"/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Did you enjoy working with your colleagues? Were they helpful?</b>
                                     <br/>
                                     <br/>
                                     <t t-esc="doc.colleagues_feedback"/>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Any suggestion to improvement?</b>
                                     <br/>
                                     <br/>
                                     <t t-esc="doc.colleagues_improvement"/>
                                 </li>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>How do you feel regarding the co-ordination between your department and other
                                         departments? Any suggestions for improvement?
                                     </b>
@@ -408,30 +416,30 @@
                                     <br/>
                                     <t t-esc="doc.coordination_feedback"/>
                                 </li>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>How were</b>
                                     <br/>
                                     <br/>
                                     <ol type="a">
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>The welfare activities :</b>
                                             <t t-esc="doc.welfare_activities_feedback"/>
                                         </li>
                                         <br/>
-                                        <li>
+                                        <li style="page-break-inside: avoid;">
                                             <b>The staff facilities:</b>
                                             <t t-esc="doc.staff_facilities_feedback"/>
                                         </li>
                                     </ol>
                                 </li>
                                 <br/>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Your suggestions for improvement</b>
                                     <br/>
                                     <br/>
                                     <t t-esc="doc.suggestions"/>
                                 </li>
-                                <li>
+                                <li style="page-break-inside: avoid;">
                                     <b>Do you have any suggestions in general to make this company a better organisation
                                         to
                                         work for &amp; for the benefit of other colleagues?
@@ -522,6 +530,9 @@
                             </table>
                             <br/>
                             <br/>
+                            <div style="page-break-before: always;"></div>
+                            <br/>
+                            <br/>
                             This section of the Form needs to be filled immediately after the exit interview.
                             <br/>
                             <br/>
@@ -566,6 +577,9 @@
                                     <br/>
                                     (Kindly record your comments &amp; forward the form to the H.R. Manager after
                                     discussing with the concerned H.O.D.)
+                                    <div>
+                                        <t t-esc="doc.gm_comments"/>
+                                    </div>
                                 </text>
                             </div>
                             <br/>

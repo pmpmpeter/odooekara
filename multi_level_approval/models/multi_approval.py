@@ -268,6 +268,16 @@ class MultiApproval(models.Model):
                     if second_line.state == "Approved":
                         employee_indent.approved_by_director = "yes"
 
+            #to assign the date and state
+            if rec.type_id.model_id == "hr.resignation":
+                hr_resignation = self.env['hr.resignation'].search([('id', '=', rec.origin_ref.id)])
+                if hr_resignation:
+                    approved_lines = rec.line_ids.filtered(lambda line: line.state == 'Approved')
+                    if approved_lines:
+                        first_approved_line = approved_lines.sorted("sequence")[0]
+                        hr_resignation.manager_approved_date = first_approved_line.approval_datetime
+                        hr_resignation.state = "manager_approved"
+
 
                 # rec.finalize_related_document()
 

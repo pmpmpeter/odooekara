@@ -13,7 +13,6 @@
                 <footer>
                     <button name="set_as_employee" string="Set as Employee"
                             type="object" class="oe_highlight"/>
-                    or
                     <button string="Cancel" class="oe_link" special="cancel"/>
                 </footer>
             </form>

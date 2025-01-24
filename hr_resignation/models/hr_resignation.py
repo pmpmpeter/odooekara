@@ -22,7 +22,7 @@
 #############################################################################
 from datetime import timedelta
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 date_format = "%Y-%m-%d"
 RESIGNATION_TYPE = [('resigned', 'Normal Resignation'),
@@ -42,40 +42,45 @@ class HrResignation(models.Model):
     name = fields.Char(string='Order Reference', copy=False,
                        readonly=True, index=True,
                        default=lambda self: _('New'))
-    employee_id = fields.Many2one('hr.employee', string="Employee",
+    employee_id = fields.Many2one('hr.employee', string="Employee", copy=False,
                                   default=lambda
                                       self: self.env.user.employee_id.id,
                                   help='Name of the employee for '
                                        'whom the request is creating')
-    employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=True, related_sudo=False, string="Manager")
+    employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=True, related_sudo=False,
+                                         string="Manager")
     coach_id = fields.Many2one(related='employee_id.coach_id', readonly=True, related_sudo=False, string="HR")
     department_id = fields.Many2one('hr.department', string="Department", readonly=True,
                                     related='employee_id.department_id',
                                     help='Department of the employee')
     designation_id = fields.Many2one('hr.job', string="Designation", readonly=True,
-                                    related='employee_id.job_id')
-    resign_confirm_date = fields.Date(string="Confirmed Date",
+                                     related='employee_id.job_id')
+    resign_confirm_date = fields.Date(string="Confirmed Date", copy=False,
                                       help='Date on which the request '
                                            'is confirmed by the employee.',
                                       track_visibility="always")
     manager_approved_date = fields.Date(
-        string="Manager Approved Date",
+        string="Manager Approved Date", copy=False,
         help='Date on which the request is confirmed by the manager.',
+        track_visibility="always")
+    hr_approved_date = fields.Date(
+        string="HR Approved Date", copy=False,
+        help='Date on which the request is confirmed by the HR.',
         track_visibility="always")
     hr_approved_reliving_date = fields.Date(
-        string="Approved Last Day Of Employee",
+        string="Approved Last Day of Employee", copy=False,
         help='Date on which the request is confirmed by the manager.',
         track_visibility="always")
-    joined_date = fields.Date(string="Join Date",
+    joined_date = fields.Date(string="Join Date", copy=False,
                               help='Joining date of the employee.'
                                    'i.e Start date of the first contract')
-    expected_revealing_date = fields.Date(string="Last Day of Employee",
+    expected_revealing_date = fields.Date(string="Request Last Day", copy=False,
                                           help='Employee requested date on '
                                                'which employee is revealing '
                                                'from the company.')
     reason = fields.Text(string="Reason", required=True,
                          help='Specify reason for leaving the company')
-    notice_period = fields.Char(string="Notice Period",
+    notice_period = fields.Char(string="Notice Period", copy=False,
                                 help="Notice Period of the employee.")
     state = fields.Selection(
         [('draft', 'Draft'), ('confirm', 'Confirm'), ('manager_approved', 'Manager Approved'),
@@ -90,8 +95,8 @@ class HrResignation(models.Model):
                                      compute="_compute_change_employee",
                                      help="Checks , if the user has permission"
                                           " to change the employee")
-    employee_contract = fields.Char(String="Contract")
-    is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee", store=True)
+    employee_contract = fields.Char(String="Contract", copy=False)
+    is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee")
 
     @api.depends('employee_id')
     def _compute_is_employee(self):
@@ -118,22 +123,23 @@ class HrResignation(models.Model):
                     raise ValidationError(
                         _('You cannot create a request for other employees'))
 
-    @api.constrains('joined_date')
-    def _check_joined_date(self):
-        """
-        Check if there is an active resignation request for the
-        same employee with a confirmed or approved state, based on the
-        'joined_date'
-        of the current resignation.
-        """
-        for resignation in self:
-            resignation_request = self.env['hr.resignation'].sudo().search(
-                [('employee_id', '=', resignation.employee_id.id),
-                 ('state', 'in', ['manager_approved'])])
-            if resignation_request:
-                raise ValidationError(
-                    _('There is a resignation request in confirmed or'
-                      ' approved state for this employee'))
+    # @api.constrains('joined_date')
+    # def _check_joined_date(self):
+    #     """
+    #     Check if there is an active resignation request for the
+    #     same employee with a confirmed or approved state, based on the
+    #     'joined_date'
+    #     of the current resignation.
+    #     """
+    #     for resignation in self:
+    #         resignation_request = self.env['hr.resignation'].sudo().search(
+    #             [('employee_id', '=', resignation.employee_id.id),
+    #              ('state', 'not in', ['cancel'])])
+    #         if resignation_request:
+    #             print("resignation_request", resignation_request)
+    #             raise ValidationError(
+    #                 _('There is a resignation request in confirmed or'
+    #                   ' approved state for this employee'))
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
@@ -144,8 +150,9 @@ class HrResignation(models.Model):
         if self.employee_id:
             resignation_request = self.env['hr.resignation'].sudo().search(
                 [('employee_id', '=', self.employee_id.id),
-                 ('state', 'in', ['manager_approved'])])
+                 ('state', 'in', ['confirm', 'manager_approved', 'hr_approved'])])
             if resignation_request:
+                print("resignation_request", resignation_request)
                 raise ValidationError(
                     _('There is a resignation request in confirmed or'
                       ' approved state for this employee'))
@@ -168,13 +175,57 @@ class HrResignation(models.Model):
 
     def action_confirm_resignation(self):
         """
-        Method triggered by the 'Confirm' button to confirm the
-        resignation request.
+        Method triggered by the 'Confirm' button to confirm the resignation request.
+        This sets up an approval workflow and updates the resignation state.
         """
         for resignation in self:
+            if hasattr(self, 'x_has_request_approval'):
+                self.x_has_request_approval = False
+
+                approval_type_model = self.env['multi.approval.type']
+                approval_type_line_model = self.env['multi.approval.type.line']
+
+                approval_type = approval_type_model.search([
+                    ('model_id', '=', 'hr.resignation'),
+                    ('domain', 'ilike', '"state"')
+                ], limit=1)
+
+                if approval_type and approval_type.state == 'confirm':
+                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+
+                    while len(lines) < 2:
+                        new_line = approval_type_line_model.create({
+                            'type_id': approval_type.id,
+                            'name': f"L{len(lines) + 1}",
+                            'sequence': len(lines) + 1,
+                        })
+                        lines += new_line
+
+                    for index, line in enumerate(lines):
+
+                        if index == 0:
+                            line.user_id = [(6, 0, [])]
+                            manager_id = resignation.employee_parent_id.user_id.id
+                            if manager_id:
+                                line.user_id = [(4, manager_id)]
+                            else:
+                                raise ValidationError("Manager does not have a corresponding user.")
+
+                        elif index == 1:
+                            line.user_id = [(6, 0, [])]
+                            hr_coach_id = resignation.coach_id.user_id.id
+                            if hr_coach_id:
+                                line.user_id = [(4, hr_coach_id)]
+                            else:
+                                raise ValidationError("HR Coach does not have a corresponding user.")
+
+                    resignation.state = 'confirm'
+                else:
+                    raise ValidationError("No Approval Type found for this Resignation Model.")
+
             resignation.state = 'confirm'
-            resignation.resign_confirm_date = str(fields.Datetime.now())
-            template_id = self.env.ref('hr_resignation.email_template_resignation_confirm')
+            resignation.resign_confirm_date = fields.Datetime.now()
+            template_id = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
             if template_id:
                 template_id.send_mail(resignation.id, force_send=True)
 
@@ -234,39 +285,22 @@ class HrResignation(models.Model):
             resignation.employee_contract = False
             resignation.hr_approved_reliving_date = None
 
-    def action_manager_approve_resignation(self):
-        """
-               Method triggered by the 'Approve' button to
-               approve the resignation.
-        """
-        for resignation in self:
-            if (resignation.expected_revealing_date and
-                    resignation.resign_confirm_date):
-                employee_contract = self.env['hr.contract'].search(
-                    [('employee_id', '=', self.employee_id.id)])
-                if not employee_contract:
-                    raise ValidationError(
-                        _("There are no Contracts found for this employee"))
-                for contract in employee_contract:
-                    if contract.state == 'open':
-                        resignation.employee_contract = contract.name
-                        resignation.state = 'manager_approved'
-                        resignation.manager_approved_date = (
-                                resignation.resign_confirm_date + timedelta(
-                            days=contract.notice_days))
-                        template_id = self.env.ref('hr_resignation.email_template_resignation_approve')
-                        if template_id:
-                            template_id.send_mail(resignation.id, force_send=True)
-                    else:
-                        resignation.manager_approved_date = (
-                            resignation.expected_revealing_date)
-            else:
-                raise ValidationError(_('Please Enter Valid Dates.'))
+    # def action_manager_approve_resignation(self):
+    #     for resignation in self:
+    #         if (resignation.expected_revealing_date and
+    #             resignation.resign_confirm_date):
+    #                 resignation.state = 'manager_approved'
+    #                 resignation.manager_approved_date = str(fields.Datetime.now())
+    #                 template_id = self.env.ref('hr_resignation.email_template_resignation_approve')
+    #                 if template_id:
+    #                     template_id.send_mail(resignation.id, force_send=True)
+    #         else:
+    #             raise ValidationError(_('Please Enter Valid Dates.'))
+
 
     def action_hr_approve_resignation(self):
         for resignation in self:
-            if (resignation.expected_revealing_date and
-                    resignation.resign_confirm_date):
+            if resignation.resign_confirm_date:
                 employee_contract = self.env['hr.contract'].search(
                     [('employee_id', '=', self.employee_id.id)])
                 if not employee_contract:
@@ -274,8 +308,12 @@ class HrResignation(models.Model):
                         _("There are no Contracts found for this employee"))
                 for contract in employee_contract:
                     if contract.state == 'open':
+                        if not self.notice_period:
+                            raise ValidationError(
+                                _("There are no notice period found for this employee"))
                         resignation.employee_contract = contract.name
                         resignation.state = 'hr_approved'
+                        resignation.hr_approved_date = str(fields.Datetime.now())
                         resignation.hr_approved_reliving_date = (
                                 resignation.resign_confirm_date + timedelta(
                             days=contract.notice_days))
@@ -283,10 +321,15 @@ class HrResignation(models.Model):
                         if template_id:
                             template_id.send_mail(resignation.id, force_send=True)
                     else:
-                        resignation.hr_approved_reliving_date = (
-                            resignation.expected_revealing_date)
+                        if not self.hr_approved_reliving_date:
+                            raise ValidationError(
+                                _("Please enter the Approved Last Day of Employee in resignation"))
+                        resignation.state = 'hr_approved'
+                        template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
+                        if template_id:
+                            template_id.send_mail(resignation.id, force_send=True)
                     # Cancelling contract
-                    contract.state = 'cancel' if contract.state == "open" else\
+                    contract.state = 'cancel' if contract.state == "open" else \
                         contract.state
 
                 resignation.employee_id.sudo().write({'state': 'relieved'})
@@ -348,9 +391,39 @@ class HrResignation(models.Model):
                     rec.employee_id.user_id.active = False
                     rec.employee_id.user_id = None
 
+    # def action_send_reliving_letter(self):
+    #     for resignation in self:
+    #         template_id = self.env.ref('hr_resignation.email_template_reliving_letter')
+    #         if template_id:
+    #             template_id.send_mail(resignation.id, force_send=True)
+
     def action_send_reliving_letter(self):
-        for resignation in self:
-            template_id = self.env.ref('hr_resignation.email_template_reliving_letter')
-            if template_id:
-                template_id.send_mail(resignation.id, force_send=True)
+        template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
+        if not template:
+            raise UserError(_("Reliving Letter template not found."))
+
+        compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+        if not compose_form:
+            raise UserError(_("Email composition form not found."))
+        if not self.employee_id.private_email:
+            raise ValidationError(
+                _("There are no Private email found for this employee"))
+
+        ctx = dict(
+            default_model='hr.resignation',
+            default_res_ids=self.ids,
+            default_template_id=template.id,
+            default_composition_mode='comment',
+            default_email_layout_xmlid="mail.mail_notification_light",
+        )
+        return {
+            'name': _('Compose Resignation Confirmation Email'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form.id, 'form')],
+            'view_id': compose_form.id,
+            'target': 'new',
+            'context': ctx,
+        }
 
