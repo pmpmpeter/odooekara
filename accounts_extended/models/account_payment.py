@@ -12,6 +12,43 @@ class AccountPayment(models.Model):
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     reason_approved = fields.Text(string='Approval comments',copy=False)
+    partner_cl_balance =fields.Float(compute='_get_partner_cl_balance', string='Partner Balance')
+    closing_balance =fields.Float(compute='_get_closing_balance', string='Closing Balance')
+
+    def _get_closing_balance(self):
+        closing_balance=0
+        query = """
+            select sum(balance) as balance FROM account_move_line aml 
+            join account_move am on am.id=aml.move_id 
+            where am.state='posted' and aml.account_id=%s
+            """
+        params = tuple(self.journal_id.default_account_id.ids)
+        data_get8= self.env.cr.execute(query, params)
+        lines8 = self.env.cr.dictfetchall()
+        if (lines8[0].get('balance') != None):
+            closing_balance = lines8[0].get('balance') or 0
+        for record in self:
+            # pdb.set_trace()
+            record.closing_balance = closing_balance
+
+    def _get_partner_cl_balance(self):
+        partner_cl_balance=0
+        if self.partner_id:
+            query = """
+                select sum(balance) as balance FROM account_move_line aml 
+                join account_move am on am.id=aml.move_id 
+                join account_account ac on ac.id=aml.account_id 
+                where am.state='posted' and aml.partner_id=%s and ac.account_type in ('asset_receivable', 'liability_payable')
+                """
+            params = tuple(self.partner_id.ids)
+            data_get8= self.env.cr.execute(query, params)
+            lines8 = self.env.cr.dictfetchall()
+            if (lines8[0].get('balance') != None):
+                partner_cl_balance = lines8[0].get('balance') or 0
+            for record in self:
+                record.partner_cl_balance = partner_cl_balance
+        else:
+            self.partner_cl_balance = 0
 
     def action_update_utr_number(self):
         for rec in self:

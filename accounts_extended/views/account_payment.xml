@@ -23,6 +23,8 @@
                 </field>
                 <xpath expr="//field[@name='partner_bank_id']" position="after">
                                 <field name="partner_bank_id" string="Vendor Bank Account" context="{'default_partner_id': partner_id, 'display_account_trust': True}" invisible=" show_partner_bank_account or partner_type != 'supplier' or is_internal_transfer or payment_type == 'inbound'" required="require_partner_bank_account and not is_internal_transfer"/>
+                    <field name="partner_cl_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
+                    <field name="closing_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
                 </xpath>                      
                 <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'" options="{'no_open':True,'no_create': True}"/>

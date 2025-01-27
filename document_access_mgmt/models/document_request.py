@@ -32,6 +32,7 @@ class DocumentRequest(models.Model):
     ], default='draft', string="State", tracking=True, copy=False, readonly=True)
     multi_download = fields.Boolean("Multiple Download")
     download_reason = fields.Text("Download Reason")
+    purpose = fields.Text("Purpose")
 
 
     @api.model_create_multi

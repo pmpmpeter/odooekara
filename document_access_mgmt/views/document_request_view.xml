@@ -51,6 +51,7 @@
                             <field name="pdf_document" readonly="1" invisible="state not in ['approved']" 
                                 widget="binary" filename="pdf_filename" />
                             <field name="pdf_filename" readonly="1" invisible="1"/>
+                            <field name="purpose" required='1'/>
                         </group>
                         <group>
                             <field name="request_date" required="True" readonly="state != 'draft'"/>
