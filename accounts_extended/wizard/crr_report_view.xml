@@ -8,8 +8,8 @@
                 <group>
                     <!-- <field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/> -->
                     <group>
-                        <field name="start_date"/>
-                        <field name="end_date"/>
+                        <field name="start_date" invisible='report_file'/>
+                        <field name="end_date" invisible='report_file'/>
                     </group>
                     <field name="file_name" invisible="1"/>
                     <field name="report_file" readonly="1" widget="binary" filename="file_name" invisible='not report_file'/>
