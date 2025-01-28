@@ -4,6 +4,7 @@
         <field name="name">Approval Types</field>
         <field name="res_model">multi.approval.type</field>
         <field name="view_mode">kanban,tree,form</field>
+        <field name="search_view_id" ref="view_multi_approval_type_search"/>
         <field name="domain">[]</field>
         <field name="context">{}</field>
         <field name="view_id" eval="False" />

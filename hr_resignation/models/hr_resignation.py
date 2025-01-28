@@ -97,6 +97,12 @@ class HrResignation(models.Model):
                                           " to change the employee")
     employee_contract = fields.Char(String="Contract", copy=False)
     is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee")
+    state_manager = fields.Selection(
+        [('draft', 'Draft'), ('confirm', 'Confirm'), ('manager_approved', 'Manager Approved'),
+         ('hr_approved', 'HR Approved'),
+         ('cancel', 'Rejected')],
+        string='Status Manager', default='manager_approved')
+    status_boolean = fields.Boolean(string="Status Boolean", default=False)
 
     @api.depends('employee_id')
     def _compute_is_employee(self):
@@ -284,6 +290,8 @@ class HrResignation(models.Model):
             # Reset resignation-specific fields
             resignation.employee_contract = False
             resignation.hr_approved_reliving_date = None
+            resignation.hr_approved_date = None
+            resignation.manager_approved_date = None
 
     # def action_manager_approve_resignation(self):
     #     for resignation in self:
@@ -305,12 +313,19 @@ class HrResignation(models.Model):
                     [('employee_id', '=', self.employee_id.id)])
                 if not employee_contract:
                     raise ValidationError(
-                        _("There are no Contracts found for this employee"))
+                        _("There are no Compensation master found for this employee"))
                 for contract in employee_contract:
                     if contract.state == 'open':
                         if not self.notice_period:
                             raise ValidationError(
-                                _("There are no notice period found for this employee"))
+                                _("There is no notice period found for this employee. "
+                                  "Please add a notice period in the compensation master.")
+                            )
+                            # Validate hr_approved_reliving_date if notice period is 0
+                        if self.notice_period == 0 and not self.hr_approved_reliving_date:
+                            raise ValidationError(
+                                _("Notice period is 0. HR needs to fill the HR Approved Relieving Date.")
+                            )
                         resignation.employee_contract = contract.name
                         resignation.state = 'hr_approved'
                         resignation.hr_approved_date = str(fields.Datetime.now())
@@ -335,13 +350,13 @@ class HrResignation(models.Model):
                 resignation.employee_id.sudo().write({'state': 'relieved'})
 
                 # Changing state of the employee if resigning today
-                if (resignation.expected_revealing_date <= fields.Date.today()
+                if (resignation.hr_approved_reliving_date <= fields.Date.today()
                         and resignation.employee_id.active):
                     resignation.employee_id.active = False
                     # Changing fields in the employee table
                     # with respect to resignation
                     resignation.employee_id.resign_date = (
-                        resignation.expected_revealing_date)
+                        resignation.hr_approved_reliving_date)
                     if resignation.resignation_type == 'resigned':
                         resignation.employee_id.resigned = True
                     else:
@@ -357,13 +372,13 @@ class HrResignation(models.Model):
         resignation = self.env['hr.resignation'].search(
             [('state', '=', 'manager_approved')])
         for rec in resignation:
-            if rec.expected_revealing_date <= fields.Date.today():
+            if rec.hr_approved_reliving_date <= fields.Date.today():
                 if rec.employee_id.active:
                     rec.employee_id.active = False
 
                 # Changing fields in the employee  table with
                 # respect to resignation
-                rec.employee_id.resign_date = rec.expected_revealing_date
+                rec.employee_id.resign_date = rec.hr_approved_reliving_date
                 if rec.resignation_type == 'resigned':
                     rec.employee_id.resigned = True
                     departure_reason_id = self.env[
@@ -426,4 +441,3 @@ class HrResignation(models.Model):
             'target': 'new',
             'context': ctx,
         }
-

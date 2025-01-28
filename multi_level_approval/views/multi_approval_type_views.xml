@@ -212,4 +212,16 @@
             </kanban>
         </field>
     </record>
+
+    <record id="view_multi_approval_type_search" model="ir.ui.view">
+            <field name="name">Multi Approval Type Search</field>
+            <field name="model">multi.approval.type</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <field name="name" string="Name"/>
+                </search>
+            </field>
+        </record>
 </odoo>

@@ -7,6 +7,7 @@
         <field name="priority" eval="8"/>
         <field name="arch" type="xml">
             <tree string="Employee Resignation">
+<!--                <field name="status_boolean" column_invisible="1"/>-->
                 <field name="employee_id"/>
                 <field name="department_id"/>
                 <field name="employee_contract"/>
@@ -15,8 +16,8 @@
                 <field name="hr_approved_reliving_date"/>
                 <field name="resignation_type"/>
                 <field name="notice_period"/>
-                <field name="state" widget='badge' decoration-info="state in ('confirm','manager_approved')"
-                       decoration-success="state =='hr_approved'" decoration-danger="state == 'cancel'"/>
+<!--                <field name="state" widget='badge' decoration-info="state in ('confirm','manager_approved')"-->
+<!--                       decoration-success="state =='hr_approved'" decoration-danger="state == 'cancel'"/>-->
             </tree>
         </field>
     </record>
@@ -60,7 +61,9 @@
                             groups="hr.group_hr_manager"
                             name="action_reset_to_draft"
                             invisible="state in ('draft','confirm','manager_approved')"/>
-                    <field name="state" widget="statusbar"
+                    <field name="state" widget="statusbar" invisible="status_boolean"
+                           statusbar_visible="draft,confirm,manager_approved,hr_approved"/>
+                    <field name="state_manager" widget="statusbar" invisible="not status_boolean"
                            statusbar_visible="draft,confirm,manager_approved,hr_approved"/>
                 </header>
                 <sheet>
@@ -71,8 +74,9 @@
                     </div>
                     <group>
                         <group string="Employee Details">
+                            <field name="status_boolean" invisible="1"/>
                             <field name="change_employee" invisible="1"/>
-                            <field name="employee_id"
+                            <field name="employee_id" required="True"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    readonly="change_employee == False or state != 'draft'"/>
                             <field name="department_id" readonly="1"
@@ -94,7 +98,7 @@
                             <field name="manager_approved_date" readonly="1" invisible="manager_approved_date == False"/>
                             <field name="hr_approved_date" readonly="1" invisible="hr_approved_date == False"/>
                             <field name="hr_approved_reliving_date" readonly="is_employee == True" invisible="manager_approved_date == False"/>
-                            <field name="notice_period" readonly="is_employee == True" force_save="1"/>
+                            <field name="notice_period" readonly="1" force_save="1"/>
                         </group>
                         <group string="Resignation Details">
                             <field name="resignation_type" string="Type"

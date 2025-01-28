@@ -168,6 +168,17 @@ class Job_Applicant(models.Model):
                                        string='Interviewers', index=True, tracking=True, store=True, readonly=False,
                                        domain="[('share', '=', False), ('company_ids', 'in', company_id)]")
 
+    def write(self, vals):
+        result = super(Job_Applicant, self).write(vals)
+        for record in self:
+            if not record.email_from:
+                raise ValidationError("Please fill the Email")
+            if not record.partner_phone:
+                raise ValidationError("Please fill the Phone Number")
+            if not record.linkedin_profile:
+                raise ValidationError("Please fill the LinkedIn Profile")
+        return result
+
     @api.depends('job_id')
     def _compute_interviewer_ids(self):
         for applicant in self:
@@ -179,12 +190,18 @@ class Job_Applicant(models.Model):
         phone_regex = r'^(\+91)?[6-9][0-9]{9}$'
 
         for record in self:
+            if not record.email_from:
+                raise ValidationError("Please fill the Email")
+
             if record.email_from and not re.match(email_regex, record.email_from):
                 raise ValidationError(f"Expected format: example@domain.com")
 
             if record.email_cc and not re.match(email_regex, record.email_cc):
                 raise ValidationError(f"Invalid email: '{record.email_cc}'.\n"
                                       "Expected format: example@domain.com")
+
+            if not record.partner_phone:
+                raise ValidationError("Please fill the Phone Number")
 
             if record.partner_phone:
                 record.partner_phone = record.partner_phone.replace(" ", "")
@@ -199,6 +216,9 @@ class Job_Applicant(models.Model):
                     raise ValidationError(f"Invalid Mobile Number: '{record.partner_mobile}'.\n"
                                           "Expected format: A 10-digit number starting with 6-9, "
                                           "optionally prefixed with +91. Example: +919876543210")
+
+            if not record.linkedin_profile:
+                raise ValidationError("Please fill the LinkedIn Profile")
 
     @api.onchange('locations_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
                   'esi_applicable', 'grade',

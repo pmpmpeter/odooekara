@@ -257,7 +257,7 @@ class MultiApproval(models.Model):
                     msg = _("%s approved the request.") % self.env.user.name
                     rec.finalize_activity_or_message("approved", msg)
 
-            #For employee.indent to change the value of the job description page
+            # For employee.indent to change the value of the job description page
             if rec.type_id.model_id == "employee.indent":
                 employee_indent = self.env['employee.indent'].search([('id', '=', rec.origin_ref.id)])
                 if employee_indent:
@@ -268,19 +268,22 @@ class MultiApproval(models.Model):
                     if second_line.state == "Approved":
                         employee_indent.approved_by_director = "yes"
 
-            #to assign the date and state
+            # to assign the date and state
             if rec.type_id.model_id == "hr.resignation":
                 hr_resignation = self.env['hr.resignation'].search([('id', '=', rec.origin_ref.id)])
                 if hr_resignation:
-                    approved_lines = rec.line_ids.filtered(lambda line: line.state == 'Approved')
-                    if approved_lines:
-                        first_approved_line = approved_lines.sorted("sequence")[0]
-                        hr_resignation.manager_approved_date = first_approved_line.approval_datetime
-                        hr_resignation.state = "manager_approved"
+                    lines_sorted = rec.line_ids.sorted("sequence")
+                    first_line = lines_sorted[0] if len(lines_sorted) > 0 else None
+                    second_line = lines_sorted[1] if len(lines_sorted) > 1 else None
 
+                    if first_line and first_line.state == 'Approved':
+                        hr_resignation.manager_approved_date = fields.Date.today()
+                        hr_resignation.status_boolean = True
+
+                    if second_line and second_line.state == 'Approved':
+                        hr_resignation.status_boolean = False
 
                 # rec.finalize_related_document()
-
 
             if rec.type_id.model_id == 'hr.expense.sheet':
                 rec_id = self.env['hr.expense.sheet'].search([('id', '=', rec.origin_ref.id)])
@@ -292,7 +295,7 @@ class MultiApproval(models.Model):
                         'view_mode': 'form',
                         'view_id': self.env.ref('multi_level_approval.approve_reason_view_form').id,
                         'target': 'new',
-                        'context':{'expense':int(rec_id.id)}
+                        'context': {'expense': int(rec_id.id)}
                     }
             if rec.type_id.model_id == 'account.payment':
                 rec_id = self.env['account.payment'].search([('id', '=', rec.origin_ref.id)])
@@ -304,7 +307,7 @@ class MultiApproval(models.Model):
                         'view_mode': 'form',
                         'view_id': self.env.ref('multi_level_approval.approve_reason_view_form').id,
                         'target': 'new',
-                        'context':{'fund':int(rec_id.id)}
+                        'context': {'fund': int(rec_id.id)}
                     }
             msg = _("%s approved the request.") % self.env.user.name
             rec.finalize_activity_or_message("approved", msg)
@@ -415,8 +418,8 @@ class MultiApproval(models.Model):
     def send_request_mail(self):
         requests = self.filtered(
             lambda r: r.type_id.mail_notification and
-            r.pic_id
-            and r.state == "Submitted"
+                      r.pic_id
+                      and r.state == "Submitted"
         )
         for req in requests:
             # Check if origin_ref is of type 'employee.indent'

@@ -23,6 +23,9 @@
                 <xpath expr="//div[@name='recruitment_target']" position="after">
                     <field name="kra_master" options="{'no_quick_create':True,'no_create': True,}"/>
                 </xpath>
+                <xpath expr="//div[@class='o_row' and @name='recruitment_target']/span" position="replace">
+                    <span>New Employees</span>
+                </xpath>
             </field>
         </record>
 
@@ -78,7 +81,7 @@
                     <button string="Offer Letter Report" type="action"
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused'"
                             name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
-                    <button name="action_offer_accepted" string="Offer Accepted" type="object"
+                    <button name="action_offer_accepted" string="Offer Accept" type="object"
                             invisible="document_sent == 'no' or offer_letter_sent == 'no' or stage_status not in ('shortlist') or application_status == 'refused'"
                             class="btn-primary"/>
                     <!--                    <button string="Offer Letter" type="action"-->

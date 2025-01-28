@@ -30,7 +30,7 @@ class GrievanceManagement(models.Model):
     resolution = fields.Text(string='Resolution', copy=False, tracking=True)
     management_resolution = fields.Text(string='Management Resolution', copy=False, tracking=True)
     # is_manager = fields.Boolean(compute='_compute_is_manager')
-    unsatisfied = fields.Boolean(string="Unsatisfied",copy=False)
+    unsatisfied = fields.Boolean(string="Unsatisfied", copy=False)
     employee_grievance_ids = fields.Many2many('hr.employee',
                                               compute='_compute_employee_grievance',
                                               string='Employee Prob', copy=False)
@@ -70,7 +70,15 @@ class GrievanceManagement(models.Model):
             if req.manager_id:
                 users_to_notify.add(req.manager_id.user_id.id)
             else:
-                raise ValidationError("The manager is not set for this user.")
+                raise ValidationError("Please select the Manager")
+
+            if not req.manager_id.user_id.id:
+                raise ValidationError(
+                    "The selected manager does not have a linked user account. Please ensure the manager is linked to a user.")
+
+            if not req.type.respective_hod_id.user_id.id:
+                raise ValidationError(
+                    "The respective HOD for the grievance type does not have a linked user account. Please ensure the HOD is linked to a user.")
 
             if req.type and req.type.respective_hod_id:
                 users_to_notify.add(req.type.respective_hod_id.user_id.id)

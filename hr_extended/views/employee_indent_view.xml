@@ -54,7 +54,7 @@
                                     <field name="organization" string="Organization" required="1"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="locations_id" string="Location" required="0"
+                                    <field name="locations_id" string="Location" required="1"
                                            readonly="state not in ('draft','cancel')"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="department" string="Department" required="1"
