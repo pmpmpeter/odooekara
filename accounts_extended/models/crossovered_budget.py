@@ -81,6 +81,10 @@ class Crossoverbudgetlines(models.Model):
     is_budget_code = fields.Boolean('Is Budget Code')
     reserved_amount = fields.Float('Reserved Amount')
     balance_amount = fields.Float('Balance Amount',compute='_compute_balance_amount')
+    capex_opex = fields.Selection([
+        ('capex', 'Capex'),
+        ('opex', 'Opex'),
+    ], 'Capex/Opex',default='capex',index=True,required=True,copy=False, tracking=True)
 
 
     @api.depends("crossovered_budget_id", "general_budget_id", "analytic_account_id", "budget_code")

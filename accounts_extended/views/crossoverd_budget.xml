@@ -46,6 +46,9 @@
                         <field name='reserved_amount' readonly='1'/>
                         <field name='balance_amount'/>
                 </xpath>
+                <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="after">
+                    <field name='capex_opex'/>
+                </xpath>
                 <page name='budget_lines' position='after'>
                      <page string="Revision Reason" invisible='not revision_reason'>
                         <field name='revision_reason'/>

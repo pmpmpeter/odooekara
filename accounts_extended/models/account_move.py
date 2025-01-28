@@ -250,4 +250,17 @@ class AccountMoveInherit(models.Model):
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
-        return super(AccountMoveInherit, self).action_post()
+        res = super(AccountMoveInherit, self).action_post()
+        for rec in self:
+            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
+                wiz_tds = self.env['l10n_in.withhold.wizard'].with_context({
+                'active_ids': rec.ids,  # Pass the active record ID
+                'active_model': self._name  # Pass the current model name
+                }).create({})
+                wiz_line_tds = self.env['l10n_in.withhold.wizard.line'].create({
+                'withhold_id': wiz_tds.id,  
+                'tax_id': rec.partner_id.tds_tax_id.id,  
+                'base': rec.amount_untaxed,  
+                })
+                wiz_tds.action_create_and_post_withhold()
+        return res
