@@ -191,16 +191,18 @@ class HrResignation(models.Model):
                 approval_type_model = self.env['multi.approval.type']
                 approval_type_line_model = self.env['multi.approval.type.line']
 
-                approval_type = approval_type_model.search([
+                # Use sudo for searching approval types
+                approval_type = approval_type_model.sudo().search([
                     ('model_id', '=', 'hr.resignation'),
                     ('domain', 'ilike', '"state"')
                 ], limit=1)
 
                 if approval_type and approval_type.state == 'confirm':
-                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                    # Use sudo for searching approval type lines
+                    lines = approval_type_line_model.sudo().search([('type_id', '=', approval_type.id)])
 
                     while len(lines) < 2:
-                        new_line = approval_type_line_model.create({
+                        new_line = approval_type_line_model.sudo().create({
                             'type_id': approval_type.id,
                             'name': f"L{len(lines) + 1}",
                             'sequence': len(lines) + 1,
@@ -208,20 +210,19 @@ class HrResignation(models.Model):
                         lines += new_line
 
                     for index, line in enumerate(lines):
-
                         if index == 0:
-                            line.user_id = [(6, 0, [])]
+                            line.sudo().write({'user_id': [(6, 0, [])]})
                             manager_id = resignation.employee_parent_id.user_id.id
                             if manager_id:
-                                line.user_id = [(4, manager_id)]
+                                line.sudo().write({'user_id': [(4, manager_id)]})
                             else:
                                 raise ValidationError("Manager does not have a corresponding user.")
 
                         elif index == 1:
-                            line.user_id = [(6, 0, [])]
+                            line.sudo().write({'user_id': [(6, 0, [])]})
                             hr_coach_id = resignation.coach_id.user_id.id
                             if hr_coach_id:
-                                line.user_id = [(4, hr_coach_id)]
+                                line.sudo().write({'user_id': [(4, hr_coach_id)]})
                             else:
                                 raise ValidationError("HR Coach does not have a corresponding user.")
 
@@ -233,7 +234,7 @@ class HrResignation(models.Model):
             resignation.resign_confirm_date = fields.Datetime.now()
             template_id = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
             if template_id:
-                template_id.send_mail(resignation.id, force_send=True)
+                template_id.sudo().send_mail(resignation.id, force_send=True)
 
     def action_cancel_resignation(self):
         """
