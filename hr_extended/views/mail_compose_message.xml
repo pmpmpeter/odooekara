@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='open_template_creation_wizard']" position="attributes">
-                <attribute name="invisible">model == 'hr.employee'</attribute>
+                <attribute name="invisible">model == 'hr.employee' or not can_edit_body</attribute>
             </xpath>
         </field>
     </record>
