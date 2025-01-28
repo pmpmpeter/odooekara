@@ -97,10 +97,10 @@ class PayrollReportWizard(models.TransientModel):
             sheet.merge_range(2,col,3,col,header, merge_format)
             col += 1
         work_col = col
-        for leave_name in payslips.worked_days_line_ids.mapped('work_entry_type_id.name'):
+        for leave_name in ['CL this month','EL this month','LoP this month']:
             sheet.write(row,work_col,leave_name,header_format)
             work_col +=1
-        wrk_names = payslips.worked_days_line_ids.mapped('work_entry_type_id.name')
+        wrk_names =['CL this month','EL this month','LoP this month']
         comp_col = work_col
         for comp_name in payslips.struct_id.rule_ids.mapped('name'):
             sheet.write(row,comp_col,comp_name,header_format)
@@ -119,10 +119,18 @@ class PayrollReportWizard(models.TransientModel):
                 comp_list.append({line.name:line.total})
             comp_fin_list.append(comp_list)
             for line in slip.worked_days_line_ids:
-                wrk_list.append({line.work_entry_type_id.name:line.number_of_days})
+                lv_name = ''
+                if line.work_entry_type_id.code == 'CL':
+                    lv_name = 'CL this month'
+                elif line.work_entry_type_id.code == 'LOP':
+                    lv_name = 'LoP this month'
+                elif line.work_entry_type_id.code == 'EL':
+                    lv_name = 'EL this month' 
+                wrk_list.append({lv_name:line.number_of_days})
             wrk_fin_list.append(wrk_list)
         start_row = row
         start_col = col
+        value = 0
         for wrk in wrk_fin_list:
             for idx, work in enumerate(wrk_names):
                 for item in wrk:
