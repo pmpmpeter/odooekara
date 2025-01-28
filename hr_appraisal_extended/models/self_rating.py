@@ -238,71 +238,138 @@ class SelfRating(models.Model):
             record.indicative_take_home_salary = 0
 
             if salary_structure and (record.monthly_fixed_salary < 54000):
-                record.basic_da_per_annum = salary_structure.annual_salary
-                record.basic_da_per_month = salary_structure.monthly_salary
-                record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
-                record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
-
-                # New logic for statutory bonus when location is TTA and grade is D
                 if record.location_id.name == 'TTA' and record.grade == 'grade_d':
+                    record.basic_da_per_annum = salary_structure.annual_salary
+                    record.basic_da_per_month = round(record.basic_da_per_annum / 12)
                     record.statutory_bonus_per_annum = min(16800, (
-                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
-                else:
-                    record.statutory_bonus_per_annum = 0
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
+                    record.hra_per_annum = 0
+                    record.hra_per_month = round(record.hra_per_annum / 12)
 
+                    record.special_allowance_per_annum = 0
+                    record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
 
-                record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
+                    # Calculate Provident Fund
+                    if record.provident_fund_applicable == 'yes':
+                        if record.monthly_fixed_salary < 15000:
+                            record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                        else:
+                            record.pf_employer_per_month = round(15000 * 0.12)
+                    record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
-                # Calculate Provident Fund
-                if record.provident_fund_applicable == 'yes':
-                    if record.monthly_fixed_salary < 15000:
-                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
-                    else:
-                        record.pf_employer_per_month = round(15000 * 0.12)
-                record.pf_employer_per_annum = record.pf_employer_per_month * 12
+                    # Calculate ESIC
+                    if record.esi_applicable == 'yes':
+                        record.esic_employer_per_month = round(
+                            record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
+                    record.esic_employer_per_annum = record.esic_employer_per_month * 12
 
-                # Calculate ESIC
-                if record.esi_applicable == 'yes':
-                    record.esic_employer_per_month = round(
-                        record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
-                record.esic_employer_per_annum = record.esic_employer_per_month * 12
+                    # Subtotals
+                    record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
+                    record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
 
-                # Subtotals
-                record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
-                record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
+                    # Other calculations
+                    record.store_performance_incentive_annum = record.annual_store_performance_incentive
+                    record.store_performance_incentive_month = round(record.store_performance_incentive_annum / 12)
+                    record.performance_linked_pay_annum = record.annual_performance_linked_pay
+                    record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
+                    record.monthly_performance_incentive_annum = record.monthly_performance_incentive
+                    record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
+                    record.variable_pay_per_annum = round(
+                        (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                                record.variable_pay_percentage / 100))
+                    record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                # Other calculations
-                record.store_performance_incentive_annum = record.annual_store_performance_incentive
-                record.store_performance_incentive_month = round(record.store_performance_incentive_annum / 12)
-                record.performance_linked_pay_annum = record.annual_performance_linked_pay
-                record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
-                record.monthly_performance_incentive_annum = record.monthly_performance_incentive
-                record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
-                            record.variable_pay_percentage / 100))
-                record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
+                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
-                record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
+                    record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
+                    record.total_salary_per_month = round(record.total_salary_per_annum / 12)
+                    record.medical_insurances = record.medical_insurance
+                    record.group_personal_acc_insurance = record.group_personal_accident_insurance
 
-                record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
-                record.total_salary_per_month = round(record.total_salary_per_annum / 12)
-                record.medical_insurances = record.medical_insurance
-                record.group_personal_acc_insurance = record.group_personal_accident_insurance
-
-                # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
-                record.total_ctc_month = round(record.total_ctc_annum / 12)
-                profession_tax = 200 if (
+                    # CTC Calculations
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_month = round(record.total_ctc_annum / 12)
+                    profession_tax = 200 if (
                                                     record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
-                # Indicative Take Home Salary
-                record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                    # Indicative Take Home Salary
+                    record.indicative_take_home_salary = math.ceil(
+                        record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                            record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                else:
+                    record.basic_da_per_annum = max(round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000, salary_structure.annual_salary)
+                    record.basic_da_per_month = round(record.basic_da_per_annum / 12)
+
+                    if (record.basic_da_per_annum / 12) <= 21000:
+                        record.statutory_bonus_per_annum = min(16800, (
+                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+
+
+                    record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
+
+                    record.hra_per_annum = min(record.basic_da_per_annum * 0.40, (
+                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.statutory_bonus_per_annum)
+                    record.hra_per_month = round(record.hra_per_annum / 12)
+
+                    record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.hra_per_annum - record.statutory_bonus_per_annum
+                    record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
+                    record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
+                    record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
+
+                    # Calculate Provident Fund
+                    if record.provident_fund_applicable == 'yes':
+                        if record.monthly_fixed_salary < 15000:
+                            record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                        else:
+                            record.pf_employer_per_month = round(15000 * 0.12)
+                    record.pf_employer_per_annum = record.pf_employer_per_month * 12
+
+                    # Calculate ESIC
+                    if record.esi_applicable == 'yes':
+                        record.esic_employer_per_month = round(
+                            record.monthly_fixed_salary * 0.0325) if record.monthly_fixed_salary <= 21000 else 0
+                    record.esic_employer_per_annum = record.esic_employer_per_month * 12
+
+                    # Subtotals
+                    record.sub_total_b_per_annum = record.statutory_bonus_per_annum + record.pf_employer_per_annum + record.esic_employer_per_annum
+                    record.sub_total_b_per_month = record.statutory_bonus_per_month + record.pf_employer_per_month + record.esic_employer_per_month
+
+                    # Other calculations
+                    record.store_performance_incentive_annum = record.annual_store_performance_incentive
+                    record.store_performance_incentive_month = round(record.store_performance_incentive_annum / 12)
+                    record.performance_linked_pay_annum = record.annual_performance_linked_pay
+                    record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
+                    record.monthly_performance_incentive_annum = record.monthly_performance_incentive
+                    record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
+                    record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                                record.variable_pay_percentage / 100))
+                    record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
+
+                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
+
+                    record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
+                    record.total_salary_per_month = round(record.total_salary_per_annum / 12)
+                    record.medical_insurances = record.medical_insurance
+                    record.group_personal_acc_insurance = record.group_personal_accident_insurance
+
+                    # CTC Calculations
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_month = round(record.total_ctc_annum / 12)
+                    profession_tax = 200 if (
+                                                        record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
+
+                    # Indicative Take Home Salary
+                    record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                        record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif salary_structure and (record.monthly_fixed_salary >= 54000):
                 record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000
                 record.basic_da_per_month = round(record.basic_da_per_annum / 12)
+                record.hra_per_annum = record.basic_da_per_annum * 0.40
+                record.hra_per_month = round(record.hra_per_annum / 12)
                 record.statutory_bonus_per_annum = 0
                 record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
 
