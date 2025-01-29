@@ -494,7 +494,7 @@ class HrResignation(models.Model):
         self.ensure_one()
         template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
         if not template:
-            raise UserError(_("Reliving Letter template not found."))
+            raise UserError(_("Relieving Letter template not found."))
 
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         if not compose_form:

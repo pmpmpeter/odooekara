@@ -52,7 +52,7 @@
                             name="action_reject_resignation"
                             invisible="state in ('draft','confirm','hr_approved','cancel')"
                             class="oe_highlight"/>
-                    <button string="Send Reliving Letter" type="object"
+                    <button string="Send Relieving Letter" type="object"
                             groups="hr.group_hr_user"
                             name="action_send_reliving_letter"
                             invisible="state in ('draft','confirm','manager_approved','cancel')"
