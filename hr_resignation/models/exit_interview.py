@@ -10,12 +10,14 @@ class ExitInterview(models.Model):
 
 
     employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
-    department_id = fields.Many2one('hr.department', string='Department', tracking=True)
+    department_id = fields.Many2one('hr.department', string="Department", readonly=True,
+                                    related='employee_id.department_id',
+                                    help='Department of the employee')
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
     email = fields.Char(string="Personal Email ID")
     mobile = fields.Char(string="Mobile")
     employee_code = fields.Char(string="Employee Code")
-    designation = fields.Char(string="Designation")
+    designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
     date_of_exit = fields.Date(string='Date of Exit', tracking=True)
     reason_for_separation = fields.Selection([
         ('better_compensation', 'Better Compensation'),
@@ -108,3 +110,13 @@ class ExitInterview(models.Model):
     def exit_interview_complete(self):
         for record in self:
             record.state = 'completed'
+
+    @api.onchange('employee_id')
+    def _onchange_employee_id(self):
+        for record in self:
+            if record.employee_id:
+                record.date_of_joining = record.employee_id.joining_date
+                record.designation_id = record.employee_id.job_id
+                record.date_of_exit = record.employee_id.resign_date
+                record.email = record.employee_id.private_email
+                record.mobile = record.employee_id.private_phone

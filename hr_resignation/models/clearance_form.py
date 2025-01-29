@@ -25,24 +25,14 @@ class ClearanceForm(models.Model):
                                         string='Clearance by Function Heads')
 
     @api.onchange('employee_id')
-    def _compute_start_date(self):
+    def _onchange_employee_id(self):
         for record in self:
             if record.employee_id:
                 record.designation_id = record.employee_id.job_id
                 record.department_id = record.employee_id.department_id
-                contract = self.env['hr.contract'].search(
-                    [('employee_id', '=', record.employee_id.id)],
-                    order='date_start asc',
-                    limit=1
-                )
-                if contract and contract.date_start:
-                    record.date_of_joining = contract.date_start
-                else:
-                    raise ValidationError(
-                        "No contract found for the selected employee. Please ensure the employee has a valid contract."
-                    )
-            else:
-                record.date_of_joining = False
+                record.date_of_joining = record.employee_id.joining_date
+                record.last_working_day = record.employee_id.resign_date
+
 
     def clearance_form_submit(self):
         for record in self:

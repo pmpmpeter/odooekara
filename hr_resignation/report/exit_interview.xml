@@ -102,7 +102,7 @@
                                         <b>Designation</b>
                                     </td>
                                     <td style="text-align: left;  padding: 10px; ">
-                                        <t t-esc="doc.designation"/>
+                                        <t t-esc="doc.designation_id.name"/>
                                     </td>
                                 </tr>
                                 <tr>

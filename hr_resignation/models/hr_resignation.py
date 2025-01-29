@@ -234,7 +234,7 @@ class HrResignation(models.Model):
             resignation.resign_confirm_date = fields.Datetime.now()
             template_id = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
             if template_id:
-                template_id.sudo().send_mail(resignation.id, force_send=True)
+                template_id.sudo().send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
 
     def action_cancel_resignation(self):
         """
@@ -253,7 +253,7 @@ class HrResignation(models.Model):
             resignation.state = 'cancel'
             template_id = self.env.ref('hr_resignation.email_template_resignation_reject')
             if template_id:
-                template_id.send_mail(resignation.id, force_send=True)
+                template_id.send_mail(resignation.id, force_send=True,email_layout_xmlid="mail.mail_notification_light")
 
     def action_reset_to_draft(self):
         """
@@ -335,7 +335,7 @@ class HrResignation(models.Model):
                             days=contract.notice_days))
                         template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
                         if template_id:
-                            template_id.send_mail(resignation.id, force_send=True)
+                            template_id.send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
                     else:
                         if not self.hr_approved_reliving_date:
                             raise ValidationError(
@@ -343,7 +343,7 @@ class HrResignation(models.Model):
                         resignation.state = 'hr_approved'
                         template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
                         if template_id:
-                            template_id.send_mail(resignation.id, force_send=True)
+                            template_id.send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
                     # Cancelling contract
                     contract.state = 'cancel' if contract.state == "open" else \
                         contract.state

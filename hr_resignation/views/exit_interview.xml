@@ -52,7 +52,7 @@
                         </group>
                         <group>
                             <field name="employee_code" readonly="state not in ('draft')"/>
-                            <field name="designation" readonly="state not in ('draft')"/>
+                            <field name="designation_id" readonly="state not in ('draft')"/>
                             <field name="date_of_exit" readonly="state not in ('draft')"/>
                         </group>
                     </group>
