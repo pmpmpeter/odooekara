@@ -3,7 +3,7 @@
     <data noupdate="1">
         <!-- Sequences for hr_resignation -->
         <record id="seq_hr_resignation" model="ir.sequence">
-            <field name="name">Open HRMS Resignation</field>
+            <field name="name">Open HRMS Separation</field>
             <field name="code">hr.resignation</field>
             <field name="prefix">RES</field>
             <field name="padding">3</field>

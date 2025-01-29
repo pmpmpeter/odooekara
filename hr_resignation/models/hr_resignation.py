@@ -25,7 +25,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 
 date_format = "%Y-%m-%d"
-RESIGNATION_TYPE = [('resigned', 'Normal Resignation'),
+RESIGNATION_TYPE = [('resigned', 'Normal Separation'),
                     ('fired', 'Fired by the company')]
 
 
@@ -227,7 +227,7 @@ class HrResignation(models.Model):
 
                     # resignation.state = 'confirm'
                 else:
-                    raise ValidationError("No Approval Type found for this Resignation Model.")
+                    raise ValidationError("No Approval Type found for this Separation Model.")
 
             # handling the state and resign_confirm_date move in mail_compose_message.py
             # resignation.state = 'confirm'
@@ -256,7 +256,7 @@ class HrResignation(models.Model):
         )
 
         return {
-            'name': _('Send Resignation Letter'),
+            'name': _('Send Separation Letter'),
             'type': 'ir.actions.act_window',
             'res_model': 'mail.compose.message',
             'view_mode': 'form',
@@ -310,7 +310,7 @@ class HrResignation(models.Model):
         )
 
         return {
-            'name': _('Send Resignation Rejection Letter'),
+            'name': _('Send Separation Rejection Letter'),
             'type': 'ir.actions.act_window',
             'res_model': 'mail.compose.message',
             'view_mode': 'form',
@@ -511,7 +511,7 @@ class HrResignation(models.Model):
             default_email_layout_xmlid="mail.mail_notification_light",
         )
         return {
-            'name': _('Compose Resignation Confirmation Email'),
+            'name': _('Compose Separation Confirmation Email'),
             'type': 'ir.actions.act_window',
             'view_mode': 'form',
             'res_model': 'mail.compose.message',

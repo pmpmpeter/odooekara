@@ -3,7 +3,7 @@
     <data noupdate="1">
         <!--  Scheduled cron job for managing Employee Resignation-->
         <record id="ir_cron_employee_resignation" model="ir.cron">
-            <field name="name">HR Resignation: Update Employee Status</field>
+            <field name="name">HR Separation: Update Employee Status</field>
             <field name="model_id" ref="model_hr_resignation"/>
             <field name="state">code</field>
             <field name="code">model.update_employee_status()</field>

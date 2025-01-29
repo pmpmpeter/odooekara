@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="paperformat_exit_interview_form_pdf_A4" model="report.paperformat">
-        <field name="name">Exit Interview - Resignation</field>
+        <field name="name">Exit Interview - Separation</field>
         <field name="default" eval="True"/>
         <field name="format">A4</field>
         <field name="page_height">0</field>
