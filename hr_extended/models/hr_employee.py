@@ -26,6 +26,14 @@ class EmployeeInsurance(models.Model):
     annual_premium = fields.Float(string='Annual Premium')
     validity = fields.Date(string='Validity Date')
 
+class AssetsDetails(models.Model):
+    _name = 'assets.details'
+    _description = 'Assets Details'
+
+    employee_id = fields.Many2one('hr.employee', string='Employee', required=True, ondelete='cascade')
+    category_id = fields.Many2one("assets.category", string="Category")
+    comment = fields.Text(string='Comment')
+
 
 class MailActivityPlanTemplate(models.Model):
     _inherit = 'mail.activity.plan.template'
@@ -75,6 +83,7 @@ class HrEmployeeSmartButton(models.Model):
 
     appointment_letter_sent = fields.Boolean(string="Appointment Letter Sent", default=False, copy=False)
     employee_master_insurance_ids = fields.One2many('employee.insurance', 'employee_id', string='Insurance Details')
+    assets_ids = fields.One2many('assets.details', 'employee_id', string='Assets Details')
 
     # Family Status
     anniversary = fields.Date(string="Anniversary")

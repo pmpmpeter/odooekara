@@ -229,3 +229,10 @@ class LocationMaster(models.Model):
                         f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
                     )
         return super(LocationMaster, self).unlink()
+
+class AssetsCategory(models.Model):
+    _name = 'assets.category'
+    _description = 'Assets Category'
+
+    name = fields.Char(string='Name')
+    active = fields.Boolean(string="Active", default=True)

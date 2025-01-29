@@ -111,6 +111,14 @@
                         </field>
                     </group>
                 </page>
+                <page string="Assets">
+                    <field name="assets_ids">
+                        <tree editable="bottom">
+                            <field name="category_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
+                            <field name="comment"/>
+                        </tree>
+                    </field>
+                </page>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="after">
                 <page name="leaving_details" string="Leaving Details"
