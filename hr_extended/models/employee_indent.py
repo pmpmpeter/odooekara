@@ -3,7 +3,7 @@ import base64
 
 from odoo import models, fields, api, _
 from odoo.exceptions import *
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 from odoo.exceptions import ValidationError, UserError
 
 
@@ -11,6 +11,26 @@ class EmployeeIndent(models.Model):
     _name = 'employee.indent'
     _description = 'Employee Indent'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    @api.depends('department','grade_job_level','position_name')
+    def _compute_approved_budget(self):
+        today = date.today()
+        if today.month >= 4:  # Financial year starts from April
+            start_of_financial_year = date(today.year, 4, 1)
+            end_of_financial_year = date(today.year + 1, 3, 31)
+        else:
+            start_of_financial_year = date(today.year - 1, 4, 1)
+            end_of_financial_year = date(today.year, 3, 31)
+        for rec in self:
+            rec.approved_budget = self.env['manpower.budget'].search([
+                    ('state','=','done'),
+                    ('create_date','>=',start_of_financial_year),
+                    ('create_date','<=',end_of_financial_year),
+                    ('department_id','=',rec.department.id),
+                    ('job_level_id','=',rec.grade_job_level.id),
+                    ('position_id','=',rec.position_name.id),
+                    ],limit=1).ctc_annual or 0
+
 
     name = fields.Char(string='Name', required=True)
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
@@ -85,6 +105,7 @@ class EmployeeIndent(models.Model):
 
     approved_budget = fields.Monetary(
         string='BU/Department Total Approved Budget',
+        compute='_compute_approved_budget',
         currency_field='currency_id',
         help="Specify the total approved budget for the Business Unit (BU) or Department.", copy=False
     )
@@ -108,6 +129,8 @@ class EmployeeIndent(models.Model):
         store=True,
         help="Remaining budget after utilization.", copy=False
     )
+    proposed_annual_ctc = fields.Float(string='Proposed Annual CTC')
+
 
     currency_id = fields.Many2one(
         'res.currency',
@@ -195,6 +218,12 @@ class EmployeeIndent(models.Model):
 
     def _organization_domain(self):
         return [('id', '=', self.env.companies.ids)]
+
+    @api.onchange('proposed_annual_ctc','approved_budget')
+    def _onchange_proposed_annual_ctc(self):
+        for rec in self:
+            rec.utilized_budget = (rec.approved_budget - rec.proposed_annual_ctc)
+
 
     @api.onchange('business_unit_id')
     def _onchange_business_unit_id(self):

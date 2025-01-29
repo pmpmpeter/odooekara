@@ -119,7 +119,7 @@ class ManpowerBudgetSheet(models.AbstractModel):
                 sheet.write(row, 2,manpower.manpower_request_type)
                 sheet.write(row, 3,manpower.business_unit_id.name)
                 sheet.write(row, 4,manpower.department_id.name)
-                sheet.write(row, 5,manpower.job_id.name)
+                sheet.write(row, 5,manpower.position_id.name)
                 sheet.write(row, 6,manpower.job_level_id.name)
                 sheet.write(row, 7,manpower.justification)
                 sheet.write(row, 8,manpower.ctc_month)

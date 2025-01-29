@@ -111,8 +111,10 @@
                                     <field name="budgeted_amount" string="Budgeted Amount for Position"
                                            invisible="not is_budgeted"
                                            readonly="state not in ('draft','cancel')"/>
-                                    <field name="utilized_budget" string="Utilized Budget" invisible="not is_budgeted"
+                                    <field name="proposed_annual_ctc" invisible="not is_budgeted"
                                            readonly="state not in ('draft','cancel')"/>
+                                    <field name="utilized_budget" string="Utilized Budget" invisible="not is_budgeted"
+                                           readonly="1"/>
                                     <field name="balance_budget" string="Balance Budget" invisible="not is_budgeted"
                                            readonly="1"/>
                                 </group>

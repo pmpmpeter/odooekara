@@ -34,6 +34,7 @@ class ManpowerBudget(models.Model):
     business_unit_id = fields.Many2one('business.units', string="Business Unit")
     department_id = fields.Many2one('hr.department', string="Department")
     job_id = fields.Many2one('hr.job', string="Role/Designation")
+    position_id = fields.Many2one('hr.position.names', string="Role/Designation")
     job_level_id = fields.Many2one('hr.job.levels', string="Job Level/Grade")
     justification = fields.Char(string="Justification")
     ctc_annual = fields.Float(string="CTC-Annual",compute='_compute_ctc_annual')
