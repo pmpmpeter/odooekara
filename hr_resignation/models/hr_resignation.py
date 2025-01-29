@@ -492,10 +492,9 @@ class HrResignation(models.Model):
 
     def action_send_reliving_letter(self):
         self.ensure_one()
-        for record in self:
-            template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
-            if not template:
-                raise UserError(_("Reliving Letter template not found."))
+        template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
+        if not template:
+            raise UserError(_("Reliving Letter template not found."))
 
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         if not compose_form:
@@ -504,20 +503,20 @@ class HrResignation(models.Model):
             raise ValidationError(
                 _("There are no Private email found for this employee"))
 
-            ctx = dict(
-                default_model='hr.resignation',
-                default_res_ids=record.ids,
-                default_template_id=template.id,
-                default_composition_mode='comment',
-                default_email_layout_xmlid="mail.mail_notification_light",
-            )
-            return {
-                'name': _('Compose Resignation Confirmation Email'),
-                'type': 'ir.actions.act_window',
-                'view_mode': 'form',
-                'res_model': 'mail.compose.message',
-                'views': [(compose_form.id, 'form')],
-                'view_id': compose_form.id,
-                'target': 'new',
-                'context': ctx,
-            }
+        ctx = dict(
+            default_model='hr.resignation',
+            default_res_ids=self.ids,
+            default_template_id=template.id,
+            default_composition_mode='comment',
+            default_email_layout_xmlid="mail.mail_notification_light",
+        )
+        return {
+            'name': _('Compose Resignation Confirmation Email'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(compose_form.id, 'form')],
+            'view_id': compose_form.id,
+            'target': 'new',
+            'context': ctx,
+        }
