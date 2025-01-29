@@ -13,10 +13,17 @@
 
     <template id="print_form_t">
          <t t-call="web.basic_layout">
+                <t t-set="doc" t-value="doc or None" />
+                <t t-call="web.external_layout">
+                    <div>
+                    </div>
+                </t>
                 <div class="page" style="margin:0;">
                     <p>
+                        <br/>
+                        <br/>
                         <t t-set="current_date" t-value="context_timestamp(datetime.datetime.now()).strftime('%B %Y')"/>
-                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',company_id)])"/>
+                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',comp_id)])"/>
                         <b style="font-size: 15px;">COMBINE MUSTER ROLL CUM REGISTER OF WAGES<br/>
                         FORM - T FOR THE MONTH OF JUNE (<t t-esc="current_date"/>)</b><br/><br/>
                         Location : <t t-esc="company_name.city"/><br/>

@@ -80,7 +80,7 @@ class AttendanceReportWizard(models.TransientModel):
         for rec in employee:
             attendance_rec.append(rec)
         data = {
-            'company_id': self.company_id.id,
+            'comp_id': self.company_id.id,
             'start_date': self.start_date,
             'end_date': self.end_date,
             # 'attendance':attendance_rec,
@@ -108,6 +108,7 @@ class AttendanceReportWizard(models.TransientModel):
             'enddate':enddate,
             'month_start':month_start,
             'month_end':month_end,
+            'comp_id':self.company_id.id
         }
 
         if self.report_type == 'form_f':

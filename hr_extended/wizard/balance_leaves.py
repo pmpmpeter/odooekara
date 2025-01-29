@@ -33,6 +33,7 @@ class BalanceLeavesReportWizard(models.TransientModel):
     report_printed = fields.Boolean('Balance Leave Report')
     date_from = fields.Date(string='Start Date')
     date_to = fields.Date(string='End Date', default=fields.Datetime.now)
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
     
     def last_day_of_month(self,any_day):
         import datetime
@@ -416,56 +417,71 @@ class BalanceLeavesReportWizard(models.TransientModel):
         # Column Setup
         row_idx = 0
         col_idx = 0
+        col_widths = {}
 
         # Static Columns
-        worksheet.write(row_idx, col_idx, _('Sl. No.'), design_header);
-        col_idx += 1
-        worksheet.write(row_idx, col_idx, _('Employee Name'), design_header);
-        col_idx += 1
-        worksheet.write(row_idx, col_idx, _('Employee Code'), design_header);
-        col_idx += 1
+        static_headers = [_('Sl. No.'), _('Employee Name'), _('Employee Code')]
+        for header in static_headers:
+            worksheet.write(row_idx, col_idx, header, design_header)
+            col_widths[col_idx] = max(len(header), col_widths.get(col_idx, 0))
+            col_idx += 1
 
         # Dynamic Leave Type Headers
-        leave_types = self.env['hr.leave.type'].search([])
+        leave_types = self.env['hr.leave.type'].search([('requires_allocation', '=', 'yes')])
         leave_columns = []
         for leave_type in leave_types:
-            worksheet.write(row_idx, col_idx, _(f"{leave_type.name} Allocation"), design_header)
+            allocation_header = f"{leave_type.name} Allocation"
+            balance_header = f"{leave_type.name} Balance"
+
+            worksheet.write(row_idx, col_idx, _(allocation_header), design_header)
+            col_widths[col_idx] = max(len(allocation_header), col_widths.get(col_idx, 0))
             leave_columns.append({'name': leave_type.name, 'allocation_col': col_idx})
             col_idx += 1
-            worksheet.write(row_idx, col_idx, _(f"{leave_type.name} Balance"), design_header)
+
+            worksheet.write(row_idx, col_idx, _(balance_header), design_header)
+            col_widths[col_idx] = max(len(balance_header), col_widths.get(col_idx, 0))
             leave_columns[-1]['balance_col'] = col_idx
             col_idx += 1
 
-        # Fetch All Employees
-        employees = self.env['hr.employee'].search([])
+        # Fetch Employees Based on Company
+        employees = self.env['hr.employee'].search([
+            ('company_id', '=', self.company_id.id),
+            ('state', '=', 'employment')  # Only include employees in 'Employment' state
+        ])
         row_idx += 1
         sl_no = 1
 
         for employee in employees:
             col_idx = 0
-            worksheet.write(row_idx, col_idx, sl_no, design_data);
+            worksheet.write(row_idx, col_idx, sl_no, design_data)
+            col_widths[col_idx] = max(len(str(sl_no)), col_widths.get(col_idx, 0))
             col_idx += 1
-            worksheet.write(row_idx, col_idx, employee.name or '', design_data);
+
+            worksheet.write(row_idx, col_idx, employee.name or '', design_data)
+            col_widths[col_idx] = max(len(employee.name or ''), col_widths.get(col_idx, 0))
             col_idx += 1
-            worksheet.write(row_idx, col_idx, employee.employee_number or '', design_data);
+
+            worksheet.write(row_idx, col_idx, employee.employee_number or '', design_data)
+            col_widths[col_idx] = max(len(employee.employee_number or ''), col_widths.get(col_idx, 0))
             col_idx += 1
 
             for leave in leave_columns:
-                # Fetch Allocation (Includes zero if no allocation exists)
+                # Fetch Allocation
                 allocation = self.env['hr.leave.allocation'].search([
                     ('employee_id', '=', employee.id),
                     ('holiday_status_id.name', '=', leave['name']),
-                    ('state', '=', 'validate')
+                    ('state', '=', 'validate'),
+                    ('date_to', '>', self.date_from)
                 ])
                 total_allocation = sum(allocation.mapped('number_of_days')) if allocation else 0
 
-                # Fetch Taken Leaves (Includes zero if no leave taken)
+                # Fetch Taken Leaves
                 taken_leaves = self.env['hr.leave'].search([
                     ('employee_id', '=', employee.id),
                     ('holiday_status_id.name', '=', leave['name']),
                     ('state', '=', 'validate'),
                     ('date_from', '>=', self.date_from),
-                    ('date_to', '<=', self.date_to)
+                    ('date_to', '<=', self.date_to),
                 ])
                 total_taken = sum(taken_leaves.mapped('number_of_days')) if taken_leaves else 0
 
@@ -474,10 +490,18 @@ class BalanceLeavesReportWizard(models.TransientModel):
 
                 # Write Data
                 worksheet.write(row_idx, leave['allocation_col'], total_allocation, design_data)
+                col_widths[leave['allocation_col']] = max(len(str(total_allocation)),
+                                                          col_widths.get(leave['allocation_col'], 0))
+
                 worksheet.write(row_idx, leave['balance_col'], total_balance, design_data)
+                col_widths[leave['balance_col']] = max(len(str(total_balance)), col_widths.get(leave['balance_col'], 0))
 
             row_idx += 1
             sl_no += 1
+
+        # Adjust Column Widths
+        for col_idx, width in col_widths.items():
+            worksheet.col(col_idx).width = 256 * (width + 2)
 
         # Save and Encode Workbook
         fp = io.BytesIO()

@@ -13,10 +13,17 @@
 
     <template id="print_form_h">
             <t t-call="web.basic_layout">
+                <t t-set="doc" t-value="doc or None" />
+                <t t-call="web.external_layout">
+                    <div>
+                    </div>
+                </t>
                 <div class="page">
+                    <br/>
+                    <br/>
                     <p>
                         <t t-set="current_date" t-value="context_timestamp(datetime.datetime.now()).strftime('%B %Y')"/>
-                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',company_id)])"/>
+                        <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',comp_id)])"/>
                         Form-H Report for <t t-esc="company_name.name"/> (<t t-esc="current_date"/>)<br/>
                         Location : <t t-esc="company_name.city"/> <br/>
                         Sub Location : <t t-esc="company_name.city"/>

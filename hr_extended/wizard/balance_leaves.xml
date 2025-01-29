@@ -11,6 +11,9 @@
                             <field name="date_from" required='1'/>
                             <field name="date_to" required='1'/>
                         </group>
+                        <group>
+                            <field name="company_id" required="1"/>
+                        </group>
                      </group>
                     <group>
                         <field name="report_printed" invisible="1"/>
