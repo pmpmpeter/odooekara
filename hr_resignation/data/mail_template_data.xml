@@ -5,20 +5,20 @@
         <field name="name">Resignation Confirmation</field>
         <field name="model_id" ref="model_hr_resignation"/>
         <field name="subject">Resignation Submitted</field>
-        <field name="email_from">{{ user.email_formatted }}</field>
-        <field name="email_to">${{ object.employee_parent_id.sudo().work_email }}</field>
-        <field name="email_cc">${{ object.coach_id.sudo().work_email }}</field>
+        <!--        <field name="email_from">{{ user.email_formatted }}</field>-->
+        <field name="email_to">{{object.employee_parent_id.work_email}}</field>
+        <field name="email_cc">{{object.coach_id.work_email}}</field>
         <field name="body_html">
             <![CDATA[
-            <p>Dear <t t-esc="object.employee_parent_id.sudo().name"/>,</p>
-            <p>This is to inform you that <strong><t t-esc="object.employee_id.sudo().name"/></strong>, from the <t t-esc="object.department_id.sudo().name"/> department, has submitted a resignation.</p>
+            <p>Dear <t t-esc="object.employee_parent_id.name"/>,</p>
+            <p>This is to inform you that <strong><t t-esc="object.employee_id.name"/></strong>, from the <t t-esc="object.department_id.name"/> department, has submitted a resignation.</p>
             <p><strong>Details:</strong></p>
             <ul>
                 <li><strong>Reason for Resignation:</strong> <t t-esc="object.reason"/></li>
             </ul>
             <p>We kindly request you to review and take the necessary actions regarding this resignation.</p>
             <p>Thank you,</p>
-            <p><strong><t t-esc="object.employee_id.sudo().name"/></strong></p>
+            <p><strong><t t-esc="object.employee_id.name"/></strong></p>
             ]]>
         </field>
     </record>
@@ -77,8 +77,8 @@
         <field name="model_id" ref="model_hr_resignation"/>
         <field name="subject">Resignation Rejected</field>
         <field name="email_from">{{ user.email_formatted }}</field>
-        <field name="email_to">${{ object.employee_id.work_email }}</field>
-        <field name="email_cc">${{ object.coach_id.work_email }},${{ object.employee_parent_id.work_email }}</field>
+        <field name="email_to">{{ object.employee_id.work_email }}</field>
+        <field name="email_cc">{{ object.coach_id.work_email }},{{ object.employee_parent_id.work_email }}</field>
         <field name="body_html">
             <![CDATA[
             <p>Dear <t t-esc="object.employee_id.name"/>,</p>
@@ -94,8 +94,8 @@
         <field name="name">Relieving Letter</field>
         <field name="model_id" ref="model_hr_resignation"/>
         <field name="subject">Relieving Letter</field>
-        <field name="email_from">{{ user.email_formatted }}</field>
-        <field name="email_to">{{ object.employee_id.private_email }}</field>
+        <!--        <field name="email_from">{{ user.email_formatted }}</field>-->
+        <field name="email_to">{{ object.employee_id.work_email }}</field>
         <field name="body_html">
             <![CDATA[
             <p>Dear <t t-esc="object.employee_id.name"/>,</p>

@@ -309,8 +309,7 @@
                 id="menu_assets_category"
                 action="assets_category_view_action"
                 parent="hr_insurance.menu_human_resources_configuration_insurance"
-                sequence="7"
-                groups="hr_recruitment.group_hr_recruitment_manager"/>
+                sequence="7"/>
 
     </data>
 </odoo>

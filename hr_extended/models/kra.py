@@ -40,7 +40,7 @@ class KraMaster(models.Model):
                     model_name = self.env['ir.model']._get(field.model).name
                     referenced_ids = references.mapped('id')
                     raise ValidationError(
-                        f"You cannot delete the position '{record.name}' as it is referenced in the model '{model_name}'."
+                        f"You cannot delete the record '{record.name}' as it is referenced in the model '{model_name}'."
                     )
         return super(KraMaster, self).unlink()
 

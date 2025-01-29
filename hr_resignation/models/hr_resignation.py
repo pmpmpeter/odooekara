@@ -191,18 +191,16 @@ class HrResignation(models.Model):
                 approval_type_model = self.env['multi.approval.type']
                 approval_type_line_model = self.env['multi.approval.type.line']
 
-                # Use sudo for searching approval types
-                approval_type = approval_type_model.sudo().search([
+                approval_type = approval_type_model.search([
                     ('model_id', '=', 'hr.resignation'),
                     ('domain', 'ilike', '"state"')
                 ], limit=1)
 
                 if approval_type and approval_type.state == 'confirm':
-                    # Use sudo for searching approval type lines
-                    lines = approval_type_line_model.sudo().search([('type_id', '=', approval_type.id)])
+                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
 
                     while len(lines) < 2:
-                        new_line = approval_type_line_model.sudo().create({
+                        new_line = approval_type_line_model.create({
                             'type_id': approval_type.id,
                             'name': f"L{len(lines) + 1}",
                             'sequence': len(lines) + 1,
@@ -210,31 +208,66 @@ class HrResignation(models.Model):
                         lines += new_line
 
                     for index, line in enumerate(lines):
+
                         if index == 0:
-                            line.sudo().write({'user_id': [(6, 0, [])]})
+                            line.user_id = [(6, 0, [])]
                             manager_id = resignation.employee_parent_id.user_id.id
                             if manager_id:
-                                line.sudo().write({'user_id': [(4, manager_id)]})
+                                line.user_id = [(4, manager_id)]
                             else:
                                 raise ValidationError("Manager does not have a corresponding user.")
 
                         elif index == 1:
-                            line.sudo().write({'user_id': [(6, 0, [])]})
+                            line.user_id = [(6, 0, [])]
                             hr_coach_id = resignation.coach_id.user_id.id
                             if hr_coach_id:
-                                line.sudo().write({'user_id': [(4, hr_coach_id)]})
+                                line.user_id = [(4, hr_coach_id)]
                             else:
                                 raise ValidationError("HR Coach does not have a corresponding user.")
 
-                    resignation.state = 'confirm'
+                    # resignation.state = 'confirm'
                 else:
                     raise ValidationError("No Approval Type found for this Resignation Model.")
 
-            resignation.state = 'confirm'
-            resignation.resign_confirm_date = fields.Datetime.now()
-            template_id = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
-            if template_id:
-                template_id.sudo().send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
+            # handling the state and resign_confirm_date move in mail_compose_message.py
+            # resignation.state = 'confirm'
+            # resignation.resign_confirm_date = fields.Datetime.now()
+        self.ensure_one()
+
+        if not self.employee_parent_id.work_email:
+            raise UserError(_("The Manager does not have a valid email address."))
+
+        if not self.coach_id.work_email:
+            raise UserError(_("The HR does not have a valid email address."))
+
+        template = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
+        if not template:
+            raise UserError(_("The email template for the resignation submission does not exist."))
+
+        compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+
+        ctx = dict(
+            default_model='hr.resignation',
+            default_res_ids=self.ids,
+            default_template_id=template.id,
+            default_composition_mode='comment',
+            default_email_layout_xmlid="mail.mail_notification_light",
+            force_email=True,
+        )
+
+        return {
+            'name': _('Send Resignation Letter'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'views': [(compose_form.id, 'form')],
+            'view_id': compose_form.id,
+            'target': 'new',
+            'context': ctx,
+        }
+        # template_id = self.env.ref('hr_resignation.email_template_resignation_confirm', raise_if_not_found=False)
+        # if template_id:
+        #     template_id.send_mail(resignation.id, force_send=True)
 
     def action_cancel_resignation(self):
         """
@@ -249,11 +282,47 @@ class HrResignation(models.Model):
             Method triggered by the 'Reject' button to reject the
             resignation request.
         """
-        for resignation in self:
-            resignation.state = 'cancel'
-            template_id = self.env.ref('hr_resignation.email_template_resignation_reject')
-            if template_id:
-                template_id.send_mail(resignation.id, force_send=True,email_layout_xmlid="mail.mail_notification_light")
+
+        self.ensure_one()
+
+        if not self.employee_id.work_email:
+            raise UserError(_("The Employee does not have a valid email address."))
+
+        if not self.employee_parent_id.work_email:
+            raise UserError(_("The Manager does not have a valid email address."))
+
+        if not self.coach_id.work_email:
+            raise UserError(_("The HR does not have a valid email address."))
+
+        template = self.env.ref('hr_resignation.email_template_resignation_reject', raise_if_not_found=False)
+        if not template:
+            raise UserError(_("The email template for the resignation rejection does not exist."))
+
+        compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+
+        ctx = dict(
+            default_model='hr.resignation',
+            default_res_ids=self.ids,
+            default_template_id=template.id,
+            default_composition_mode='comment',
+            default_email_layout_xmlid="mail.mail_notification_light",
+            force_email=True,
+        )
+
+        return {
+            'name': _('Send Resignation Rejection Letter'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'views': [(compose_form.id, 'form')],
+            'view_id': compose_form.id,
+            'target': 'new',
+            'context': ctx,
+        }
+        # resignation.state = 'cancel'
+        # template_id = self.env.ref('hr_resignation.email_template_resignation_reject')
+        # if template_id:
+        #     template_id.send_mail(resignation.id, force_send=True)
 
     def action_reset_to_draft(self):
         """
@@ -306,8 +375,16 @@ class HrResignation(models.Model):
     #         else:
     #             raise ValidationError(_('Please Enter Valid Dates.'))
 
-
     def action_hr_approve_resignation(self):
+        if not self.employee_id.work_email:
+            raise UserError(_("The Employee does not have a valid email address."))
+
+        if not self.employee_parent_id.work_email:
+            raise UserError(_("The Manager does not have a valid email address."))
+
+        if not self.coach_id.work_email:
+            raise UserError(_("The HR does not have a valid email address."))
+
         for resignation in self:
             if resignation.resign_confirm_date:
                 employee_contract = self.env['hr.contract'].search(
@@ -333,17 +410,17 @@ class HrResignation(models.Model):
                         resignation.hr_approved_reliving_date = (
                                 resignation.resign_confirm_date + timedelta(
                             days=contract.notice_days))
-                        template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
-                        if template_id:
-                            template_id.send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
+                        # template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
+                        # if template_id:
+                        #     template_id.send_mail(resignation.id, force_send=True)
                     else:
                         if not self.hr_approved_reliving_date:
                             raise ValidationError(
                                 _("Please enter the Approved Last Day of Employee in resignation"))
                         resignation.state = 'hr_approved'
-                        template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
-                        if template_id:
-                            template_id.send_mail(resignation.id, force_send=True, email_layout_xmlid="mail.mail_notification_light")
+                        # template_id = self.env.ref('hr_resignation.email_template_resignation_approve_hr')
+                        # if template_id:
+                        #     template_id.send_mail(resignation.id, force_send=True)
                     # Cancelling contract
                     contract.state = 'cancel' if contract.state == "open" else \
                         contract.state
@@ -414,9 +491,11 @@ class HrResignation(models.Model):
     #             template_id.send_mail(resignation.id, force_send=True)
 
     def action_send_reliving_letter(self):
-        template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
-        if not template:
-            raise UserError(_("Reliving Letter template not found."))
+        self.ensure_one()
+        for record in self:
+            template = self.env.ref('hr_resignation.email_template_reliving_letter', False)
+            if not template:
+                raise UserError(_("Reliving Letter template not found."))
 
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         if not compose_form:
@@ -425,20 +504,20 @@ class HrResignation(models.Model):
             raise ValidationError(
                 _("There are no Private email found for this employee"))
 
-        ctx = dict(
-            default_model='hr.resignation',
-            default_res_ids=self.ids,
-            default_template_id=template.id,
-            default_composition_mode='comment',
-            default_email_layout_xmlid="mail.mail_notification_light",
-        )
-        return {
-            'name': _('Compose Resignation Confirmation Email'),
-            'type': 'ir.actions.act_window',
-            'view_mode': 'form',
-            'res_model': 'mail.compose.message',
-            'views': [(compose_form.id, 'form')],
-            'view_id': compose_form.id,
-            'target': 'new',
-            'context': ctx,
-        }
+            ctx = dict(
+                default_model='hr.resignation',
+                default_res_ids=record.ids,
+                default_template_id=template.id,
+                default_composition_mode='comment',
+                default_email_layout_xmlid="mail.mail_notification_light",
+            )
+            return {
+                'name': _('Compose Resignation Confirmation Email'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'target': 'new',
+                'context': ctx,
+            }
