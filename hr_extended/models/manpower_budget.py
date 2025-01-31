@@ -91,8 +91,8 @@ class ManpowerBudget(models.Model):
                 'email_to': self.assigned_user_id.email,  # Send email to the assigned user's email address
                 'email_from': self.env.user.email or 'no-reply@example.com',  # Sender's email
             }
-            mail = self.env['mail.mail'].create(mail_values)
-            mail.send()
+            mail = self.env['mail.mail'].sudo().create(mail_values)
+            mail.sudo().send()
 
 
     def action_submit_record(self):
