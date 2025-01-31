@@ -37,6 +37,7 @@
         'views/crossoverd_budget.xml',
         'views/account_move.xml',
         'views/account_payment.xml',
+        'views/cash_management.xml',
     ],
     'license': 'LGPL-3',
 

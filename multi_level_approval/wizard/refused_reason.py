@@ -5,7 +5,7 @@
 ##############################################################################
 
 from odoo import fields, models
-
+from datetime import datetime,timedelta
 
 class RefusedReason(models.TransientModel):
     _name = "refused.reason"
@@ -16,6 +16,18 @@ class RefusedReason(models.TransientModel):
     def action_reason_apply(self):
 
         approval = self.env["multi.approval"].browse(self.env.context.get("active_ids"))
+        res_model = self._context.get('active_model')
+        active_id = self._context.get('active_id')
+        multi_id = self.env['multi.approval'].browse(active_id)
+        if multi_id.type_id.model_id == "cash.management":
+            user_name = self.env.user.name  # Current user's name
+            current_time = datetime.now()  # Current date and time
+            revision_time = (current_time + timedelta(hours=5, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')  # Add 5:30 hours
+            current_revisions = multi_id.origin_ref.revision_reason or ''
+            revision_count = current_revisions.count('R') + 1  # Count existing revisions
+            new_revision = f"R{revision_count}: {self.reason} (by {user_name} on {revision_time})"
+            multi_id.origin_ref.revision_reason = f"{new_revision}\n {current_revisions}".strip()
+            multi_id.origin_ref.approval_status = 'draft'
         return approval.action_refuse(reason=self.reason)
 
 class ApproveReason(models.TransientModel):

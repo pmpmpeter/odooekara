@@ -9,6 +9,7 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 import base64
+from datetime import datetime
 
 _logger = logging.getLogger(__name__)
 
@@ -224,6 +225,12 @@ class MultiApproval(models.Model):
                 )
                 if not other_lines:
                     ret_act = rec.set_approved()
+                    if rec.type_id.model_id == "cash.management":
+                        rec.origin_ref.approval_status ='approved'
+                        rec.origin_ref.approved_by = self.env.user.id
+                        rec.origin_ref.approved_date = datetime.now() 
+                        rec.origin_ref.approved_file = rec.origin_ref.submitted_file 
+                        rec.origin_ref.approved_name = rec.origin_ref.submitted_name 
                 else:
                     next_line = other_lines.sorted("sequence")[0]
                     next_line.write(

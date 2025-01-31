@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cash_management_form" model="ir.ui.view">
+        <field name="name">cash.management.form</field>
+        <field name="model">cash.management</field>
+        <field name="arch" type="xml">
+            <form string="Cash Management">
+                <header>
+                    <field name="approval_status" widget="statusbar" statusbar_visible="draft,to approve,approved"/>
+                </header>
+                <sheet>
+                     <div class="oe_title">
+                        <h1>
+                            <field name="name"  readonly="1" placeholder="Draft"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="created_by" readonly="1" invisible='1'/>
+                        <field name="created_date" readonly="1" invisible='1'/>
+                        <group>
+                            <field name="submitted_name" invisible='1'/>
+                            <field name="submitted_file" filename = 'submitted_name' readonly="approval_status == 'approved'"/>
+                            <field name="submitted_date" readonly="1"/>
+                            <field name="submit_by" readonly='1' force_save='1' options="{'no_open':True,'no_create': True}"/>
+                            <field name="approved_by" readonly="1" options="{'no_open':True,'no_create': True}"/>
+                            <field name="approved_date" readonly="1"/>
+                            <field name="approved_name" invisible='1'/>
+                            <field name="approved_file" readonly='1' filename='approved_name'/>
+                        </group>
+                        <group>
+                            <field name="tax_entity_1" readonly="approval_status == 'approved'"/>
+                            <field name="amount_1" readonly="approval_status == 'approved'"/>
+                            <field name="tax_entity_2" readonly="approval_status == 'approved'"/>
+                            <field name="amount_2" readonly="approval_status == 'approved'"/>
+                            <field name="both_amount" readonly="approval_status == 'approved'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Revision Remarks" invisible='not revision_reason'>
+                            <field name='revision_reason' force_save='1'/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cash_management_tree" model="ir.ui.view">
+        <field name="name">cash.management.tree</field>
+        <field name="model">cash.management</field>
+        <field name="arch" type="xml">
+            <tree string="Cash Management">
+                <field name="name"/>
+                <field name="submit_by"/>
+                <field name="approval_status"/>
+                <field name="approved_by"/>
+                <field name="approved_date"/>
+            </tree>
+        </field>
+    </record>
+     <record id="action_cash_management" model="ir.actions.act_window">
+        <field name="name">Cash Management</field>
+        <field name="res_model">cash.management</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                Use this menu to manage Cash Management records and approvals.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cash_management" 
+              name="Cash Management" 
+              parent="account.menu_finance_entries" 
+              action="action_cash_management" 
+              sequence="4"/>
+
+        <record id="seq_cash_management" model="ir.sequence">
+            <field name="name">Cash Management</field>
+            <field name="code">cash.management</field>
+            <field name="prefix">CM-</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+</odoo>
+
