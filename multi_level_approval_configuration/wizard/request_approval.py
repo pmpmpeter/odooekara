@@ -169,6 +169,7 @@ class RequestApproval(models.TransientModel):
             self.origin_ref.state = 'to approve'
             self.origin_ref.message_post(body='Document is submitted for approval')
         if res_model == 'cash.management':
+            self.origin_ref.approval_document = request
             self.origin_ref.submitted_date = datetime.now()
             self.origin_ref.submit_by = self.env.user.employee_id.id
             self.origin_ref.approval_status = 'to approve'

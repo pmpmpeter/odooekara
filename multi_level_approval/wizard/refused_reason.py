@@ -28,6 +28,15 @@ class RefusedReason(models.TransientModel):
             new_revision = f"R{revision_count}: {self.reason} (by {user_name} on {revision_time})"
             multi_id.origin_ref.revision_reason = f"{new_revision}\n {current_revisions}".strip()
             multi_id.origin_ref.approval_status = 'draft'
+            multi_id.origin_ref.x_has_request_approval = False
+            mail_obj = self.env['mail.mail'].create({
+                'subject': 'Revision Mail',
+                'email_from':multi_id.origin_ref.submit_by.work_email ,  # Change to a valid email
+                'email_to': multi_id.origin_ref.submit_by.work_email,  # Change recipient email
+                'body_html': '<p>Hello, your report has been revise because of following reason.</p>',
+            })
+            mail_obj.send()
+
         return approval.action_refuse(reason=self.reason)
 
 class ApproveReason(models.TransientModel):

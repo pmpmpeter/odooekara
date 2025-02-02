@@ -79,8 +79,13 @@ class MultiApproval(models.Model):
         log_msg = _(
             "{name} has refused this document due to this reason: {reason}"
         ).format(name=self.env.user.name, reason=reason)
-        self.update_source_obj(self.origin_ref, "refused", log_msg)
-        res = self.type_id.run(self, self.origin_ref, "refuse")
+        if self.type_id.model_id == 'cash.management':
+
+            self.update_source_obj(self.origin_ref, "", log_msg)
+            res = self.type_id.run(self, self.origin_ref, "")
+        else:
+            self.update_source_obj(self.origin_ref, "refused", log_msg)
+            res = self.type_id.run(self, self.origin_ref, "refuse")
         if res:
             return res
 

@@ -571,6 +571,9 @@ for rec in self:
         if self.model_id == 'hr.expense.sheet':
             move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
             move_ids.write({'approval_status':'To Submit for Approval'})
+        if self.model_id == 'cash.management':
+            move_ids = self.env['cash.management'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'To Submit for Approval'})
     def action_draft(self):
         self.state='draft'
         if self.model_id == 'crossovered.budget':
@@ -587,6 +590,9 @@ for rec in self:
             move_ids.write({'approval_state':'Not Applicable'})
         if self.model_id == 'hr.expense.sheet':
             move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'Not Applicable'})
+        if self.model_id == 'cash.management':
+            move_ids = self.env['cash.management'].search([('state','=','draft')])
             move_ids.write({'approval_status':'Not Applicable'})
         self.is_configured = False
     def action_cancelled(self):
@@ -605,6 +611,9 @@ for rec in self:
             move_ids.write({'approval_state':'Not Applicable'})
         if self.model_id == 'hr.expense.sheet':
             move_ids = self.env['hr.expense.sheet'].search([('state','=','draft')])
+            move_ids.write({'approval_status':'Not Applicable'})
+        if self.model_id == 'cash.management':
+            move_ids = self.env['cash.management'].search([('state','=','draft')])
             move_ids.write({'approval_status':'Not Applicable'})
         self.is_configured = False
 
