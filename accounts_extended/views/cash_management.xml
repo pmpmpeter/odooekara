@@ -61,6 +61,7 @@
         <field name="arch" type="xml">
             <tree string="Cash Requirement Report">
                 <field name="name"/>
+                <field name="create_uid"/>
                 <field name="submit_by"/>
                 <field name="approval_status"/>
                 <field name="approved_by"/>
@@ -68,10 +69,37 @@
             </tree>
         </field>
     </record>
+
+    <record id="view_cash_management_search" model="ir.ui.view">
+        <field name="name">cash.management.search</field>
+        <field name="model">cash.management</field>
+        <field name="arch" type="xml">
+            <search string="Cash Requirement Report">
+                <field name="name"/>
+                <field name="create_uid"/>
+                <field name="approval_status"/>
+                <field name="approved_by"/>
+                <field name="approved_date"/>
+                
+                <filter name="filter_draft" string="Draft" domain="[('approval_status', '=', 'draft')]"/>
+                <filter name="filter_to_approve" string="To Approve" domain="[('approval_status', '=', 'to approve')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('approval_status', '=', 'approved')]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter name="group_create_uid" string="Created By" context="{'group_by': 'create_uid'}"/>
+                    <filter name="group_approval_status" string="Status" context="{'group_by': 'approval_status'}"/>
+                    <filter name="group_approved_by" string="Approved By" context="{'group_by': 'approved_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
      <record id="action_cash_management" model="ir.actions.act_window">
         <field name="name">Cash Requirement Report</field>
         <field name="res_model">cash.management</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_cash_management_tree"/>
+        <field name="search_view_id" ref="view_cash_management_search"/>
         <field name="help" type="html">
             <p>
                 Use this menu to upload and validate your cash requirement report.
