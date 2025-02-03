@@ -226,6 +226,10 @@ class MultiApproval(models.Model):
                 if not other_lines:
                     ret_act = rec.set_approved()
                     if rec.type_id.model_id == "cash.management":
+                        if not rec.origin_ref.tax_entity:
+                            raise ValidationError(
+                                "Kindly fill the tax entity details."
+                            )
                         rec.origin_ref.approval_status ='approved'
                         rec.origin_ref.approved_by = self.env.user.id
                         rec.origin_ref.approved_date = datetime.now() 

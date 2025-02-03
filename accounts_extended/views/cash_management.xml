@@ -31,7 +31,7 @@
 
                         </group>
                         <group>
-                            <field name="tax_entity" readonly="approval_status in ('approved','to approve')"/>
+                            <field name="tax_entity" readonly="approval_status in ('draft','to approve')"/>
                             <field name="tax_entity_1" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity1','both')" options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="tax_entity_1_amount" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity1','both')"/>
                             <field name="tax_entity_2" required="tax_entity == 'both' or tax_entity == 'entity2'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity2','both')" options="{'no_quick_create':True,'no_create': True,}"/>
