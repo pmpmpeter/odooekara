@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from datetime import datetime
+from odoo.exceptions import UserError,ValidationError
 
 class CashManagement(models.Model):
     _name = "cash.management"
@@ -9,7 +10,7 @@ class CashManagement(models.Model):
     name = fields.Char(string="Reference", copy=False, readonly=True)
 
     submit_by = fields.Many2one('hr.employee',string="Submitted By",tracking=True,copy=False)
-    submitted_date = fields.Datetime(string="Submitted Date", readonly=True,tracking=True,copy=False,default=datetime.now())
+    submitted_date = fields.Datetime(string="Submitted Date", readonly=True,tracking=True,copy=False)
     submitted_file = fields.Binary(string="Submitted CRR Report",attachment=True,copy=False,required=True)
     submitted_name = fields.Char(string="Submitted File Name", attachment=True,copy=False)
     tax_entity = fields.Selection([('entity1', 'Tax Entity1'),
@@ -35,6 +36,12 @@ class CashManagement(models.Model):
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
+
+    def unlink(self):
+        for rec in self:
+            if rec.approval_status != 'draft':
+                raise UserError('You can able to delete Draft records only')
+        return super(CashManagement, self).unlink()
 
     def action_submit(self):
         for rec in self:
