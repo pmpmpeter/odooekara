@@ -92,7 +92,8 @@
         </field>
     </record>
 
-    <menuitem id="menu_manpower_budget" name="Manpower Budget" parent="hr.menu_hr_employee_payroll" action="action_manpower_budget" sequence="9"  groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user"/>
+    <menuitem id="menu_manpower_budget" name="Manpower Budget" parent="hr.menu_hr_employee_payroll" action="action_manpower_budget" sequence="9"  
+        groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user"/>
 
     <record id="action_export_excel" model="ir.actions.server">
         <field name="name">Export to Excel</field>
@@ -149,7 +150,8 @@
               name="Director Manpower Approvals" 
               parent="hr.menu_hr_employee_payroll"
               sequence="9" 
-              action="action_director_approve_manpower"/>
+              action="action_director_approve_manpower"
+              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user"/>
 
 
 </odoo>
