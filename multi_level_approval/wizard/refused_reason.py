@@ -30,10 +30,10 @@ class RefusedReason(models.TransientModel):
             multi_id.origin_ref.approval_status = 'draft'
             multi_id.origin_ref.x_has_request_approval = False
             mail_obj = self.env['mail.mail'].create({
-                'subject': 'Revision Mail',
-                'email_from':multi_id.origin_ref.submit_by.work_email ,  # Change to a valid email
+                'subject': f'Revision Mail:{multi_id.origin_ref.name}',
+                'email_from':self.env.company.email ,  # Change to a valid email
                 'email_to': multi_id.origin_ref.submit_by.work_email,  # Change recipient email
-                'body_html': '<p>Hello, your report has been revise because of following reason.</p>',
+                 'body_html': f"<p>Hello, your report has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
             })
             mail_obj.send()
 

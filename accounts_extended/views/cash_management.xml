@@ -18,7 +18,7 @@
 
                         <field name="approval_status" invisible="1"/>
                         <group>
-                            <field name="create_uid" string="Created By" readonly="1"/>
+                            <field name="create_uid" string="Created By" readonly="1" options="{'no_open':True,'no_create': True}"/>
                             <field name="create_date" string="Created Date" readonly="1"/>
                             <field name="submitted_name" invisible='1'/>
                             <field name="submitted_file" filename = 'submitted_name' readonly="approval_status in ('approved','to approve')"/>
