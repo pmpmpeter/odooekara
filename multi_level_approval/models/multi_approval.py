@@ -7,7 +7,7 @@
 import logging
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 import base64
 from datetime import datetime
 
