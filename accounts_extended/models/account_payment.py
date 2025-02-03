@@ -14,6 +14,9 @@ class AccountPayment(models.Model):
     reason_approved = fields.Text(string='Approval comments',copy=False)
     partner_cl_balance =fields.Float(compute='_get_partner_cl_balance', string='Partner Balance')
     closing_balance =fields.Float(compute='_get_closing_balance', string='Closing Balance')
+    type = fields.Selection([
+        ("capex", "Capex"),
+        ("opex", "Opex")], default='opex', string="Capex/Opex")
 
     def _get_closing_balance(self):
         closing_balance=0
@@ -99,6 +102,14 @@ class AccountPayment(models.Model):
                 payment.is_internal_transfer = payment.partner_id \
                                                and payment.partner_id == payment.journal_id.company_id.partner_id \
                                                and payment.destination_journal_id
+
+    @api.onchange('type')
+    def onchange_type(self):
+        for rec in self:
+            #print('rrrrrr',rec.type,rec.move_id._origin.id)
+            move = self.env['account.move'].sudo().search([('id','=',rec.move_id._origin.id)])
+            move.expense_type = rec.type
+
 
     def action_post(self):
         for pay in self:

@@ -8,7 +8,7 @@ from datetime import date, timedelta,datetime
 
 class AccountCURReportWizard(models.TransientModel):
     _name = 'account.cur.report.wizard'
-    _description = 'Fund Utilization Report Wizard'
+    _description = 'Cash Utilization Report Wizard'
 
     def _default_start_date(self):
         """Calculate the start date of the current financial year."""
@@ -33,7 +33,7 @@ class AccountCURReportWizard(models.TransientModel):
         report_content = self._generate_excel_report()
 
         self.report_file = base64.b64encode(report_content)
-        self.file_name = f"Fund_Utilization_Report_{datetime.now().strftime('%Y%m%d')}.xlsx"
+        self.file_name = f"Cash_Utilization_Report_{datetime.now().strftime('%Y%m%d')}.xlsx"
 
         return {
             'type': 'ir.actions.act_window',
@@ -45,7 +45,6 @@ class AccountCURReportWizard(models.TransientModel):
 
     def _generate_excel_report(self):
         """Generate an Excel file from CRR data, including company and transaction details."""
-        print('qqqqqqqqq',self.start_date,self.end_date)
         buffer = BytesIO()
         workbook = xlsxwriter.Workbook(buffer)
         sheet = workbook.add_worksheet('Fund Utilization Report')
@@ -95,6 +94,7 @@ class AccountCURReportWizard(models.TransientModel):
            SELECT 
     aa.name AS account_name,
     aa.code As account_code,
+    am.expense_type As expense_type,
     SUM(aml.debit) AS total_debit,
     SUM(aml.credit) AS total_credit
 FROM 
@@ -110,54 +110,10 @@ WHERE
     AND aa.account_type NOT IN ('asset_cash')
     AND aml.date BETWEEN %s AND %s
 GROUP BY 
-    aa.name,aa.code
+    aa.name,aa.code,am.expense_type
 ORDER BY 
-    aa.name,aa.code;   
+    aa.name,aa.code,am.expense_type;   
         """
-        query1 = """
-                   SELECT 
-            aa.name AS account_name,
-            aa.code As account_code,
-            SUM(aml.debit) AS total_debit,
-            SUM(aml.credit) AS total_credit
-        FROM 
-            account_move_line aml
-        JOIN 
-            account_move am ON aml.move_id = am.id
-        JOIN 
-            account_journal aj ON aml.journal_id = aj.id
-        JOIN 
-            account_account aa ON aml.account_id = aa.id
-        WHERE 
-            aa.account_type IN ('asset_cash')
-            AND aml.date <= %s
-        GROUP BY 
-            aa.name,aa.code
-        ORDER BY 
-            aa.name,aa.code;   
-                """
-        query2 = """
-                           SELECT 
-                    aa.name AS account_name,
-                    aa.code As account_code,
-                    SUM(aml.debit) AS total_debit,
-                    SUM(aml.credit) AS total_credit
-                FROM 
-                    account_move_line aml
-                JOIN 
-                    account_move am ON aml.move_id = am.id
-                JOIN 
-                    account_journal aj ON aml.journal_id = aj.id
-                JOIN 
-                    account_account aa ON aml.account_id = aa.id
-                WHERE 
-                    aa.account_type IN ('asset_cash')
-                    AND aml.date <= %s
-                GROUP BY 
-                    aa.name,aa.code
-                ORDER BY 
-                    aa.name,aa.code;   
-                        """
 
         self.env.cr.execute(query,(self.start_date,self.end_date))
         records = self.env.cr.dictfetchall()
@@ -198,11 +154,36 @@ ORDER BY
             row_num += 1
         sheet.write(row_num, 0, 'Payments:', header_format1)
         row_num +=1
-        for account in debit_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'],value_format)
-            sheet.write(row_num, 1, account['account_code'],value_format)
-            sheet.write(row_num, 2, account['total_debit'],value_format) if account['total_debit'] != 0 else sheet.write(row_num, 2, '',value_format)
+        #print(debit_accounts,'vcccccccccccxxxxxxxxxxxxx')
+        capex_accounts = [account for account in debit_accounts if account['expense_type'] == 'capex']
+        opex_accounts = [account for account in debit_accounts if account['expense_type'] == 'opex']
+        sheet.write(row_num, 0, 'Vendor Payment CAPEX:', header_format1)
+        row_num += 1
+        for account in capex_accounts:
+
+            sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
+            sheet.write(row_num, 1, account['account_code'], value_format)
+            sheet.write(row_num, 2, account['total_debit'], value_format) if account[
+                                                        'total_debit'] != 0 else sheet.write(row_num, 2, '', value_format)
             row_num += 1
+
+            row_num += 2
+        sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
+        row_num += 1
+        for account in opex_accounts:
+
+            sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
+            sheet.write(row_num, 1, account['account_code'], value_format)
+            sheet.write(row_num, 2, account['total_debit'], value_format) if account[
+                                                        'total_debit'] != 0 else sheet.write(row_num, 2, '', value_format)
+            row_num += 1
+
+        # for account in debit_accounts:
+        #     print(account,'pppppppppppsssssssssssss')
+        #     sheet.write(row_num, 0, account['account_name']['en_US'],value_format)
+        #     sheet.write(row_num, 1, account['account_code'],value_format)
+        #     sheet.write(row_num, 2, account['total_debit'],value_format) if account['total_debit'] != 0 else sheet.write(row_num, 2, '',value_format)
+        #     row_num += 1
         total_d =0.0
         total_c =0.0
         for rec in debit_accounts:
