@@ -14,7 +14,7 @@ class CashManagement(models.Model):
     submitted_name = fields.Char(string="Submitted File Name", attachment=True,copy=False)
     tax_entity = fields.Selection([('entity1', 'Tax Entity1'),
                                  ('entity2', 'Tax Entity2'),
-                                 ('both', 'Both')], string="Tax Entity",default='entity1', tracking=True,copy=False)
+                                 ('both', 'Both')], string="Tax Entity", tracking=True,copy=False)
     tax_entity_1 = fields.Many2one('res.users', string="Tax Entity 1 User",copy=False)
     tax_entity_2 = fields.Many2one('res.users', string="Tax Entity 2 User",copy=False)
     tax_entity_1_amount = fields.Float(string="Tax Entity 1 Amount",copy=False,tracking=True,)

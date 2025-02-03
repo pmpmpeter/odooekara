@@ -32,10 +32,10 @@
                         </group>
                         <group>
                             <field name="tax_entity" readonly="approval_status in ('approved','to approve')"/>
-                            <field name="tax_entity_1" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity == 'entity2'" options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="tax_entity_1_amount" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity == 'entity2'"/>
-                            <field name="tax_entity_2" required="tax_entity == 'both' or tax_entity == 'entity2'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity == 'entity1'" options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="tax_entity_2_amount" required="tax_entity == 'both' or tax_entity == 'entity2'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity == 'entity1'"/>
+                            <field name="tax_entity_1" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity1','both')" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="tax_entity_1_amount" required="tax_entity == 'both' or tax_entity == 'entity1'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity1','both')"/>
+                            <field name="tax_entity_2" required="tax_entity == 'both' or tax_entity == 'entity2'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity2','both')" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="tax_entity_2_amount" required="tax_entity == 'both' or tax_entity == 'entity2'" readonly="approval_status in ('approved','to approve')" invisible="tax_entity not in ('entity2','both')"/>
                             <field name="approval_state" readonly="1"/>
                             <field name="approval_document" invisible="1"/>
                         </group>
@@ -81,9 +81,9 @@
 
     <menuitem id="menu_cash_management" 
               name="Cash Requirement Report"
-              parent="account.menu_finance_entries"
+              parent="account.menu_finance_reports"
               action="action_cash_management" 
-              sequence="4"/>
+             sequence="100"/>
 
         <record id="seq_cash_management" model="ir.sequence">
             <field name="name">Cash Requirement Report</field>

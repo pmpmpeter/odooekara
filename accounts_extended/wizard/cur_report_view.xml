@@ -4,7 +4,7 @@
         <field name="name">account.cur.report.wizard.form</field>
         <field name="model">account.cur.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Fund Utilization Report">
+            <form string="Cash Utilization Report">
                 <group>
                     <!-- <field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/> -->
                     <group>
@@ -23,14 +23,14 @@
     </record>
 
     <record id="action_account_cur_report_wizard" model="ir.actions.act_window">
-        <field name="name">Fund Utilization Report</field>
+        <field name="name">Cash Utilization Report</field>
         <field name="res_model">account.cur.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
 
     <menuitem id="menu_account_cur_report_wizard"
-              name="Fund Utilization Report"
+              name="Cash Utilization Report"
               sequence="100"
               parent="account.menu_finance_reports"
               groups="account.group_account_manager,account.group_account_user"
