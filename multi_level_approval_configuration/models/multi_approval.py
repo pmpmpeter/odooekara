@@ -83,6 +83,10 @@ class MultiApproval(models.Model):
 
             self.update_source_obj(self.origin_ref, "", log_msg)
             res = self.type_id.run(self, self.origin_ref, "")
+        elif self.type_id.model_id == 'purchase.request':
+
+            self.update_source_obj(self.origin_ref, "", log_msg)
+            res = self.type_id.run(self, self.origin_ref, "")
         else:
             self.update_source_obj(self.origin_ref, "refused", log_msg)
             res = self.type_id.run(self, self.origin_ref, "refuse")

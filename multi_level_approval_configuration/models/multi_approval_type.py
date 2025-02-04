@@ -574,6 +574,9 @@ for rec in self:
         if self.model_id == 'cash.management':
             move_ids = self.env['cash.management'].search([('state','=','draft')])
             move_ids.write({'approval_status':'To Submit for Approval'})
+        if self.model_id == 'purchase.request':
+            move_ids = self.env['purchase.request'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'To Submit for Approval'})
     def action_draft(self):
         self.state='draft'
         if self.model_id == 'crossovered.budget':
@@ -594,6 +597,9 @@ for rec in self:
         if self.model_id == 'cash.management':
             move_ids = self.env['cash.management'].search([('state','=','draft')])
             move_ids.write({'approval_status':'Not Applicable'})
+        if self.model_id == 'purchase.request':
+            move_ids = self.env['purchase.request'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
         self.is_configured = False
     def action_cancelled(self):
         self.state='cancelled'
@@ -615,6 +621,9 @@ for rec in self:
         if self.model_id == 'cash.management':
             move_ids = self.env['cash.management'].search([('state','=','draft')])
             move_ids.write({'approval_status':'Not Applicable'})
+        if self.model_id == 'purchase.request':
+            move_ids = self.env['purchase.request'].search([('state','=','draft')])
+            move_ids.write({'approval_state':'Not Applicable'})
         self.is_configured = False
 
     @api.model
