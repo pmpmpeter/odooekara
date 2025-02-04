@@ -30,7 +30,7 @@ class BudgetRevisionWizard(models.TransientModel):
             budget.x_has_request_approval = False
             budget.approval_state = 'To Submit for Approval'
             budget.x_review_result = ''
-            budget.state = 'draft'
+            budget.state = 'revision'
             budget.sudo().message_post(body='This document has been revised')
             template = self.env.ref('accounts_extended.email_template_budget_revision_email')
             template.send_mail(self.id, force_send=True)

@@ -36,22 +36,50 @@
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='general_budget_id']" position="attributes">
                     <attribute name="options">{"no_open": True, "no_create": True}</attribute>
                 </xpath>
+                <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="attributes">
+                    <attribute name="options">{"no_open": True, "no_create": True}</attribute>
+                </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='practical_amount']" position="attributes">
                     <attribute name="string">Utilised Amount</attribute>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='theoritical_amount']" position="attributes">
                     <attribute name="optional">hide</attribute>
                 </xpath>
+                <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='planned_amount']" position="attributes">
+                    <attribute name="readonly">parent.state =='revision'</attribute>
+                </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='practical_amount']" position="after">
+                        <field name='additional_amount' column_invisible="parent.state != 'revision'" readonly="parent.state != 'revision'" />
                         <field name='reserved_amount' readonly='1'/>
+                        <field name='under_revision' column_invisible='1'/>
                         <field name='balance_amount'/>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='analytic_account_id']" position="after">
+                    <field name='department_id' options='{"no_open": True, "no_create": True}' />
                     <field name='capex_opex'/>
                 </xpath>
+                <field name='crossovered_budget_line' position="attributes">
+                    <attribute name="readonly">state not in ('draft','revision')</attribute>
+                </field>
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="decoration-danger">is_above_budget and planned_amount &lt; 0 or under_revision</attribute>
+                </xpath>
                 <page name='budget_lines' position='after'>
-                     <page string="Revision Reason" invisible='not revision_reason'>
+                    <page string="Revision Reason" invisible='not revision_reason'>
                         <field name='revision_reason'/>
+                    </page>
+                    <page string="Revision History" invisible='not revision_history_ids'>
+                        <field name='revision_history_ids' readonly='1'>
+                            <tree editable='bottom'>
+                                <field name="name"/>
+                                <field name="budget_post_id"/>
+                                <field name="budget_code"/>
+                                <field name="analytic_account_id"/>
+                                <field name="initial_allocate"/>
+                                <field name="additional_amount"/>
+                                <field name="revision_date"/>
+                            </tree>
+                        </field>
                     </page>
                 </page>
             </field>
@@ -66,6 +94,14 @@
                     <field name="approval_state" string="Approval State"/>
                 </xpath>
             </field>
+        </record>
+
+        <record id="seq_revision_history" model="ir.sequence">
+            <field name="name">Revision History</field>
+            <field name="code">revision.history</field>
+            <field name="prefix">REV/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
         </record>
 
 

@@ -8,6 +8,7 @@ class BudgetInherit(models.Model):
 
     state = fields.Selection([
         ('draft', 'Draft'),
+        ('revision', 'To Revision'),
         ('confirm', 'Confirmed'),
         ('to approve', 'To Approve'),
         ('validate', 'Validated'),
@@ -18,6 +19,7 @@ class BudgetInherit(models.Model):
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="")
+    revision_history_ids = fields.One2many('revision.history','budget_id',string='Revesion History')
 
 
     @api.depends('approval_document.type_id.state','approval_document.line_ids.state')
@@ -76,6 +78,14 @@ class Crossoverbudgetlines(models.Model):
         for rec in self:
             rec.balance_amount = rec.planned_amount-(abs(rec.practical_amount)+rec.reserved_amount)
 
+    @api.depends('additional_amount')
+    def _compute_is_edited(self):
+        for rec in self:
+            rec.under_revision = False
+            if rec.crossovered_budget_id.state == 'revision':
+                if rec.additional_amount > 0:
+                    rec.under_revision = True
+
     name = fields.Char(compute="_compute_line_name", store=True)
     budget_code = fields.Char('Budget Code')
     is_budget_code = fields.Boolean('Is Budget Code')
@@ -85,7 +95,15 @@ class Crossoverbudgetlines(models.Model):
         ('capex', 'Capex'),
         ('opex', 'Opex'),
     ], 'Capex/Opex',default='capex',index=True,required=True,copy=False, tracking=True)
+    department_id = fields.Many2one('hr.department',string='Department')
+    additional_amount = fields.Float('Additional Amount')
+    under_revision = fields.Boolean(string='Under Revision',default=False,compute='_compute_is_edited')
 
+    def write(self, vals):
+        if vals.get('planned_amount'):
+            message = _("Planned Amount has been Updated: from"+str(self.planned_amount)+' to '+str(vals.get('planned_amount')))
+            self.crossovered_budget_id.message_post(body=message)  # Logs message in parent Budget record
+        return super(Crossoverbudgetlines, self).write(vals)
 
     @api.depends("crossovered_budget_id", "general_budget_id", "analytic_account_id", "budget_code")
     def _compute_line_name(self):
@@ -99,3 +117,26 @@ class Crossoverbudgetlines(models.Model):
             if record.budget_code:
                 computed_name += ' - ' + record.budget_code
             record.name = computed_name
+
+
+
+class RevisionHistory(models.Model):
+    _name = 'revision.history'
+    _description = 'Revision History'
+
+
+
+    name = fields.Char(string="Sequence", required=True, copy=False, default='/')
+    budget_post_id = fields.Many2one('account.budget.post', string="Budgetary Position", required=True)
+    budget_code = fields.Char(string="Budget Code", required=True)
+    analytic_account_id = fields.Many2one('account.analytic.account', string="Analytic Account", required=True)
+    initial_allocate = fields.Float(string="Initial Allocation", required=True)
+    additional_amount = fields.Float(string="Additional Amount")
+    budget_id = fields.Many2one('crossovered.budget',string='Budget')
+    revision_date = fields.Datetime(string='Revesion Date')
+    
+    @api.model
+    def create(self, vals):
+        if 'name' not in vals or not vals.get('name'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('revision.history') or 'New'
+        return super(RevisionHistory, self).create(vals)
