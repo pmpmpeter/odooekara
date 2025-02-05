@@ -101,7 +101,7 @@ class Crossoverbudgetlines(models.Model):
 
     def write(self, vals):
         if vals.get('planned_amount'):
-            message = _("Planned Amount has been Updated: from"+str(self.planned_amount)+' to '+str(vals.get('planned_amount')))
+            message = _("Planned Amount has been Updated: from "+str(self.planned_amount)+' to '+str(vals.get('planned_amount')))
             self.crossovered_budget_id.message_post(body=message)  # Logs message in parent Budget record
         return super(Crossoverbudgetlines, self).write(vals)
 
@@ -127,10 +127,10 @@ class RevisionHistory(models.Model):
 
 
     name = fields.Char(string="Sequence", required=True, copy=False, default='/')
-    budget_post_id = fields.Many2one('account.budget.post', string="Budgetary Position", required=True)
-    budget_code = fields.Char(string="Budget Code", required=True)
-    analytic_account_id = fields.Many2one('account.analytic.account', string="Analytic Account", required=True)
-    initial_allocate = fields.Float(string="Initial Allocation", required=True)
+    budget_post_id = fields.Many2one('account.budget.post', string="Budgetary Position")
+    budget_code = fields.Char(string="Budget Code")
+    analytic_account_id = fields.Many2one('account.analytic.account', string="Analytic Account")
+    initial_allocate = fields.Float(string="Initial Allocation")
     additional_amount = fields.Float(string="Additional Amount")
     budget_id = fields.Many2one('crossovered.budget',string='Budget')
     revision_date = fields.Datetime(string='Revesion Date')
