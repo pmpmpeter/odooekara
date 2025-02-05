@@ -147,8 +147,8 @@
                                 widget="selection"
                                 readonly="is_editable == False"
                             />
-                            <field name="purchase_type"/>
-                            <field name="budget_id"  readonly="is_editable == False" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
+                            <field name="purchase_type" readonly="is_editable == False" options="{'no_open': True, 'no_quick_create':True,'no_create': True}" required="1"/>
+                            <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]" readonly="is_editable == False" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
                             <fied name="approval_state" readonly="1"/>
                         </group>
                     </group>

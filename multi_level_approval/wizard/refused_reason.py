@@ -33,7 +33,7 @@ class RefusedReason(models.TransientModel):
                 'subject': f'Revision Mail:{multi_id.origin_ref.name}',
                 'email_from':self.env.company.email ,  # Change to a valid email
                 'email_to': multi_id.origin_ref.submit_by.work_email,  # Change recipient email
-                 'body_html': f"<p>Hello, your report has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
+                 'body_html': f"<p>Hello,<br/><br/> your report has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
             })
             mail_obj.sudo().send()
         if multi_id.type_id.model_id == "purchase.request":
@@ -49,8 +49,8 @@ class RefusedReason(models.TransientModel):
             mail_obj = self.env['mail.mail'].sudo().create({
                 'subject': f'Revision Mail:{multi_id.origin_ref.name}',
                 'email_from':self.env.company.email ,  # Change to a valid email
-                'email_to': self.env.company.email,  # Change recipient email
-                 'body_html': f"<p>Hello, your purchase request has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
+                'email_to': multi_id.origin_ref.requested_by.login,  # Change recipient email
+                 'body_html': f"<p>Hello,<br/><br/> your purchase request has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
             })
             mail_obj.sudo().send()
 
