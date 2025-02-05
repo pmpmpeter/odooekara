@@ -1,6 +1,6 @@
 from odoo import models, fields, api
 from datetime import datetime,timedelta
-
+from odoo.exceptions import UserError, ValidationError
 
 class DownloadReasonWizard(models.TransientModel):
     _name = 'download.reason.wizard'

@@ -32,7 +32,9 @@ class DocumentRequest(models.Model):
     ], default='draft', string="State", tracking=True, copy=False, readonly=True)
     multi_download = fields.Boolean("Multiple Download")
     download_reason = fields.Text("Download Reason")
-    purpose = fields.Text("Purpose")
+    purpose = fields.Text("Purpose", copy=False)
+    is_watermark = fields.Boolean(string="Is Watermark",copy=False)
+    watermark_content = fields.Html(string="Watermark Content", copy=False)
 
 
     @api.model_create_multi
@@ -160,6 +162,9 @@ class DocumentRequest(models.Model):
             'generation_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'username': self.env.user.name,
             'add_watermark':True,
+            'purpose':self.purpose,
+            'is_watermark':self.is_watermark,
+            'content':self.watermark_content
         }
         report = self.env['ir.actions.report'].with_context(custom_context)._render_qweb_pdf("document_access_mgmt.action_document_report", self.document_id.id)[0]
         return base64.b64encode(report)
