@@ -167,7 +167,7 @@ class PurchaseOrderInherit(models.Model):
                 raise UserError(_("Alert !! Please select the Purchase Type for %s to confirm.")%(order.display_name))
             total_amount = order.amount_total
 
-            other_pos = self.sudo().search([
+            other_pos = self.search([
                 ('state', 'not in', ['done', 'cancel','purchase']),
                 ('id','!=',order.id)
             ])
