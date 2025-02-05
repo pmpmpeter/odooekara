@@ -19,7 +19,7 @@
                     <header>
                         <button name="action_submit_sheet"
                                 string="Submit to Manager"
-                                invisible="is_payment_approval or state != 'draft'"
+                                invisible="1"
                                 type="object"
                                 class="oe_highlight o_expense_sheet_submit"
                                 data-hotkey="l"/>

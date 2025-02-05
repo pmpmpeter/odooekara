@@ -164,7 +164,7 @@ class DocumentRequest(models.Model):
             'add_watermark':True,
             'purpose':self.purpose,
             'is_watermark':self.is_watermark,
-            'content':self.watermark_content
+            'watermark_content':self.watermark_content
         }
         report = self.env['ir.actions.report'].with_context(custom_context)._render_qweb_pdf("document_access_mgmt.action_document_report", self.document_id.id)[0]
         return base64.b64encode(report)
