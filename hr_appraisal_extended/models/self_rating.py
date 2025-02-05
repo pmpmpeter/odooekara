@@ -16,7 +16,7 @@ class SelfRating(models.Model):
     department_id = fields.Many2one('hr.department', string='Department', tracking=True,
                                     related='employee_id.department_id')
     date_of_joining = fields.Date(string='Date of Joining', tracking=True, related='employee_id.joining_date')
-    designation = fields.Char(string="Designation")
+    designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
     reporting_to_id = fields.Many2one('hr.employee', string='Reporting to', tracking=True,
                                       related='employee_id.parent_id', )
     location = fields.Selection([
@@ -30,7 +30,7 @@ class SelfRating(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
-    location_id = fields.Many2one('location.master', string="Location")
+    location_id = fields.Many2one('location.master', string="Location", required=True)
     appraisal_date = fields.Date(string='Appraisal Date', tracking=True)
     reviewer_id = fields.Many2one('hr.employee', string='Reviewer', tracking=True)
     state = fields.Selection([
@@ -183,6 +183,14 @@ class SelfRating(models.Model):
                                                 copy=False)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+
+    @api.onchange('employee_id')
+    def _onchange_employee_id(self):
+        for record in self:
+            if record.employee_id:
+                record.date_of_joining = record.sudo().employee_id.joining_date
+                record.designation_id = record.sudo().employee_id.job_id
+                record.department_id = record.sudo().employee_id.department_id
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
@@ -813,6 +821,9 @@ class SelfRating(models.Model):
     def action_director_review(self):
         """Move state to 'review_completed' after Director Review."""
         for record in self:
+            for record in self:
+                if not record.director_remark:
+                    raise ValidationError(_("You must fill in the Remark field before proceeding."))
             record.state = 'review_completed'
 
     def action_refuse_request(self):

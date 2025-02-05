@@ -29,7 +29,7 @@
                             <field name="policy_id" options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="sum_insured"/>
                             <field name="amount"/>
-                            <field name="company_id" options="{'no_quick_create':True,'no_create': True,}"/>
+                            <field name="company_id" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                         </group>
                     </group>
 

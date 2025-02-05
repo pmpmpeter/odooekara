@@ -40,7 +40,7 @@ class ExitInterview(models.Model):
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('completed', 'Completed'),
-    ], string='State', default='draft', tracking=True)
+    ], string='Status', default='draft', tracking=True)
 
     reason_for_looking_job = fields.Text(
         string='Reason for looking for a Job Outside')
@@ -115,8 +115,8 @@ class ExitInterview(models.Model):
     def _onchange_employee_id(self):
         for record in self:
             if record.employee_id:
-                record.date_of_joining = record.employee_id.joining_date
-                record.designation_id = record.employee_id.job_id
-                record.date_of_exit = record.employee_id.resign_date
-                record.email = record.employee_id.private_email
-                record.mobile = record.employee_id.private_phone
+                record.date_of_joining = record.sudo().employee_id.joining_date
+                record.designation_id = record.sudo().employee_id.job_id
+                record.date_of_exit = record.sudo().employee_id.resign_date
+                record.email = record.sudo().employee_id.private_email
+                record.mobile = record.sudo().employee_id.private_phone

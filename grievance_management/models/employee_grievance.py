@@ -12,15 +12,17 @@ class GrievanceManagement(models.Model):
     _order = 'id desc'
 
     name = fields.Char()
-    employee_id = fields.Many2one('hr.employee', string='Employee', required=True, tracking=True)
+    employee_id = fields.Many2one('hr.employee', string='Employee', required=True, tracking=True,
+                                  domain=lambda self: self._compute_employee_domain())
     manager_id = fields.Many2one('hr.employee', string='Manager', required=True, tracking=True)
+    company_id = fields.Many2one('res.company', string= 'Company', default=lambda self: self.env.company)
     representative_id = fields.Many2one('hr.employee', string='Representative', copy=False, tracking=True)
     management_representative_id = fields.Many2one('hr.employee', string='Management Representative', copy=False,
                                                    tracking=True)
     state = fields.Selection([('draft', 'Draft'),
                               ('submit', 'Submit'),
                               ('satisfied', 'Satisfied'),
-                              ('un_satisfied', 'UnSatisfied')],
+                              ('un_satisfied', 'UnSatisfied')], string='Status',
                              default='draft', copy=False, tracking=True)
     type = fields.Many2one('grievance.type.names', string='Types of Grievance', copy=False, tracking=True)
     subject = fields.Char(string='Subject', copy=False, tracking=True)
@@ -36,6 +38,15 @@ class GrievanceManagement(models.Model):
                                               string='Employee Prob', copy=False)
     employee_grievance_count = fields.Integer("Employee Prob Count",
                                               compute='_compute_employee_grievance', default=0, copy=False)
+
+    @api.model
+    def _compute_employee_domain(self):
+        """ Dynamically restrict employee selection based on user group """
+        user = self.env.user
+        if user.has_group('hr.group_hr_user') or user.has_group('hr.group_hr_manager'):
+            return []
+        else:
+            return [('user_id', '=', user.id)]
 
     @api.onchange('employee_id')
     def OnchangeEmployee(self):
@@ -110,12 +121,12 @@ class GrievanceManagement(models.Model):
         notify_type = self.env.ref("mail.mail_activity_data_todo", False)
         if not notify_type:
             return
-        if self.env.user.id in users_to_notify:
-            for user_id in users_to_notify:
-                activities = self.activity_ids.filtered(
-                    lambda a: a.activity_type_id == notify_type and a.user_id.id == user_id
-                )
-                activities._action_done(msg)
+
+        for user_id in users_to_notify:
+            activities = self.activity_ids.filtered(
+                lambda a: a.activity_type_id == notify_type and a.user_id.id == user_id
+            )
+            activities._action_done(msg)
 
         self.message_post(body=msg)
 
@@ -146,12 +157,16 @@ class GrievanceManagement(models.Model):
             raise ValidationError(_("The email template is not configured."))
 
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+
+        self.sudo().message_follower_ids.filtered(lambda f: f.partner_id.email != self.employee_id.work_email).unlink()
+
         ctx = {
             'default_model': 'grievance.management',
             'default_res_ids': self.ids,
             'default_template_id': template.id,
             'default_composition_mode': 'comment',
             'default_email_layout_xmlid': "mail.mail_notification_light",
+            'default_email_to': self.employee_id.work_email,
         }
 
         return {

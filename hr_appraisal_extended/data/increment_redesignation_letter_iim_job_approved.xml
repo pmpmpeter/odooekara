@@ -57,7 +57,7 @@
                             <tr>
                                 <td style="border: 1px solid black; padding: 8px;width: 20%;">Designation</td>
                                 <td style="border: 1px solid black; padding: 8px;">
-                                    <t t-out="object.designation"/>
+                                    <t t-out="object.designation_id.name"/>
                                 </td>
 
                             </tr>

@@ -12,6 +12,7 @@
                         icon="fa-comments"
                         string="Grievance"
                         name="action_get_employee_grievance"
+                        groups="hr.group_hr_user"
                         invisible="employee_grievance_count == 0">
                     <field name="employee_grievance_count" widget="statinfo" string="Grievance"/>
                 </button>

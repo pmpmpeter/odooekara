@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='hr_settings']" position="after">
-                <page name="insurance_ids" string="Insurance">
+                <page name="insurance_ids" string="Insurance" groups="hr.group_hr_user">
                     <group>
                         <group>
                             <field name="insurance_percentage">%</field>

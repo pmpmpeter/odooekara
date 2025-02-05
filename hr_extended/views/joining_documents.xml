@@ -87,7 +87,7 @@
                             <field name="job_position_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    readonly="state not in ('draft')"/>
                             <field name="company_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
-                                   readonly="not is_manager or state not in ('draft')"/>
+                                   readonly="1"/>
                             <field name="contact_id"
                                    invisible="document_type not in ('it_declaration','ebp_claim','bgv','epf')"
                                    readonly="not is_manager or state not in ('draft')"

@@ -57,7 +57,7 @@ class DirectorFinalRatings(models.AbstractModel):
         worksheet.write(1, 6, "New Designation (if applicable)", merge_format2)
 
         worksheet.write(2, 0, rating_id.employee_id.name, merge_format1)
-        worksheet.write(2, 1, rating_id.designation, merge_format1)
+        worksheet.write(2, 1, rating_id.designation_id.name, merge_format1)
         worksheet.write(2, 2, rating_id.manager_final_score, merge_format1)
         worksheet.write(2, 3, rating_id.recommended_increment, merge_format1)
         worksheet.write(2, 4, rating_id.recommended_pbvp_payout, merge_format1)

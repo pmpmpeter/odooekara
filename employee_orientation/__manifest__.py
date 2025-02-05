@@ -34,6 +34,7 @@
     'depends': ['base', 'hr'],
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'data/employee_training_data.xml',
         'data/orientation_request_data.xml',
         'data/employee_orientation_data.xml',

@@ -9,7 +9,18 @@ class KraMaster(models.Model):
 
     name=fields.Char(string="Name")
     details_ids = fields.One2many('kra.details', 'kra_id', string="KRA Details")
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
     active = fields.Boolean(string="Active", default=True)
+    overall_weightage = fields.Integer(string='Total Weightage', copy=False)
+    remaining = fields.Char(copy=False, redaonly=1)
+
+    @api.onchange('details_ids')
+    def onchange_weightage(self):
+        overall = 0.0
+        for rec in self.details_ids:
+            overall += rec.weightage
+        self.overall_weightage = int(overall)
+        self.remaining = "Remaining weightage %s" % (100 - int(overall))
 
     @api.constrains('details_ids')
     def _check_details_weightage(self):
@@ -53,10 +64,10 @@ class KraDetails(models.Model):
     kra_id = fields.Many2one('kra.master', string="KRA Master", ondelete='cascade')
 
     category = fields.Char(string="Category", required=True)
-    business_unit = fields.Text(string="Business Unit")
-    kra_type = fields.Char(string="KRA")
-    goal_description = fields.Char(string="Goal Description")
-    weightage = fields.Float(string="Weightage")
+    business_unit_id = fields.Many2one('business.units', string="Business Units", required=True)
+    kra_type = fields.Char(string="KRA", required=True)
+    goal_description = fields.Char(string="Goal Description", required=True)
+    weightage = fields.Float(string="Weightage", required=True)
 
     @api.constrains('weightage')
     def _validate_weightage_values(self):

@@ -47,7 +47,7 @@
                                             <t t-esc="doc.employee_id.name"/>
                                         </td>
                                         <td style="height: 70px; width: 50%">Designation:
-                                            <t t-esc="doc.designation"/>
+                                            <t t-esc="doc.designation_id.name"/>
                                         </td>
                                     </tr>
                                     <tr>

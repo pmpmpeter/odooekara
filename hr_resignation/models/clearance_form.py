@@ -19,7 +19,7 @@ class ClearanceForm(models.Model):
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('completed', 'Completed'),
-    ], string='State', default='draft', tracking=True)
+    ], string='Status', default='draft', tracking=True)
     asset_ids = fields.One2many('clearance.asset', 'clearance_form_id', string='Assets')
     function_head_ids = fields.One2many('clearance.function.head', 'clearance_form_id',
                                         string='Clearance by Function Heads')

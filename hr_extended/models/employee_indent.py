@@ -340,73 +340,91 @@ class EmployeeIndent(models.Model):
         # To make the reapprove functionality and then stop raising error if multi approval not installed
         if hasattr(self, 'x_has_request_approval'):
             self.x_has_request_approval = False
-            # passing two level approvers from employee.indent others(>2) are static
-            approval_type_model = self.env['multi.approval.type']
-            approval_type_line_model = self.env['multi.approval.type.line']
 
-            for record in self:
-                approval_type = approval_type_model.search([
-                    ('model_id', '=', 'employee.indent'),
-                    ('domain', 'ilike', '"state"')
-                ], limit=1)
+        for record in self:
+            unit_head_user = record.unit_head_id.id
+            recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+            director_approval_user = record.director_approval_id.id
 
-                # if not approval_type:
-                #     raise ValueError("No matching approval type found for the Employee Indent.")
-                if approval_type and approval_type.state == 'confirm':
-                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)], limit=2)
+            if not unit_head_user:
+                raise UserError("Recruitment SPOC Manager does not have a corresponding user.")
 
-                    while len(lines) < 2:
-                        # Create missing lines
-                        new_line = approval_type_line_model.create({
-                            'type_id': approval_type.id,
-                            'name': f"L{len(lines) + 1}",
-                            'sequence': len(lines) + 1,  # Assign a sequence for clarity
-                        })
-                        lines += new_line
+            if not recruitment_spoc_mgr_user:
+                raise UserError("Recruitment SPOC Manager does not have a corresponding user.")
 
-                    # if len(lines) != 2:
-                    #     raise ValueError(
-                    #         "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
+            if not director_approval_user:
+                raise UserError("Director Approval does not have a corresponding user.")
 
-                    for index, line in enumerate(lines):
-                        line.write({
-                            'user_id': [(6, 0, [])]
-                        })
-                        if index == 0:
-                            unit_head_user = record.unit_head_id.id
-                            recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+            record.submit_date = fields.Datetime.now()
+            record.state = 'waiting_approval'
 
-                            if unit_head_user and recruitment_spoc_mgr_user:
-                                line.write({
-                                    'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
-                                })
-                            else:
-                                raise ValueError(
-                                    "Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
-                            print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+            # # passing two level approvers from employee.indent others(>2) are static
+            # approval_type_model = self.env['multi.approval.type']
+            # approval_type_line_model = self.env['multi.approval.type.line']
+            #
+            # for record in self:
+            #     approval_type = approval_type_model.search([
+            #         ('model_id', '=', 'employee.indent'),
+            #         ('domain', 'ilike', '"state"')
+            #     ], limit=1)
+            #
+            #     # if not approval_type:
+            #     #     raise ValueError("No matching approval type found for the Employee Indent.")
+            #     if approval_type and approval_type.state == 'confirm':
+            #         lines = approval_type_line_model.search([('type_id', '=', approval_type.id)], limit=2)
+            #
+            #         while len(lines) < 2:
+            #             # Create missing lines
+            #             new_line = approval_type_line_model.create({
+            #                 'type_id': approval_type.id,
+            #                 'name': f"L{len(lines) + 1}",
+            #                 'sequence': len(lines) + 1,  # Assign a sequence for clarity
+            #             })
+            #             lines += new_line
+            #
+            #         # if len(lines) != 2:
+            #         #     raise ValueError(
+            #         #         "There must be exactly two records in 'multi.approval.type.line' with the same 'type_id'.")
+            #
+            #         for index, line in enumerate(lines):
+            #             line.write({
+            #                 'user_id': [(6, 0, [])]
+            #             })
+            #             if index == 0:
+            #                 unit_head_user = record.unit_head_id.id
+            #                 recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+            #
+            #                 if unit_head_user and recruitment_spoc_mgr_user:
+            #                     line.write({
+            #                         'user_id': [(4, unit_head_user), (4, recruitment_spoc_mgr_user)]
+            #                     })
+            #                 else:
+            #                     raise ValueError(
+            #                         "Unit Head or Recruitment SPOC Manager does not have a corresponding user.")
+            #                 print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+            #
+            #             elif index == 1:
+            #                 director_approval_user = record.director_approval_id.id
+            #
+            #                 if director_approval_user:
+            #                     line.write({
+            #                         'user_id': [(4, director_approval_user)]
+            #                     })
+            #                 else:
+            #                     raise ValueError("Director Approval does not have a corresponding user.")
+            #                 print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
+            #
+            #         record.state = 'waiting_approval'
+            #         record.submit_date = fields.Datetime.now()
+            #
+            #     else:
+            #         record.state = 'waiting_approval'
+            #         record.submit_date = fields.Datetime.now()
 
-                        elif index == 1:
-                            director_approval_user = record.director_approval_id.id
-
-                            if director_approval_user:
-                                line.write({
-                                    'user_id': [(4, director_approval_user)]
-                                })
-                            else:
-                                raise ValueError("Director Approval does not have a corresponding user.")
-                            print(f"Line ID: {line.id}, Updated User IDs: {line.user_id}")
-
-                    record.state = 'waiting_approval'
-                    record.submit_date = fields.Datetime.now()
-
-                else:
-                    record.state = 'waiting_approval'
-                    record.submit_date = fields.Datetime.now()
-
-        else:
-            for record in self:
-                record.state = 'waiting_approval'
-                record.submit_date = fields.Datetime.now()
+        # else:
+        #     for record in self:
+        #         record.state = 'waiting_approval'
+        #         record.submit_date = fields.Datetime.now()
 
     def action_open(self):
         for record in self:

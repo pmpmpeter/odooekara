@@ -3,13 +3,14 @@
     <data>
 
         <record id="mail_probation_confirmation_mailsss" model="mail.template">
-            <field name="name">Probation Conformation Letter</field>
+            <field name="name">Probation Confirmation Letter</field>
             <field name="model_id" ref="emp_prob_extended.model_employee_probation"/>
-            <!--            <field name="email_from">{{ object.employee_id.work_email }}</field>-->
+            <!--<field name="email_from">{{ object.employee_id.work_email }}</field>-->
             <field name="email_to">{{object.employee_id.work_email}}</field>
             <field name="subject">Probation Confirmation Letter</field>
             <field name="body_html" type="html">
-                <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width:40%">
+                <!--<div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width:40%">-->
+                <div>
                     <t t-set="current_date" t-value="time.strftime('%Y-%m-%d')"/>
                     <p>Date:
                         <t t-esc="current_date"/>

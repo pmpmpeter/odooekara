@@ -8,6 +8,25 @@
                 <search string="Search Activities">
                     <filter string="My Request" name="my_request"
                             domain="['|',('employee_id.user_id','=',uid),('manager_id.user_id','=',uid)]"/>
+                    <separator/>
+                    <filter string="Draft" name="show_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Submit" name="show_submit" domain="[('state', '=', 'submit')]"/>
+                    <separator/>
+                    <filter string="Satisfied" name="show_satisfied" domain="[('state', '=', 'satisfied')]"/>
+                    <filter string="UnSatisfied" name="show_unsatisfied" domain="[('state', '=', 'un_satisfied')]"/>
+                    <separator/>
+                    <filter string="Create Date" name="filter_create_date" date="create_date"/>
+
+                    <field name="employee_id" string="Employee Name"/>
+                    <field name="manager_id" string="Manager Name"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Employee" name="group_by_employee"
+                                context="{'group_by':'employee_id'}"/>
+                        <filter string="Manager" name="group_by_manager"
+                                context="{'group_by':'manager_id'}"/>
+                        <separator/>
+                        <filter string="Status" name="group_by_state" context="{'group_by':'state'}"/>
+                    </group>
                 </search>
             </field>
         </record>

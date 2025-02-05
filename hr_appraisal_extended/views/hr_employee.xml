@@ -11,6 +11,7 @@
                         icon="fa-user-plus"
                         string="360 Performance"
                         name="action_get_employee_three60_performance"
+                        groups="hr_appraisal.group_hr_appraisal_user"
                         invisible="employee_three60_performance_count == 0">
                     <field name="employee_three60_performance_count" widget="statinfo" string="360 Performance"/>
                 </button>

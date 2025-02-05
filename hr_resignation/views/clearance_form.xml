@@ -28,11 +28,11 @@
                             class="oe_highlight" invisible="state != 'submitted'"
                     />
                     <button name="clearance_form_draft" string="Reset to Draft" type="object"
-                            class="oe_highlight" invisible="state != 'completed'"
+                            class="btn-secondary" invisible="state != 'completed'"
                     />
                     <button string="Print" type="action"
                             name="%(hr_resignation.clearance_form_report)d" class="btn-primary"
-                            invisible="state in ('draft')"/>
+                            invisible="state != 'completed'"/>
                 </header>
                 <sheet>
                     <group>
@@ -93,7 +93,7 @@
               parent="hr_resignation.hr_resignation_menu_root"
               name="Clearance Form"
               action="clearance_form_action"
-              sequence="8"
+              sequence="8" groups="hr.group_hr_user"
     />
 </odoo>
 

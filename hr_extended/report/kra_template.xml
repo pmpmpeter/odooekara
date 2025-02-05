@@ -77,7 +77,7 @@
                                         <t t-esc="detail.category"/>
                                     </td>
                                     <td style="padding: 10px;">
-                                        <t t-esc="detail.business_unit"/>
+                                        <t t-esc="detail.business_unit_id.name"/>
                                     </td>
                                     <td style="padding: 10px;">
                                         <t t-esc="detail.kra_type"/>

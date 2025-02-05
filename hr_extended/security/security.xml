@@ -3,7 +3,7 @@
      License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl-3.0) -->
 <odoo>
 
-     <record id="employee_indent_comp_rule" model="ir.rule">
+    <record id="employee_indent_comp_rule" model="ir.rule">
         <field name="name">Employee Indent multi-company</field>
         <field name="model_id" ref="model_employee_indent"/>
         <field name="domain_force">[('organization', 'in', company_ids)]</field>
@@ -13,6 +13,54 @@
         <field name="name">Joining Documents multi-company</field>
         <field name="model_id" ref="model_employee_join_doc_config"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="ir_rule_employee_kra_company" model="ir.rule">
+        <field name="name">Employee KRA: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_employee_kra"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_joining_documents_company" model="ir.rule">
+        <field name="name">Joining Documents: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_joining_documents"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_kra_master_company" model="ir.rule">
+        <field name="name">KRA Master: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_kra_master"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_hr_position_names_company" model="ir.rule">
+        <field name="name">HR Position Names: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_hr_position_names"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_hr_job_levels_company" model="ir.rule">
+        <field name="name">HR Job Levels: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_hr_job_levels"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_business_units_company" model="ir.rule">
+        <field name="name">Business Units: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_business_units"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_location_master_company" model="ir.rule">
+        <field name="name">Location Master: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_location_master"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_assets_category_company" model="ir.rule">
+        <field name="name">Assets Category: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_assets_category"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
     </record>
 
 
@@ -33,9 +81,7 @@
     <record id="joining_document_rule_hr" model="ir.rule">
         <field name="name">Joining Document - HR</field>
         <field name="model_id" ref="hr_extended.model_joining_documents"/>
-        <field name="domain_force">
-            [('employee_id.user_id','=',user.id)]
-        </field>
+        <field name="domain_force">[(1,'=',1)]</field>
         <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
     </record>
     <record id="joining_document_rule_manager" model="ir.rule">
@@ -58,9 +104,7 @@
     <record id="employee_kra_rule_hr" model="ir.rule">
         <field name="name">Employee KRA - HR</field>
         <field name="model_id" ref="hr_extended.model_employee_kra"/>
-        <field name="domain_force">
-            [('employee_id.user_id','=',user.id)]
-        </field>
+        <field name="domain_force">[(1,'=',1)]</field>
         <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
     </record>
     <record id="employee_kra_rule_manager" model="ir.rule">
@@ -89,6 +133,8 @@
         <field name="domain_force">[(1,'=',1)]</field>
         <field name="groups" eval="[(4, ref('hr.group_hr_user'))]"/>
     </record>
+
+    <!-- Confirmation needed to commented -->
     <record id="hr_employee_rule_user" model="ir.rule">
         <field name="name">Employee User</field>
         <field name="model_id" ref="hr.model_hr_employee"/>

@@ -8,13 +8,14 @@ from odoo.exceptions import *
 class ProbationReviewForm(models.Model):
     _name = 'prob.review.form'
     _description = 'Probation Review Form'
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
     employee_probation_id = fields.Many2one('employee.probation', string='Employee Probation')
 
     employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
     job_title_id = fields.Many2one('hr.job', string='Job Title', tracking=True)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
     grade = fields.Char(string='Grade', tracking=True)
     department_id = fields.Many2one('hr.department', string='Department / Section', tracking=True)
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
@@ -31,7 +32,8 @@ class ProbationReviewForm(models.Model):
         ('review1_done', 'Review 1 Done'),
         ('review2_done', 'Review 2 Done'),
         ('done', 'Done'),
-    ], string='State', default='draft', tracking=True)
+        ('cancel','Cancelled'),
+    ], string='Status', default='draft', tracking=True)
 
     REVIEW_RATING_SELECTION = [
         ('improvement_required', 'Improvement required'),
@@ -140,6 +142,39 @@ class ProbationReviewForm(models.Model):
         string='Is the employee receive the confirm letter?',
         default='no')
 
+    probation_form_ids = fields.Many2many(
+        'employee.probation',
+        compute='_compute_probation_forms',
+        string='Probation Forms',
+        copy=False
+    )
+    probation_form_count = fields.Integer(
+        "Probation Form Count",
+        compute='_compute_probation_forms',
+        default=0,
+        copy=False
+    )
+
+    def _compute_probation_forms(self):
+        for record in self:
+            domain = [('review_form_id', '=', record.id)]
+            probation_forms = self.env['employee.probation'].sudo().search(domain)
+            record.probation_form_ids = probation_forms
+            record.probation_form_count = len(probation_forms)
+
+    def action_open_probation_forms(self):
+        action = self.env.ref('emp_prob_extended.employee_probation_action')
+        result = action.sudo().read()[0]
+        result.pop('id', None)
+        result['context'] = {}
+        if len(self.probation_form_ids.ids) > 1:
+            result['domain'] = "[('id','in',[" + ','.join(map(str, self.probation_form_ids.ids)) + "])]"
+        elif len(self.probation_form_ids.ids) == 1:
+            res = self.env.ref('emp_prob_extended.employee_probation_form_view',False)
+            result['views'] = [(res and res.id or False, 'form')]
+            result['res_id'] = self.probation_form_ids.ids and self.probation_form_ids.ids[0] or False
+        return result
+
     def mark_review1_done(self):
         for record in self:
             record.state = 'review1_done'
@@ -152,6 +187,18 @@ class ProbationReviewForm(models.Model):
         for record in self:
             record.state = 'done'
 
+    def reset_to_draft(self):
+        for record in self:
+            record.state = 'draft'
+            if record.employee_probation_id:
+                record.employee_probation_id.write({'state': 'draft'})
+
+    def mark_cancel(self):
+        for record in self:
+            record.state = 'cancel'
+            if record.employee_probation_id:
+                record.employee_probation_id.write({'state': 'cancel'})
+
     def unlink(self):
         for record in self:
             if record.state != 'draft':
@@ -162,9 +209,9 @@ class ProbationReviewForm(models.Model):
         res = super(ProbationReviewForm, self).write(vals)
         if 'state' in vals and self.employee_probation_id:
             if vals['state'] == 'done':
-                self.employee_probation_id.state = 'review'
-            else:
-                self.employee_probation_id.state = 'draft'
+                self.employee_probation_id.write({'state': 'review'})
+            # else:
+            #     self.employee_probation_id.state = 'draft'
         return res
 
     def print_employee_probation_review_form(self):

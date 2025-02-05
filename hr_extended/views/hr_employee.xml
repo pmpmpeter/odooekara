@@ -95,7 +95,7 @@
                 <field name="blood_group"/>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="before">
-                <page string="Insurance Details">
+                <page string="Insurance Details" groups="hr.group_hr_user">
                     <group>
                         <field name="employee_master_insurance_ids">
                             <tree>
@@ -111,7 +111,7 @@
                         </field>
                     </group>
                 </page>
-                <page string="Assets">
+                <page string="Assets" groups="hr.group_hr_user">
                     <field name="assets_ids">
                         <tree editable="bottom">
                             <field name="category_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
@@ -121,7 +121,7 @@
                 </page>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="after">
-                <page name="leaving_details" string="Leaving Details"
+                <page name="leaving_details" string="Leaving Details" groups="hr.group_hr_user"
                       invisible="state not in ('notice_period','relieved','terminate')">
                     <group string="Employee Exit Information">
                         <field name="last_working_day_current"/>
@@ -131,7 +131,7 @@
                     </group>
                 </page>
 
-                <page name="leave_documents" string="Leave and Documents">
+                <page name="leave_documents" string="Leave and Documents" groups="hr.group_hr_user">
                     <group>
                         <group string="Leave Details">
                             <field name="casual_leave" string="Casual Leave"/>
@@ -171,6 +171,7 @@
                         icon="fa-file-text"
                         string="Joining Documents"
                         name="action_get_joining_documents"
+                        groups="hr.group_hr_user"
                         invisible="joining_documents_count == 0">
                     <field name="joining_documents_count" widget="statinfo" string="Joining Documents"/>
                 </button>
@@ -179,6 +180,7 @@
                         icon="fa-file-text"
                         string="Project"
                         name="action_get_project_task"
+                        groups="hr.group_hr_user"
                         invisible="project_count == 0">
                     <field name="project_count" widget="statinfo" string="Project"/>
                 </button>
@@ -234,15 +236,19 @@
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_send_appraisal_request'][1]"
                    position="attributes">
-                <attribute name="invisible">parent_user_id != uid and ongoing_appraisal_count != 0 or state in ('relieved','terminate')
+                <attribute name="invisible">1
                 </attribute>
             </xpath>
             <xpath expr="//button[@name='action_send_appraisal_request'][2]"
                    position="attributes">
-                <attribute name="invisible">ongoing_appraisal_count != 0 or state in ('relieved','terminate')
+                <attribute name="invisible">1
                 </attribute>
             </xpath>
         </field>
+    </record>
+
+     <record id="base.menu_apps" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
     </record>
 
 

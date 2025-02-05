@@ -63,7 +63,7 @@ class InterviewAssessment(models.Model):
     )
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('done', 'Done'), ], default='draft', string='State')
+        ('done', 'Done'), ], default='draft', string='Status')
     start_time = fields.Datetime(string="Start Time")
     end_time = fields.Datetime(string="End Time")
     adjusted_time_start = fields.Datetime('Adjusted Time Start', compute='_compute_adjusted_time')

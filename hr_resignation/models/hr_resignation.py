@@ -185,49 +185,59 @@ class HrResignation(models.Model):
         This sets up an approval workflow and updates the resignation state.
         """
         for resignation in self:
+            #handling the approvers in request_approval.py in multi approval
+            #handling the state change in mail_compose_message.py in hr resignation
             if hasattr(self, 'x_has_request_approval'):
                 self.x_has_request_approval = False
 
-                approval_type_model = self.env['multi.approval.type']
-                approval_type_line_model = self.env['multi.approval.type.line']
+            manager_id = resignation.employee_parent_id.user_id.id
+            if not manager_id:
+                raise ValidationError("Manager does not have a corresponding user.")
 
-                approval_type = approval_type_model.search([
-                    ('model_id', '=', 'hr.resignation'),
-                    ('domain', 'ilike', '"state"')
-                ], limit=1)
+            hr_coach_id = resignation.coach_id.user_id.id
+            if not hr_coach_id:
+                raise ValidationError("HR Coach does not have a corresponding user.")
 
-                if approval_type and approval_type.state == 'confirm':
-                    lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                # approval_type_model = self.env['multi.approval.type']
+                # approval_type_line_model = self.env['multi.approval.type.line']
+                #
+                # approval_type = approval_type_model.search([
+                #     ('model_id', '=', 'hr.resignation'),
+                #     ('domain', 'ilike', '"state"')
+                # ], limit=1)
+                #
+                # if approval_type and approval_type.state == 'confirm':
+                #     lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+                #
+                #     while len(lines) < 2:
+                #         new_line = approval_type_line_model.create({
+                #             'type_id': approval_type.id,
+                #             'name': f"L{len(lines) + 1}",
+                #             'sequence': len(lines) + 1,
+                #         })
+                #         lines += new_line
+                #
+                #     for index, line in enumerate(lines):
+                #
+                #         if index == 0:
+                #             line.user_id = [(6, 0, [])]
+                #             manager_id = resignation.employee_parent_id.user_id.id
+                #             if manager_id:
+                #                 line.user_id = [(4, manager_id)]
+                #             else:
+                #                 raise ValidationError("Manager does not have a corresponding user.")
+                #
+                #         elif index == 1:
+                #             line.user_id = [(6, 0, [])]
+                #             hr_coach_id = resignation.coach_id.user_id.id
+                #             if hr_coach_id:
+                #                 line.user_id = [(4, hr_coach_id)]
+                #             else:
+                #                 raise ValidationError("HR Coach does not have a corresponding user.")
 
-                    while len(lines) < 2:
-                        new_line = approval_type_line_model.create({
-                            'type_id': approval_type.id,
-                            'name': f"L{len(lines) + 1}",
-                            'sequence': len(lines) + 1,
-                        })
-                        lines += new_line
-
-                    for index, line in enumerate(lines):
-
-                        if index == 0:
-                            line.user_id = [(6, 0, [])]
-                            manager_id = resignation.employee_parent_id.user_id.id
-                            if manager_id:
-                                line.user_id = [(4, manager_id)]
-                            else:
-                                raise ValidationError("Manager does not have a corresponding user.")
-
-                        elif index == 1:
-                            line.user_id = [(6, 0, [])]
-                            hr_coach_id = resignation.coach_id.user_id.id
-                            if hr_coach_id:
-                                line.user_id = [(4, hr_coach_id)]
-                            else:
-                                raise ValidationError("HR Coach does not have a corresponding user.")
-
-                    # resignation.state = 'confirm'
-                else:
-                    raise ValidationError("No Approval Type found for this Separation Model.")
+                #     # resignation.state = 'confirm'
+                # else:
+                #     raise ValidationError("No Approval Type found for this Separation Model.")
 
             # handling the state and resign_confirm_date move in mail_compose_message.py
             # resignation.state = 'confirm'

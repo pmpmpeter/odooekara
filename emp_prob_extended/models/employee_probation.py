@@ -39,20 +39,22 @@ class Employee(models.Model):
 class EmployeeProbation(models.Model):
     _name = 'employee.probation'
     _description = 'Employee Probation'
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char('Sequence', readonly=True, index=True, default=lambda self: _('New'))
-    employee_id = fields.Many2one('hr.employee', 'Employee')
+    employee_id = fields.Many2one('hr.employee', 'Employee', domain=lambda self: self._compute_employee_domain())
     email = fields.Char('Email', related='employee_id.work_email')
     department_id = fields.Many2one('hr.department', 'Department', related='employee_id.department_id')
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
     parent_id = fields.Many2one('hr.employee', 'Manager', related='employee_id.parent_id')
     employee_reviews_ids = fields.One2many('employee.reviews.details', 'probation_id', 'Employee Reviews')
     state = fields.Selection([
         ('draft', 'Draft'),
+        ('in_progress', 'In Progress'),
         ('review', 'Reviewed'),
         ('confirm', 'Confirmed'),
         ('cancel', 'Canceled'),
-    ], string='State', default='draft', required=True, tracking=True)
+    ], string='Status', default='draft', required=True, tracking=True)
 
     based_on = fields.Selection([
         ('months', 'Months'),
@@ -83,6 +85,15 @@ class EmployeeProbation(models.Model):
     number_of_months = fields.Integer(string='Number of Months', default=6, store=True, copy=False)
     number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
     review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
+
+    @api.model
+    def _compute_employee_domain(self):
+        """ Dynamically restrict employee selection based on user group """
+        user = self.env.user
+        if user.has_group('hr.group_hr_user') or user.has_group('hr.group_hr_manager'):
+            return []
+        else:
+            return [('user_id', '=', user.id)]
 
     @api.depends('employee_id')
     def _compute_start_date(self):
@@ -164,6 +175,9 @@ class EmployeeProbation(models.Model):
                 raise UserError(_("Probation Confirmation template not found."))
 
             compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+            self.sudo().message_follower_ids.filtered(
+                lambda f: f.partner_id.email != self.employee_id.work_email).unlink()
+
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
@@ -174,6 +188,7 @@ class EmployeeProbation(models.Model):
                 default_composition_mode='comment',
                 default_email_layout_xmlid="mail.mail_notification_light",
                 default_attachment_ids=[attachment.id],
+                default_email_to = self.employee_id.work_email,
             )
             return {
                 'name': _('Compose Probation Confirmation Email'),
@@ -187,46 +202,45 @@ class EmployeeProbation(models.Model):
             }
 
     def employee_probation_cancel(self):
-        self.state = 'cancel'
+        for record in self:
+            record.state = 'cancel'
+            if record.review_form_id:
+                record.review_form_id.write({'state': 'cancel'})
 
     def employee_probation_review(self):
         for record in self:
             if not record.employee_id:
                 raise UserError("Please select an employee to create the probation review form.")
 
+            record.state = 'in_progress'
+
             existing_form = self.env['prob.review.form'].search([('employee_probation_id', '=', record.id)], limit=1)
 
             if existing_form:
+                record.review_form_id = existing_form.id
+            else:
+                review_form = self.env['prob.review.form'].create({
+                    'employee_id': record.employee_id.id,
+                    'job_title_id': record.employee_id.job_id.id,
+                    'department_id': record.employee_id.department_id.id,
+                    'date_of_joining': record.start_date,
+                    'reporting_manager_id': record.employee_id.parent_id.id,
+                    'reporting_manager_designation_id': record.employee_id.parent_id.job_id.id,
+                    'employee_probation_id': record.id,
+                })
+                record.review_form_id = review_form.id
+
+            if self.env.user.has_group('emp_prob_extended.group_employee_probation_manager'):
                 return {
                     'type': 'ir.actions.act_window',
                     'name': 'Probation Review Form',
                     'res_model': 'prob.review.form',
                     'view_mode': 'form',
-                    'res_id': existing_form.id,
+                    'res_id': record.review_form_id.id,
                     'target': 'current',
                 }
 
-            review_form = self.env['prob.review.form'].create({
-                'employee_id': record.employee_id.id,
-                'job_title_id': record.employee_id.job_id.id,
-                'department_id': record.employee_id.department_id.id,
-                'date_of_joining': record.start_date,
-                'reporting_manager_id': record.employee_id.parent_id.id,
-                'reporting_manager_designation_id': record.employee_id.parent_id.job_id.id,
-                'employee_probation_id': record.id,
-            })
-
-            record.review_form_id = review_form.id
-            # record.state = 'review'
-
-            return {
-                'type': 'ir.actions.act_window',
-                'name': 'Probation Review Form',
-                'res_model': 'prob.review.form',
-                'view_mode': 'form',
-                'res_id': review_form.id,
-                'target': 'current',
-            }
+            return
 
     def _compute_review_forms(self):
         for record in self:

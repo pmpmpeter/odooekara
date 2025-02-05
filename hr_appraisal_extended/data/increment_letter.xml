@@ -27,7 +27,7 @@
                         </span>
                         <br/>
                         <span style="font-weight:bold;">Designation:
-                            <t t-out="object.designation"/>
+                            <t t-out="object.designation_id.name"/>
                         </span>
                         <br/>
                         <span style="font-weight:bold;">Job Level:

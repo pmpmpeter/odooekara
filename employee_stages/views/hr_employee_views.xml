@@ -31,7 +31,7 @@
                        statusbar_visible="joined,grounding,employment"/>
             </xpath>
             <page name="hr_settings" position="after">
-                <page name="stage_history" string="Status History">
+                <page name="stage_history" string="Status History" groups="hr.group_hr_user">
                     <field name="stages_history_ids">
                         <tree>
                             <field name="state"/>

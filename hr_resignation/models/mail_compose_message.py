@@ -24,7 +24,7 @@ class MailComposeMessage(models.TransientModel):
                             resignation.state = 'confirm'
                             resignation.resign_confirm_date = fields.Datetime.now()
                     except (SyntaxError, ValueError):
-                        print("not wroking")
+                        print("not working")
 
             if wizard.template_id and wizard.template_id.id == template_resignation_rejection_letter.id:
                 if wizard.model == 'hr.resignation' and wizard.res_ids:
@@ -34,7 +34,7 @@ class MailComposeMessage(models.TransientModel):
                             resignation = self.env['hr.resignation'].browse(res_id)
                             resignation.state = 'cancel'
                     except (SyntaxError, ValueError):
-                        print("not wroking")
+                        print("not working")
 
             # if wizard.template_id and wizard.template_id.id == template_resignation_hr_approve_letter.id:
             #     if wizard.model == 'hr.resignation' and wizard.res_ids:

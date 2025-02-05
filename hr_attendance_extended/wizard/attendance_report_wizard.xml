@@ -6,7 +6,8 @@
             <form string="Report">
                 <group>
                     <field name="report_type"/>
-                    <field name="company_id" options="{'no_quick_create':True,'no_create': True,}" readonly="1"/>
+                    <field name="company_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
+                           readonly="1"/>
                     <field name="start_date" invisible="report_type == 'form_t'" required="0"/>
                     <field name="end_date" invisible="report_type == 'form_t'" required="0"/>
                     <field name="month" invisible="report_type != 'form_t'"/>

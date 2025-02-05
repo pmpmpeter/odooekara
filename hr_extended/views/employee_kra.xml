@@ -14,14 +14,14 @@
                     <button name="send_email" string="Send Email" type="object"
                             class="btn-primary" invisible="state not in ('draft')"/>
                     <button name="action_reset" string="Reset to Draft" type="object"
-                            invisible="state in ('draft','done')"/>
+                            invisible="state in ('draft','done','cancel')"/>
                     <button name="action_approve" string="Approve" type="object" class="btn-primary"
                             invisible="state not in ('submit_to_supervisor')"
                             groups="hr_recruitment.group_hr_recruitment_manager"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                            invisible="state not in ('submit_to_supervisor','done')"/>
+                            invisible="state not in ('submit_to_supervisor')"/>
                     <button name="%(hr_extended.employee_kra_template_pdf)d" string="Print"
-                            class="btn-primary" type="action"/>
+                            class="btn-primary" type="action" invisible="state in ('draft','cancel')"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,submit_to_supervisor,done"/>
                 </header>
@@ -30,9 +30,9 @@
                         <group>
                             <field name="employee_id" required="True"
                                    options="{'no_quick_create':True,'no_create': True,'no_open': True}"
-                                   readonly="state not in ('draft')"/>
-                            <field name="employee_parent_id" readonly="state not in ('draft')" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
-                            <field name="kra_date" required="True" readonly="state not in ('draft')"/>
+                                   readonly="state not in ('draft', 'cancel')"/>
+                            <field name="employee_parent_id" readonly="state not in ('draft', 'cancel')" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
+                            <field name="kra_date" required="True" readonly="state not in ('draft', 'cancel')"/>
                         </group>
                         <group>
                             <field name="emp_job_id" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
@@ -43,13 +43,13 @@
                     </group>
                     <notebook>
                         <page string="KRA">
-                            <field name="kra_details_ids" readonly="state not in ('draft')">
+                            <field name="kra_details_ids" readonly="state not in ('draft', 'cancel')">
                                 <tree editable="bottom">
-                                    <field name="category" readonly="parent.state not in ('draft')"/>
-                                    <field name="business_unit" readonly="parent.state not in ('draft')"/>
-                                    <field name="kra_type" readonly="parent.state not in ('draft')" required="True"/>
-                                    <field name="goal_description" readonly="parent.state not in ('draft')" required="True"/>
-                                    <field name="weightage" readonly="parent.state not in ('draft')"/>
+                                    <field name="category" readonly="parent.state not in ('draft', 'cancel')"/>
+                                    <field name="business_unit_id" readonly="parent.state not in ('draft', 'cancel')"/>
+                                    <field name="kra_type" readonly="parent.state not in ('draft', 'cancel')" required="True"/>
+                                    <field name="goal_description" readonly="parent.state not in ('draft', 'cancel')" required="True"/>
+                                    <field name="weightage" readonly="parent.state not in ('draft', 'cancel')"/>
                                     <!-- <field name="employee_rating" readonly="parent.state not in ('draft')"/>-->
                                     <!-- <field name="employee_remark" readonly="parent.state not in ('draft')"/>-->
                                     <!-- <field name="manager_rating" readonly="parent.state not in ('draft', 'submit_to_supervisor')" groups="hr_recruitment.group_hr_recruitment_user"/>-->
@@ -113,7 +113,7 @@
                     <filter string="State" name="group_by_state" context="{'group_by':'state'}"/>
                 </group>
 
-                <field name="employee_id" string="Name"/>
+                <field name="employee_id" string="Employee Name"/>
                 <field name="emp_job_id" string="Job Position"/>
                 <field name="kra_master" string="KRA"/>
             </search>

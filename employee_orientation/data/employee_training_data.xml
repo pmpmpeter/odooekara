@@ -82,8 +82,8 @@
             <field name="name">Training Confirmation Email</field>
             <field name="model_id" ref="model_employee_training"/>
             <field name="subject">Training Confirmation</field>
-            <field name="email_from">${object.program_convener_id.email or ''}</field>
-            <field name="email_to">${object.user_id.email or ''}</field>
+            <field name="email_from">{object.program_convener_id.email or ''}</field>
+            <field name="email_to">{object.user_id.email or ''}</field>
             <field name="body_html">
                 <![CDATA[
         <p>Hello,</p>

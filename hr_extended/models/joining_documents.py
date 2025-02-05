@@ -40,7 +40,7 @@ class JoiningDocuments(models.Model):
          ('she_nda', 'SHE NDA- 2022 updated Form')],
         string="Document Type")
 
-    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
 
@@ -255,6 +255,8 @@ class JoiningDocuments(models.Model):
             'res_id': self.id,
         })
 
+        self.sudo().message_follower_ids.filtered(lambda f: f.partner_id.email != self.contact_id.email).unlink()
+
         ctx = dict(
             default_model='joining.documents',
             default_res_ids=self.ids,
@@ -279,39 +281,41 @@ class JoiningDocuments(models.Model):
         self.ensure_one()
         if not self.document_type:
             raise UserError("Please select a Document Type before printing.")
-
-        return self.env.ref('hr_extended.report_joining_doc_form_template').report_action(self)
+        if self.document_type == 'gmc':
+            return self.env.ref('hr_extended.get_cmg_and_gpa_details').report_action(self)
+        else:
+            return self.env.ref('hr_extended.report_joining_doc_form_template').report_action(self)
 
         
-    def _print_she_nda(self):
-        return self.env.ref('hr_extended.nda_form_template').report_action(self)
-
-    def _print_app_order_form(self):
-        return self.env.ref('hr_extended.appointment_order_form_template').report_action(self)
-
-    def _print_code_of_conduct(self):
-        return self.env.ref('hr_extended.code_of_conduct_template').report_action(self)
-
-    def _print_consent(self):
-        return self.env.ref('hr_extended.consent_form_template').report_action(self)
-
-    def _print_criminal_case(self):
-        return self.env.ref('hr_extended.criminal_case_form_template').report_action(self)
-
-    def _print_emp_verifi_form(self):
-        return self.env.ref('hr_extended.employee_verification_form_template').report_action(self)
-
-    def _print_ex_media_comm(self):
-        return self.env.ref('hr_extended.media_declare_form_template').report_action(self)
-
-    def _print_pf_nomination(self):
-        return self.env.ref('hr_extended.report_nomination_form_template').report_action(self)
-
-    def _print_gmc_gpa_details(self):
-        return self.env.ref('hr_extended.get_cmg_and_gpa_details').report_action(self)
-
-    def _print_nda_details(self):
-        return self.env.ref('hr_extended.report_nda_intellectual_property_form_template').report_action(self)
+    # def _print_she_nda(self):
+    #     return self.env.ref('hr_extended.nda_form_template').report_action(self)
+    #
+    # def _print_app_order_form(self):
+    #     return self.env.ref('hr_extended.appointment_order_form_template').report_action(self)
+    #
+    # def _print_code_of_conduct(self):
+    #     return self.env.ref('hr_extended.code_of_conduct_template').report_action(self)
+    #
+    # def _print_consent(self):
+    #     return self.env.ref('hr_extended.consent_form_template').report_action(self)
+    #
+    # def _print_criminal_case(self):
+    #     return self.env.ref('hr_extended.criminal_case_form_template').report_action(self)
+    #
+    # def _print_emp_verifi_form(self):
+    #     return self.env.ref('hr_extended.employee_verification_form_template').report_action(self)
+    #
+    # def _print_ex_media_comm(self):
+    #     return self.env.ref('hr_extended.media_declare_form_template').report_action(self)
+    #
+    # def _print_pf_nomination(self):
+    #     return self.env.ref('hr_extended.report_nomination_form_template').report_action(self)
+    #
+    # def _print_gmc_gpa_details(self):
+    #     return self.env.ref('hr_extended.get_cmg_and_gpa_details').report_action(self)
+    #
+    # def _print_nda_details(self):
+    #     return self.env.ref('hr_extended.report_nda_intellectual_property_form_template').report_action(self)
 
     # def action_open_related_candidate(self):
     #     self.ensure_one()

@@ -67,9 +67,9 @@
                             name="action_refuse_request"
                             groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_recruitment_bu_head,hr_recruitment.group_hr_recruitment_user"
                             class="oe_highlight"
-                            invisible="state in ('preparation','request_appraisal')"/>
+                            invisible="state in ('preparation','request_appraisal','review_completed')"/>
                     <button name="action_create_new_contract" type="object" groups="hr_extended.group_hr_recruitment_director"
-                                        class="oe_highlight new-compensation-btn"
+                                        class="oe_highlight new-compensation-btn" invisible="state != 'full_year_pending'"
                                         string="Update Compensation"/>
 
                 </header>
@@ -101,11 +101,11 @@
                             <field name="create_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group>
-                            <field name="designation" required="True"/>
+                            <field name="designation_id" required="True"/>
                             <field name="grade"/>
                             <field name="location_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="appraisal_date" required="True"/>
-                            <field name="reviewer_id" required="True"
+                            <field name="reviewer_id"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="write_date"/>
                             <field name="write_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>

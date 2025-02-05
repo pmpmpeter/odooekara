@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="form_h_report" model="ir.actions.report">
-        <field name="name"> Form - H</field>
+        <field name="name">Form - H</field>
         <field name="model">hr.attendance</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">hr_attendance_extended.print_form_h</field>

@@ -10,7 +10,7 @@ class EmployeeKra(models.Model):
     _rec_name = 'employee_id'
 
     kra_date = fields.Date(string="Date", default=fields.Date.context_today)
-    employee_id = fields.Many2one('hr.employee', string='Employee')
+    employee_id = fields.Many2one('hr.employee', string='Employee', domain=lambda self: self._compute_employee_domain())
     emp_job_id = fields.Many2one('hr.job', string='Job Position')
     kra_master = fields.Many2one('kra.master', string="KRA")
     state = fields.Selection([
@@ -28,6 +28,15 @@ class EmployeeKra(models.Model):
     overall_weightage = fields.Integer(string='Total Weightage',copy=False)
     remaining = fields.Char(copy=False,redaonly=1)
 
+    @api.model
+    def _compute_employee_domain(self):
+        """ Dynamically restrict employee selection based on user group """
+        user = self.env.user
+        if user.has_group('hr.group_hr_user') or user.has_group('hr.group_hr_manager'):
+            return []
+        else:
+            return [('user_id', '=', user.id)]
+
     @api.onchange('kra_details_ids')
     def onchange_weightage(self):
         overall = 0.0
@@ -43,47 +52,69 @@ class EmployeeKra(models.Model):
             self.kra_master = self.emp_job_id.kra_master
 
     def action_submit_to_supervisor(self):
-        approval_type_model = self.env['multi.approval.type']
-        approval_type_line_model = self.env['multi.approval.type.line']
-
         for record in self:
+            if hasattr(self, 'x_has_request_approval'):
+                self.x_has_request_approval = False
+
             if not record.employee_parent_id:
                 raise UserError("Please set the Manager for the Employee.")
 
             if not record.kra_details_ids:
                 raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
 
+            manager_user_id = record.employee_parent_id.user_id.id
+            if not manager_user_id:
+                raise UserError("Manager does not have a corresponding user in the system.")
+
             total_weightage = sum(detail.weightage for detail in record.kra_details_ids)
             if total_weightage != 100:
                 raise ValidationError(
                     f"The total weightage of KRA details must equal 100. Currently, it is {total_weightage}."
                 )
-
-            if hasattr(self, 'x_has_request_approval'):
-                self.x_has_request_approval = False
-
-                # Search for the approval type
-                approval_type = approval_type_model.search([
-                    ('model_id', '=', 'employee.kra'),
-                    ('domain', 'ilike', '"state"')
-                ], limit=1)
-
-                if approval_type and approval_type.state == 'confirm':
-                    approval_lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
-                    if not approval_lines:
-                        raise UserError("No approval lines found for the selected approval type.")
-
-                    approval_line = approval_lines[0]
-                    manager_user_id = record.employee_parent_id.user_id.id
-
-                    if manager_user_id:
-                        approval_line.write({
-                            'user_id': [(6, 0, [manager_user_id])]
-                        })
-                    else:
-                        raise UserError("The Manager does not have a corresponding user in the system.")
-
             record.state = 'submit_to_supervisor'
+        # approval_type_model = self.env['multi.approval.type']
+        # approval_type_line_model = self.env['multi.approval.type.line']
+        #
+        # for record in self:
+        #     if not record.employee_parent_id:
+        #         raise UserError("Please set the Manager for the Employee.")
+        #
+        #     if not record.kra_details_ids:
+        #         raise UserError("You cannot submit to supervisor as no KRA details are available for this employee.")
+        #
+        #     total_weightage = sum(detail.weightage for detail in record.kra_details_ids)
+        #     if total_weightage != 100:
+        #         raise ValidationError(
+        #             f"The total weightage of KRA details must equal 100. Currently, it is {total_weightage}."
+        #         )
+        #
+        #     if hasattr(self, 'x_has_request_approval'):
+        #         self.x_has_request_approval = False
+        #
+        #         # Search for the approval type
+        #         approval_type = approval_type_model.search([
+        #             ('model_id', '=', 'employee.kra'),
+        #             ('domain', 'ilike', '"state"')
+        #         ], limit=1)
+        #
+        #         if approval_type and approval_type.state == 'confirm':
+        #             approval_lines = approval_type_line_model.search([('type_id', '=', approval_type.id)])
+        #             if not approval_lines:
+        #                 raise UserError("No approval lines found for the selected approval type.")
+        #
+        #             approval_line = approval_lines[0]
+        #             manager_user_id = record.employee_parent_id.user_id.id
+        #
+        #             if manager_user_id:
+        #                 approval_line.write({
+        #                     'user_id': [(6, 0, [manager_user_id])]
+        #                 })
+        #                 # record.state = 'submit_to_supervisor'
+        #                 # action = self.env.ref("multi_level_approval_configuration.request_approval_action", False)
+        #                 # if action:
+        #                 #     return action.read()[0]
+        #             else:
+        #                 raise UserError("The Manager does not have a corresponding user in the system.")
 
     def send_email(self):
         for record in self:
@@ -170,7 +201,7 @@ class EmployeeKra(models.Model):
             self.env['employee.kra.details'].create({
                 'emp_kra_id': self.id,
                 'category': kra_detail.category,
-                'business_unit': kra_detail.business_unit,
+                'business_unit_id': kra_detail.business_unit_id.id,
                 'kra_type': kra_detail.kra_type,
                 'goal_description': kra_detail.goal_description,
                 'weightage': kra_detail.weightage,
@@ -191,7 +222,7 @@ class KraDetails(models.Model):
     emp_kra_id = fields.Many2one('employee.kra', string="KRA Questions", ondelete='cascade')
 
     category = fields.Char(string="Category", required=True)
-    business_unit = fields.Text(string="Business Unit")
+    business_unit_id = fields.Many2one('business.units', string="Business Units")
     kra_type = fields.Char(string="KRA")
     goal_description = fields.Char(string="Goal Description")
     weightage = fields.Float(string="Weightage")

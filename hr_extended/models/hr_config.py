@@ -67,6 +67,7 @@ class PositionNames(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
@@ -109,9 +110,11 @@ class ContractType(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
+    #not using this
     country_id = fields.Many2one('res.country')
 
     @api.depends('name')
@@ -153,9 +156,11 @@ class BusinessUnits(models.Model):
 
     name = fields.Char(required=True, translate=True)
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
-    tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
+    # not using this but may cause error if remove directly
+    tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
 
     @api.depends('name')
     def _compute_code(self):
@@ -195,6 +200,7 @@ class LocationMaster(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
+    company_id = fields.Many2one('res.company',string='Company', default=lambda self: self.env.company)
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
@@ -230,9 +236,11 @@ class LocationMaster(models.Model):
                     )
         return super(LocationMaster, self).unlink()
 
+
 class AssetsCategory(models.Model):
     _name = 'assets.category'
     _description = 'Assets Category'
 
     name = fields.Char(string='Name')
     active = fields.Boolean(string="Active", default=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)

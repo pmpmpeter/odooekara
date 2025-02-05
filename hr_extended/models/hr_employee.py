@@ -519,12 +519,15 @@ class HrEmployeeSmartButton(models.Model):
 
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
 
+        self.sudo().message_follower_ids.filtered(lambda f: f.partner_id.email != self.private_email).unlink()
+
         ctx = dict(
             default_model='hr.employee',
             default_res_ids=self.ids,
             default_template_id=template.id,
             default_composition_mode='comment',
             default_email_layout_xmlid="mail.mail_notification_light",
+            default_email_to = self.private_email,
         )
 
         return {

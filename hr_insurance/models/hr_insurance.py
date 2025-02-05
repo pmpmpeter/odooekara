@@ -19,7 +19,7 @@
 #
 #############################################################################
 from odoo import fields, models
-
+from odoo.exceptions import UserError
 
 class HrInsurance(models.Model):
     """created a new model for employee insurance"""
@@ -45,11 +45,11 @@ class HrInsurance(models.Model):
     date_to = fields.Date(string='Date To', help="End date")
     state = fields.Selection([('active', 'Active'),
                               ('expired', 'Expired'), ],
-                             default='active', string="State",
+                             default='active', string="Status",
                              compute='get_status')
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
-                                 default=lambda self: self.env.user.company_id)
+                                 default=lambda self: self.env.company, readonly=True)
 
     def get_status(self):
         """this function is get and set state"""
@@ -64,3 +64,9 @@ class HrInsurance(models.Model):
                     rec.state = 'active'
                 else:
                     rec.state = 'expired'
+
+    def unlink(self):
+        for record in self:
+            if record.state == 'active':
+                raise UserError("You can delete the Active Policy record.")
+        return super(HrInsurance, self).unlink()

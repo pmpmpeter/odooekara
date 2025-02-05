@@ -21,18 +21,18 @@
         <field name="arch" type="xml">
             <form string="Employee Training Program">
                 <header>
-                    <button name="action_confirm_send_mail"
+                    <button name="action_confirm_send_mail" groups="hr.group_hr_user"
                             string="Send by Email" type="object"
                             class="oe_highlight" invisible="state !='draft'"/>
-                    <button name="action_confirm_event" string="Confirm Event"
+                    <button name="action_confirm_event" string="Confirm Event" groups="hr.group_hr_user"
                             type="object" invisible="state !='new'"
                             class="btn-primary"/>
                     <button name="action_complete_event" string="Event Complete"
-                            type="object" invisible="state !='confirm'"
+                            type="object" invisible="state !='confirm'" groups="hr.group_hr_user"
                             class="btn-primary"/>
-                    <button name="action_cancel_event" string="Cancel Event"
+                    <button name="action_cancel_event" string="Cancel Event" groups="hr.group_hr_user"
                             type="object" invisible="state !='confirm'"/>
-                    <button name="print_event" string="Print Certificates"
+                    <button name="print_event" string="Print Certificates" groups="hr.group_hr_user"
                             type="object" class="oe_highlight"
                             invisible="state !='complete'"/>
                     <field name="state" widget="statusbar"
@@ -40,30 +40,35 @@
                 </header>
                 <sheet>
                     <group colspan="1" col="4" name="main">
-                        <field name="program_name"/>
-                        <field name="program_department_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="program_name" readonly="state not in ('new')"/>
+                        <field name="program_department_id" readonly="state not in ('new')"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         <label for="date_from" string="Time Period"/>
                         <div>
-                            <field name="date_from" class="oe_inline"/>
+                            <field name="date_from" class="oe_inline" readonly="state not in ('new')"/>
                             to
-                            <field name="date_to" class="oe_inline"/>
+                            <field name="date_to" class="oe_inline" readonly="state not in ('new')"/>
                         </div>
-                        <field name="program_convener_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="program_convener_id" readonly="state not in ('new')"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                     </group>
                     <notebook colspan="4">
                         <page name="checklist_lines" string="Employee Details">
-                            <field name="training_ids">
+                            <field name="training_ids" readonly="state not in ('new')">
                                 <tree editable="true">
-                                    <field name="name" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="job_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="parent_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="name"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="job_id"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="parent_id"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="certificates"/>
                                 </tree>
                             </field>
                         </page>
                         <page name="note_book"
                               string="Notes">
-                            <field name="note_id" colspan="4" nolabel="1"/>
+                            <field name="note_id" colspan="4" nolabel="1" readonly="state not in ('new')"/>
                         </page>
                     </notebook>
                 </sheet>

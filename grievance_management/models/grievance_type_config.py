@@ -14,6 +14,7 @@ class GrievanceTypeNames(models.Model):
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
     respective_hod_id = fields.Many2one('hr.employee',string="HOD", copy=False)
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
 
 
     @api.depends('name')
