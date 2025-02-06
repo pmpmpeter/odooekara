@@ -52,5 +52,15 @@
     <menuitem id="menu_invoice_type" name="Invoice Types" parent="account.menu_finance_configuration"
               action="action_invoice_type" sequence="20"/>
 
+    <menuitem id="expense_bill_request_sheet" name="Expense Bills" sequence="1" web_icon="hr_expense,static/description/icon.png"/>
+
+     <menuitem id="payment_approval_report_bill" name="Payment Approval Report" sequence="3"
+              parent="hr_expense_extended.expense_bill_request_sheet" action="payment_approval_report_action_extend"/>
+
+     <menuitem id="payment_approval_sheet_bill" name="Payment Approval" sequence="2"
+              parent="hr_expense_extended.expense_bill_request_sheet" action="payment_approval_action_extend"/>
+
+   
+
     
 </odoo>
