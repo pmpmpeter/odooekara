@@ -146,7 +146,7 @@
         <field name="arch" type="xml">
             <search>
                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
-                <filter string="In Progress" name="draft" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
                 <filter string="Reviewed" name="reviewed" domain="[('state', '=', 'review')]"/>
                 <filter string="Confirmed" name="confirmed" domain="[('state', '=', 'confirm')]"/>
                 <filter string="Canceled" name="canceled" domain="[('state', '=', 'cancel')]"/>

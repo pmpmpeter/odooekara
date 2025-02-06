@@ -45,7 +45,7 @@ class EmployeeProbation(models.Model):
     employee_id = fields.Many2one('hr.employee', 'Employee', domain=lambda self: self._compute_employee_domain())
     email = fields.Char('Email', related='employee_id.work_email')
     department_id = fields.Many2one('hr.department', 'Department', related='employee_id.department_id')
-    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     parent_id = fields.Many2one('hr.employee', 'Manager', related='employee_id.parent_id')
     employee_reviews_ids = fields.One2many('employee.reviews.details', 'probation_id', 'Employee Reviews')
     state = fields.Selection([
@@ -85,6 +85,17 @@ class EmployeeProbation(models.Model):
     number_of_months = fields.Integer(string='Number of Months', default=6, store=True, copy=False)
     number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
     review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
+
+    @api.onchange('employee_id')
+    def _check_employee_probation(self):
+        if self.employee_id:
+            probation_request = self.env['employee.probation'].sudo().search(
+                [('employee_id', '=', self.employee_id.id),
+                 ('state', 'in', ['in_progress', 'review', 'confirm'])])
+            if probation_request:
+                raise ValidationError(
+                    _('A probation form for this employee is already in progress, under review, or confirmed.')
+                )
 
     @api.model
     def _compute_employee_domain(self):

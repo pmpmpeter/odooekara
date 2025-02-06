@@ -7,14 +7,15 @@
         <field name="report_name">hr_extended.print_media_declare_form</field>
         <field name="report_file">hr_extended.print_media_declare_form</field>
         <field name="print_report_name">'External Media Declaration'</field>
-        <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>
+        <!--        <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>-->
+        <field name="binding_model_id" eval="False"/>
         <field name="binding_type">report</field>
     </record>
 
     <template id="print_media_declare_form">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="hr_extended.print_media_declare_report" t-lang="o.user_id.lang" />
+                <t t-call="hr_extended.print_media_declare_report" t-lang="o.user_id.lang"/>
             </t>
         </t>
     </template>

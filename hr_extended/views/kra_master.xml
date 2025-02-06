@@ -24,7 +24,7 @@
                             <field name="details_ids">
                                 <tree editable="bottom">
                                     <field name="category"/>
-                                    <field name="business_unit_id"/>
+                                    <field name="business_unit_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
                                     <field name="kra_type"/>
                                     <field name="goal_description"/>
                                     <field name="weightage"/>

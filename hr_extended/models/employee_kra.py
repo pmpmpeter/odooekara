@@ -23,7 +23,7 @@ class EmployeeKra(models.Model):
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=False, related_sudo=False)
-    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     overall_weightage = fields.Integer(string='Total Weightage',copy=False)
     remaining = fields.Char(copy=False,redaonly=1)

@@ -15,6 +15,7 @@ class SelfRating(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Employee', tracking=True)
     department_id = fields.Many2one('hr.department', string='Department', tracking=True,
                                     related='employee_id.department_id')
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     date_of_joining = fields.Date(string='Date of Joining', tracking=True, related='employee_id.joining_date')
     designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
     reporting_to_id = fields.Many2one('hr.employee', string='Reporting to', tracking=True,

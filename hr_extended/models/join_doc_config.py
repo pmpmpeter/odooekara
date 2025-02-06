@@ -1,6 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
+
 class EmployeeJoinDocConfig(models.Model):
     _name = "employee.join.doc.config"
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -29,7 +30,8 @@ class EmployeeJoinDocConfig(models.Model):
     file = fields.Binary(attachment=True, string="File")
     file_name = fields.Char(string="File Name")
     subject = fields.Html(string="Subject")
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', 'in', self.env.companies.ids)], readonly=True)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
     sequence = fields.Integer(string="Sequence")
 

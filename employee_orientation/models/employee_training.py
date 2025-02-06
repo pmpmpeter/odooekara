@@ -52,7 +52,7 @@ class EmployeeTraining(models.Model):
                               default=lambda self: self.env.user,
                               help="Mention the user.")
     company_id = fields.Many2one('res.company', string='Company', required=True,
-                                 default=lambda self: self.env.company,
+                                 default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))],
                                  help="Mention the company.")
     state = fields.Selection([
         ('new', 'New'),

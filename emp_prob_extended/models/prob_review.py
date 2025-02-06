@@ -15,7 +15,7 @@ class ProbationReviewForm(models.Model):
 
     employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
     job_title_id = fields.Many2one('hr.job', string='Job Title', tracking=True)
-    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     grade = fields.Char(string='Grade', tracking=True)
     department_id = fields.Many2one('hr.department', string='Department / Section', tracking=True)
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)

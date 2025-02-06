@@ -34,7 +34,7 @@
                             class="oe_highlight" invisible="state != 'submitted'"
                     />
                     <button name="exit_interview_draft" string="Reset to Draft" type="object" groups="hr.group_hr_user"
-                            class="btn-secondary" invisible="state != 'completed'"
+                            class="btn-secondary" invisible="state == 'draft'"
                     />
                 </header>
                 <sheet>

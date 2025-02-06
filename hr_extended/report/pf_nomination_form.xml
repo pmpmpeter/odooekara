@@ -23,14 +23,15 @@
         <field name="report_file">hr_extended.print_report_nomination_form</field>
         <field name="paperformat_id" ref="hr_extended.paperformat_nomination_form_pdf_A4"/>
         <field name="print_report_name">'PF Nomination Form'</field>
-        <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>
+        <!--        <field name="binding_model_id" ref="hr_extended.model_hr_employee"/>-->
+        <field name="binding_model_id" eval="False"/>
         <field name="binding_type">report</field>
     </record>
 
     <template id="print_report_nomination_form">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="hr_extended.print_report_nomination_report" t-lang="o.user_id.lang" />
+                <t t-call="hr_extended.print_report_nomination_report" t-lang="o.user_id.lang"/>
             </t>
         </t>
     </template>
@@ -310,7 +311,8 @@
                     <div>
                         <div style="font-size:16px;">
                             <p style="width:95%;padding-left:1px;text-align:left">Date :</p>
-                            <p style="width:100%;padding-right:1px;text-align:right">Signature or thumb impression<br/>
+                            <p style="width:100%;padding-right:1px;text-align:right">Signature or thumb impression
+                                <br/>
                                 of the subscriber
                             </p>
                             <p style="width:95%;padding-left:1px;text-align:left">Place :<br/>**Strike out whichever is

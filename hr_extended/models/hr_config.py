@@ -67,7 +67,7 @@ class PositionNames(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
-    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
@@ -110,7 +110,7 @@ class ContractType(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
-    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
@@ -156,11 +156,11 @@ class BusinessUnits(models.Model):
 
     name = fields.Char(required=True, translate=True)
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
-    company_id = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
     # not using this but may cause error if remove directly
-    tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
+    tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
 
     @api.depends('name')
     def _compute_code(self):
@@ -200,7 +200,7 @@ class LocationMaster(models.Model):
     _order = 'sequence'
 
     name = fields.Char(required=True, translate=True)
-    company_id = fields.Many2one('res.company',string='Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company',string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
@@ -243,4 +243,4 @@ class AssetsCategory(models.Model):
 
     name = fields.Char(string='Name')
     active = fields.Boolean(string="Active", default=True)
-    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])

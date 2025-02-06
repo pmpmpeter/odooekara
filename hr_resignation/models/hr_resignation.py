@@ -44,7 +44,7 @@ class HrResignation(models.Model):
                        default=lambda self: _('New'))
     employee_id = fields.Many2one('hr.employee', string="Employee", copy=False,
                                   default=lambda
-                                      self: self.env.user.employee_id.id,
+                                      self: self.env.user.employee_id.id, domain = lambda self: [('company_id','=',self.env.company.id)],
                                   help='Name of the employee for '
                                        'whom the request is creating')
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=True, related_sudo=False,

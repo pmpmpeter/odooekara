@@ -15,7 +15,7 @@ class GrievanceManagement(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True, tracking=True,
                                   domain=lambda self: self._compute_employee_domain())
     manager_id = fields.Many2one('hr.employee', string='Manager', required=True, tracking=True)
-    company_id = fields.Many2one('res.company', string= 'Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string= 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     representative_id = fields.Many2one('hr.employee', string='Representative', copy=False, tracking=True)
     management_representative_id = fields.Many2one('hr.employee', string='Management Representative', copy=False,
                                                    tracking=True)
@@ -100,7 +100,7 @@ class GrievanceManagement(models.Model):
                 code=req.type.name)
 
             for user_id in users_to_notify:
-                self.env["mail.activity"].create(
+                self.env["mail.activity"].sudo().create(
                     {
                         "res_id": req.id,
                         "res_model_id": self.env["ir.model"]._get(req._name).id,

@@ -13,9 +13,9 @@ class JoiningDocuments(models.Model):
 
     name = fields.Char(string="Name", copy=False, required=True)
     employee_id = fields.Many2one('hr.employee', string="Employee Name", copy=False, required=True)
-    department_id = fields.Many2one('hr.department', string="Department", copy=False)
-    job_position_id = fields.Many2one('hr.job', string="Job Position", copy=False)
-    joining_date = fields.Date(string="Joining Date", copy=False)
+    department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id", copy=False)
+    job_position_id = fields.Many2one('hr.job', string="Job Position", related="employee_id.job_id", copy=False)
+    joining_date = fields.Date(string="Joining Date", related="employee_id.joining_date", copy=False)
     reference_file = fields.Binary(string='Reference File', copy=False)
     reference_filename = fields.Char(string='Reference Filename', copy=False)
     submitted_file = fields.Binary(string='Submitted File', attachment="True", copy=False)
@@ -40,7 +40,7 @@ class JoiningDocuments(models.Model):
          ('she_nda', 'SHE NDA- 2022 updated Form')],
         string="Document Type")
 
-    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     contact_id = fields.Many2one('res.partner', 'Contact', copy=False)
 

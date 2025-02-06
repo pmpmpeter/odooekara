@@ -2,7 +2,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError,ValidationError
+from odoo.exceptions import UserError, ValidationError
+
 
 class GrievanceTypeNames(models.Model):
     _name = 'grievance.type.names'
@@ -13,10 +14,9 @@ class GrievanceTypeNames(models.Model):
     code = fields.Char(compute='_compute_code', store=True, readonly=False)
     sequence = fields.Integer()
     active = fields.Boolean('Active', default=True, copy=False)
-    respective_hod_id = fields.Many2one('hr.employee',string="HOD", copy=False)
-    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
-
-
+    respective_hod_id = fields.Many2one('hr.employee', string="HOD", copy=False)
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', 'in', self.env.companies.ids)])
     @api.depends('name')
     def _compute_code(self):
         for grievance_types in self:

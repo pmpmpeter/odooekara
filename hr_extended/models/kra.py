@@ -9,7 +9,7 @@ class KraMaster(models.Model):
 
     name=fields.Char(string="Name")
     details_ids = fields.One2many('kra.details', 'kra_id', string="KRA Details")
-    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     active = fields.Boolean(string="Active", default=True)
     overall_weightage = fields.Integer(string='Total Weightage', copy=False)
     remaining = fields.Char(copy=False, redaonly=1)

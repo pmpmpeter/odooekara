@@ -12,7 +12,7 @@ class InterviewAssessment(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Name of Candidate', required=True)
-    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     applicant_id = fields.Many2one('hr.applicant', 'Applicant', readonly=False)
     position_interviewed_for = fields.Char(string='Position Interviewed for')

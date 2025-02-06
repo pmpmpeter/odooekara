@@ -5,7 +5,7 @@
         <field name="name">prob.review.form.tree</field>
         <field name="model">prob.review.form</field>
         <field name="arch" type="xml">
-            <tree string="Probation Review">
+            <tree string="Probation Review" create="false">
                 <field name="employee_id"/>
                 <field name="job_title_id"/>
                 <field name="department_id"/>
@@ -20,7 +20,7 @@
         <field name="name">prob.review.form.form</field>
         <field name="model">prob.review.form</field>
         <field name="arch" type="xml">
-            <form string="Probation Review Form">
+            <form string="Probation Review Form" create="false">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="draft,review1_done,review2_done,done"
                            nolabel="1"/>

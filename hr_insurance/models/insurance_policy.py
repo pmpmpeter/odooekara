@@ -31,7 +31,8 @@ class InsurancePolicy(models.Model):
                              help="Notes for the insurance policy if any")
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
-                                 default=lambda self: self.env.user.company_id)
+                                 default=lambda self: self.env.user.company_id,
+                                 domain=lambda self: [('id', 'in', self.env.companies.ids)])
     active = fields.Boolean('Active', default=True, copy=False)
 
     def unlink(self):

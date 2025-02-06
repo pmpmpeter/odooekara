@@ -52,15 +52,15 @@
                 <form>
                     <header>
                         <button name="action_submit_to_manager" string="Submit" type="object"
-                                class="oe_highlight"
+                                class="oe_highlight" groups="hr.group_hr_user"
                                 invisible="state != 'draft'"/>
-                        <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                        <button name="action_reset_to_draft" string="Reset to Draft" type="object" groups="hr.group_hr_user"
                                 invisible="state in ('draft','submit','satisfied')"/>
-                        <button name="send_mail_to_employee" string="Send Mail" type="object" class="oe_highlight"
+                        <button name="send_mail_to_employee" string="Send Mail" type="object" class="oe_highlight" groups="hr.group_hr_user"
                                 invisible="not resolution or not date_timeline"/>
-                        <button name="action_satisfied" string="Satisfied" type="object" class="oe_highlight"
+                        <button name="action_satisfied" string="Satisfied" type="object" class="oe_highlight" groups="hr.group_hr_user"
                                 invisible="not resolution or not date_timeline or state not in ('un_satisfied','submit')"/>
-                        <button name="action_un_satisfied" string="UnSatisfied" type="object" class="oe_highlight"
+                        <button name="action_un_satisfied" string="UnSatisfied" type="object" class="oe_highlight" groups="hr.group_hr_user"
                                 invisible="not resolution or not date_timeline or state not in ('submit')"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,submit,satisfied"/>
                     </header>
