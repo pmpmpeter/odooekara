@@ -98,6 +98,59 @@ class RequestApproval(models.TransientModel):
                 "priority": priority,
             }
         )
+
+        #assigning the approvers uniquely
+        if model_name == 'employee.indent':
+            unit_head_user = record.unit_head_id.id
+            recruitment_spoc_mgr_user = record.recruitment_spoc_mgr_id.id
+            director_approval_user = record.director_approval_id.id
+
+            approval_lines = self.env["multi.approval.type.line"].search([
+                ('type_id', '=', approval_type.id)
+            ], limit=2)
+            print(approval_type.id,"Checking dafd")
+
+            if approval_lines:
+                approval_lines[0].write({
+                    'user_id': [(6, 0, [unit_head_user, recruitment_spoc_mgr_user])]
+                })
+
+                approval_lines[1].write({
+                    'user_id': [(6, 0, [director_approval_user])]
+                })
+
+        if model_name == 'employee.kra':
+            manager_user_id = record.employee_parent_id.user_id.id
+            if not manager_user_id:
+                raise UserError("Manager does not have a corresponding user in the system.")
+
+            approval_lines = self.env["multi.approval.type.line"].search([
+                ('type_id', '=', approval_type.id)
+            ])
+            print(approval_type.id, "Checking dafd")
+            if approval_lines:
+                first_approval_line = approval_lines[0]
+                first_approval_line.write({
+                    'user_id': [(6, 0, [manager_user_id])]
+                })
+
+        if model_name == 'hr.resignation':
+            manager_user = record.employee_parent_id.user_id.id
+            hr_coach_user = record.coach_id.user_id.id
+
+            approval_lines = self.env["multi.approval.type.line"].search([
+                ('type_id', '=', approval_type.id)
+            ], limit=2)
+
+            if approval_lines:
+                approval_lines[0].write({
+                    'user_id': [(6, 0, [manager_user])]
+                })
+
+                approval_lines[1].write({
+                    'user_id': [(6, 0, [hr_coach_user])]
+                })
+
         return res
 
     def action_request(self):
