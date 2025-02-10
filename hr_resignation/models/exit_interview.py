@@ -9,15 +9,17 @@ class ExitInterview(models.Model):
     _rec_name = 'employee_id'
 
 
-    employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
+    employee_id = fields.Many2one('hr.employee',string='Employee Name',domain="[('company_id', '=', company_id)]", required=True, tracking=True, )
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     department_id = fields.Many2one('hr.department', string="Department", readonly=True,
                                     related='employee_id.department_id',
+                                    domain="[('company_id', '=', company_id)]",
                                     help='Department of the employee')
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
     email = fields.Char(string="Personal Email ID")
     mobile = fields.Char(string="Mobile")
     employee_code = fields.Char(string="Employee Code")
-    designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
+    designation_id = fields.Many2one('hr.job',domain="[('company_id', '=', company_id)]",string="Designation",tracking=True)
     date_of_exit = fields.Date(string='Date of Exit', tracking=True)
     reason_for_separation = fields.Selection([
         ('better_compensation', 'Better Compensation'),
@@ -86,17 +88,17 @@ class ExitInterview(models.Model):
     new_employment_compensation_annual = fields.Float(string="Annual Compensation")
     new_employment_working_conditions = fields.Text(string="Working Conditions")
     other_details = fields.Text(string="Other Details")
-    signature_employee = fields.Many2one('hr.employee', string="Signature of Employee")
+    signature_employee = fields.Many2one('hr.employee', domain="[('company_id', '=', company_id)]", string="Signature of Employee")
     conducted_by = fields.Char(string="Exit Interview Conducted By")
-    conducted_by_signature = fields.Many2one('hr.employee', string="Exit Interview Conducted Signature")
+    conducted_by_signature = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="Exit Interview Conducted Signature")
     interview_date = fields.Date(string="Date ")
     supervisor_response = fields.Text(string="Supervisor's Response")
     hod_comments = fields.Text(string="H.O.D. Comments")
-    hod_signature = fields.Many2one('hr.employee', string="H.O.D Signature")
+    hod_signature = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="H.O.D Signature")
     gm_comments = fields.Text(string="GM/BU Head Comments")
-    gm_signature = fields.Many2one('hr.employee', string="GM/BU Head Signature")
+    gm_signature = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="GM/BU Head Signature")
     hr_received_date = fields.Date(string="Received by HRD (Date)")
-    hr_signature = fields.Many2one('hr.employee', string="HR Responsible Signature")
+    hr_signature = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="HR Responsible Signature")
 
 
     def exit_interview_submit(self):
@@ -120,3 +122,9 @@ class ExitInterview(models.Model):
                 record.date_of_exit = record.sudo().employee_id.resign_date
                 record.email = record.sudo().employee_id.private_email
                 record.mobile = record.sudo().employee_id.private_phone
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_("Only records in the 'Draft' state can be deleted."))
+        return super(ExitInterview, self).unlink()

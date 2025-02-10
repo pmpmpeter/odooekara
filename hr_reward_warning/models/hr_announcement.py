@@ -129,11 +129,11 @@ class HrAnnouncement(models.Model):
 
     def unlink(self):
         """
-        Prevent deletion of records in 'Approved' state unless performed by an admin.
+        Prevent deletion of records not in 'Draft' state unless performed by an admin.
         """
         if not self.env.is_admin():
-            if any(record.state == 'approved' for record in self):
+            if any(record.state != 'draft' for record in self):
                 raise ValidationError(
-                    _("You cannot delete a record that is in the 'Approved' state.")
+                    _("You can delete a record only in the 'Draft' state.")
                 )
         return super(HrAnnouncement, self).unlink()

@@ -14,17 +14,17 @@ class GrievanceManagement(models.Model):
     name = fields.Char()
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True, tracking=True,
                                   domain=lambda self: self._compute_employee_domain())
-    manager_id = fields.Many2one('hr.employee', string='Manager', required=True, tracking=True)
+    manager_id = fields.Many2one('hr.employee', string='Manager', domain=lambda self: [('company_id', '=', self.env.company.id)], required=True, tracking=True)
     company_id = fields.Many2one('res.company', string= 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
-    representative_id = fields.Many2one('hr.employee', string='Representative', copy=False, tracking=True)
-    management_representative_id = fields.Many2one('hr.employee', string='Management Representative', copy=False,
+    representative_id = fields.Many2one('hr.employee', string='Representative', domain=lambda self: [('company_id', '=', self.env.company.id)], copy=False, tracking=True)
+    management_representative_id = fields.Many2one('hr.employee', string='Management Representative', copy=False, domain=lambda self: [('company_id', '=', self.env.company.id)],
                                                    tracking=True)
     state = fields.Selection([('draft', 'Draft'),
                               ('submit', 'Submit'),
                               ('satisfied', 'Satisfied'),
                               ('un_satisfied', 'UnSatisfied')], string='Status',
                              default='draft', copy=False, tracking=True)
-    type = fields.Many2one('grievance.type.names', string='Types of Grievance', copy=False, tracking=True)
+    type = fields.Many2one('grievance.type.names', string='Types of Grievance',domain=lambda self: [('company_id', '=', self.env.company.id)], copy=False, tracking=True)
     subject = fields.Char(string='Subject', copy=False, tracking=True)
     description = fields.Html(string='Description', copy=False)
     create_date = fields.Date(string='Create Date', readonly=True, default=fields.Datetime.now)
@@ -44,7 +44,7 @@ class GrievanceManagement(models.Model):
         """ Dynamically restrict employee selection based on user group """
         user = self.env.user
         if user.has_group('hr.group_hr_user') or user.has_group('hr.group_hr_manager'):
-            return []
+            return [('company_id', '=', self.env.company.id)]
         else:
             return [('user_id', '=', user.id)]
 

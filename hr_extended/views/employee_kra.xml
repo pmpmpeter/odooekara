@@ -33,6 +33,7 @@
                                    readonly="state not in ('draft', 'cancel')"/>
                             <field name="employee_parent_id" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                             <field name="kra_date" required="True" readonly="state not in ('draft', 'cancel')"/>
+                            <field name="company_id" invisible="1"/>
                         </group>
                         <group>
                             <field name="emp_job_id" readonly="1" force_save="1" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>

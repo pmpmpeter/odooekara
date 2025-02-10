@@ -12,7 +12,13 @@ class DocumentUpdateInterviewStatus(models.Model):
     _description = "Document Update Interview Status"
 
     name = fields.Html(string="Subject")
-    active = fields.Boolean('Active', default=True, readonly=True, copy=False)
+    active = fields.Boolean('Active', default=True, copy=False)
+
+    def unlink(self):
+        for record in self:
+            if record.active:
+                raise UserError("You can't delete a record in Active.")
+        return super(DocumentUpdateInterviewStatus, self).unlink()
 
 
 class RecruitmentInvitation(models.Model):
@@ -20,7 +26,13 @@ class RecruitmentInvitation(models.Model):
     _description = "Recruitment Invitation Configuration"
 
     name = fields.Html(string="Subject")
-    active = fields.Boolean('Active', default=True, readonly=True, copy=False)
+    active = fields.Boolean('Active', default=True, copy=False)
+
+    def unlink(self):
+        for record in self:
+            if record.active:
+                raise UserError("You can't delete a record in Active.")
+        return super(RecruitmentInvitation, self).unlink()
     # stage_id = fields.Many2one('hr.recruitment.stage', string="Stage", required=True, unique=True)
     #
     # _sql_constraints = [
@@ -197,6 +209,9 @@ class ApplicantInvitation(models.Model):
         for record in self:
             template_id = self.env.ref('hr_extended.recruitement_first_invitiation_email_template',
                                        raise_if_not_found=False)
+            if not record.letter_subject:
+                raise UserError(_("The subject to send mail is missing."))
+
             if not template_id:
                 raise UserError(
                     _("The email template for sending First Invitation letter for Recruitment does not exist."))
@@ -221,3 +236,9 @@ class ApplicantInvitation(models.Model):
                     user_id=interviewer.id,
                 )
             record.write({'state': 'sent'})
+
+    def unlink(self):
+        for record in self:
+            if record.active or record.state !='draft':
+                raise UserError("You can't delete a record in Active or the state is not in 'Draft'.")
+        return super(ApplicantInvitation, self).unlink()

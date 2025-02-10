@@ -32,6 +32,7 @@ class SelfRating(models.Model):
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
     location_id = fields.Many2one('location.master', string="Location", required=True)
+    is_appraisal_manager = fields.Boolean(string="Is Appraisal Manager", store=False, copy=False)
     appraisal_date = fields.Date(string='Appraisal Date', tracking=True)
     reviewer_id = fields.Many2one('hr.employee', string='Reviewer', tracking=True)
     state = fields.Selection([
@@ -81,6 +82,8 @@ class SelfRating(models.Model):
 
     review_line_ids = fields.One2many('performance.review.line', 'review_id', string='Review Details')
     total_score_employee = fields.Float(string='Total', compute='_compute_totals', store=True)
+    appraisal_meeting_confirmation = fields.Boolean(string="Meeting Confirmation", default=False, copy=False)
+    meeting_date_time = fields.Datetime(string="Meeting Datetime", copy=False)
     total_employee_weighted_score = fields.Float(string='Total Employee Weighted Score', compute='_compute_totals',
                                                  store=True)
     total_score_manager = fields.Float(string='Total', compute='_compute_totals', store=True)
@@ -185,6 +188,13 @@ class SelfRating(models.Model):
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
 
+    @api.model
+    def default_get(self, fields):
+        defaults = super(SelfRating, self).default_get(fields)
+        if 'is_appraisal_manager' in fields:
+            defaults['is_appraisal_manager'] = self.env.user.has_group('hr_appraisal.group_hr_appraisal_manager')
+        return defaults
+
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
         for record in self:
@@ -192,13 +202,15 @@ class SelfRating(models.Model):
                 record.date_of_joining = record.sudo().employee_id.joining_date
                 record.designation_id = record.sudo().employee_id.job_id
                 record.department_id = record.sudo().employee_id.department_id
+                record.grade = record.sudo().employee_id.contract_id.grade
+                record.location_id = record.sudo().employee_id.contract_id.location_id
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
         for record in self:
             if record.total_ctc_annum:
                 total_ctc_integer = int(record.total_ctc_annum)
-                record.total_ctc_in_words = num2words(total_ctc_integer, lang='en').title()
+                record.total_ctc_in_words = num2words(total_ctc_integer, lang='en_IN').title()
             else:
                 record.total_ctc_in_words = 'None'
 
@@ -1033,6 +1045,16 @@ class ManagerRating(models.Model):
                                          store=True)
     manager_weighted_score = fields.Float(string='Manager Weighted Score', compute='_compute_weighted_scores',
                                           store=True)
+
+    def write(self, vals):
+        """
+        Restrict editing if appraisal_meeting_confirmation is True but meeting_date_time is empty.
+        """
+        for record in self:
+            appraisal = record.rating_id
+            if appraisal and not appraisal.meeting_date_time:
+                raise ValidationError("You cannot edit values because the Meeting Date & Time is not set in Self Rating Page.")
+        return super(ManagerRating, self).write(vals)
 
     @api.depends('weightage', 'achieved_percentage')
     def _compute_weighted_scores(self):

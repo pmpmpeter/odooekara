@@ -27,9 +27,9 @@ class HrInsurance(models.Model):
     _description = 'HR Insurance'
     _rec_name = 'employee_id'
 
-    employee_id = fields.Many2one('hr.employee', string='Employee',
+    employee_id = fields.Many2one('hr.employee', string='Employee', domain="[('company_id', '=', company_id)]",
                                   required=True, help="Employee")
-    policy_id = fields.Many2one('insurance.policy',
+    policy_id = fields.Many2one('insurance.policy', domain="[('company_id', '=', company_id)]",
                                 string='Policy', required=True, help="Policy")
     amount = fields.Float(string='Premium', required=True, help="Policy amount")
     sum_insured = fields.Float(string="Sum Insured", required=True,

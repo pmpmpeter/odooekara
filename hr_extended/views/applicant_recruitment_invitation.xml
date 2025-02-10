@@ -71,19 +71,19 @@
 <!--                                options="{'no_quick_create':True,'no_create': True,}" required='1'-->
 <!--                                readonly="state in ('active', 'expired')"/> -->
                             <field name="job_id" 
-                                options="{'no_quick_create':True,'no_create': True,}"/>  
+                                options="{'no_open':True,'no_quick_create':True,'no_create': True,}"/>
                             <field name="invitation_date" readonly="state in ('active', 'expired')"/>
                             <field name="letter_heading" readonly="state in ('active', 'expired')"/>
                         </group>
                        <group>
                             <field name="user_id" 
-                                options="{'no_quick_create':True,'no_create': True,}" required='1'
+                                options="{'no_open':True, 'no_quick_create':True,'no_create': True,}" required='1'
                                 readonly="state in ('active', 'expired')"/>
                             <field name="interviewer_ids" widget="many2many_avatar_user"
-                                options="{'no_quick_create':True,'no_create': True,}" required='1'
+                                options="{'no_open':True,'no_quick_create':True,'no_create': True,}" required='1'
                                 readonly="state in ('active', 'expired')"/>
                             <field name="active" invisible="0"/>
-                            <field name="company_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="company_id" options="{'no_open':True,'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                     </group>
                     <notebook>

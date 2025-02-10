@@ -30,11 +30,11 @@ class EmployeeTraining(models.Model):
     _name = 'employee.training'
     _rec_name = 'program_name'
     _description = "Employee Training"
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     program_name = fields.Char(string='Training Program', required=True,
                                help="Program name in training.")
-    program_department_id = fields.Many2one('hr.department',
+    program_department_id = fields.Many2one('hr.department', domain="[('company_id', '=', company_id)]",
                                             string='Department', required=True,
                                             help="Department on training.")
     program_convener_id = fields.Many2one('res.users',
@@ -66,9 +66,13 @@ class EmployeeTraining(models.Model):
     @api.depends('program_department_id')
     def _compute_employee_details(self):
         """Function to search for employee details"""
-        datas = self.env['hr.employee'].search(
-            [('department_id', '=', self.program_department_id.id)])
-        self.training_ids = datas
+        for record in self:
+            if record.program_department_id:
+                record.training_ids = self.env['hr.employee'].search(
+                    [('department_id', '=', record.program_department_id.id)])
+
+            else:
+                record.training_ids = False
 
     def print_event(self):
         """Reports to print the event"""
@@ -176,3 +180,9 @@ class EmployeeTraining(models.Model):
             'target': 'new',
             'context': ctx,
         }
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'new':
+                raise UserError('You can able to delete New records only')
+        return super(EmployeeTraining, self).unlink()

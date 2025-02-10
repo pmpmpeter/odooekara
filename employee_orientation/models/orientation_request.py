@@ -20,6 +20,7 @@
 #
 #############################################################################
 from odoo import models, fields, _
+from odoo.exceptions import ValidationError, UserError
 
 
 class OrientationChecklistRequest(models.Model):
@@ -112,3 +113,9 @@ class OrientationChecklistRequest(models.Model):
     def action_cancel_request(self):
         """Function on cancel button"""
         self.write({'state': "cancel"})
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'new':
+                raise UserError('You can able to delete New records only')
+        return super(OrientationChecklistRequest, self).unlink()

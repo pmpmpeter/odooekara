@@ -37,6 +37,7 @@
                 <sheet>
                     <group>
                         <group>
+                            <field name="company_id" invisible="1"/>
                             <field name="employee_id" readonly="state not in ('draft')"
                                    options="{'no_open': True,'no_quick_create':True,'no_create': True,}"/>
                             <field name="designation_id" readonly="state not in ('draft')"
@@ -53,8 +54,12 @@
                         <page string="Handing Over Assets">
                             <field name="asset_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
-                                    <field name="asset_type"/>
-                                    <field name="returned_to" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <!--<field name="asset_type"/>-->
+                                    <field name="company_id" column_invisible="1"/>
+                                    <field name="asset_category_id"
+                                           options="{'no_open': True,'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="returned_to"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="remarks"/>
                                     <field name="signature"/>
                                 </tree>

@@ -28,11 +28,11 @@
                             groups="emp_prob_extended.group_employee_probation_manager"
                             invisible="state == 'draft'"
                     />
-                    <button name="mark_review1_done" string="Review 1 Done" type="object"
+                    <button name="mark_review1_done" string="Initial Review" type="object"
                             groups="emp_prob_extended.group_employee_probation_manager"
                             class="oe_highlight" invisible="state == 'done' or state != 'draft'"
                     />
-                    <button name="mark_review2_done" string="Review 2 Done" type="object"
+                    <button name="mark_review2_done" string="Final Review" type="object"
                             groups="emp_prob_extended.group_employee_probation_manager"
                             class="oe_highlight" invisible="state == 'done' or state != 'review1_done'"
                     />
@@ -67,23 +67,23 @@
                         <group>
                             <field name="employee_id"
                                    options="{'no_open':True,'no_quick_create':True,'no_create': True,}" required="True"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                             <field name="job_title_id" required="True"
                                    options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                             <field name="grade" readonly="state not in ('draft')"/>
                             <field name="department_id" required="True"
                                    options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                         </group>
                         <group>
-                            <field name="date_of_joining" required="True" readonly="state not in ('draft')"/>
+                            <field name="date_of_joining" required="True" readonly="1"/>
                             <field name="reporting_manager_id" required="True"
                                    options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                             <field name="reporting_manager_designation_id" required="True"
                                    options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
-                                   readonly="state not in ('draft')"/>
+                                   readonly="1"/>
                         </group>
                     </group>
                     <group>

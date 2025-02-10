@@ -29,8 +29,8 @@ class ProbationReviewForm(models.Model):
 
     state = fields.Selection([
         ('draft', 'Draft'),
-        ('review1_done', 'Review 1 Done'),
-        ('review2_done', 'Review 2 Done'),
+        ('review1_done', 'Initial Review'),
+        ('review2_done', 'Final Review'),
         ('done', 'Done'),
         ('cancel','Cancelled'),
     ], string='Status', default='draft', tracking=True)

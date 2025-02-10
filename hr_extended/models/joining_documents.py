@@ -12,9 +12,9 @@ class JoiningDocuments(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Name", copy=False, required=True)
-    employee_id = fields.Many2one('hr.employee', string="Employee Name", copy=False, required=True)
-    department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id", copy=False)
-    job_position_id = fields.Many2one('hr.job', string="Job Position", related="employee_id.job_id", copy=False)
+    employee_id = fields.Many2one('hr.employee', string="Employee Name", domain="[('company_id', '=', company_id)]", copy=False, required=True)
+    department_id = fields.Many2one('hr.department', string="Department", related="employee_id.department_id",domain="[('company_id', '=', company_id)]", copy=False)
+    job_position_id = fields.Many2one('hr.job', string="Job Position", related="employee_id.job_id",domain="[('company_id', '=', company_id)]", copy=False)
     joining_date = fields.Date(string="Joining Date", related="employee_id.joining_date", copy=False)
     reference_file = fields.Binary(string='Reference File', copy=False)
     reference_filename = fields.Char(string='Reference Filename', copy=False)

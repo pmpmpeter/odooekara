@@ -31,7 +31,7 @@
     'company': 'Cybrosys Techno Solutions',
     'maintainer': 'Cybrosys Techno Solutions',
     'website': 'https://www.openhrms.com',
-    'depends': ['hr', 'hr_employee_extended', 'mail', 'hr_contract', 'employee_stages', 'project'],
+    'depends': ['hr', 'hr_employee_extended', 'mail', 'hr_contract', 'employee_stages', 'project', 'hr_extended'],
     'data': [
         'security/hr_resignation_security.xml',
         'security/ir.model.access.csv',

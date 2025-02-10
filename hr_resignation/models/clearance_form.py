@@ -9,11 +9,15 @@ class ClearanceForm(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
-
-    employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
-    designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
+    employee_id = fields.Many2one('hr.employee', string='Employee Name', domain="[('company_id', '=', company_id)]",
+                                  required=True, tracking=True)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
+    designation_id = fields.Many2one('hr.job', domain="[('company_id', '=', company_id)]", string="Designation",
+                                     tracking=True)
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
-    department_id = fields.Many2one('hr.department', string='Department', tracking=True)
+    department_id = fields.Many2one('hr.department', domain="[('company_id', '=', company_id)]", string='Department',
+                                    tracking=True)
     last_working_day = fields.Date(string='Last Working Day', tracking=True)
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -33,7 +37,6 @@ class ClearanceForm(models.Model):
                 record.date_of_joining = record.employee_id.joining_date
                 record.last_working_day = record.employee_id.resign_date
 
-
     def clearance_form_submit(self):
         for record in self:
             record.state = 'submitted'
@@ -45,6 +48,13 @@ class ClearanceForm(models.Model):
     def clearance_form_draft(self):
         for record in self:
             record.state = 'draft'
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_("Only records in the 'Draft' state can be deleted."))
+        return super(ClearanceForm, self).unlink()
+
 
 class ClearanceAsset(models.Model):
     _name = 'clearance.asset'
@@ -61,11 +71,16 @@ class ClearanceAsset(models.Model):
         ('system', 'System'),
         ('email_gpm', 'Email & GPM - ID/PW'),
         ('library_books', 'Library Books'),
-    ], string='Asset', required=True)
-    returned_to = fields.Many2one('hr.employee', string='Returned To', required=True)
+    ], string='Asset')
+    asset_category_id = fields.Many2one('assets.category', string="Asset", required=True)
+    returned_to = fields.Many2one('hr.employee', string='Returned To', domain="[('company_id', '=', company_id)]",
+                                  required=True)
     remarks = fields.Text(string='Remarks')
     signature = fields.Binary(string='Signature')
     clearance_form_id = fields.Many2one('clearance.form', string='Clearance Form', required=True)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
+
 
 class ClearanceFunctionHead(models.Model):
     _name = 'clearance.function.head'

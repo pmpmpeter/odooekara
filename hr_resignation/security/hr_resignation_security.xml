@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="ir_rule_hr_resignation_company" model="ir.rule">
+        <field name="name">Separation: Multi Company</field>
+        <field name="model_id" ref="hr_resignation.model_hr_resignation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_exit_interview_company" model="ir.rule">
+        <field name="name">Exit Interview: Multi Company</field>
+        <field name="model_id" ref="hr_resignation.model_exit_interview"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_clearance_form_company" model="ir.rule">
+        <field name="name">Clearance Form: Multi Company</field>
+        <field name="model_id" ref="hr_resignation.model_clearance_form"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+
     <!--    Manager permission to view all record   -->
     <record id="hr_resignation_rule_hr_manager" model="ir.rule">
         <field name="name">Employee Separation Manager</field>

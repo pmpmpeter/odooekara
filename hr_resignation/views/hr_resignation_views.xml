@@ -75,6 +75,7 @@
                     </div>
                     <group>
                         <group string="Employee Details">
+                            <field name="company_id" invisible="1"/>
                             <field name="status_boolean" invisible="1"/>
                             <field name="change_employee" invisible="1"/>
                             <field name="employee_id" required="True"
@@ -99,7 +100,7 @@
                             <field name="manager_approved_date" readonly="1"
                                    invisible="manager_approved_date == False"/>
                             <field name="hr_approved_date" readonly="1" invisible="hr_approved_date == False"/>
-                            <field name="hr_approved_reliving_date" readonly="is_employee == True"
+                            <field name="hr_approved_reliving_date" readonly="is_employee == True or state in ('hr_approved')"
                                    invisible="manager_approved_date == False"/>
                             <field name="notice_period" readonly="1" force_save="1"/>
                         </group>

@@ -68,9 +68,10 @@
                             groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_recruitment_bu_head,hr_recruitment.group_hr_recruitment_user"
                             class="oe_highlight"
                             invisible="state in ('preparation','request_appraisal','review_completed')"/>
-                    <button name="action_create_new_contract" type="object" groups="hr_extended.group_hr_recruitment_director"
-                                        class="oe_highlight new-compensation-btn" invisible="state != 'full_year_pending'"
-                                        string="Update Compensation"/>
+                    <button name="action_create_new_contract" type="object"
+                            groups="hr_extended.group_hr_recruitment_director"
+                            class="oe_highlight new-compensation-btn" invisible="state != 'full_year_pending'"
+                            string="Update Compensation"/>
 
                 </header>
                 <sheet>
@@ -98,17 +99,21 @@
                             <field name="is_employee" invisible="1"/>
                             <field name="is_performance_record" invisible="1"/>
                             <field name="create_date"/>
-                            <field name="create_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="create_uid"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group>
+                            <field name="is_appraisal_manager" invisible="1"/>
                             <field name="designation_id" required="True"/>
                             <field name="grade"/>
-                            <field name="location_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="location_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="appraisal_date" required="True"/>
                             <field name="reviewer_id"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="write_date"/>
-                            <field name="write_uid" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="write_uid"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                     </group>
                     <separator string="Refuse Reason"></separator>
@@ -120,9 +125,9 @@
                         <page string="Goals">
                             <field name="goal_sets_kras">
                                 <tree editable="bottom" create="0" delete="0">
-                                    <field name="goal_description" readonly="1"/>
                                     <field name="category" readonly="1"/>
                                     <field name="kra" readonly="1"/>
+                                    <field name="goal_description" readonly="1"/>
                                     <field name="weightage" string="Weightage (%)"/>
                                 </tree>
                             </field>
@@ -130,8 +135,8 @@
                         <page string="Self Rating">
                             <field name="kra_ids">
                                 <tree editable="bottom" create="0" delete="0">
-                                    <field name="goal_description" readonly="1"/>
                                     <field name="name" string="KRA" required="1" readonly="1"/>
+                                    <field name="goal_description" readonly="1"/>
                                     <field name="weightage" string="Weightage (%)"/>
                                     <field name="self_rating"/>
                                     <field name="achieved_percentage" string="Achieved Percentage (%)"/>
@@ -152,11 +157,17 @@
                                     </group>
                                 </form>
                             </field>
-                            <group colspan="2">
-                                <group>
+                            <group>
+                                <group string="Scores">
                                     <field name="total_score_employee" readonly="1" force_save="1"/>
                                     <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="employee_final_score" readonly="1" force_save="1" invisible="is_employee == True"/>
+                                    <field name="employee_final_score" readonly="1" force_save="1"
+                                           invisible="is_employee == True"/>
+                                </group>
+                                <group string="Appraisal Meeting">
+                                    <field name="appraisal_meeting_confirmation"/>
+                                    <field name="meeting_date_time" invisible="not appraisal_meeting_confirmation"
+                                           required="appraisal_meeting_confirmation"/>
                                 </group>
                             </group>
                         </page>
@@ -176,7 +187,8 @@
                                 <group>
                                     <field name="total_score_manager" readonly="1" force_save="1"/>
                                     <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="manager_final_score" readonly="1" force_save="1" groups="hr_extended.group_hr_recruitment_director"/>
+                                    <field name="manager_final_score" readonly="1" force_save="1"
+                                           groups="hr_extended.group_hr_recruitment_director"/>
                                     <field name="pbvp_payout" readonly="1" force_save="1" invisible="1"/>
                                 </group>
                             </group>
@@ -284,16 +296,16 @@
                                 <group>
                                     <field name="total_ctc_month" readonly="1" force_save="1"/>
                                 </group>
-<!--                                <br/><br/>-->
-<!--                                <button name="action_create_new_contract" type="object"-->
-<!--                                        class="oe_highlight new-compensation-btn"-->
-<!--                                        string="New Compensation"/>-->
-<!--                                <style>-->
-<!--                                    .new-compensation-btn{-->
-<!--                                    width:150px;-->
-<!--                                    margin-left: 15px;-->
-<!--                                    }-->
-<!--                                </style>-->
+                                <!--                                <br/><br/>-->
+                                <!--                                <button name="action_create_new_contract" type="object"-->
+                                <!--                                        class="oe_highlight new-compensation-btn"-->
+                                <!--                                        string="New Compensation"/>-->
+                                <!--                                <style>-->
+                                <!--                                    .new-compensation-btn{-->
+                                <!--                                    width:150px;-->
+                                <!--                                    margin-left: 15px;-->
+                                <!--                                    }-->
+                                <!--                                </style>-->
                             </group>
                         </page>
                         <page string="Review Comments" invisible="is_employee == True">
@@ -314,22 +326,25 @@
                                     <field name="name" string="KRA" readonly="1"/>
                                     <field name="weightage" string="Weightage (%)"/>
                                     <field name="employee_rating" string="Employee's Rating"/>
-                                    <field name="appraiser_rating" string="Appraiser's Rating"/>
+                                    <field name="appraiser_rating" string="Appraiser's Rating"
+                                           readonly="not parent.is_appraisal_manager"/>
                                 </tree>
                             </field>
                             <group>
                                 <group>
-                                    <field name="appraiser_overall_rating" string="Appraiser’s Overall Rating" groups="hr_extended.group_hr_recruitment_director"/>
-                                    <field name="appraiser_remarks" string="Appraiser’s Remarks"/>
+                                    <field name="appraiser_overall_rating" string="Appraiser’s Overall Rating"
+                                           groups="hr_extended.group_hr_recruitment_director"/>
+                                    <field name="appraiser_remarks" string="Appraiser’s Remarks"
+                                           readonly="not is_appraisal_manager"/>
                                 </group>
                                 <group>
                                     <field name="employee_signature"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            string="Employee’s Signature"/>
-                                    <field name="reporting_manager_signature"
+                                    <field name="reporting_manager_signature" readonly="not is_appraisal_manager"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            string="Reporting Manager’s Signature"/>
-                                    <field name="reviewer_signature"
+                                    <field name="reviewer_signature" readonly="not is_appraisal_manager"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            string="Reviewer’s Signature"/>
                                 </group>
@@ -427,7 +442,8 @@
                     <group>
                         <group>
                             <field name="name" required="True"/>
-                            <field name="location_id" required="True" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                            <field name="location_id" required="True"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="grade" required="True"/>
                         </group>
                         <group>
@@ -473,7 +489,8 @@
         <field name="target">current</field>
     </record>
 
-    <menuitem id="menu_config_salary_master" name="Salary Breakup Master" parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+    <menuitem id="menu_config_salary_master" name="Salary Breakup Master"
+              parent="hr_recruitment.menu_hr_recruitment_config_jobs"
               action="action_view_salary_master" sequence="7"/>
 
     <menuitem id="performance_review_main"

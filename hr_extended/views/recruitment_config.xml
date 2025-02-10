@@ -1,15 +1,15 @@
 <?xml version="1.0" ?>
 <odoo>
-    
 
-<!-- Invitation Letter Subject -->
+
+    <!-- Invitation Letter Subject -->
 
     <record id="recruitment_invitation_letter_config_tree" model="ir.ui.view">
         <field name="name">recruitment.invitation.letter.config.tree</field>
         <field name="model">recruitment.invitation.letter.config</field>
         <field name="arch" type="xml">
             <tree string="Invitation Subject">
-<!--                <field name="stage_id"/>-->
+                <!--                <field name="stage_id"/>-->
                 <field name="name"/>
                 <field name="active"/>
             </tree>
@@ -23,11 +23,23 @@
             <form>
                 <sheet>
                     <group>
-<!--                        <field name="stage_id" options="{'no_quick_create':True,'no_create': True,}"/>-->
+                        <!--                        <field name="stage_id" options="{'no_quick_create':True,'no_create': True,}"/>-->
                         <field name="name"/>
                     </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_recruitment_invitation_letter_search" model="ir.ui.view">
+        <field name="name">Recruitment Invitation Search</field>
+        <field name="model">recruitment.invitation.letter.config</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <field name="name" string="Name"/>
+            </search>
         </field>
     </record>
 
@@ -36,6 +48,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">recruitment.invitation.letter.config</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_recruitment_invitation_letter_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Add Your Details Here!!</p>
         </field>
@@ -68,11 +81,25 @@
         </field>
     </record>
 
+    <record id="view_document_update_letter_search" model="ir.ui.view">
+        <field name="name">Document Update Letter Search</field>
+        <field name="model">document.update.interview.status</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <field name="name" string="Name"/>
+            </search>
+        </field>
+    </record>
+
+
     <record id="action_document_update_interview_action" model="ir.actions.act_window">
         <field name="name">Document Update Interview Action</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">document.update.interview.status</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_document_update_letter_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Add Your Details Here!!</p>
         </field>

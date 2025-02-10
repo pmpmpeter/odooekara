@@ -29,6 +29,30 @@ class HrJobKra(models.Model):
     kra_master = fields.Many2one('kra.master', string='KRA', copy=False,
                                  help="Select the Key Result Area (KRA) Master associated with this applicant.")
 
+    def unlink(self):
+        """Check if the record is referenced before deletion."""
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'hr.job'),
+        ])
+        for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the record '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
+        return super(HrJobKra, self).unlink()
+
 
 class Job_Applicant(models.Model):
     _inherit = "hr.applicant"
@@ -178,6 +202,13 @@ class Job_Applicant(models.Model):
             if not record.linkedin_profile:
                 raise ValidationError("Please fill the LinkedIn Profile")
         return result
+
+    def unlink(self):
+        for record in self:
+            if record.stage_id.stage != 'new':
+                raise ValidationError(_("You can only delete applications that are in the 'New' state."))
+
+        return super(Job_Applicant, self).unlink()
 
     @api.depends('job_id')
     def _compute_interviewer_ids(self):
@@ -727,6 +758,8 @@ class Job_Applicant(models.Model):
     def get_document_update_interview_subject(self):
         """Fetch the active subject from document.update.interview.status."""
         document_update = self.env['document.update.interview.status'].search([('active', '=', True)], limit=1)
+        if not document_update:
+            raise UserError(_("No active interview update subject found."))
         return document_update.name
 
     def action_send_document_update_mail(self):

@@ -33,8 +33,11 @@
     'depends': ['base', 'survey', 'contacts'],
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'data/ir_action_data.xml',
         'wizard/survey_xlsx_report_views.xml',
+        'views/survey_category.xml',
+        'views/survey_survey.xml',
     ],
     'assets': {
         'web.assets_backend': [

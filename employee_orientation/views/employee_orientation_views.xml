@@ -40,19 +40,26 @@
                         </h1>
                     </div>
                     <group colspan="1" col="4" name="main">
-                        <field name="employee_id"
+                        <field name="company_id" invisible="1"/>
+                        <field name="employee_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                readonly="state in ['confirm', 'complete']"/>
-                        <field name="department_id"/>
-                        <field name="date"
+                        <field name="department_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                readonly="state in ['confirm', 'complete']"/>
-                        <field name="job_id"
+                        <field name="date" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                               readonly="state in ['confirm', 'complete']"/>
+                        <field name="job_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                readonly="state in ['confirm', 'complete']"/>
                         <field name="responsible_user_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                readonly="state in ['confirm', 'complete']"/>
-                        <field name="parent_id"/>
+                        <field name="parent_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                               readonly="state in ['confirm', 'complete']"/>
                         <field name="employee_company_id"
-                               readonly="state in ['confirm', 'complete']"/>
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                               readonly="1"/>
                         <field name="orientation_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                readonly="state in ['confirm', 'complete']"/>
                     </group>
                     <notebook colspan="4">
@@ -60,7 +67,7 @@
                               string="Orientation Checklists Lines"
                               invisible="state not in ['complete','confirm']">
                             <field name="orientation_request_ids"
-                                   readonly="state not in ['confirm','draft']">
+                                   readonly="state in ['confirm','complete']">
                                 <tree string="lines" editable="bottom"
                                       create="true">
                                     <field name="request_name"/>

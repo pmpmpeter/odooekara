@@ -44,9 +44,12 @@ class EmployeeProbation(models.Model):
     name = fields.Char('Sequence', readonly=True, index=True, default=lambda self: _('New'))
     employee_id = fields.Many2one('hr.employee', 'Employee', domain=lambda self: self._compute_employee_domain())
     email = fields.Char('Email', related='employee_id.work_email')
-    department_id = fields.Many2one('hr.department', 'Department', related='employee_id.department_id')
-    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
-    parent_id = fields.Many2one('hr.employee', 'Manager', related='employee_id.parent_id')
+    department_id = fields.Many2one('hr.department', 'Department', related='employee_id.department_id',
+                                    domain="[('company_id', '=', company_id)]")
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
+    parent_id = fields.Many2one('hr.employee', 'Manager', related='employee_id.parent_id',
+                                domain="[('company_id', '=', company_id)]")
     employee_reviews_ids = fields.One2many('employee.reviews.details', 'probation_id', 'Employee Reviews')
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -97,12 +100,22 @@ class EmployeeProbation(models.Model):
                     _('A probation form for this employee is already in progress, under review, or confirmed.')
                 )
 
+    @api.constrains('email', 'department_id', 'parent_id')
+    def _check_fields_null(self):
+        for record in self:
+            if not record.email:
+                raise ValidationError(_('Please fill the Email for the employee'))
+            if not record.department_id:
+                raise ValidationError(_('Please fill the Department for the employee'))
+            if not record.parent_id:
+                raise ValidationError(_('Please fill the Manager for the employee'))
+
     @api.model
     def _compute_employee_domain(self):
         """ Dynamically restrict employee selection based on user group """
         user = self.env.user
         if user.has_group('hr.group_hr_user') or user.has_group('hr.group_hr_manager'):
-            return []
+            return [('company_id', '=', self.env.company.id)]
         else:
             return [('user_id', '=', user.id)]
 
@@ -199,7 +212,7 @@ class EmployeeProbation(models.Model):
                 default_composition_mode='comment',
                 default_email_layout_xmlid="mail.mail_notification_light",
                 default_attachment_ids=[attachment.id],
-                default_email_to = self.employee_id.work_email,
+                default_email_to=self.employee_id.work_email,
             )
             return {
                 'name': _('Compose Probation Confirmation Email'),
@@ -268,7 +281,7 @@ class EmployeeProbation(models.Model):
         if len(self.review_form_ids.ids) > 1:
             result['domain'] = "[('id','in',[" + ','.join(map(str, self.review_form_ids.ids)) + "])]"
         elif len(self.review_form_ids.ids) == 1:
-            res = self.env.ref('emp_prob_extended.probation_review_form_form_view',False)
+            res = self.env.ref('emp_prob_extended.probation_review_form_form_view', False)
             result['views'] = [(res and res.id or False, 'form')]
             result['res_id'] = self.review_form_ids.ids and self.review_form_ids.ids[0] or False
         return result

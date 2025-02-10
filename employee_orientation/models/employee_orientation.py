@@ -20,6 +20,7 @@
 #
 #############################################################################
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError, UserError
 
 
 class Orientation(models.Model):
@@ -33,10 +34,11 @@ class Orientation(models.Model):
                        default=lambda self: _('New'),
                        help="Sequence for employee orientation.")
     employee_id = fields.Many2one('hr.employee', string='Employee',
-                                  required=True,
+                                  required=True, domain="[('company_id', '=', company_id)]",
                                   help="Name of the employee.")
     department_id = fields.Many2one('hr.department', string='Department',
                                     related='employee_id.department_id',
+                                    domain="[('company_id', '=', company_id)]",
                                     required=True,
                                     help="Name of the department.")
     date = fields.Datetime(string="Date", help="Current date for employee "
@@ -44,12 +46,12 @@ class Orientation(models.Model):
     responsible_user_id = fields.Many2one('res.users',
                                           string='Responsible User',
                                           help="Give the responsible user.")
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, readonly=True)
     employee_company_id = fields.Many2one('res.company', string='Company',
                                           required=True,
-                                          default=lambda
-                                              self: self.env.user.company_id,
+                                          related='employee_id.company_id',
                                           help="Mention the company.")
-    parent_id = fields.Many2one('hr.employee', string='Manager',
+    parent_id = fields.Many2one('hr.employee', string='Manager', domain="[('company_id', '=', company_id)]",
                                 related='employee_id.parent_id',
                                 help="Related manager.")
     job_id = fields.Many2one('hr.job', string='Job Title',
@@ -121,3 +123,10 @@ class Orientation(models.Model):
             'employee.orientation')
         result = super(Orientation, self).create(vals)
         return result
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError('You can able to delete Draft records only')
+        return super(Orientation, self).unlink()
+

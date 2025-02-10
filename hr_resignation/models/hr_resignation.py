@@ -42,18 +42,23 @@ class HrResignation(models.Model):
     name = fields.Char(string='Order Reference', copy=False,
                        readonly=True, index=True,
                        default=lambda self: _('New'))
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, readonly=True)
     employee_id = fields.Many2one('hr.employee', string="Employee", copy=False,
                                   default=lambda
-                                      self: self.env.user.employee_id.id, domain = lambda self: [('company_id','=',self.env.company.id)],
+                                      self: self.env.user.employee_id.id, domain="[('company_id', '=', company_id)]",
                                   help='Name of the employee for '
                                        'whom the request is creating')
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=True, related_sudo=False,
+                                         domain="[('company_id', '=', company_id)]",
                                          string="Manager")
-    coach_id = fields.Many2one(related='employee_id.coach_id', readonly=True, related_sudo=False, string="HR")
+    coach_id = fields.Many2one(related='employee_id.coach_id', readonly=True,
+                               domain="[('company_id', '=', company_id)]", related_sudo=False, string="HR")
     department_id = fields.Many2one('hr.department', string="Department", readonly=True,
+                                    domain="[('company_id', '=', company_id)]",
                                     related='employee_id.department_id',
                                     help='Department of the employee')
     designation_id = fields.Many2one('hr.job', string="Designation", readonly=True,
+                                     domain="[('company_id', '=', company_id)]",
                                      related='employee_id.job_id')
     resign_confirm_date = fields.Date(string="Confirmed Date", copy=False,
                                       help='Date on which the request '
@@ -185,8 +190,8 @@ class HrResignation(models.Model):
         This sets up an approval workflow and updates the resignation state.
         """
         for resignation in self:
-            #handling the approvers in request_approval.py in multi approval
-            #handling the state change in mail_compose_message.py in hr resignation
+            # handling the approvers in request_approval.py in multi approval
+            # handling the state change in mail_compose_message.py in hr resignation
             if hasattr(self, 'x_has_request_approval'):
                 self.x_has_request_approval = False
 

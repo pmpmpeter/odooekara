@@ -31,15 +31,33 @@ class InsurancePolicy(models.Model):
                              help="Notes for the insurance policy if any")
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
-                                 default=lambda self: self.env.user.company_id,
+                                 default=lambda self: self.env.company,
                                  domain=lambda self: [('id', 'in', self.env.companies.ids)])
     active = fields.Boolean('Active', default=True, copy=False)
 
     def unlink(self):
+        related_fields = self.env['ir.model.fields'].search([
+            ('ttype', 'in', ['many2one', 'many2many']),
+            ('relation', '=', 'insurance.policy'),
+        ])
         for record in self:
+            for field in related_fields:
+                model = self.env[field.model]
+                if field.ttype == 'many2one':
+                    references = model.search([(field.name, '=', record.id)])
+                elif field.ttype == 'many2many':
+                    references = model.search([(field.name, 'in', [record.id])])
+                else:
+                    continue
+
+                if references:
+                    model_name = self.env['ir.model']._get(field.model).name
+                    referenced_ids = references.mapped('id')
+                    raise ValidationError(
+                        f"You cannot delete the record '{record.name}' as it is referenced in the model '{model_name}'."
+                    )
             if record.active != False:
                 raise UserError(
                     _("You can only delete records in the Inactive.")
                 )
         return super(InsurancePolicy, self).unlink()
-

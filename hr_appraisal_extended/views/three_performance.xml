@@ -56,7 +56,7 @@
                             <field name="interpersonal_skills_complete" invisible="1"/>
                             <field name="motivation_complete" invisible="1"/>
                             <field name="employee_id" readonly="state in ('completed')"
-                                   options="{'no_quick_create':True,'no_create': True,}"/>
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="job_id" readonly="state in ('completed')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="grade" readonly="state in ('completed')"/>

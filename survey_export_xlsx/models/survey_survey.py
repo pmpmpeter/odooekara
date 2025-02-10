@@ -19,7 +19,7 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 ################################################################################
-from odoo import models
+from odoo import models,fields
 
 
 class Survey(models.Model):
@@ -37,3 +37,8 @@ class Survey(models.Model):
             'target': 'new',
             'context': {'default_survey_ids': self.ids},
         }
+
+class SurveyQuestion(models.Model):
+    _inherit = 'survey.question'
+
+    survey_category_id = fields.Many2one('survey.category', string="Category", domain=lambda self: [('id', '=', (self.env.company.id))])

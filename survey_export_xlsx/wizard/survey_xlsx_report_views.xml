@@ -35,6 +35,9 @@
                     <button name="action_print_survey_groupby_xlsx_report"
                             string="PRINT"
                             type="object" class="btn-primary" invisible="not group_by"/>
+                    <button name="action_print_survey_results_percentage_xlsx_report"
+                            string="PRINT Analytics"
+                            type="object" class="btn-primary"/>
                     <button string="CANCEL" class="btn-secondary"
                             special="cancel" data-hotkey="z"/>
                 </footer>
@@ -43,22 +46,22 @@
     </record>
 
     <record id="action_survey_xlsx_report" model="ir.actions.act_window">
-    <field name="name">Survey Report</field>
-    <field name="res_model">survey.xlsx.report</field>
-    <field name="view_mode">form</field>
-    <field name="target">new</field>
-</record>
+        <field name="name">Survey Report</field>
+        <field name="res_model">survey.xlsx.report</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
 
     <menuitem id="menu_survey_xlsx_report_root"
-          name="Survey Reports"
-          parent="survey.menu_surveys"
-          sequence="50"/>
+              name="Survey Reports"
+              parent="survey.menu_surveys"
+              sequence="50"/>
 
-<menuitem id="menu_survey_xlsx_report"
-          name="Survey XLS Report"
-          parent="menu_survey_xlsx_report_root"
-          action="action_survey_xlsx_report"
-          sequence="10"/>
+    <menuitem id="menu_survey_xlsx_report"
+              name="Survey XLS Report"
+              parent="menu_survey_xlsx_report_root"
+              action="action_survey_xlsx_report"
+              sequence="10"/>
 
 
 </odoo>

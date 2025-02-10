@@ -7,7 +7,7 @@ class EmployeeInsurance(models.Model):
     _name = 'employee.insurance'
     _description = 'Employee Insurance Details'
 
-    employee_id = fields.Many2one('hr.employee', string='Employee', required=True, ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string='Employee', domain=lambda self: [('company_id', '=', self.env.company.id)], required=True, ondelete='cascade')
     insurance_holder_name = fields.Char(string='Insurance Holder Name')
     relationship = fields.Selection([
         ('self', 'Self'),
