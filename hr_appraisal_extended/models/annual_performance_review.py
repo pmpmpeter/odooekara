@@ -62,6 +62,7 @@ class AnnualPerformanceReview(models.AbstractModel):
             worksheet.write(row, 2, kra.weightage, cell_format)
             worksheet.write(row, 3, kra.self_rating, cell_format)
             worksheet.write(row, 4, kra.employee_weighted_score, cell_format)
+            # worksheet.write(row, 4, f"{int(kra.employee_weighted_score)}%", cell_format)
             row += 1
 
         # Write manager ratings data

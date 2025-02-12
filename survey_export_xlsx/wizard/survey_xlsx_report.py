@@ -37,6 +37,8 @@ class SurveyXlsReport(models.TransientModel):
         title_format = workbook.add_format({'bold': True, 'bg_color': '#D3D3D3', 'align': 'center', 'border': 1})
         answer_format = workbook.add_format({'align': 'center', 'border': 1})
         question_format = workbook.add_format({'align': 'left', 'text_wrap': True, 'border': 1})
+        total_format = workbook.add_format(
+            {'bold': True, 'bg_color': '#D3D3D3', 'align': 'center', 'border': 1})  # Gold background for total
 
         worksheet.set_column('A:A', 15)  # Qn. No.
         worksheet.set_column('B:B', 25)  # Survey Name
@@ -44,7 +46,8 @@ class SurveyXlsReport(models.TransientModel):
         worksheet.set_column('D:D', 50)  # Question
         worksheet.set_column('E:N', 20)  # Answer Columns
 
-        headers = ["Qn. No.","Survey Name", "Category", "Question", "Strongly Agree", "Strongly Agree%", "Agree", "Agree%",
+        headers = ["Qn. No.", "Survey Name", "Category", "Question", "Strongly Agree", "Strongly Agree%", "Agree",
+                   "Agree%",
                    "Neutral", "Neutral%", "Disagree", "Disagree%", "Strongly Disagree", "Strongly Disagree%"]
 
         for col, header in enumerate(headers):
@@ -57,6 +60,8 @@ class SurveyXlsReport(models.TransientModel):
             "Disagree": 2,
             "Strongly Disagree": 1
         }
+
+        total_counts = {key: 0 for key in score_mapping.keys()}
 
         row = 3
         for survey in surveys:
@@ -98,6 +103,7 @@ class SurveyXlsReport(models.TransientModel):
 
                     if response_text in question_data[question_id]:
                         question_data[question_id][response_text] += 1
+                        total_counts[response_text] += 1
 
                     question_data[question_id]['Total Score'] += score
 
@@ -127,6 +133,16 @@ class SurveyXlsReport(models.TransientModel):
                     worksheet.write(row, 5 + (col_index * 2), f"{percentage:.2f}%", answer_format)
 
                 row += 1
+
+        worksheet.write(row, 3, "Total", total_format)
+        total_responses = sum(total_counts.values()) or 1
+
+        for col_index, response_type in enumerate(score_mapping.keys()):
+            total_count = total_counts[response_type]
+            total_percentage = (total_count / total_responses) * 100
+
+            worksheet.write(row, 4 + (col_index * 2), total_count, total_format)
+            worksheet.write(row, 5 + (col_index * 2), f"{total_percentage:.2f}%", total_format)
 
         workbook.close()
         output.seek(0)

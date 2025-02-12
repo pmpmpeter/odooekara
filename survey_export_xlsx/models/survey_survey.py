@@ -41,4 +41,4 @@ class Survey(models.Model):
 class SurveyQuestion(models.Model):
     _inherit = 'survey.question'
 
-    survey_category_id = fields.Many2one('survey.category', string="Category", domain=lambda self: [('id', '=', (self.env.company.id))])
+    survey_category_id = fields.Many2one('survey.category', string="Category", domain=lambda self: [('company_id', '=', (self.env.company.id))])

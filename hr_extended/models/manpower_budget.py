@@ -2,7 +2,7 @@ from odoo import models, fields, api
 import pytz
 import xlsxwriter
 import base64
-import io 
+import io
 from datetime import datetime
 from pytz import timezone
 from odoo.exceptions import UserError, ValidationError
@@ -31,11 +31,11 @@ class ManpowerBudget(models.Model):
         ('existing', 'Existing'),
         ('additional', 'Additional')
     ], string="Type of Manpower Request")
-    business_unit_id = fields.Many2one('business.units', string="Business Unit")
-    department_id = fields.Many2one('hr.department', string="Department")
-    job_id = fields.Many2one('hr.job', string="Role/Designation")
-    position_id = fields.Many2one('hr.position.names', string="Role/Designation")
-    job_level_id = fields.Many2one('hr.job.levels', string="Job Level/Grade")
+    business_unit_id = fields.Many2one('business.units',domain="[('company_id', '=', company_id)]", string="Business Unit")
+    department_id = fields.Many2one('hr.department',domain="[('company_id', '=', company_id)]", string="Department")
+    job_id = fields.Many2one('hr.job',domain="[('company_id', '=', company_id)]", string="Role/Designation")
+    position_id = fields.Many2one('hr.position.names',domain="[('company_id', '=', company_id)]", string="Role/Designation")
+    job_level_id = fields.Many2one('hr.job.levels',domain="[('company_id', '=', company_id)]", string="Job Level/Grade")
     justification = fields.Char(string="Justification")
     ctc_annual = fields.Float(string="CTC-Annual",compute='_compute_ctc_annual')
     employee_monthly_ids = fields.One2many(
@@ -246,9 +246,9 @@ class ManpowerBudget(models.Model):
         sheet.write(5, 32, "Jan/"+str(y_2), merge_format4)
         sheet.write(5, 33, "Feb/"+str(y_2), merge_format4)
         sheet.write(5, 34, "Mar/"+str(y_2), merge_format4)
-        sheet.set_row(0,40) 
-        sheet.set_row(1,40) 
-        sheet.set_row(5,30) 
+        sheet.set_row(0,40)
+        sheet.set_row(1,40)
+        sheet.set_row(5,30)
         row = 6
         active_ids = self.env.context.get('active_ids', [])
         if not active_ids:
@@ -389,9 +389,9 @@ class ManpowerBudget(models.Model):
         sheet.write(5, 32, "Jan/"+str(y_2), merge_format4)
         sheet.write(5, 33, "Feb/"+str(y_2), merge_format4)
         sheet.write(5, 34, "Mar/"+str(y_2), merge_format4)
-        sheet.set_row(0,40) 
-        sheet.set_row(1,40) 
-        sheet.set_row(5,30) 
+        sheet.set_row(0,40)
+        sheet.set_row(1,40)
+        sheet.set_row(5,30)
         row = 6
         active_ids = self.env.context.get('active_ids', [])
         if not active_ids:
@@ -512,6 +512,7 @@ class DirectorApproveManpower(models.Model):
     to_date = fields.Date(string="To Date", required=True)
     report = fields.Many2one('ir.attachment',string="Attachment")
     report_name = fields.Char(string="Report Filename")
+    company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, readonly=True)
     state = fields.Selection(
         [('waiting','Waiting For Approve'),('approved', 'Approved'), ('rejected', 'Rejected')],
         string="Status",

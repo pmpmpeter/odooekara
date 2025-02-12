@@ -36,7 +36,7 @@
             <field name="arch" type="xml">
                 <search>
                     <filter string="Active" name="show_active" domain="[('active', '=', True)]"/>
-                    <filter string="Inactive" name="show_inactive" domain="[('active', '=', False)]"/>
+                    <filter string="Archived" name="show_inactive" domain="[('active', '=', False)]"/>
 
                     <group expand="0" string="Group By">
                         <filter string="Review Types" name="group_by_review_types"
@@ -58,11 +58,6 @@
                 <p class="o_view_nocontent_smiling_face">
                     Create a new 360 Performance review configuration
                 </p>
-            </field>
-            <field name="context">
-                {
-                'search_default_show_active': 1
-                }
             </field>
         </record>
 

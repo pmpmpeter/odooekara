@@ -46,6 +46,7 @@
                 <sheet>
                     <group>
                         <group>
+                            <field name="company_id" invisible="1"/>
                             <field name="line_created" invisible="1"/>
                             <field name="communication_complete" invisible="1"/>
                             <field name="team_working_complete" invisible="1"/>
@@ -55,23 +56,23 @@
                             <field name="customer_focus_complete" invisible="1"/>
                             <field name="interpersonal_skills_complete" invisible="1"/>
                             <field name="motivation_complete" invisible="1"/>
-                            <field name="employee_id" readonly="state in ('completed')"
+                            <field name="employee_id" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                            <field name="job_id" readonly="state in ('completed')"
+                            <field name="job_id" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                            <field name="grade" readonly="state in ('completed')"/>
+                            <field name="grade_selection" readonly="state not in ('draft')"/>
                         </group>
                         <group>
-                            <field name="review_submitted_by" readonly="state in ('completed')"
+                            <field name="review_submitted_by" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
-                            <field name="review_designation" readonly="state in ('completed')"
+                            <field name="review_designation" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
-                            <field name="review_department" readonly="state in ('completed')"
+                            <field name="review_department" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
-                            <field name="review_bu_ids" readonly="state in ('completed')" groups="hr.group_hr_user"
+                            <field name="review_bu_ids" readonly="state not in ('draft')" groups="hr.group_hr_user"
                                    widget="many2many_tags_avatar" force_save="1"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>

@@ -184,6 +184,7 @@ class HrContract(models.Model):
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
 
                     # CTC Calculations
                     record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
@@ -253,6 +254,7 @@ class HrContract(models.Model):
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
 
                     # CTC Calculations
                     record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
@@ -316,6 +318,7 @@ class HrContract(models.Model):
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
 
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
@@ -391,6 +394,7 @@ class HrContract(models.Model):
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
 
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
@@ -466,6 +470,7 @@ class HrContract(models.Model):
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
 
                 # CTC Calculations
                 record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance

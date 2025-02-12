@@ -68,5 +68,5 @@ class HrInsurance(models.Model):
     def unlink(self):
         for record in self:
             if record.state == 'active':
-                raise UserError("You can delete the Active Policy record.")
+                raise UserError("You can not delete the Active Policy record.")
         return super(HrInsurance, self).unlink()

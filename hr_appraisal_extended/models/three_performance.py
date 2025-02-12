@@ -44,14 +44,26 @@ class ThreePerformanceReview(models.Model):
     _rec_name = 'employee_id'
 
     employee_id = fields.Many2one('hr.employee', string='Who are you leaving feedback for? (Employee Name)',
+                                  domain="[('company_id', '=', company_id)]",
                                   required=True)
-    job_id = fields.Many2one('hr.job', string='What is their job title:', required=True)
+    job_id = fields.Many2one('hr.job', string='What is their job title:',domain="[('company_id', '=', company_id)]", required=True)
     grade = fields.Char(string="Grade(if applicable):", required=True)
+    grade_selection = fields.Selection([
+        ('spl_grade', 'Spl Grade'),
+        ('grade_a', 'Grade A'),
+        ('grade_b', 'Grade B'),
+        ('grade_c', 'Grade C'),
+        ('grade_d', 'Grade D'),
+        ('grade_e', 'Grade E'),
+        ('grade_f', 'Grade F'),
+        ('grade_g', 'Grade G'),
+    ], default='spl_grade', string="Grade(if applicable):", tracking=True, required=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
 
-    review_submitted_by = fields.Many2one('hr.employee', string="Review Submitted By")
-    review_designation = fields.Many2one('hr.job', string="Reviewer Designation")
-    review_department = fields.Many2one('hr.department', string="Reviewer Department")
-    review_bu_ids = fields.Many2many('hr.employee', string="Reviewer BU")
+    review_submitted_by = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="Review Submitted By")
+    review_designation = fields.Many2one('hr.job',domain="[('company_id', '=', company_id)]", string="Reviewer Designation")
+    review_department = fields.Many2one('hr.department',domain="[('company_id', '=', company_id)]", string="Reviewer Department")
+    review_bu_ids = fields.Many2many('hr.employee',domain="[('company_id', '=', company_id)]", string="Reviewer BU")
     review_date_time = fields.Datetime(string="Review Date and Time", readonly=True, copy=False)
     review_date_time_prob = fields.Datetime(help="Just storing to show them in pdf and excel", copy=False)
     # review_type = fields.Selection(related='review_line_ids.config_id.review_types', string="Review Type", store=True)
@@ -125,6 +137,21 @@ class ThreePerformanceReview(models.Model):
         string="Interpersonal Skills Complete", compute='_compute_section_complete', store=False)
     motivation_complete = fields.Boolean(
         string="Motivation Complete", compute='_compute_section_complete', store=False)
+
+
+    @api.onchange('employee_id')
+    def _onchange_employee_id(self):
+        for record in self:
+            if record.employee_id:
+                record.job_id = record.sudo().employee_id.job_id
+                record.grade = record.employee_id.contract_id.sudo().grade
+
+    @api.onchange('review_submitted_by')
+    def _onchange_review_submitted_by(self):
+        for record in self:
+            if record.review_submitted_by:
+                record.review_designation = record.sudo().review_submitted_by.job_id
+                record.review_department = record.sudo().review_submitted_by.department_id
 
     @api.depends('review_line_ids.rating')
     def _compute_section_complete(self):

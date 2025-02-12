@@ -257,7 +257,7 @@
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Variable Pay*</td>
+                            <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Performance Linked Variable Pay*</td>
                             <td style="border: 1px solid black; padding: 8px;">
                                 <t t-esc="'{:,}'.format(object.variable_pay_per_annum or 0.0)"/>
                             </td>
@@ -294,7 +294,7 @@
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>
                         <tr>
-                            <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Medical Insurance **</td>
+                            <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Medical Insurance *</td>
                             <td style="border: 1px solid black; padding: 8px;">
                                 <t t-esc="'{:,}'.format(object.medical_insurances or 0.0)"/>
                             </td>
@@ -302,10 +302,18 @@
                         </tr>
                         <tr>
                             <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Group Personal Accidental
-                                Insurance***
+                                Insurance**
                             </td>
                             <td style="border: 1px solid black; padding: 8px;">
                                 <t t-esc="'{:,}'.format(object.group_personal_acc_insurance or 0.0)"/>
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 8px;">&#160;&#160;Health Benefit Plan***
+                            </td>
+                            <td style="border: 1px solid black; padding: 8px;">
+                                <t t-esc="'{:,}'.format(object.health_ben_plan or 0.0)"/>
                             </td>
                             <td style="border: 1px solid black; padding: 8px;"></td>
                         </tr>

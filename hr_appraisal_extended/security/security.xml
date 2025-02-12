@@ -6,6 +6,18 @@
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
     </record>
 
+    <record id="ir_rule_hr_pip_company" model="ir.rule">
+        <field name="name">Performance Improvement Plan: Multi Company</field>
+        <field name="model_id" ref="hr_appraisal_extended.model_hr_pip"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_three_performance_company" model="ir.rule">
+        <field name="name">360 Performance Review: Multi Company</field>
+        <field name="model_id" ref="hr_appraisal_extended.model_threeperformance_review"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
     <!--To view their own record only-->
     <record id="performance_review_rule_user" model="ir.rule">
         <field name="name">Performance Review - Candidate</field>

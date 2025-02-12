@@ -81,6 +81,21 @@ class MailActivityPlanTemplate(models.Model):
 class HrEmployeeSmartButton(models.Model):
     _inherit = "hr.employee"
 
+    is_self_record = fields.Boolean(
+        string="Is Self Record",
+        compute='_compute_is_self_record',
+        store=False
+    )
+
+    @api.depends()
+    def _compute_is_self_record(self):
+        current_user = self.env.user
+        for record in self:
+            record.is_self_record = (
+                    record.user_id.id == current_user.id or
+                    current_user.has_group('hr.group_hr_user')
+            )
+
     appointment_letter_sent = fields.Boolean(string="Appointment Letter Sent", default=False, copy=False)
     employee_master_insurance_ids = fields.One2many('employee.insurance', 'employee_id', string='Insurance Details')
     assets_ids = fields.One2many('assets.details', 'employee_id', string='Assets Details')

@@ -57,6 +57,18 @@
         <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
     </record>
 
+    <record id="ir_rule_manpower_budget_company" model="ir.rule">
+        <field name="name">Manpower Budget: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_manpower_budget"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
+    <record id="ir_rule_director_approve_manpower_company" model="ir.rule">
+        <field name="name">Director Approve Manpower: Multi Company</field>
+        <field name="model_id" ref="hr_extended.model_director_approve_manpower"/>
+        <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+    </record>
+
     <record id="ir_rule_assets_category_company" model="ir.rule">
         <field name="name">Assets Category: Multi Company</field>
         <field name="model_id" ref="hr_extended.model_assets_category"/>

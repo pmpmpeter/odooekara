@@ -150,8 +150,12 @@ class EmployeeKra(models.Model):
     def action_approve(self):
         for record in self:
             record.state = 'done'
-            self.env['self.rating'].create({
+            self.env['self.rating'].sudo().create({
                 'employee_id': record.employee_id.id,
+                'designation_id': record.employee_id.job_id.id,
+                'department_id': record.employee_id.department_id.id,
+                'grade': record.employee_id.contract_id.sudo().grade,
+                'location_id': record.employee_id.contract_id.location_id.id,
                 'goal_sets_kras': [(0, 0, {
                     'category': detail.category,
                     'kra': detail.kra_type,

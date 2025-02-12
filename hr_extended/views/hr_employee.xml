@@ -95,8 +95,9 @@
                 <field name="blood_group"/>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="before">
-                <page string="Insurance Details" groups="hr.group_hr_user">
+                <page string="Insurance Details" invisible="not is_self_record">
                     <group>
+                        <field name="is_self_record" invisible="1"/>
                         <field name="employee_master_insurance_ids">
                             <tree>
                                 <field name="insurance_holder_name"/>
@@ -111,7 +112,7 @@
                         </field>
                     </group>
                 </page>
-                <page string="Assets" groups="hr.group_hr_user">
+                <page string="Assets" invisible="not is_self_record">
                     <field name="assets_ids">
                         <tree editable="bottom">
                             <field name="category_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
@@ -121,8 +122,8 @@
                 </page>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="after">
-                <page name="leaving_details" string="Leaving Details" groups="hr.group_hr_user"
-                      invisible="state not in ('notice_period','relieved','terminate')">
+                <page name="leaving_details" string="Leaving Details"
+                      invisible="state not in ('notice_period','relieved','terminate') or not is_self_record">
                     <group string="Employee Exit Information">
                         <field name="last_working_day_current"/>
                         <field name="reason_for_leaving"/>
@@ -131,7 +132,7 @@
                     </group>
                 </page>
 
-                <page name="leave_documents" string="Leave and Documents" groups="hr.group_hr_user">
+                <page name="leave_documents" string="Leave and Documents" invisible="not is_self_record">
                     <group>
                         <group string="Leave Details">
                             <field name="casual_leave" string="Casual Leave"/>
@@ -162,8 +163,8 @@
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" type="object" string="KRA Form"
-                        name="action_open_kra_records" icon="fa-star" groups="hr.group_hr_user"
-                        invisible="kra_record_count == 0">
+                        name="action_open_kra_records" icon="fa-star"
+                        invisible="kra_record_count == 0 or not is_self_record">
                     <field name="kra_record_count" widget="statinfo" string="KRA"/>
                 </button>
                 <button class="oe_stat_button"
@@ -171,8 +172,7 @@
                         icon="fa-file-text"
                         string="Joining Documents"
                         name="action_get_joining_documents"
-                        groups="hr.group_hr_user"
-                        invisible="joining_documents_count == 0">
+                        invisible="joining_documents_count == 0 or not is_self_record">
                     <field name="joining_documents_count" widget="statinfo" string="Joining Documents"/>
                 </button>
                 <button class="oe_stat_button"
@@ -180,8 +180,7 @@
                         icon="fa-file-text"
                         string="Project"
                         name="action_get_project_task"
-                        groups="hr.group_hr_user"
-                        invisible="project_count == 0">
+                        invisible="project_count == 0 or not is_self_record">
                     <field name="project_count" widget="statinfo" string="Project"/>
                 </button>
             </xpath>

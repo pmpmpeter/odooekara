@@ -1,21 +1,25 @@
 from odoo import models, fields, api
 
+
 class HrPerformanceImprovementPlan(models.Model):
     _name = 'hr.pip'
     _description = 'Performance Improvement Plan'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
-    employee_id = fields.Many2one('hr.employee', string="Employee", required=True, tracking=True)
-    supervisor_id = fields.Many2one('hr.employee', string="Supervisor", required=True, tracking=True)
-    hod_id = fields.Many2one('hr.employee', string="HOD/Director", tracking=True)
-    hr_head_id = fields.Many2one('hr.employee', string="HR Head", tracking=True)
+    employee_id = fields.Many2one('hr.employee', string="Employee",domain="[('company_id', '=', company_id)]", required=True, tracking=True)
+    supervisor_id = fields.Many2one('hr.employee', string="Supervisor",domain="[('company_id', '=', company_id)]", required=True, tracking=True)
+    hod_id = fields.Many2one('hr.employee', string="HOD/Director",domain="[('company_id', '=', company_id)]", tracking=True)
+    hr_head_id = fields.Many2one('hr.employee', string="HR Head",domain="[('company_id', '=', company_id)]", tracking=True)
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
     start_date = fields.Date(string="Start Date", required=True)
     end_date = fields.Date(string="Projected Completion Date", required=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
+        ('cancel', 'Canceled')
     ], string="Status", default='draft', tracking=True)
     improvement_goal_ids = fields.One2many('hr.pip.improvement.goal', 'pip_id', string="Improvement Goals")
     activity_goal_ids = fields.One2many('hr.pip.activity.goal', 'pip_id', string="Activity Goals")
@@ -26,13 +30,13 @@ class HrPerformanceImprovementPlan(models.Model):
     observations = fields.Text(string="Observations/Previous Discussions")
     areas_of_concern = fields.Text(string="Areas of Concern")
     notes = fields.Text(string="Additional Notes")
-    employee_sign_id = fields.Many2one('hr.employee', string="Employee Name")
+    employee_sign_id = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="Employee Name")
     employee_signature = fields.Binary(string="Employee Signature")
     employee_signature_date = fields.Date(string="Employee Signature Date")
-    supervisor_sign_id = fields.Many2one('hr.employee', string="Supervisor Name")
+    supervisor_sign_id = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="Supervisor Name")
     supervisor_signature = fields.Binary(string="Supervisor Signature")
     supervisor_signature_date = fields.Date(string="Supervisor Signature Date")
-    hod_sign_id = fields.Many2one('hr.employee', string="HOD Name ")
+    hod_sign_id = fields.Many2one('hr.employee',domain="[('company_id', '=', company_id)]", string="HOD Name ")
     hod_signature = fields.Binary(string="HOD/Director Signature")
     hod_signature_date = fields.Date(string="HOD/Director Signature Date")
     hr_head_sign_id = fields.Many2one('hr.employee', string="HR Head Name ")
@@ -47,9 +51,14 @@ class HrPerformanceImprovementPlan(models.Model):
         for record in self:
             record.write({'state': 'completed'})
 
-    def action_set_to_drat(self):
+    def action_set_to_draft(self):
         for record in self:
             record.write({'state': 'draft'})
+
+    def action_cancel(self):
+        for record in self:
+            record.write({'state': 'cancel'})
+
 
 class HrPipImprovementGoal(models.Model):
     _name = 'hr.pip.improvement.goal'
@@ -104,6 +113,7 @@ class HrPipProgress(models.Model):
     progress_expected = fields.Text(string="Progress Expected")
     notes = fields.Text(string="Notes")
 
+
 class HrPipActivity(models.Model):
     _name = 'hr.pip.activity'
     _description = 'HR PIP Activity'
@@ -117,5 +127,3 @@ class HrPipActivity(models.Model):
     ], string="Activity")
     conducted_by = fields.Many2one('hr.employee', string="Conducted by", tracking=True)
     completion_date = fields.Date(string="Completion Date")
-
-

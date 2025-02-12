@@ -19,6 +19,7 @@ class AccountCURReportWizard(models.TransientModel):
         """Set the end date to the current date."""
         return date.today()
 
+    company_id = fields.Many2one('res.company', string="Company", required=True, default=lambda self: self.env.company)
     start_date = fields.Date(string='Start Date',default=_default_start_date,required=True,)
     end_date = fields.Date(
         string='End Date',
@@ -109,13 +110,14 @@ WHERE
     aj.type IN ('bank', 'cash') 
     AND aa.account_type NOT IN ('asset_cash')
     AND aml.date BETWEEN %s AND %s
+    AND aml.company_id = %s
 GROUP BY 
     aa.name,aa.code,am.expense_type
 ORDER BY 
     aa.name,aa.code,am.expense_type;   
         """
 
-        self.env.cr.execute(query,(self.start_date,self.end_date))
+        self.env.cr.execute(query,(self.start_date,self.end_date,self.company_id.id))
         records = self.env.cr.dictfetchall()
 
         opening_balance_1 = 0
@@ -124,9 +126,10 @@ ORDER BY
                     select sum(aml.debit-aml.credit) as balance
                     from account_move_line aml
                     join account_account aa on (aa.id = aml.account_id)
-                    where aa.account_type='asset_cash' and aml.date<%s;
+                    where aa.account_type='asset_cash' and aml.date<%s
+                    AND aml.company_id = %s;
                 """
-        query_params8 = ([self.start_date])
+        query_params8 = (self.start_date, self.company_id.id)
         self.env.cr.execute(query8, query_params8)
         lines8 = self.env.cr.dictfetchall()
         if (lines8[0].get('balance') != None):
@@ -137,9 +140,10 @@ ORDER BY
                             select sum(aml.debit-aml.credit) as balance
                             from account_move_line aml
                             join account_account aa on (aa.id = aml.account_id)
-                            where aa.account_type='asset_cash' and aml.date<%s;
+                            where aa.account_type='asset_cash' and aml.date<%s
+                            AND aml.company_id = %s;
                         """
-        end_balance_params = ([self.end_date])
+        end_balance_params = (self.end_date, self.company_id.id)
         self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
         if (end_balance[0].get('balance') != None):

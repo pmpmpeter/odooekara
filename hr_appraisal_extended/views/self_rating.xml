@@ -87,6 +87,7 @@
                     </div>
                     <group>
                         <group>
+                            <field name="company_id" invisible="1"/>
                             <field name="employee_id"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
@@ -98,8 +99,8 @@
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="is_employee" invisible="1"/>
                             <field name="is_performance_record" invisible="1"/>
-                            <field name="create_date"/>
-                            <field name="create_uid"
+                            <field name="create_date" invisible="1"/>
+                            <field name="create_uid" invisible="1"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group>
@@ -115,6 +116,11 @@
                             <field name="write_uid"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
+                        <group string="Appraisal Meeting">
+                            <field name="appraisal_meeting_confirmation"/>
+                            <field name="meeting_date_time" invisible="not appraisal_meeting_confirmation"
+                                   required="appraisal_meeting_confirmation"/>
+                        </group>
                     </group>
                     <separator string="Refuse Reason"></separator>
                     <group>
@@ -128,7 +134,7 @@
                                     <field name="category" readonly="1"/>
                                     <field name="kra" readonly="1"/>
                                     <field name="goal_description" readonly="1"/>
-                                    <field name="weightage" string="Weightage (%)"/>
+                                    <field name="weightage" string="Weightage (%)" readonly="1"/>
                                 </tree>
                             </field>
                         </page>
@@ -137,10 +143,10 @@
                                 <tree editable="bottom" create="0" delete="0">
                                     <field name="name" string="KRA" required="1" readonly="1"/>
                                     <field name="goal_description" readonly="1"/>
-                                    <field name="weightage" string="Weightage (%)"/>
-                                    <field name="self_rating"/>
+                                    <field name="weightage" string="Weightage (%)" readonly="1"/>
                                     <field name="achieved_percentage" string="Achieved Percentage (%)"/>
-                                    <field name="employee_weighted_score"/>
+                                    <field name="self_rating" string="Weighted Score"/>
+                                    <field name="employee_weighted_score" column_invisible="1"/>
                                     <field name="employee_response" string="Employee's Justification"/>
                                     <field name="appraiser_remarks" string="Appraiser's Remarks"/>
                                 </tree>
@@ -148,9 +154,9 @@
                                     <group>
                                         <field name="goal_description"/>
                                         <field name="name"/>
-                                        <field name="weightage" string="Weightage (%)"/>
-                                        <field name="self_rating"/>
+                                        <field name="weightage" string="Weightage (%)" readonly="1"/>
                                         <field name="achieved_percentage" string="Achieved Percentage (%)"/>
+                                        <field name="self_rating"/>
                                         <field name="employee_weighted_score"/>
                                         <field name="employee_response"/>
                                         <field name="appraiser_remarks"/>
@@ -160,15 +166,16 @@
                             <group>
                                 <group string="Scores">
                                     <field name="total_score_employee" readonly="1" force_save="1"/>
-                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="employee_final_score" readonly="1" force_save="1"
-                                           invisible="is_employee == True"/>
+                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"
+                                           invisible="1"/>
+                                    <field name="employee_final_score" readonly="1" force_save="1" invisible="1"/>
+                                    <!--   invisible="is_employee == True"/>-->
                                 </group>
-                                <group string="Appraisal Meeting">
-                                    <field name="appraisal_meeting_confirmation"/>
-                                    <field name="meeting_date_time" invisible="not appraisal_meeting_confirmation"
-                                           required="appraisal_meeting_confirmation"/>
-                                </group>
+                                <!-- <group string="Appraisal Meeting">-->
+                                <!--      <field name="appraisal_meeting_confirmation"/>-->
+                                <!--      <field name="meeting_date_time" invisible="not appraisal_meeting_confirmation"-->
+                                <!--             required="appraisal_meeting_confirmation"/>-->
+                                <!-- </group>-->
                             </group>
                         </page>
                         <page string="Manager Ratings" invisible="is_employee == True"
@@ -176,18 +183,19 @@
                             <field name="manager_rating_ids">
                                 <tree editable="bottom" create="0" delete="0">
                                     <field name="name" readonly="1"/>
-                                    <field name="weightage" string="Weightage (%)"/>
-                                    <field name="manager_rating"/>
+                                    <field name="weightage" string="Weightage (%)" readonly="1"/>
                                     <field name="achieved_percentage" string="Achieved Percentage (%)"/>
-                                    <field name="manager_weighted_score"/>
+                                    <field name="manager_rating" string="Weighted Score"/>
+                                    <field name="manager_weighted_score" column_invisible="1"/>
                                     <field name="manager_remark"/>
                                 </tree>
                             </field>
                             <group colspan="2">
                                 <group>
                                     <field name="total_score_manager" readonly="1" force_save="1"/>
-                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
-                                    <field name="manager_final_score" readonly="1" force_save="1"
+                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"
+                                           invisible="1"/>
+                                    <field name="manager_final_score" readonly="1" force_save="1" invisible="1"
                                            groups="hr_extended.group_hr_recruitment_director"/>
                                     <field name="pbvp_payout" readonly="1" force_save="1" invisible="1"/>
                                 </group>
@@ -195,6 +203,16 @@
                         </page>
                         <page string="BU Head or HOD Remarks" invisible="is_employee == True"
                               groups="hr_extended.group_hr_recruitment_bu_head">
+                            <group>
+                                <group string="Self Rating Score">
+                                    <field name="total_employee_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="employee_final_score" readonly="1" force_save="1"/>
+                                </group>
+                                <group string="Manager Rating Score">
+                                    <field name="total_manager_weighted_score" readonly="1" force_save="1"/>
+                                    <field name="manager_final_score" readonly="1" force_save="1"/>
+                                </group>
+                            </group>
                             <group>
                                 <field name="remark"/>
                             </group>
@@ -215,12 +233,21 @@
                             <group>
                                 <group>
                                     <field name="manager_final_score" readonly="1" force_save="1"/>
-                                    <field name="recommended_increment"/>
-                                    <field name="recommended_pbvp_payout"/>
+                                    <label for="recommended_increment"/>
+                                    <div class="o_row" name="recommended_increment">
+                                        <field name="recommended_increment" style="max-width: 50px"/>
+                                        <span>%</span>
+                                    </div>
+                                    <label for="recommended_pbvp_payout"/>
+                                    <div class="o_row" name="recommended_pbvp_payout">
+                                        <field name="recommended_pbvp_payout" style="max-width: 50px" readonly="1"
+                                               force_save="1"/>
+                                        <span>%</span>
+                                    </div>
                                 </group>
                                 <group>
                                     <field name="eligible_for_promotion"/>
-                                    <field name="new_job_level"/>
+                                    <field name="new_job_level" invisible="1"/>
                                     <field name="new_designation"/>
                                 </group>
                             </group>
@@ -247,11 +274,12 @@
                                     </div>
                                 </group>
                                 <group string="Compensation Details">
-                                    <field name="annual_store_performance_incentive"/>
-                                    <field name="annual_performance_linked_pay"/>
-                                    <field name="monthly_performance_incentive"/>
+                                    <field name="annual_store_performance_incentive" invisible="1"/>
+                                    <field name="annual_performance_linked_pay" invisible="1"/>
+                                    <field name="monthly_performance_incentive" invisible="1"/>
                                     <field name="medical_insurance"/>
                                     <field name="group_personal_accident_insurance"/>
+                                    <field name="health_benefit_plan"/>
                                     <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                                 </group>
                                 <group string="Salary Break-up (Per Annum)">
@@ -263,14 +291,18 @@
                                     <field name="pf_employer_per_annum" readonly="1" force_save="1"/>
                                     <field name="esic_employer_per_annum" readonly="1" force_save="1"/>
                                     <field name="sub_total_b_per_annum" readonly="1" force_save="1" invisible="1"/>
-                                    <field name="store_performance_incentive_annum" readonly="1" force_save="1"/>
-                                    <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"/>
+                                    <field name="store_performance_incentive_annum" readonly="1" force_save="1"
+                                           invisible="1"/>
+                                    <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"
+                                           invisible="1"/>
                                     <field name="variable_pay_per_annum" readonly="1" force_save="1"/>
-                                    <field name="performance_linked_pay_annum" readonly="1" force_save="1"/>
+                                    <field name="performance_linked_pay_annum" readonly="1" force_save="1"
+                                           invisible="1"/>
                                     <field name="sub_total_c_per_annum" readonly="1" force_save="1" invisible="1"/>
                                     <field name="total_salary_per_annum" readonly="1" force_save="1"/>
                                     <field name="medical_insurances" readonly="1" force_save="1"/>
                                     <field name="group_personal_acc_insurance" readonly="1" force_save="1"/>
+                                    <field name="health_ben_plan" readonly="1" force_save="1"/>
                                     <field name="sub_total_d" readonly="1" force_save="1" invisible="1"/>
 
                                 </group>
@@ -283,10 +315,13 @@
                                     <field name="pf_employer_per_month" readonly="1" force_save="1"/>
                                     <field name="esic_employer_per_month" readonly="1" force_save="1"/>
                                     <field name="sub_total_b_per_month" readonly="1" force_save="1" invisible="1"/>
-                                    <field name="store_performance_incentive_month" readonly="1" force_save="1"/>
-                                    <field name="monthly_performance_incentive_month" readonly="1" force_save="1"/>
+                                    <field name="store_performance_incentive_month" readonly="1" force_save="1"
+                                           invisible="1"/>
+                                    <field name="monthly_performance_incentive_month" readonly="1" force_save="1"
+                                           invisible="1"/>
                                     <field name="variable_pay_per_month" readonly="1" force_save="1"/>
-                                    <field name="performance_linked_pay_month" readonly="1" force_save="1"/>
+                                    <field name="performance_linked_pay_month" readonly="1" force_save="1"
+                                           invisible="1"/>
                                     <field name="sub_total_c_per_month" readonly="1" force_save="1" invisible="1"/>
                                     <field name="total_salary_per_month" readonly="1" force_save="1"/>
                                 </group>
@@ -324,7 +359,7 @@
                             <field name="assessment_kra_ids">
                                 <tree editable="bottom" create="0" delete="0">
                                     <field name="name" string="KRA" readonly="1"/>
-                                    <field name="weightage" string="Weightage (%)"/>
+                                    <field name="weightage" string="Weightage (%)" readonly="1"/>
                                     <field name="employee_rating" string="Employee's Rating"/>
                                     <field name="appraiser_rating" string="Appraiser's Rating"
                                            readonly="not parent.is_appraisal_manager"/>

@@ -12,13 +12,18 @@ class SelfRating(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
-    employee_id = fields.Many2one('hr.employee', string='Employee', tracking=True)
-    department_id = fields.Many2one('hr.department', string='Department', tracking=True,
+    employee_id = fields.Many2one('hr.employee', string='Employee', domain="[('company_id', '=', company_id)]",
+                                  tracking=True)
+    department_id = fields.Many2one('hr.department', string='Department', domain="[('company_id', '=', company_id)]",
+                                    tracking=True,
                                     related='employee_id.department_id')
-    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
     date_of_joining = fields.Date(string='Date of Joining', tracking=True, related='employee_id.joining_date')
-    designation_id = fields.Many2one('hr.job',string="Designation",tracking=True)
+    designation_id = fields.Many2one('hr.job', string="Designation", domain="[('company_id', '=', company_id)]",
+                                     tracking=True)
     reporting_to_id = fields.Many2one('hr.employee', string='Reporting to', tracking=True,
+                                      domain="[('company_id', '=', company_id)]",
                                       related='employee_id.parent_id', )
     location = fields.Selection([
         ('corporate', 'Corporate'),
@@ -31,10 +36,12 @@ class SelfRating(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
-    location_id = fields.Many2one('location.master', string="Location", required=True)
+    location_id = fields.Many2one('location.master', domain="[('company_id', '=', company_id)]", string="Location",
+                                  required=True)
     is_appraisal_manager = fields.Boolean(string="Is Appraisal Manager", store=False, copy=False)
     appraisal_date = fields.Date(string='Appraisal Date', tracking=True)
-    reviewer_id = fields.Many2one('hr.employee', string='Reviewer', tracking=True)
+    reviewer_id = fields.Many2one('hr.employee', domain="[('company_id', '=', company_id)]", string='Reviewer',
+                                  tracking=True)
     state = fields.Selection([
         ('request_appraisal', 'Request Appraisal'),
         ('preparation', 'Preparation'),
@@ -44,7 +51,7 @@ class SelfRating(models.Model):
         ('full_year_pending', 'Full Year Goals Pending'),
         ('full_year_clarification', 'Full Year Goals Clarification'),
         ('review_completed', 'Review Completed'),
-    ], default='request_appraisal', string="State", tracking=True)
+    ], default='request_appraisal', string="Status", tracking=True)
     kra_ids = fields.One2many('self.rating.kra', 'rating_id', string="KRA Details")
     assessment_kra_ids = fields.One2many(
         'self.rating.assessment.kra', 'rating_id', string="Assessment KRA Details"
@@ -82,6 +89,7 @@ class SelfRating(models.Model):
 
     review_line_ids = fields.One2many('performance.review.line', 'review_id', string='Review Details')
     total_score_employee = fields.Float(string='Total', compute='_compute_totals', store=True)
+
     appraisal_meeting_confirmation = fields.Boolean(string="Meeting Confirmation", default=False, copy=False)
     meeting_date_time = fields.Datetime(string="Meeting Datetime", copy=False)
     total_employee_weighted_score = fields.Float(string='Total Employee Weighted Score', compute='_compute_totals',
@@ -100,7 +108,7 @@ class SelfRating(models.Model):
                                help="To be released on a pro-rata basis")
     eligible_for_promotion = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Eligible for Promotion?")
     new_job_level = fields.Char(string="Job Level")
-    new_designation = fields.Char(string="New Designation (if applicable)")
+    new_designation = fields.Char(string="Redesignation (if applicable)")
     remark = fields.Char(string="Remark")
     refuse_reason = fields.Text(string="Refuse Reason")
     director_remark = fields.Text(string="Director Remark")
@@ -123,14 +131,15 @@ class SelfRating(models.Model):
     esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     sub_total_b_per_annum = fields.Float(string='Sub-total Part B', copy=False)
     sub_total_b_per_month = fields.Float(string='Sub-total Part B', copy=False)
-    variable_pay_per_annum = fields.Float(string='Variable Pay', copy=False)
-    variable_pay_per_month = fields.Float(string='Variable Pay', copy=False)
+    variable_pay_per_annum = fields.Float(string='Performance Linked Variable Pay', copy=False)
+    variable_pay_per_month = fields.Float(string='Performance Linked Variable Pay', copy=False)
     sub_total_c_per_annum = fields.Float(string='Sub-total Part C', copy=False)
     sub_total_c_per_month = fields.Float(string='Sub-total Part C', copy=False)
     total_salary_per_annum = fields.Float(string='Total Salary', copy=False)
     total_salary_per_month = fields.Float(string='Total Salary', copy=False)
     medical_insurances = fields.Float(string='Medical Insurance', copy=False)
     group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance', copy=False)
+    health_ben_plan = fields.Float(string='Health Benefit Plan', copy=False)
     sub_total_d = fields.Float(string='Sub-total Part D', copy=False)
     total_ctc_annum = fields.Float(string='Total Cost to Company', copy=False)
     total_ctc_month = fields.Float(string='Total Cost to Company', copy=False)
@@ -155,6 +164,7 @@ class SelfRating(models.Model):
                                                        copy=False)
     medical_insurance = fields.Float(string="Medical Insurance", store=True, copy=False)
     group_personal_accident_insurance = fields.Float(string="Group Personal Accident Insurance", store=True, copy=False)
+    health_benefit_plan = fields.Float(string="Health Benefit Plan", store=True, copy=False)
     solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
     indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
     statutory_bonus_applicable = fields.Selection(
@@ -218,7 +228,7 @@ class SelfRating(models.Model):
                   'esi_applicable', 'grade',
                   'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
                   'monthly_performance_incentive',
-                  'medical_insurance', 'group_personal_accident_insurance')
+                  'medical_insurance', 'group_personal_accident_insurance', 'health_benefit_plan')
     def _onchange_calculate_salary_breakup(self):
         for record in self:
             # Fetch the salary structure based on location and grade
@@ -301,16 +311,19 @@ class SelfRating(models.Model):
                                 record.variable_pay_percentage / 100))
                     record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_annum = record.variable_pay_per_annum
                     record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                     record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                    record.health_ben_plan = record.health_benefit_plan
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                     # CTC Calculations
-                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                     record.total_ctc_month = round(record.total_ctc_annum / 12)
                     profession_tax = 200 if (
                                                     record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -320,21 +333,22 @@ class SelfRating(models.Model):
                         record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
                             record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
                 else:
-                    record.basic_da_per_annum = max(round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000, salary_structure.annual_salary)
+                    record.basic_da_per_annum = max(round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000,
+                                                    salary_structure.annual_salary)
                     record.basic_da_per_month = round(record.basic_da_per_annum / 12)
 
                     if (record.basic_da_per_annum / 12) <= 21000:
                         record.statutory_bonus_per_annum = min(16800, (
                                 record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
 
-
                     record.statutory_bonus_per_month = round(record.statutory_bonus_per_annum / 12)
 
                     record.hra_per_annum = min(record.basic_da_per_annum * 0.40, (
-                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.statutory_bonus_per_annum)
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.statutory_bonus_per_annum)
                     record.hra_per_month = round(record.hra_per_annum / 12)
 
-                    record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.hra_per_annum - record.statutory_bonus_per_annum
+                    record.special_allowance_per_annum = (
+                                                                 record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.hra_per_annum - record.statutory_bonus_per_annum
                     record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
                     record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                     record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
@@ -364,27 +378,32 @@ class SelfRating(models.Model):
                     record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12, 0)
                     record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                     record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                    record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                    record.variable_pay_per_annum = round(
+                        (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                                 record.variable_pay_percentage / 100))
                     record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_annum = record.variable_pay_per_annum
                     record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                     record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                    record.health_ben_plan = record.health_benefit_plan
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                     # CTC Calculations
-                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                     record.total_ctc_month = round(record.total_ctc_annum / 12)
                     profession_tax = 200 if (
-                                                        record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
+                                                    record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                     # Indicative Take Home Salary
-                    record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                        record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                    record.indicative_take_home_salary = math.ceil(
+                        record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                            record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif salary_structure and (record.monthly_fixed_salary >= 54000):
                 record.basic_da_per_annum = round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000
@@ -396,7 +415,7 @@ class SelfRating(models.Model):
 
                 # Special Allowance Calculation
                 record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - (
-                            record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
+                        record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
                 record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
                 record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
@@ -425,27 +444,32 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                record.variable_pay_per_annum = round(
+                    (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
-                record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                record.indicative_take_home_salary = math.ceil(
+                    record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                        record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif (record.location_id.name not in ['tta', 'tvm_obt']) and (record.monthly_fixed_salary >= 54000):
                 # Calculate Basic & DA (Per Annum)
@@ -459,7 +483,7 @@ class SelfRating(models.Model):
                 # Statutory Bonus Logic
                 if record.location_id.name == 'TTA' and record.grade == 'grade_d':
                     record.statutory_bonus_per_annum = min(16800, (
-                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
                 elif record.statutory_bonus_applicable == 'yes':
                     if (record.basic_da_per_annum / 12) <= 21000:
                         record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
@@ -468,7 +492,7 @@ class SelfRating(models.Model):
 
                 # Special Allowance Calculation
                 record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - (
-                            record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
+                        record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
                 record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
                 record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
@@ -498,27 +522,32 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                record.variable_pay_per_annum = round(
+                    (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
-                record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                record.indicative_take_home_salary = math.ceil(
+                    record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                        record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             elif (record.location_id.name not in ['tta', 'tvm_obt']) and (record.monthly_fixed_salary < 54000):
                 # Calculate Basic & DA (Per Annum)
@@ -532,7 +561,7 @@ class SelfRating(models.Model):
                 # Statutory Bonus Logic
                 if record.location_id.name == 'TTA' and record.grade == 'grade_d':
                     record.statutory_bonus_per_annum = min(16800, (
-                                record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
+                            record.monthly_fixed_salary * 12) - record.basic_da_per_annum)
                 elif record.statutory_bonus_applicable == 'yes':
                     if (record.basic_da_per_annum / 12) <= 21000:
                         record.statutory_bonus_per_annum = min(record.basic_da_per_annum, 84000) * 0.20
@@ -541,7 +570,7 @@ class SelfRating(models.Model):
 
                 # Special Allowance Calculation
                 record.special_allowance_per_annum = (record.monthly_fixed_salary * 12) - (
-                            record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
+                        record.basic_da_per_annum + record.hra_per_annum + record.statutory_bonus_per_annum)
                 record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
                 record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
@@ -571,31 +600,35 @@ class SelfRating(models.Model):
                 record.performance_linked_pay_month = round(record.performance_linked_pay_annum / 12)
                 record.monthly_performance_incentive_annum = record.monthly_performance_incentive
                 record.monthly_performance_incentive_month = round(record.monthly_performance_incentive_annum / 12)
-                record.variable_pay_per_annum = round((record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
+                record.variable_pay_per_annum = round(
+                    (record.monthly_fixed_salary * 12 + record.pf_employer_per_annum) * (
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
                 # Indicative Take Home Salary
-                record.indicative_take_home_salary = math.ceil(record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
-                    record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
+                record.indicative_take_home_salary = math.ceil(
+                    record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
+                        record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
 
             else:
                 pass
-
 
     def _compute_contract_self_rating(self):
         for record in self:
@@ -658,6 +691,7 @@ class SelfRating(models.Model):
                 'total_salary_per_month': self.total_salary_per_month,
                 'medical_insurances': self.medical_insurances,
                 'group_personal_acc_insurance': self.group_personal_acc_insurance,
+                # 'health_ben_plan': self.health_ben_plan,
                 'sub_total_d': self.sub_total_d,
                 'total_ctc_annum': self.total_ctc_annum,
                 'total_ctc_month': self.total_ctc_month,
@@ -677,6 +711,7 @@ class SelfRating(models.Model):
                 'monthly_performance_incentive_month': self.monthly_performance_incentive_month,
                 'medical_insurance': self.medical_insurance,
                 'group_personal_accident_insurance': self.group_personal_accident_insurance,
+                # 'health_benefit_plan': self.health_benefit_plan,
                 'solis_health_benefit_beacon_plan': self.solis_health_benefit_beacon_plan,
                 'indicative_take_home_salary': self.indicative_take_home_salary,
                 'statutory_bonus_applicable': self.statutory_bonus_applicable,
@@ -762,8 +797,9 @@ class SelfRating(models.Model):
             else:
                 record.is_employee = False
 
-    @api.depends('kra_ids', 'kra_ids.employee_weighted_score', 'manager_rating_ids',
-                 'manager_rating_ids.manager_weighted_score')
+    # @api.depends('kra_ids', 'kra_ids.employee_weighted_score', 'manager_rating_ids',
+    #              'manager_rating_ids.manager_weighted_score')
+    @api.depends('kra_ids', 'manager_rating_ids')
     def _compute_totals(self):
         for record in self:
             # Initialize totals
@@ -775,18 +811,22 @@ class SelfRating(models.Model):
 
             # Calculate totals based on kra_ids
             for kra in record.kra_ids:
-                total_employee_score += kra.employee_weighted_score
+                total_employee_score += kra.self_rating
+                # total_employee_score += kra.employee_weighted_score
                 total_weightage += kra.weightage
 
             # Calculate totals based on manager_rating_ids
             for manager_rating in record.manager_rating_ids:
-                total_manager_score += manager_rating.manager_weighted_score
+                total_manager_score += manager_rating.manager_rating
+                # total_manager_score += manager_rating.manager_weighted_score
 
             # Assign computed values to the record
             record.total_score_employee = total_employee_score
             record.total_score_manager = total_manager_score
-            record.total_employee_weighted_score = ((record.total_score_employee / 100) / 100) * line_count_self
-            record.total_manager_weighted_score = ((record.total_score_manager / 100) / 100) * line_count_manager
+            # record.total_employee_weighted_score = ((record.total_score_employee / 100) / 100) * line_count_self
+            # record.total_manager_weighted_score = ((record.total_score_manager / 100) / 100) * line_count_manager
+            record.total_employee_weighted_score = ((record.total_score_employee) / 100) * 5
+            record.total_manager_weighted_score = ((record.total_score_manager) / 100) * 5
             record.employee_final_score = round(record.total_employee_weighted_score, 1)
             record.manager_final_score = round(record.total_manager_weighted_score, 1)
             if record.manager_final_score > 4.7:
@@ -861,7 +901,7 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
-            if record.monthly_fixed_salary <=0:
+            if record.monthly_fixed_salary <= 0:
                 raise ValidationError("Please fill the Salary Breakup Details")
 
             ctx = dict(
@@ -894,7 +934,7 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
-            if record.monthly_fixed_salary <=0:
+            if record.monthly_fixed_salary <= 0:
                 raise ValidationError("Please fill the Salary Breakup Details")
 
             ctx = dict(
@@ -927,7 +967,7 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
-            if record.monthly_fixed_salary <=0:
+            if record.monthly_fixed_salary <= 0:
                 raise ValidationError("Please fill the Salary Breakup Details")
 
             ctx = dict(
@@ -960,7 +1000,7 @@ class SelfRating(models.Model):
             if not compose_form:
                 raise UserError(_("Email composition form not found."))
 
-            if record.monthly_fixed_salary <=0:
+            if record.monthly_fixed_salary <= 0:
                 raise ValidationError("Please fill the Salary Breakup Details")
 
             ctx = dict(
@@ -1013,7 +1053,8 @@ class SelfRatingKRA(models.Model):
     @api.depends('weightage', 'achieved_percentage')
     def _compute_weighted_scores(self):
         for line in self:
-            line.employee_weighted_score = (line.weightage * line.achieved_percentage)
+            line.employee_weighted_score = 0.0
+            # line.employee_weighted_score = (line.weightage * line.achieved_percentage)
 
     @api.depends('self_rating', 'weightage')
     def _compute_achieved_percentage(self):
@@ -1053,13 +1094,15 @@ class ManagerRating(models.Model):
         for record in self:
             appraisal = record.rating_id
             if appraisal and not appraisal.meeting_date_time:
-                raise ValidationError("You cannot edit values because the Meeting Date & Time is not set in Self Rating Page.")
+                raise ValidationError(
+                    "You cannot edit values because the Meeting Date & Time is not set in Self Rating Page.")
         return super(ManagerRating, self).write(vals)
 
     @api.depends('weightage', 'achieved_percentage')
     def _compute_weighted_scores(self):
         for line in self:
-            line.manager_weighted_score = (line.weightage * line.achieved_percentage)
+            line.manager_weighted_score = 0.0
+            # line.manager_weighted_score = (line.weightage * line.achieved_percentage)
 
     @api.depends('manager_rating', 'weightage')
     def _compute_achieved_percentage(self):
@@ -1153,8 +1196,11 @@ class PerformanceReviewLine(models.Model):
     @api.depends('weightage', 'employee_score', 'manager_weightage', 'manager_score')
     def _compute_weighted_scores(self):
         for line in self:
-            line.employee_weighted_score = (line.weightage * line.employee_score)
-            line.manager_weighted_score = (line.manager_weightage * line.manager_score)
+            line.employee_weighted_score = 0.0
+            line.manager_weighted_score = 0.0
+            # line.employee_weighted_score = (line.weightage * line.employee_score)
+            # line.manager_weighted_score = (line.manager_weightage * line.manager_score)
+
 
 class SalaryMaster(models.Model):
     _name = 'salary.master'

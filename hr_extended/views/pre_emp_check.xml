@@ -36,9 +36,12 @@
                         </page>
                         <page string="Comments">
                             <group string="Comments">
-                                <field name="technical_skills_comments" placeholder="Enter your comments here..." readonly="state in 'done'"/>
-                                <field name="job_duties_comments" placeholder="Enter your comments here..." readonly="state in 'done'"/>
-                                <field name="professional_skills_comments" placeholder="Enter your comments here..." readonly="state in 'done'"/>
+                                <field name="technical_skills_comments" placeholder="Enter your comments here..."
+                                       readonly="state in 'done'"/>
+                                <field name="job_duties_comments" placeholder="Enter your comments here..."
+                                       readonly="state in 'done'"/>
+                                <field name="professional_skills_comments" placeholder="Enter your comments here..."
+                                       readonly="state in 'done'"/>
                             </group>
                         </page>
                         <page string="Professional Attributes">
@@ -74,8 +77,10 @@
 
                         <page string="Additional Comments">
                             <group string="Additional Comments">
-                                <field name="additional_comments" placeholder="Enter your comments here..." readonly="state in 'done'"/>
-                                <field name="other_comments" placeholder="Enter your comments here..." readonly="state in 'done'"/>
+                                <field name="additional_comments" placeholder="Enter your comments here..."
+                                       readonly="state in 'done'"/>
+                                <field name="other_comments" placeholder="Enter your comments here..."
+                                       readonly="state in 'done'"/>
                             </group>
                         </page>
                     </notebook>
@@ -139,14 +144,14 @@
 
     </record>
 
-    <menuitem
-            id="menu_pre_employ_reference_check"
-            name="Pre Employee Reference Check"
-            action="action_pre_employment_reference_check"
-            groups="hr.group_hr_user"
-            parent="hr.menu_hr_employee_payroll"
-            sequence="8"
-    />
+    <!--    <menuitem-->
+    <!--            id="menu_pre_employ_reference_check"-->
+    <!--            name="Pre Employee Reference Check"-->
+    <!--            action="action_pre_employment_reference_check"-->
+    <!--            groups="hr.group_hr_user"-->
+    <!--            parent="hr.menu_hr_employee_payroll"-->
+    <!--            sequence="8"-->
+    <!--    />-->
 
 </odoo>
 
