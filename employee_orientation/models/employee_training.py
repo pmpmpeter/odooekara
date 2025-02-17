@@ -68,7 +68,7 @@ class EmployeeTraining(models.Model):
         """Function to search for employee details"""
         for record in self:
             if record.program_department_id:
-                record.training_ids = self.env['hr.employee'].search(
+                record.training_ids = self.env['hr.employee'].sudo().search(
                     [('department_id', '=', record.program_department_id.id)])
 
             else:

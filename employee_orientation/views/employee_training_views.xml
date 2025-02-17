@@ -10,7 +10,8 @@
                 <field name="program_department_id"/>
                 <field name="program_convener_id"
                        domain="[('department_id.name', '=', 'program_department.name')]"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'complete'"
+                       decoration-danger="state == 'cancel'" decoration-info="state in ('confirm')"/>
             </tree>
         </field>
     </record>

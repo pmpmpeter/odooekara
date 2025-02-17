@@ -993,7 +993,7 @@ class SelfRating(models.Model):
         for record in self:
             template_id = self.env.ref('hr_appraisal_extended.mail_increment_redesignation_letter_iim_job_approved')
             if not template_id:
-                raise UserError(_("Increment letter template not found."))
+                raise UserError(_("Increment Redesignation letter template not found."))
 
             compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
 
@@ -1013,6 +1013,39 @@ class SelfRating(models.Model):
 
             return {
                 'name': _('Compose Increment & Redesignation Letter Email'),
+                'type': 'ir.actions.act_window',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'target': 'new',
+                'context': ctx,
+            }
+
+    def send_variable_pay_letter(self):
+        for record in self:
+            template_id = self.env.ref('hr_appraisal_extended.mail_variable_pay_letters')
+            if not template_id:
+                raise UserError(_("Variable Pay template not found."))
+
+            compose_form = self.env.ref('mail.email_compose_message_wizard_form', raise_if_not_found=True)
+
+            if not compose_form:
+                raise UserError(_("Email composition form not found."))
+
+            if record.monthly_fixed_salary <= 0:
+                raise ValidationError("Please fill the Salary Breakup Details")
+
+            ctx = dict(
+                default_model='self.rating',
+                default_res_ids=record.ids,
+                default_template_id=template_id.id,
+                default_composition_mode='comment',
+                default_email_layout_xmlid="mail.mail_notification_light",
+            )
+
+            return {
+                'name': _('Compose Variable Pay Letter Email'),
                 'type': 'ir.actions.act_window',
                 'view_mode': 'form',
                 'res_model': 'mail.compose.message',

@@ -23,10 +23,11 @@ class EmployeeKra(models.Model):
 
     kra_details_ids = fields.One2many('employee.kra.details', 'emp_kra_id', string="Employee Details")
     employee_parent_id = fields.Many2one(related='employee_id.parent_id', readonly=True, related_sudo=True)
-    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
+    company_id = fields.Many2one('res.company', string='Company ID', default=lambda self: self.env.company,
+                                 domain=lambda self: [('id', '=', (self.env.company.id))])
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
-    overall_weightage = fields.Integer(string='Total Weightage',copy=False)
-    remaining = fields.Char(copy=False,redaonly=1)
+    overall_weightage = fields.Integer(string='Total Weightage', copy=False)
+    remaining = fields.Char(copy=False, redaonly=1)
 
     @api.model
     def _compute_employee_domain(self):
@@ -43,7 +44,7 @@ class EmployeeKra(models.Model):
         for rec in self.kra_details_ids:
             overall += rec.weightage
         self.overall_weightage = int(overall)
-        self.remaining = "Remaining weightage %s"%(100-int(overall))
+        self.remaining = "Remaining weightage %s" % (100 - int(overall))
 
     @api.onchange('employee_id')
     def _onchange_employee_id(self):
@@ -149,13 +150,23 @@ class EmployeeKra(models.Model):
 
     def action_approve(self):
         for record in self:
-            record.state = 'done'
+            employee = record.employee_id.sudo()  # Use sudo() once to avoid repeating
+
+            if not employee.contract_id:
+                raise ValidationError("There is no Compensation Master in Running state for the Employee")
+            if not employee.contract_id.grade:
+                raise ValidationError("Please Select the Grade for the Employee in Compensation Master")
+            if not employee.contract_id.location_id:
+                raise ValidationError("Please Select the Location for the Employee in Compensation Master")
+            if not employee.department_id:
+                raise ValidationError("Please Select the Department for the Employee")
+
             self.env['self.rating'].sudo().create({
-                'employee_id': record.employee_id.id,
-                'designation_id': record.employee_id.job_id.id,
-                'department_id': record.employee_id.department_id.id,
-                'grade': record.employee_id.contract_id.sudo().grade,
-                'location_id': record.employee_id.contract_id.location_id.id,
+                'employee_id': employee.id,
+                'designation_id': employee.job_id.id,
+                'department_id': employee.department_id.id,
+                'grade': employee.contract_id.grade,
+                'location_id': employee.contract_id.location_id.id,
                 'goal_sets_kras': [(0, 0, {
                     'category': detail.category,
                     'kra': detail.kra_type,
@@ -185,6 +196,7 @@ class EmployeeKra(models.Model):
                     'weightage': detail.weightage,
                 }) for detail in record.kra_details_ids],
             })
+            record.state = 'done'
 
     def action_reset(self):
         for record in self:
@@ -209,6 +221,7 @@ class EmployeeKra(models.Model):
                 'kra_type': kra_detail.kra_type,
                 'goal_description': kra_detail.goal_description,
                 'weightage': kra_detail.weightage,
+                'company_id': kra_detail.kra_id.company_id.id,
             })
         overall = 0.0
         for rec in self.kra_details_ids:
@@ -224,9 +237,9 @@ class KraDetails(models.Model):
     _description = "Employee KRA Details"
 
     emp_kra_id = fields.Many2one('employee.kra', string="KRA Questions", ondelete='cascade')
-
+    company_id = fields.Many2one('res.company', string='Company')
     category = fields.Char(string="Category", required=True)
-    business_unit_id = fields.Many2one('business.units', string="Business Units")
+    business_unit_id = fields.Many2one('business.units', string="Business Units", domain="[('company_id', '=', company_id)]")
     kra_type = fields.Char(string="KRA")
     goal_description = fields.Char(string="Goal Description")
     weightage = fields.Float(string="Weightage")

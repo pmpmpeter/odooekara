@@ -69,7 +69,7 @@
 
                         <br/>
                         <br/>
-                        Thank you for being part of the <b>Ekara Partnership</b> Family.
+                        Thank you for being part of the <b><t t-out="object.employee_id.company_id.name"/></b>. Family.
 
                         <br/>
                         <br/>

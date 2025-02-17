@@ -31,3 +31,7 @@ access_balance_leave_report_wizard,access_balance_leave_report_wizard,model_bala
 access_leave_balance_wizard_user,access.leave_balance_wizard_user,model_balance_leave_report_wizard,base.group_user,1,1,1,1
 access_payroll_report_wizard,access_payroll_report_wizard,model_payroll_report_wizard,base.group_user,1,1,1,1
 access_director_approve_manpower,access_director_approve_manpower,model_director_approve_manpower,base.group_user,1,1,1,1
+
+access_hr_contract_type,access_hr_contract_type,model_hr_contract_type,base.group_user,1,0,0,0
+
+

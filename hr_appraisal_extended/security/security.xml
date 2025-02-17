@@ -22,7 +22,7 @@
     <record id="performance_review_rule_user" model="ir.rule">
         <field name="name">Performance Review - Candidate</field>
         <field name="model_id" ref="hr_appraisal_extended.model_self_rating"/>
-        <field name="domain_force">['&amp;',('employee_id.user_id','=',user.id),('is_performance_record','=',True)]
+        <field name="domain_force">['|','&amp;',('employee_id.user_id','=',user.id),('is_performance_record','=',True),('reporting_to_id.user_id','=',user.id)]
         </field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
     </record>
@@ -71,7 +71,7 @@
     <record id="performance_impvt_rule_user" model="ir.rule">
         <field name="name">Performance Improvement - Candidate</field>
         <field name="model_id" ref="hr_appraisal_extended.model_hr_pip"/>
-        <field name="domain_force">[('employee_id.user_id','=',user.id)]
+        <field name="domain_force">['|',('employee_id.user_id','=',user.id),('supervisor_id.user_id','=',user.id)]
         </field>
         <field name="groups" eval="[(4, ref('base.group_user'))]"/>
     </record>

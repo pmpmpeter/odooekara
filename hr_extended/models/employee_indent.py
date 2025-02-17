@@ -43,7 +43,7 @@ class EmployeeIndent(models.Model):
     #     domain=lambda self: self._address_id_domain(),
     #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
     # location_id = fields.Many2one('ekara.location', string="Location", copy=False)
-    locations_id = fields.Many2one('location.master', string="Location")
+    locations_id = fields.Many2one('location.master',domain="[('company_id', '=', organization)]", string="Location")
 
     department = fields.Many2one(
         'hr.department',  # The model name of the HR department
@@ -53,9 +53,9 @@ class EmployeeIndent(models.Model):
         help="Select the department from HR departments"
     )
 
-    grade_job_level = fields.Many2one('hr.job.levels', string='Grade/ Job Level', required=True)
+    grade_job_level = fields.Many2one('hr.job.levels', string='Grade/ Job Level',domain="[('company_id', '=', organization)]", required=True)
 
-    position_name = fields.Many2one('hr.position.names', string='Position Name / Designations', required=True)
+    position_name = fields.Many2one('hr.position.names', string='Position Name / Designations',domain="[('company_id', '=', organization)]", required=True)
 
     reporting_to = fields.Many2one(
         'res.users',
@@ -73,6 +73,7 @@ class EmployeeIndent(models.Model):
 
     replacement_employee_id = fields.Many2one(
         'hr.employee',
+        domain="[('company_id', '=', organization)]",
         string='Replacement Employee Name',
         help='Select the employee being replaced if this is a replacement position.'
     )
@@ -183,7 +184,7 @@ class EmployeeIndent(models.Model):
     # Job Description template details
 
     # business_unit = fields.Char(string="Business Unit")
-    business_unit_id = fields.Many2one('business.units', string="Business Units", required=True)
+    business_unit_id = fields.Many2one('business.units',domain="[('company_id', '=', organization)]", string="Business Units", required=True)
     # source = fields.Selection([
     #     ('new_role', 'New Role'),
     #     ('replacement', 'Replacement')
@@ -204,9 +205,9 @@ class EmployeeIndent(models.Model):
     professional_requirements = fields.Text(string="Professional Requirements")
     educational_requirements = fields.Text(string="Educational and Experience Requirements")
     desirable = fields.Text(string="Desirable")
-    approved_by_hod_id = fields.Many2one('hr.employee', string="Approved by (HOD)")
-    approved_by_director_id = fields.Many2one('hr.employee', string="Approved by (Director)")
-    job_id = fields.Many2one('hr.job', string="Job Position")
+    approved_by_hod_id = fields.Many2one('hr.employee',domain="[('company_id', '=', organization)]", string="Approved by (HOD)")
+    approved_by_director_id = fields.Many2one('hr.employee',domain="[('company_id', '=', organization)]", string="Approved by (Director)")
+    job_id = fields.Many2one('hr.job',domain="[('company_id', '=', organization)]", string="Job Position")
     approved_by_hod = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
@@ -437,13 +438,13 @@ class EmployeeIndent(models.Model):
                 [('name', '=', record.position_name.name), ('company_id', '=', record.organization.id)], limit=1)
 
             if existing_job:
-                existing_job.write({
+                existing_job.sudo().write({
                     'no_of_recruitment': existing_job.no_of_recruitment + record.target,
                     'website_published': True,
                 })
 
             else:
-                job_id = hr_job_model.create({
+                job_id = hr_job_model.sudo().create({
                     'name': record.position_name.name,
                     'department_id': record.department.id,
                     'address_id': record.organization.partner_id.id,

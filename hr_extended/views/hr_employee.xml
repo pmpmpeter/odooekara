@@ -50,6 +50,17 @@
             <xpath expr="//field[@name='emergency_contact']" position="after">
                 <field name="emergency_contact_relation"/>
             </xpath>
+            <!-- Date of Birth -->
+            <xpath expr="//page[@name='personal_information']//field[@name='birthday']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='public']//group[@name='managers']" position="before">
+                <group name="date_of_birth" string="DOB">
+                    <group>
+                        <field name="birthday"/>
+                    </group>
+                </group>
+            </xpath>
             <xpath expr="//div[@id='o_work_employee_main']" positon="after">
                 <group>
                     <group string="Last Work Details">
@@ -115,7 +126,8 @@
                 <page string="Assets" invisible="not is_self_record">
                     <field name="assets_ids">
                         <tree editable="bottom">
-                            <field name="category_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
+                            <field name="category_id"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
                             <field name="comment"/>
                         </tree>
                     </field>
@@ -162,6 +174,9 @@
         <field name="inherit_id" ref="hr.view_employee_form"/> <!-- Reference the original view -->
         <field name="arch" type="xml">
             <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="open_calendar_view" type="object" string="Calendar"
+                        invisible="not is_self_record"
+                        icon="fa-calendar" class="oe_highlight"/>
                 <button class="oe_stat_button" type="object" string="KRA Form"
                         name="action_open_kra_records" icon="fa-star"
                         invisible="kra_record_count == 0 or not is_self_record">
@@ -246,7 +261,7 @@
         </field>
     </record>
 
-     <record id="base.menu_apps" model="ir.ui.menu">
+    <record id="base.menu_apps" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
     </record>
 

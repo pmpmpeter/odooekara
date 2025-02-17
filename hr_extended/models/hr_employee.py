@@ -522,6 +522,10 @@ class HrEmployeeSmartButton(models.Model):
             'target': 'current',
         }
 
+    def open_calendar_view(self):
+        res = self.env['ir.actions.act_window']._for_xml_id('calendar.action_calendar_event')
+        return res
+
     def action_send_appointment_letter_emp_mail(self):
         self.ensure_one()
 

@@ -20,6 +20,7 @@
         'data/annual_increment_promotion_letter.xml',
         'data/increment_redesignation_letter_iim_job_approved.xml',
         'data/mail_template.xml',
+        'data/variable_pay_letter.xml',
         # 'views/hr_appraisal.xml',
         'reports/360_performance_review.xml',
         'reports/360_performance_review_excel.xml',

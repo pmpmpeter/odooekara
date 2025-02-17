@@ -107,16 +107,12 @@
 
                         <br/>
                         <br/>
-                        Your salary details are strictly private and confidential and details in this letter must not be
-                        disclosed or discussed with others. Any deviation would lead to disciplinary action
-                        <br/>
-                        <br/>
-                        <br/>
                         We look forward to your valuable contribution and wish you all the very best for a rewarding
                         career with the organization.
 
                         <br/>
-                        Thank you for being part of Ekara Partnership.
+                        <br/>
+                        Thank you for being part of <b><t t-out="object.employee_id.company_id.name"/></b>.
                         <br/>
                         <br/>
                         <b>With Best Wishes,</b>

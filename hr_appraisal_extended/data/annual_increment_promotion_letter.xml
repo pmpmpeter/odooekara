@@ -110,7 +110,7 @@
 
                         <br/>
                         <br/>
-                        Thank you for being part of Ekara Partnership.
+                        Thank you for being part of <b><t t-out="object.employee_id.company_id.name"/></b>.
                         <br/>
                         <br/>
                         <b>With Best Wishes,</b>

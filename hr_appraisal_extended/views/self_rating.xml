@@ -34,6 +34,9 @@
                     <button name="send_increment_redesignation_letter" string="Send Increment Redesignation Letter"
                             groups="hr_extended.group_hr_recruitment_director"
                             type="object" class="oe_highlight"/>
+                     <button name="send_variable_pay_letter" string="Send Variable Pay Letter"
+                            groups="hr_extended.group_hr_recruitment_director"
+                            type="object" class="oe_highlight"/>
                     <button string="Request Appraisal" type="object"
                             name="action_request_appraisal"
                             groups="hr.group_hr_user"
@@ -88,7 +91,7 @@
                     <group>
                         <group>
                             <field name="company_id" invisible="1"/>
-                            <field name="employee_id"
+                            <field name="employee_id" readonly="not is_appraisal_manager"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
                             <field name="department_id"
@@ -105,21 +108,23 @@
                         </group>
                         <group>
                             <field name="is_appraisal_manager" invisible="1"/>
-                            <field name="designation_id" required="True"/>
-                            <field name="grade"/>
-                            <field name="location_id"
+                            <field name="designation_id" required="True"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
+                                   readonly="not is_appraisal_manager"/>
+                            <field name="grade" readonly="not is_appraisal_manager"/>
+                            <field name="location_id" readonly="not is_appraisal_manager"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                            <field name="appraisal_date" required="True"/>
-                            <field name="reviewer_id"
+                            <field name="appraisal_date" required="True" readonly="not is_appraisal_manager"/>
+                            <field name="reviewer_id" readonly="not is_appraisal_manager"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="write_date"/>
                             <field name="write_uid"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         </group>
                         <group string="Appraisal Meeting">
-                            <field name="appraisal_meeting_confirmation"/>
+                            <field name="appraisal_meeting_confirmation" readonly="not is_appraisal_manager"/>
                             <field name="meeting_date_time" invisible="not appraisal_meeting_confirmation"
-                                   required="appraisal_meeting_confirmation"/>
+                                   required="appraisal_meeting_confirmation" readonly="not is_appraisal_manager"/>
                         </group>
                     </group>
                     <separator string="Refuse Reason"></separator>
@@ -148,7 +153,8 @@
                                     <field name="self_rating" string="Weighted Score"/>
                                     <field name="employee_weighted_score" column_invisible="1"/>
                                     <field name="employee_response" string="Employee's Justification"/>
-                                    <field name="appraiser_remarks" string="Appraiser's Remarks"/>
+                                    <field name="appraiser_remarks" string="Appraiser's Remarks"
+                                           readonly="not parent.is_appraisal_manager"/>
                                 </tree>
                                 <form>
                                     <group>
@@ -416,14 +422,16 @@
                                 <tree editable="bottom">
                                     <field name="action" string="Action"/>
                                     <field name="timeline" string="Time Line"/>
-                                    <field name="by_whom" string="By Whom"/>
+                                    <field name="by_whom" string="By Whom"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                     <field name="remarks" string="Remarks"/>
                                 </tree>
                                 <form>
                                     <group>
                                         <field name="action" string="Action"/>
                                         <field name="timeline" string="Time Line"/>
-                                        <field name="by_whom" string="By Whom"/>
+                                        <field name="by_whom" string="By Whom"
+                                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                         <field name="remarks" string="Remarks"/>
                                     </group>
                                 </form>

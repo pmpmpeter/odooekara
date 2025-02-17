@@ -170,5 +170,6 @@
             name="Interview Assessment"
             parent="hr_recruitment.menu_crm_case_categ0_act_job"
             action="action_interview_assessment"
+            groups="hr.group_hr_user"
             sequence='3'/>
 </odoo>
