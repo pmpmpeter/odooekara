@@ -13,22 +13,23 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="employee_id" options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="policy_coverage"/>
-                            <label for="date_from" string="Policy Period"/>
+                            <field name="is_manager" invisible="1"/>
+                            <field name="employee_id" options="{'no_quick_create':True,'no_create': True,'no_open': True}" readonly="not is_manager"/>
+                            <field name="policy_coverage" readonly="not is_manager"/>
+                            <label for="date_from" string="Policy Period" readonly="not is_manager"/>
                             <div>
                                 <field name="date_from" class="oe_inline"
                                        on_change="1"
                                        modifiers="{'readonly': [['state', 'not in', ['draft']]], 'required': true}"/>
                                 -
-                                <field name="date_to" class="oe_inline"
+                                <field name="date_to" class="oe_inline" readonly="not is_manager"
                                        modifiers="{'readonly': [['state', 'not in', ['draft']]], 'required': true}"/>
                             </div>
                         </group>
                         <group>
-                            <field name="policy_id" options="{'no_quick_create':True,'no_create': True,}"/>
-                            <field name="sum_insured"/>
-                            <field name="amount"/>
+                            <field name="policy_id" options="{'no_quick_create':True,'no_create': True,'no_open': True}" readonly="not is_manager"/>
+                            <field name="sum_insured" readonly="not is_manager"/>
+                            <field name="amount" readonly="not is_manager"/>
                             <field name="company_id" options="{'no_quick_create':True,'no_create': True,'no_open': True}"/>
                         </group>
                     </group>

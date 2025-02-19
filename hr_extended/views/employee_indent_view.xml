@@ -98,7 +98,8 @@
                                     <field name="currency_id" required="1"
                                            options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
-                                    <field name="budgeting_unit" string="Budgeting Units" required="1"
+                                    <field name="budgeting_unit_id" string="Budgeting Units" required="1"
+                                           options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="is_budgeted" string="Is Budgeted?"
                                            readonly="state not in ('draft','cancel')"/>

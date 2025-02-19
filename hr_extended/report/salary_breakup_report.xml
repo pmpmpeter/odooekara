@@ -80,7 +80,7 @@
                                 <td colspan="3"
                                     style="text-align: center; font-weight: bold; text-decoration: underline; padding: 10px;">
                                     <b>Salary Structure with effect from
-                                        <t t-esc="doc.availability"/>
+                                        <t t-esc="doc.availability.strftime('%d-%m-%Y') if doc.availability else ''"/>
                                     </b>
                                 </td>
                             </tr>
@@ -194,26 +194,26 @@
                                     (Variable Pay)
                                 </td>
                             </tr>
+                            <!--                            <tr>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000;">Store Performance Incentive</td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.store_performance_incentive_annum or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.store_performance_incentive_month or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                            </tr>-->
+                            <!--                            <tr>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000;">Monthly Performance Incentive</td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_annum or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_month or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                            </tr>-->
                             <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Store Performance Incentive</td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.store_performance_incentive_annum or 0.0)"/>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.store_performance_incentive_month or 0.0)"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Monthly Performance Incentive</td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_annum or 0.0)"/>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.monthly_performance_incentive_month or 0.0)"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Variable Pay</td>
+                                <td style="padding: 10px; border: 1px solid #000;">Performance Linked Variable Pay*</td>
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">
                                     <t t-esc="'{:,}'.format(doc.variable_pay_per_annum or 0.0)"/>
                                 </td>
@@ -221,15 +221,15 @@
                                     <t t-esc="'{:,}'.format(doc.variable_pay_per_month or 0.0)"/>
                                 </td>
                             </tr>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Performance Linked Pay</td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.performance_linked_pay_annum or 0.0)"/>
-                                </td>
-                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
-                                    <t t-esc="'{:,}'.format(doc.performance_linked_pay_month or 0.0)"/>
-                                </td>
-                            </tr>
+                            <!--                            <tr>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000;">Performance Linked Pay</td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.performance_linked_pay_annum or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-->
+                            <!--                                    <t t-esc="'{:,}'.format(doc.performance_linked_pay_month or 0.0)"/>-->
+                            <!--                                </td>-->
+                            <!--                            </tr>-->
                             <tr>
                                 <td style="padding: 10px; border: 1px solid #000; font-weight: bold; background-color: #add8e6;">
                                     Sub-total (Part C)
@@ -261,7 +261,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Medical Insurance**</td>
+                                <td style="padding: 10px; border: 1px solid #000;">Medical Insurance*</td>
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">
                                     <t t-esc="'{:,}'.format(doc.medical_insurances or 0.0)"/>
                                 </td>
@@ -269,10 +269,18 @@
                             </tr>
                             <tr>
                                 <td style="padding: 10px; border: 1px solid #000;">Group Personal Accidental
-                                    Insurance***
+                                    Insurance**
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">
                                     <t t-esc="'{:,}'.format(doc.group_personal_acc_insurance or 0.0)"/>
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #000;">&#160;&#160;Health Benefit Plan***
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #000; text-align: right">
+                                    <t t-esc="'{:,}'.format(doc.health_ben_plan or 0.0)"/>
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
                             </tr>
@@ -310,7 +318,7 @@
                         </table>
                         <div style="font-family: Times New Roman, sans-serif; font-size: 14px; margin-top: 20px;">
                             <p>
-                                <b>Variable pay payable as per the policy of the company</b>
+                                <b>*Variable pay payable as per the policy of the company</b>
                                 <br/>
                                 <b>**Medical and Accidental Insurance applicable as per the company policy</b>
                                 <br/>

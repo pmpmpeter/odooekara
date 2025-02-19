@@ -258,6 +258,7 @@ class KraDetails(models.Model):
         for record in self:
             if record.weightage < 0:
                 raise ValidationError("Negative values are not allowed for Weightage.")
+            print(record.company_id)
 
     @api.depends('weightage', 'employee_rating', 'manager_rating')
     def _compute_final_score(self):

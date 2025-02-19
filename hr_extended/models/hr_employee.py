@@ -7,7 +7,9 @@ class EmployeeInsurance(models.Model):
     _name = 'employee.insurance'
     _description = 'Employee Insurance Details'
 
-    employee_id = fields.Many2one('hr.employee', string='Employee', domain=lambda self: [('company_id', '=', self.env.company.id)], required=True, ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string='Employee',
+                                  domain=lambda self: [('company_id', '=', self.env.company.id)], required=True,
+                                  ondelete='cascade')
     insurance_holder_name = fields.Char(string='Insurance Holder Name')
     relationship = fields.Selection([
         ('self', 'Self'),
@@ -25,6 +27,7 @@ class EmployeeInsurance(models.Model):
     insured_date = fields.Date(string='Insured Date')
     annual_premium = fields.Float(string='Annual Premium')
     validity = fields.Date(string='Validity Date')
+
 
 class AssetsDetails(models.Model):
     _name = 'assets.details'
@@ -121,6 +124,7 @@ class HrEmployeeSmartButton(models.Model):
     ongoing_appraisal_count = fields.Integer(compute='_compute_ongoing_appraisal_count', store=True,
                                              groups="base.group_user")
     message_main_attachment_id = fields.Many2one(groups="base.group_user")
+    birthday = fields.Date('Date of Birth', groups="base.group_user", tracking=True)
 
     # Tax Related
     pf_no = fields.Char(
@@ -226,6 +230,9 @@ class HrEmployeeSmartButton(models.Model):
     # Employee classification
     bu_head = fields.Char(string="BU Head")
     bu_unit = fields.Char(string="BU Unit")
+    bu_head_id = fields.Many2one('hr.employee', string="BU Head", domain="[('company_id', '=', company_id)]", )
+    business_unit_id = fields.Many2one('business.units', string="Business Unit",
+                                       domain="[('company_id', '=', company_id)]", )
     sub_bu_unit = fields.Char(string="Sub BU Unit")
     separation_type = fields.Selection(
         selection=[
@@ -247,6 +254,9 @@ class HrEmployeeSmartButton(models.Model):
         string="Employee Status"
     )
     budgeting_units = fields.Char(string="Budgeting Units")
+    budgeting_unit_id = fields.Many2one('budgeting.units', string='Budgeting Units',
+                                        domain="[('company_id', '=', company_id)]",
+                                        help="Select the appropriate budgeting unit.")
 
     employee_number = fields.Char(string="Employee Number", copy=False)
     type = fields.Selection([
@@ -298,6 +308,7 @@ class HrEmployeeSmartButton(models.Model):
     )
 
     sub_location = fields.Char(string="Sub Location", copy=False)
+    sub_location_id = fields.Many2one('sub.location',string="Sub Location", domain="[('company_id', '=', company_id)]")
     last_working_day_current = fields.Date(string="Last Working Day", help="The last working day in our organization",
                                            copy=False)
     reason_for_leaving = fields.Text(string="Reason for Leaving", copy=False)
@@ -329,6 +340,11 @@ class HrEmployeeSmartButton(models.Model):
     address_details_id = fields.Many2one('res.partner', string="Address Details")
     sections = fields.Many2one('hr.department', string="Sections")
     business_processes = fields.Char(string="Business Processes")
+
+    # base fields
+    work_location_id = fields.Many2one('location.master', 'Work Location', related="applicant_id.locations_id",
+                                       readonly=False,
+                                       domain="[('company_id', '=', company_id)]")
 
     @api.depends('name', 'work_email')
     def _compute_employee(self):
@@ -393,6 +409,7 @@ class HrEmployeeSmartButton(models.Model):
                 'default_total_salary_per_month': self.applicant_id.total_salary_per_month,
                 'default_medical_insurances': self.applicant_id.medical_insurances,
                 'default_group_personal_acc_insurance': self.applicant_id.group_personal_acc_insurance,
+                'default_health_ben_plan': self.applicant_id.health_ben_plan,
                 'default_sub_total_d': self.applicant_id.sub_total_d,
                 'default_total_ctc_annum': self.applicant_id.total_ctc_annum,
                 'default_total_ctc_month': self.applicant_id.total_ctc_month,
@@ -412,7 +429,8 @@ class HrEmployeeSmartButton(models.Model):
                 'default_monthly_performance_incentive_month': self.applicant_id.monthly_performance_incentive_month,
                 'default_medical_insurance': self.applicant_id.medical_insurance,
                 'default_group_personal_accident_insurance': self.applicant_id.group_personal_accident_insurance,
-                'default_solis_health_benefit_beacon_plan': self.applicant_id.solis_health_benefit_beacon_plan,
+                'default_health_benefit_plan': self.applicant_id.health_benefit_plan,
+                # 'default_solis_health_benefit_beacon_plan': self.applicant_id.solis_health_benefit_beacon_plan,
                 'default_indicative_take_home_salary': self.applicant_id.indicative_take_home_salary,
                 'default_statutory_bonus_applicable': self.applicant_id.statutory_bonus_applicable,
                 'default_provident_fund_applicable': self.applicant_id.provident_fund_applicable,
@@ -455,7 +473,6 @@ class HrEmployeeSmartButton(models.Model):
 
         action['res_id'] = self.contract_ids[0].id
         return action
-
 
     def _compute_project_records(self):
         for employee in self:
@@ -526,8 +543,29 @@ class HrEmployeeSmartButton(models.Model):
         res = self.env['ir.actions.act_window']._for_xml_id('calendar.action_calendar_event')
         return res
 
+    def action_open_employee_payslips(self):
+        self.ensure_one()
+        payslips = self.env['hr.payslip'].sudo().search([('employee_id', '=', self.id)])
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Payslips'),
+            'res_model': 'hr.payslip',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', payslips.ids)],
+        }
+
     def action_send_appointment_letter_emp_mail(self):
         self.ensure_one()
+
+        if not self.parent_id:
+            raise UserError(_("Please set the Manager for the Employee"))
+
+        if not self.contract_id:
+            raise UserError(
+                _("Employee does not have a running state Compensation Master. Please have the Running state Compensation Master"))
+
+        if not self.joining_date:
+            raise UserError(_("Please create a first Compensation Master to fill the Joining Date in 'HR Settings'"))
 
         if not self.private_email:
             raise UserError(_("The recipient does not have a valid email address in 'Private Information'."))
@@ -546,7 +584,7 @@ class HrEmployeeSmartButton(models.Model):
             default_template_id=template.id,
             default_composition_mode='comment',
             default_email_layout_xmlid="mail.mail_notification_light",
-            default_email_to = self.private_email,
+            default_email_to=self.private_email,
         )
 
         return {

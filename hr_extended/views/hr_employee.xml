@@ -77,13 +77,13 @@
                     </group>
                     <group string="Employment Details">
                         <field name="total_year_in_experience"/>
-                        <field name="bu_head"/>
-                        <field name="bu_unit"/>
+                        <field name="bu_head_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="business_unit_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         <field name="sub_bu_unit"/>
                         <field name="separation_type"/>
                         <field name="class_of_employment"/>
                         <field name="employee_status"/>
-                        <field name="budgeting_units"/>
+                        <field name="budgeting_unit_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                     </group>
                     <group string="Other Details">
                         <field name="new_emp_no"/>
@@ -93,14 +93,17 @@
                         <field name="appointment_order_form_q"/>
                         <field name="mapped_pip"/>
                         <field name="ats_id"/>
-                        <field name="address_details_id" options="{'no_open': True, 'no_quick_create': True}"/>
-                        <field name="sections" options="{'no_open': True, 'no_quick_create': True}"/>
+                        <field name="address_details_id" options="{'no_open': True, 'no_quick_create': True,'no_create':True,}"/>
+                        <field name="sections" options="{'no_open': True, 'no_quick_create': True,'no_create':True,}"/>
                         <field name="business_processes"/>
                     </group>
                 </group>
             </xpath>
+            <xpath expr="//field[@name='work_location_id']" position="attributes">
+                <attribute name="options">{"no_quick_create":True,"no_open": True, "no_create": True}</attribute>
+            </xpath>
             <xpath expr="//field[@name='work_location_id']" position="after">
-                <field name="sub_location"/>
+                <field name="sub_location_id" options="{'no_quick_create':True,'no_open': True, 'no_create': True}"/>
             </xpath>
             <xpath expr="//field[@name='private_phone']" position="after">
                 <field name="blood_group"/>
@@ -177,6 +180,10 @@
                 <button name="open_calendar_view" type="object" string="Calendar"
                         invisible="not is_self_record"
                         icon="fa-calendar" class="oe_highlight"/>
+                <button class="oe_stat_button" name="action_open_employee_payslips"
+                        type="object" icon="fa-dollar" string="Payslips"
+                        invisible="user_id != uid">
+                </button>
                 <button class="oe_stat_button" type="object" string="KRA Form"
                         name="action_open_kra_records" icon="fa-star"
                         invisible="kra_record_count == 0 or not is_self_record">

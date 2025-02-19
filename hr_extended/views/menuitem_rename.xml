@@ -197,4 +197,22 @@
         <field name="name">Leave Types</field>
     </record>
 
+
+    <!-- Payroll Menus -->
+    <menuitem
+        id="hr_payroll.menu_hr_payroll_payslips"
+        name="Payroll Input Sheet"
+        parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root"
+        sequence="70"
+        groups="hr_payroll.group_hr_payroll_user"/>
+
+     <menuitem
+        id="hr_payroll.menu_hr_payroll_employee_payslips"
+        name="All Payroll Input Sheet"
+        parent="hr_payroll.menu_hr_payroll_payslips"
+        sequence="60"
+        action="hr_payroll.action_view_hr_payslip_month_form"
+        groups="hr_payroll.group_hr_payroll_user"/>
+
+
 </odoo>

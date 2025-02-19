@@ -316,12 +316,135 @@
             </field>
         </record>
 
+        <!-- In Employee-> Configuration -->
         <menuitem
                 id="menu_assets_category"
                 action="assets_category_view_action"
                 parent="hr_insurance.menu_human_resources_configuration_insurance"
-                groups="hr_recruitment.group_hr_recruitment_manager"
+                groups="hr.group_hr_manager"
                 sequence="7"/>
+
+        <!-- Budgeting Units Master -->
+
+        <record id="budgeting_units_view_tree" model="ir.ui.view">
+            <field name="model">budgeting.units</field>
+            <field name="arch" type="xml">
+                <tree string="Budgeting Units" editable="bottom" duplicate="0">
+                    <field name="name"/>
+                    <field name="company_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="budgeting_units_view_form" model="ir.ui.view">
+            <field name="model">budgeting.units</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id"
+                                   options="{'no_open':True,'no_quick_create':True,'no_create': True,}"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="budgeting_units_view_search" model="ir.ui.view">
+            <field name="name">Budgeting Units Search</field>
+            <field name="model">budgeting.units</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <field name="name" string="Name"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="budgeting_units_view_action">
+            <field name="name">Budgeting Units</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">budgeting.units</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="budgeting_units_view_search"/>
+            <field name="help" type="html">
+                <field class="oe_view_nocontent_create">
+                    Create a new Budgeting Unit
+                </field>
+            </field>
+        </record>
+
+        <menuitem
+                id="menu_budgeting_units_config"
+                action="budgeting_units_view_action"
+                parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+                groups="hr_recruitment.group_hr_recruitment_manager"
+                sequence="5"/>
+
+        <!-- Sub Location / sub business unit Master -->
+
+        <record id="sub_location_view_tree" model="ir.ui.view">
+            <field name="model">sub.location</field>
+            <field name="arch" type="xml">
+                <tree string="SubLocation" editable="bottom" duplicate="0">
+                    <field name="name"/>
+                    <field name="company_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="sub_location_view_form" model="ir.ui.view">
+            <field name="model">sub.location</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id"
+                                   options="{'no_open':True,'no_quick_create':True,'no_create': True,}"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="sub_location_view_search" model="ir.ui.view">
+            <field name="name">Sub Location Search</field>
+            <field name="model">sub.location</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                    <field name="name" string="Name"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="sub_location_view_action">
+            <field name="name">Sub Location</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sub.location</field>
+            <field name="view_mode">tree,form</field>
+            <field name="search_view_id" ref="sub_location_view_search"/>
+            <field name="help" type="html">
+                <field class="oe_view_nocontent_create">
+                    Create a new Sub Location
+                </field>
+            </field>
+        </record>
+
+        <menuitem
+                id="menu_sub_location_config"
+                action="sub_location_view_action"
+                parent="hr_recruitment.menu_hr_recruitment_config_jobs"
+                groups="hr_recruitment.group_hr_recruitment_manager"
+                sequence="6"/>
 
     </data>
 </odoo>

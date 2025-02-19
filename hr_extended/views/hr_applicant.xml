@@ -209,11 +209,12 @@
                                 <field name="grade"/>
                                 <field name="locations_id" options="{'no_quick_create':True,'no_create': True,}"
                                        required="stage_status in ('shortlist')"/>
-                                <field name="annual_store_performance_incentive"/>
-                                <field name="annual_performance_linked_pay"/>
-                                <field name="monthly_performance_incentive"/>
+                                <field name="annual_store_performance_incentive" invisible="1"/>
+                                <field name="annual_performance_linked_pay" invisible="1"/>
+                                <field name="monthly_performance_incentive" invisible="1"/>
                                 <field name="medical_insurance"/>
                                 <field name="group_personal_accident_insurance"/>
+                                <field name="health_benefit_plan"/>
                                 <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                             </group>
                             <group string="Salary Break-up (Per Annum)">
@@ -225,14 +226,17 @@
                                 <field name="pf_employer_per_annum" readonly="1" force_save="1"/>
                                 <field name="esic_employer_per_annum" readonly="1" force_save="1"/>
                                 <field name="sub_total_b_per_annum" readonly="1" force_save="1" invisible="1"/>
-                                <field name="store_performance_incentive_annum" readonly="1" force_save="1"/>
-                                <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"/>
+                                <field name="store_performance_incentive_annum" readonly="1" force_save="1"
+                                       invisible="1"/>
+                                <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"
+                                       invisible="1"/>
                                 <field name="variable_pay_per_annum" readonly="1" force_save="1"/>
-                                <field name="performance_linked_pay_annum" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_annum" readonly="1" force_save="1" invisible="1"/>
                                 <field name="sub_total_c_per_annum" readonly="1" force_save="1" invisible="1"/>
                                 <field name="total_salary_per_annum" readonly="1" force_save="1"/>
                                 <field name="medical_insurances" readonly="1" force_save="1"/>
                                 <field name="group_personal_acc_insurance" readonly="1" force_save="1"/>
+                                <field name="health_ben_plan" readonly="1" force_save="1"/>
                                 <field name="sub_total_d" readonly="1" force_save="1" invisible="1"/>
 
                             </group>
@@ -245,10 +249,10 @@
                                 <field name="pf_employer_per_month" readonly="1" force_save="1"/>
                                 <field name="esic_employer_per_month" readonly="1" force_save="1"/>
                                 <field name="sub_total_b_per_month" readonly="1" force_save="1" invisible="1"/>
-                                <field name="store_performance_incentive_month" readonly="1" force_save="1"/>
-                                <field name="monthly_performance_incentive_month" readonly="1" force_save="1"/>
+                                <field name="store_performance_incentive_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="monthly_performance_incentive_month" readonly="1" force_save="1" invisible="1"/>
                                 <field name="variable_pay_per_month" readonly="1" force_save="1"/>
-                                <field name="performance_linked_pay_month" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_month" readonly="1" force_save="1" invisible="1"/>
                                 <field name="sub_total_c_per_month" readonly="1" force_save="1" invisible="1"/>
                                 <field name="total_salary_per_month" readonly="1" force_save="1"/>
                             </group>

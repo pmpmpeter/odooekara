@@ -1,6 +1,7 @@
 from odoo import fields, models, api
 import math
 from odoo.exceptions import ValidationError, UserError
+from num2words import num2words
 
 
 class HrContract(models.Model):
@@ -22,14 +23,15 @@ class HrContract(models.Model):
     esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     sub_total_b_per_annum = fields.Float(string='Sub-total Part B', copy=False)
     sub_total_b_per_month = fields.Float(string='Sub-total Part B', copy=False)
-    variable_pay_per_annum = fields.Float(string='Variable Pay', copy=False)
-    variable_pay_per_month = fields.Float(string='Variable Pay', copy=False)
+    variable_pay_per_annum = fields.Float(string='Performance Linked Variable Pay', copy=False)
+    variable_pay_per_month = fields.Float(string='Performance Linked Variable Pay', copy=False)
     sub_total_c_per_annum = fields.Float(string='Sub-total Part C', copy=False)
     sub_total_c_per_month = fields.Float(string='Sub-total Part C', copy=False)
     total_salary_per_annum = fields.Float(string='Total Salary', copy=False)
     total_salary_per_month = fields.Float(string='Total Salary', copy=False)
     medical_insurances = fields.Float(string='Medical Insurance', copy=False)
     group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance', copy=False)
+    health_ben_plan = fields.Float(string='Health Benefit Plan', copy=False)
     sub_total_d = fields.Float(string='Sub-total Part D', copy=False)
     total_ctc_annum = fields.Float(string='Total Cost to Company', copy=False)
     total_ctc_month = fields.Float(string='Total Cost to Company', copy=False)
@@ -54,6 +56,7 @@ class HrContract(models.Model):
                                                        copy=False)
     medical_insurance = fields.Float(string="Medical Insurance", store=True, copy=False)
     group_personal_accident_insurance = fields.Float(string="Group Personal Accident Insurance", store=True, copy=False)
+    health_benefit_plan = fields.Float(string="Health Benefit Plan", store=True, copy=False)
     solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
     indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
     statutory_bonus_applicable = fields.Selection(
@@ -78,7 +81,7 @@ class HrContract(models.Model):
         ('tta', 'TTA'),
         ('tvm_obt', 'TVM/OBT'),
     ], default='corporate', string="Location", tracking=True, required=True)
-    location_id = fields.Many2one('location.master', string="Location",tracking=True, required=True)
+    location_id = fields.Many2one('location.master', string="Location", tracking=True, required=True)
     grade = fields.Selection([
         ('spl_grade', 'Spl Grade'),
         ('grade_a', 'Grade A'),
@@ -90,11 +93,22 @@ class HrContract(models.Model):
         ('grade_g', 'Grade G'),
     ], default='spl_grade', string="Grade", tracking=True, required=True)
 
+    total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+
+    @api.onchange('total_ctc_annum')
+    def _compute_total_ctc_in_words(self):
+        for record in self:
+            if record.total_ctc_annum:
+                total_ctc_integer = int(record.total_ctc_annum)
+                record.total_ctc_in_words = num2words(total_ctc_integer, lang='en_IN').title()
+            else:
+                record.total_ctc_in_words = 'None'
+
     @api.onchange('location_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
                   'esi_applicable', 'grade',
                   'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
                   'monthly_performance_incentive',
-                  'medical_insurance', 'group_personal_accident_insurance')
+                  'medical_insurance', 'group_personal_accident_insurance', 'health_benefit_plan')
     def _onchange_calculate_salary_breakup(self):
         for record in self:
             # Fetch the salary structure based on location and grade
@@ -130,6 +144,7 @@ class HrContract(models.Model):
             record.total_salary_per_month = 0
             record.medical_insurances = 0
             record.group_personal_acc_insurance = 0
+            record.health_ben_plan = 0
             record.total_ctc_annum = 0
             record.total_ctc_month = 0
             record.indicative_take_home_salary = 0
@@ -177,17 +192,19 @@ class HrContract(models.Model):
                                 record.variable_pay_percentage / 100))
                     record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_annum = record.variable_pay_per_annum
                     record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                     record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
-                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
+                    record.health_ben_plan = record.health_benefit_plan
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                     # CTC Calculations
-                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                     record.total_ctc_month = round(record.total_ctc_annum / 12)
                     profession_tax = 200 if (
                                                     record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -212,7 +229,7 @@ class HrContract(models.Model):
                     record.hra_per_month = round(record.hra_per_annum / 12)
 
                     record.special_allowance_per_annum = (
-                                                                     record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.hra_per_annum - record.statutory_bonus_per_annum
+                                                                 record.monthly_fixed_salary * 12) - record.basic_da_per_annum - record.hra_per_annum - record.statutory_bonus_per_annum
                     record.sub_total_a_per_annum = record.basic_da_per_annum + record.hra_per_annum + record.special_allowance_per_annum
                     record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                     record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
@@ -247,17 +264,19 @@ class HrContract(models.Model):
                                 record.variable_pay_percentage / 100))
                     record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                    record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                    record.sub_total_c_per_annum = record.variable_pay_per_annum
                     record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                     record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                     record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                     record.medical_insurances = record.medical_insurance
                     record.group_personal_acc_insurance = record.group_personal_accident_insurance
-                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
+                    record.health_ben_plan = record.health_benefit_plan
+                    record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                     # CTC Calculations
-                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                    record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                     record.total_ctc_month = round(record.total_ctc_annum / 12)
                     profession_tax = 200 if (
                                                     record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -311,17 +330,19 @@ class HrContract(models.Model):
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
-                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -387,17 +408,19 @@ class HrContract(models.Model):
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
-                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -463,17 +486,19 @@ class HrContract(models.Model):
                             record.variable_pay_percentage / 100))
                 record.variable_pay_per_month = round(record.variable_pay_per_annum / 12)
 
-                record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                # record.sub_total_c_per_annum = record.store_performance_incentive_annum + record.performance_linked_pay_annum + record.monthly_performance_incentive_annum + record.variable_pay_per_annum
+                record.sub_total_c_per_annum = record.variable_pay_per_annum
                 record.sub_total_c_per_month = round(record.sub_total_c_per_annum / 12)
 
                 record.total_salary_per_annum = record.sub_total_a_per_annum + record.sub_total_b_per_annum + record.sub_total_c_per_annum
                 record.total_salary_per_month = round(record.total_salary_per_annum / 12)
                 record.medical_insurances = record.medical_insurance
                 record.group_personal_acc_insurance = record.group_personal_accident_insurance
-                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance
+                record.health_ben_plan = record.health_benefit_plan
+                record.sub_total_d = record.medical_insurance + record.group_personal_acc_insurance + record.health_ben_plan
 
                 # CTC Calculations
-                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance
+                record.total_ctc_annum = record.total_salary_per_annum + record.medical_insurances + record.group_personal_acc_insurance + record.health_ben_plan
                 record.total_ctc_month = round(record.total_ctc_annum / 12)
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
@@ -518,7 +543,7 @@ class HrContract(models.Model):
     #     [('yes', 'Yes'), ('no', 'No')], string="ESI Applicable (per month)", default='no', copy=False
     # )
     # fixed_pay = fields.Float(string="Fixed Pay", store=False, copy=False)
-    #fixed_pay newly added but not know
+    # fixed_pay newly added but not know
     # def action_open_contract_list(self):
     #     self.ensure_one()
     #     action = self.env["ir.actions.actions"]._for_xml_id('hr_contract.action_hr_contract')

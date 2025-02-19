@@ -65,7 +65,7 @@
             name="Insurance Policies"
             parent="hr.menu_human_resources_configuration"
             sequence="6"
-            groups="base.group_no_one"/>
+            groups="hr.group_hr_manager"/>
 
     <menuitem
             id="policy_management_menu"

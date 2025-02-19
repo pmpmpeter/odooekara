@@ -18,7 +18,7 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 #############################################################################
-from odoo import fields, models
+from odoo import fields, models, api
 from odoo.exceptions import UserError
 
 class HrInsurance(models.Model):
@@ -50,6 +50,16 @@ class HrInsurance(models.Model):
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
                                  default=lambda self: self.env.company, readonly=True)
+    is_manager = fields.Boolean(string="Is Manager",compute='_compute_is_manager', store=False, copy=False)
+
+    @api.depends()
+    def _compute_is_manager(self):
+        for record in self:
+            user = self.env.user
+            if user.has_group('hr.group_hr_user'):
+                record.is_manager = True
+            else:
+                record.is_manager = False
 
     def get_status(self):
         """this function is get and set state"""

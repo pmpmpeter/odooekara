@@ -3,7 +3,7 @@ import base64
 
 from odoo import models, fields, api, _
 from odoo.exceptions import *
-from datetime import datetime, timedelta,date
+from datetime import datetime, timedelta, date
 from odoo.exceptions import ValidationError, UserError
 
 
@@ -12,7 +12,7 @@ class EmployeeIndent(models.Model):
     _description = 'Employee Indent'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    @api.depends('department','grade_job_level','position_name')
+    @api.depends('department', 'grade_job_level', 'position_name')
     def _compute_approved_budget(self):
         today = date.today()
         if today.month >= 4:  # Financial year starts from April
@@ -23,14 +23,13 @@ class EmployeeIndent(models.Model):
             end_of_financial_year = date(today.year, 3, 31)
         for rec in self:
             rec.approved_budget = self.env['manpower.budget'].search([
-                    ('state','=','done'),
-                    ('create_date','>=',start_of_financial_year),
-                    ('create_date','<=',end_of_financial_year),
-                    ('department_id','=',rec.department.id),
-                    ('job_level_id','=',rec.grade_job_level.id),
-                    ('position_id','=',rec.position_name.id),
-                    ],limit=1).ctc_annual or 0
-
+                ('state', '=', 'done'),
+                ('create_date', '>=', start_of_financial_year),
+                ('create_date', '<=', end_of_financial_year),
+                ('department_id', '=', rec.department.id),
+                ('job_level_id', '=', rec.grade_job_level.id),
+                ('position_id', '=', rec.position_name.id),
+            ], limit=1).ctc_annual or 0
 
     name = fields.Char(string='Name', required=True)
     tax_entity = fields.Many2one('res.company', string='Tax Entity', default=lambda self: self.env.company)
@@ -43,7 +42,7 @@ class EmployeeIndent(models.Model):
     #     domain=lambda self: self._address_id_domain(),
     #     help="Select the location where the applicant will work. Addresses listed here are defined on the company's contact information.")
     # location_id = fields.Many2one('ekara.location', string="Location", copy=False)
-    locations_id = fields.Many2one('location.master',domain="[('company_id', '=', organization)]", string="Location")
+    locations_id = fields.Many2one('location.master', domain="[('company_id', '=', organization)]", string="Location")
 
     department = fields.Many2one(
         'hr.department',  # The model name of the HR department
@@ -53,9 +52,11 @@ class EmployeeIndent(models.Model):
         help="Select the department from HR departments"
     )
 
-    grade_job_level = fields.Many2one('hr.job.levels', string='Grade/ Job Level',domain="[('company_id', '=', organization)]", required=True)
+    grade_job_level = fields.Many2one('hr.job.levels', string='Grade/ Job Level',
+                                      domain="[('company_id', '=', organization)]", required=True)
 
-    position_name = fields.Many2one('hr.position.names', string='Position Name / Designations',domain="[('company_id', '=', organization)]", required=True)
+    position_name = fields.Many2one('hr.position.names', string='Position Name / Designations',
+                                    domain="[('company_id', '=', organization)]", required=True)
 
     reporting_to = fields.Many2one(
         'res.users',
@@ -97,6 +98,10 @@ class EmployeeIndent(models.Model):
         ('statutory_payments', 'Statutory Payments & Other B/S Items')
     ], string='Budgeting Units', help="Select the appropriate budgeting unit.")
 
+    budgeting_unit_id = fields.Many2one('budgeting.units', string='Budgeting Units',
+                                        domain="[('company_id', '=', organization)]",
+                                        help="Select the appropriate budgeting unit.")
+
     is_budgeted = fields.Boolean(string='Is Budgeted?', default=False, copy=False,
                                  help="Indicate if this position is budgeted.")
 
@@ -131,7 +136,6 @@ class EmployeeIndent(models.Model):
         help="Remaining budget after utilization.", copy=False
     )
     proposed_annual_ctc = fields.Float(string='Proposed Annual CTC')
-
 
     currency_id = fields.Many2one(
         'res.currency',
@@ -184,7 +188,8 @@ class EmployeeIndent(models.Model):
     # Job Description template details
 
     # business_unit = fields.Char(string="Business Unit")
-    business_unit_id = fields.Many2one('business.units',domain="[('company_id', '=', organization)]", string="Business Units", required=True)
+    business_unit_id = fields.Many2one('business.units', domain="[('company_id', '=', organization)]",
+                                       string="Business Units", required=True)
     # source = fields.Selection([
     #     ('new_role', 'New Role'),
     #     ('replacement', 'Replacement')
@@ -205,9 +210,11 @@ class EmployeeIndent(models.Model):
     professional_requirements = fields.Text(string="Professional Requirements")
     educational_requirements = fields.Text(string="Educational and Experience Requirements")
     desirable = fields.Text(string="Desirable")
-    approved_by_hod_id = fields.Many2one('hr.employee',domain="[('company_id', '=', organization)]", string="Approved by (HOD)")
-    approved_by_director_id = fields.Many2one('hr.employee',domain="[('company_id', '=', organization)]", string="Approved by (Director)")
-    job_id = fields.Many2one('hr.job',domain="[('company_id', '=', organization)]", string="Job Position")
+    approved_by_hod_id = fields.Many2one('hr.employee', domain="[('company_id', '=', organization)]",
+                                         string="Approved by (HOD)")
+    approved_by_director_id = fields.Many2one('hr.employee', domain="[('company_id', '=', organization)]",
+                                              string="Approved by (Director)")
+    job_id = fields.Many2one('hr.job', domain="[('company_id', '=', organization)]", string="Job Position")
     approved_by_hod = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No')
@@ -220,11 +227,10 @@ class EmployeeIndent(models.Model):
     def _organization_domain(self):
         return [('id', '=', self.env.companies.ids)]
 
-    @api.onchange('proposed_annual_ctc','approved_budget')
+    @api.onchange('proposed_annual_ctc', 'approved_budget')
     def _onchange_proposed_annual_ctc(self):
         for rec in self:
             rec.utilized_budget = (rec.approved_budget - rec.proposed_annual_ctc)
-
 
     @api.onchange('business_unit_id')
     def _onchange_business_unit_id(self):

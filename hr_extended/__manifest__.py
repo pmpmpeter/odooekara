@@ -50,7 +50,7 @@
         'report/kra_template.xml',
         'report/joining_doc_report.xml',
         'data/sequence.xml',
-        'data/job_levels_demo.xml',
+        # 'data/job_levels_demo.xml',
         'data/mail_template_data.xml',
         'wizard/mail_activity_schedule_views.xml',
         'wizard/manpower_budget.xml',
@@ -75,6 +75,9 @@
         'views/survey.xml',
         'wizard/balance_leaves.xml',
         'wizard/payroll_report_wizard.xml'
+    ],
+    'demo': [
+        'data/job_levels_demo.xml'
     ],
     'installable': True,
     'application': True,

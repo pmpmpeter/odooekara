@@ -264,6 +264,7 @@ class SelfRating(models.Model):
             record.total_salary_per_month = 0
             record.medical_insurances = 0
             record.group_personal_acc_insurance = 0
+            record.health_ben_plan = 0
             record.total_ctc_annum = 0
             record.total_ctc_month = 0
             record.indicative_take_home_salary = 0
@@ -691,7 +692,7 @@ class SelfRating(models.Model):
                 'total_salary_per_month': self.total_salary_per_month,
                 'medical_insurances': self.medical_insurances,
                 'group_personal_acc_insurance': self.group_personal_acc_insurance,
-                # 'health_ben_plan': self.health_ben_plan,
+                'health_ben_plan': self.health_ben_plan,
                 'sub_total_d': self.sub_total_d,
                 'total_ctc_annum': self.total_ctc_annum,
                 'total_ctc_month': self.total_ctc_month,
@@ -711,7 +712,7 @@ class SelfRating(models.Model):
                 'monthly_performance_incentive_month': self.monthly_performance_incentive_month,
                 'medical_insurance': self.medical_insurance,
                 'group_personal_accident_insurance': self.group_personal_accident_insurance,
-                # 'health_benefit_plan': self.health_benefit_plan,
+                'health_benefit_plan': self.health_benefit_plan,
                 'solis_health_benefit_beacon_plan': self.solis_health_benefit_beacon_plan,
                 'indicative_take_home_salary': self.indicative_take_home_salary,
                 'statutory_bonus_applicable': self.statutory_bonus_applicable,
