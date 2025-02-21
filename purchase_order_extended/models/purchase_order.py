@@ -81,10 +81,12 @@ class PurchaseOrderInherit(models.Model):
                 allocated_amount_formatted = formatLang(self.env, allocated_amount, currency_obj=order.company_id.currency_id)
                 available_amount_formatted = formatLang(self.env, available_amount, currency_obj=order.company_id.currency_id)
                 if order.amount_total > available_amount:
+                    budget_url = "/web#id=%s&model=crossovered.budget&view_type=form" % order.budget_id.crossovered_budget_id.id 
                     msg = Markup(
-                              "<span style='color: red;'>Alert !! Budget is exceeding for %s."
-                              "Allocated budget is %s and Available balance is %s.</span>"
-                          ) % (order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
+                    "<span style='color: red;'>Alert !! Budget is exceeding for "
+                    "<a href='%s' target='_blank' style='color: blue; text-decoration: underline;'>%s</a>."
+                    " Allocated budget is %s and Available balance is %s.</span>"
+                    ) % (budget_url, order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
                 else:
                     msg = Markup(
                               "For %s Allocated budget is %s and Available balance is %s."

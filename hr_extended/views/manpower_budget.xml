@@ -26,16 +26,16 @@
             <form>
                 <header>
                     <button name="action_assign_user" type="object" string="Assign" invisible="state != 'draft'"
-                            class="btn-primary" groups="hr_extended.group_manpower_budget_manager"/>
+                            class="btn-primary" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
                     <button name="action_submit_record" type="object" string="Submit" invisible="state != 'assigned'"
                             class="btn-success"/>
                     <button name="action_hr_approve" type="object" string="Approve" invisible="state != 'submitted'"
-                            class="btn-success" groups="hr_extended.group_manpower_budget_manager"/>
+                            class="btn-success" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
                     <button name="action_set_done" type="object" string="Set Done" invisible="state != 'hr_approved'"
-                            class="btn-success" groups="hr_extended.group_manpower_budget_manager"/>
+                            class="btn-success" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state != 'done'" class="btn-secondary"
-                            groups="hr_extended.group_manpower_budget_manager"/>
+                            groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,assigned,submitted,hr_approved,done"/>
                 </header>
@@ -112,11 +112,11 @@
 
     <menuitem id="menu_manpower_employee" name="Manpower"
               parent="hr.menu_hr_employee_payroll"
-              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user" sequence="9"/>
+              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user,hr_extended.group_hr_recruitment_bu_head" sequence="9"/>
 
     <menuitem id="menu_manpower_budget" name="Manpower Budget" parent="hr_extended.menu_manpower_employee"
               action="action_manpower_budget" sequence="9"
-              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user"/>
+              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user,hr_extended.group_hr_recruitment_bu_head"/>
 
     <record id="action_export_excel" model="ir.actions.server">
         <field name="name">Export to Excel</field>
@@ -175,7 +175,7 @@
               parent="hr_extended.menu_manpower_employee"
               sequence="9"
               action="action_director_approve_manpower"
-              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user"/>
+              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user,hr_extended.group_hr_recruitment_bu_head"/>
 
 
 </odoo>

@@ -284,6 +284,14 @@ class ResPartner(models.Model):
                     )
                 )
 
+    def write(self, vals):
+        if 'l10n_in_pan' in vals and vals['l10n_in_pan']:
+            existing_record = self.search([('l10n_in_pan', '=', vals['l10n_in_pan']), ('id', '!=', self.id)])
+            if existing_record:
+                raise ValidationError("The Pan number must be unique. This value already exists.")
+
+        return super(ResPartner, self).write(vals)
+
     # @api.model
     # def create(self, vals):
     #     if  vals.get('is_vendor'):

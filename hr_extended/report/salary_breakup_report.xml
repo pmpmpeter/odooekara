@@ -35,7 +35,7 @@
                         <p>Dear Mr/Ms
                             <t t-esc="doc.partner_name"/>,
                         </p>
-                        <p><b>Greetings from Ekara Partnership</b>.
+                        <p><b>Greetings from <t t-out="doc.company_id.name"/></b>.
                         </p>
                         <p>Further to the discussion we held with you regarding the compensation, we are delighted to
                             extend

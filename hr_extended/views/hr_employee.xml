@@ -77,13 +77,16 @@
                     </group>
                     <group string="Employment Details">
                         <field name="total_year_in_experience"/>
-                        <field name="bu_head_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                        <field name="business_unit_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="bu_head_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="business_unit_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                         <field name="sub_bu_unit"/>
                         <field name="separation_type"/>
                         <field name="class_of_employment"/>
                         <field name="employee_status"/>
-                        <field name="budgeting_unit_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="budgeting_unit_id"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                     </group>
                     <group string="Other Details">
                         <field name="new_emp_no"/>
@@ -93,7 +96,8 @@
                         <field name="appointment_order_form_q"/>
                         <field name="mapped_pip"/>
                         <field name="ats_id"/>
-                        <field name="address_details_id" options="{'no_open': True, 'no_quick_create': True,'no_create':True,}"/>
+                        <field name="address_details_id"
+                               options="{'no_open': True, 'no_quick_create': True,'no_create':True,}"/>
                         <field name="sections" options="{'no_open': True, 'no_quick_create': True,'no_create':True,}"/>
                         <field name="business_processes"/>
                     </group>
@@ -181,7 +185,7 @@
                         invisible="not is_self_record"
                         icon="fa-calendar" class="oe_highlight"/>
                 <button class="oe_stat_button" name="action_open_employee_payslips"
-                        type="object" icon="fa-dollar" string="Payslips"
+                        type="object" icon="fa-dollar" string="Employee Payroll Inputs"
                         invisible="user_id != uid">
                 </button>
                 <button class="oe_stat_button" type="object" string="KRA Form"
@@ -250,10 +254,32 @@
         <field name="groups_id" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
+    <!--    <record id="hr.menu_hr_employee_user" model="ir.ui.menu">-->
+    <!--        <field name="groups_id" eval="[(4, ref('hr.group_hr_user'))]"/>-->
+    <!--    </record>-->
+
     <record id="hr_employee_view_form_inherit_appraisal_update" model="ir.ui.view">
         <field name="name">hr.employee.view.form.inherit.appraisal.update</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr_appraisal.hr_employee_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_send_appraisal_request'][1]"
+                   position="attributes">
+                <attribute name="invisible">1
+                </attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_send_appraisal_request'][2]"
+                   position="attributes">
+                <attribute name="invisible">1
+                </attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_public_view_form_inherit_appraisal" model="ir.ui.view">
+        <field name="name">hr.employee.public.view.form.inherit.appraisal</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr_appraisal.hr_employee_public_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_send_appraisal_request'][1]"
                    position="attributes">

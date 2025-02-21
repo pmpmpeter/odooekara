@@ -1,4 +1,6 @@
 from odoo import api, fields, models, _, tools
+from datetime import datetime
+
 
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
@@ -13,3 +15,39 @@ class ResConfigSettings(models.TransientModel):
         'Maximum TDS Amount', related='company_id.tds_limit_amount',
         help="By adding maximum limit amount will let users know about the TDS limit", readonly=False)
     tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", required=False, related='company_id.tds_tax_id', readonly=False)
+    crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users", help="Users who will receive monthly CRR & CUR reminders",readonly=False)
+
+
+    @api.model
+    def send_crr_reminder(self):
+        """Send CRR & CUR reminder emails on the 20th of each month."""
+        today = datetime.today()
+        if today.day != 20:
+            return  # Ensure it runs only on the 20th
+
+        companies = self.env['res.company'].search([])
+        for company in companies:
+            # param_key = 'monthly_crr_reminder_users_%s' % company.id
+            user_ids = company.crr_reminder_users.ids
+            if not user_ids:
+                continue
+
+            users = self.env['res.users'].sudo().browse(user_ids)
+            for user in users:
+                self._send_email(user, company)
+
+    def _send_email(self, user, company):
+        """Helper method to send email."""
+        mail_template = self.env.ref('accounts_extended.crr_reminder_email_template')
+        if mail_template:
+            mail_template.sudo().send_mail(user.id, force_send=True)
+              template = self.env.ref('accounts_extended.email_template_budget_revision_email')
+            template.send_mail(self.id, force_send=True)
+
+
+
+
+class ResCompanyInherited(models.Model):
+    _inherit = 'res.company'
+
+    crr_reminder_users = fields.Many2many('res.users', string="CRR & CUR Reminder Users", help="Users who will receive monthly CRR & CUR reminders")

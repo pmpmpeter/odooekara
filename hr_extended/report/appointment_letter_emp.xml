@@ -8,12 +8,12 @@
         <field name="page_height">0</field>
         <field name="page_width">0</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">50</field>
+        <field name="margin_top">23</field>
         <field name="margin_bottom">25</field>
         <field name="margin_left">15</field>
         <field name="margin_right">15</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">48</field>
+        <field name="header_spacing">18</field>
         <field name="dpi">90</field>
     </record>
 
@@ -38,10 +38,16 @@
     </template>
 
     <template id="print_appointment_letter_emp_report">
-        <t t-call="web.external_layout">
+        <!--        <t t-call="web.external_layout">-->
+        <t t-call="web.basic_layout">
             <t t-foreach="docs" t-as="doc">
                 <t t-set="doc" t-value="doc.with_context(lang=lang)"/>
                 <t t-set="company" t-value="doc.company_id"/>
+                <div class="header">
+                    <img t-if="doc.company_id.logo"
+                         t-att-src="image_data_uri(doc.company_id.logo)" alt="Logo"
+                         style="max-width: 50%; max-height: 45px; width: auto; height: auto;"/>
+                </div>
                 <div class="page">
                     <div style="text-align: center; margin-top: 20px;">
                         <h3 style="text-decoration: underline;">Appointment Letter</h3>
@@ -70,7 +76,11 @@
                             ,
                         </p>
                         <p>
-                            Welcome to <strong><t t-out="doc.company_id.name"/></strong>.
+                            Welcome to
+                            <strong>
+                                <t t-out="doc.company_id.name"/>
+                            </strong>
+                            .
                         </p>
                         <p>
                             (Hereinafter referred to as the “Company”) We are pleased to appoint you on the terms and
@@ -653,6 +663,7 @@
                                     </li>
                                 </ol>
                             </li>
+                            <div style="page-break-before: always;"></div>
                             <li>
                                 <p style="text-decoration: underline; font-weight: bold;">Acknowledgement</p>
                                 <ol type="a">
@@ -965,10 +976,10 @@
                                     <t t-esc="'{:,}'.format(doc.contract_id.sudo().total_salary_per_month or 0.0)"/>
                                 </td>
                             </tr>
-                        </table>
-                        <div style="page-break-before: always;"></div>
-                        <!-- Details: Part D -->
-                        <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px;">
+                            <!--                        </table>-->
+                            <!--                        <div style="page-break-before: always;"></div>-->
+                            <!-- Details: Part D -->
+                            <!--                        <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px;">-->
                             <tr>
                                 <td colspan="3" style="padding: 10px; border: 1px solid #000; font-weight: bold;">Part D
                                     (Other Benefits)
@@ -991,7 +1002,7 @@
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">-</td>
                             </tr>
                             <tr>
-                                <td style="padding: 10px; border: 1px solid #000;">Health Benefit Beacon Plan***
+                                <td style="padding: 10px; border: 1px solid #000;">Health Benefit Plan***
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #000; text-align: right">
                                     <t t-esc="'{:,}'.format(doc.contract_id.sudo().health_ben_plan or 0.0)"/>
@@ -1087,5 +1098,6 @@
                 </div>
             </t>
         </t>
+        <!--        </t>-->
     </template>
 </odoo>
