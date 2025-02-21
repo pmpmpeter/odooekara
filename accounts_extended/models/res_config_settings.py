@@ -41,8 +41,7 @@ class ResConfigSettings(models.TransientModel):
         mail_template = self.env.ref('accounts_extended.crr_reminder_email_template')
         if mail_template:
             mail_template.sudo().send_mail(user.id, force_send=True)
-              template = self.env.ref('accounts_extended.email_template_budget_revision_email')
-            template.send_mail(self.id, force_send=True)
+ 
 
 
 
