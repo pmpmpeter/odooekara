@@ -20,6 +20,7 @@
         'multi_level_approval',
         'report_xlsx',
         'odoo_print_cheque',
+        'account_invoice_extract',
     ],
     'data': [
         'security/ir.model.access.csv',
