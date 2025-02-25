@@ -892,7 +892,7 @@
     </record>
 
     <record id="open_create_fund_payment_form" model="ir.actions.act_window">
-        <field name="name">Fund Requisition</field>
+        <field name="name">Intra Bank Transfer</field>
         <field name="res_model">account.payment</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{'default_is_fund_requsiting': True,'is_internal_transfer': True}</field>
