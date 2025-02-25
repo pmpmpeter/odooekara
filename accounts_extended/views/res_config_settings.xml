@@ -72,26 +72,26 @@
                         </div>
                     </div>
                     </div>
-<!--                    <div>-->
-<!--                        <h2>Budget Share</h2>-->
-<!--                        <div class="content-group">-->
-<!--                             <div class="row mt8 o_settings_container">-->
+                    <div>
+                        <h2>Budget Share</h2>
+                        <div class="content-group">
+                             <div class="row mt8 o_settings_container">
 
-<!--                                <label for="tax_entity1"/>-->
-<!--                                <field name="tax_entity1"/>-->
-<!--                                <label for="share1"/>-->
-<!--                                <field name="share1"/>-->
+                                <label for="tax_entity1"/>
+                                <field name="tax_entity1"/>
+                                <label for="share1"/>
+                                <field name="share1"/>
 
-<!--                            </div>-->
-<!--                             <div class="row mt8 o_settings_container">-->
+                            </div>
+                             <div class="row mt8 o_settings_container">
 
-<!--                                <label for="tax_entity2"/>-->
-<!--                                <field name="tax_entity2"/>-->
-<!--                                <label for="share2"/>-->
-<!--                                <field name="share2"/>-->
-<!--                            </div>-->
-<!--                            </div>-->
-<!--                    </div>-->
+                                <label for="tax_entity2"/>
+                                <field name="tax_entity2"/>
+                                <label for="share2"/>
+                                <field name="share2"/>
+                            </div>
+                            </div>
+                    </div>
                 </xpath>
             </field>
         </record>
