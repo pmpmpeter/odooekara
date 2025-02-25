@@ -52,10 +52,16 @@
                             invisible="not id or state != 'draft' or move_type != 'entry'"/>
                     <button name="button_cancel" string="Cancel" type="object" groups="account.group_account_invoice"
                             data-hotkey="x"
-                            invisible="not id or state != 'posted' or move_type  not in ('out_invoice')"/>
+                            invisible="not id or state != 'draft' or move_type in ('entry','out_invoice')"/>
+                    <button name="button_cancel" string="Cancel" type="object" groups="account.group_account_manager"
+                            data-hotkey="x"
+                            invisible="not id or state != 'posted' or move_type in ('entry','out_invoice')"/>
+                    <!--                    <button name="button_draft" string="Reset to Draft" type="object"-->
+                    <!--                            groups="account.group_account_manager"-->
+                    <!--                            invisible="state != 'cancel' or x_has_request_approval" data-hotkey="r"/>-->
                     <button name="button_draft" string="Reset to Draft" type="object"
                             groups="account.group_account_manager"
-                            invisible="state != 'cancel' or x_has_request_approval" data-hotkey="r"/>
+                            invisible="state != 'cancel'" data-hotkey="r"/>
                     <button string="Request Cancel"
                             name="button_request_cancel"
                             type="object"
