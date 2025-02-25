@@ -2,6 +2,17 @@ from odoo import api, fields, models, _, tools
 from datetime import datetime
 
 
+class ResCompanyInherited(models.Model):
+    _inherit = 'res.company'
+
+    tax_entity1 = fields.Many2one('res.company', string="Tax Entity1")
+    share1 = fields.Integer('Share %')
+    tax_entity2 = fields.Many2one('res.company', string="Tax Entity2")
+    share2 = fields.Integer('Share %')
+    crr_reminder_users = fields.Many2many('res.users', string="CRR & CUR Reminder Users",
+                                          help="Users who will receive monthly CRR & CUR reminders")
+
+
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
@@ -14,9 +25,14 @@ class ResConfigSettings(models.TransientModel):
     tds_limit_amount = fields.Float(
         'Maximum TDS Amount', related='company_id.tds_limit_amount',
         help="By adding maximum limit amount will let users know about the TDS limit", readonly=False)
-    tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", required=False, related='company_id.tds_tax_id', readonly=False)
-    crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users", help="Users who will receive monthly CRR & CUR reminders",readonly=False)
-
+    tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", required=False, related='company_id.tds_tax_id',
+                                 readonly=False)
+    tax_entity1 = fields.Many2one(string="Tax Entity1", related='company_id.tax_entity1', readonly=False)
+    share1 = fields.Integer('Share %', related='company_id.share1', readonly=False)
+    tax_entity2 = fields.Many2one(string="Tax Entity2", related='company_id.tax_entity2', readonly=False)
+    share2 = fields.Integer('Share %', related='company_id.share2', readonly=False)
+    crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users",
+                                          help="Users who will receive monthly CRR & CUR reminders", readonly=False)
 
     @api.model
     def send_crr_reminder(self):
@@ -41,12 +57,3 @@ class ResConfigSettings(models.TransientModel):
         mail_template = self.env.ref('accounts_extended.crr_reminder_email_template')
         if mail_template:
             mail_template.sudo().send_mail(user.id, force_send=True)
- 
-
-
-
-
-class ResCompanyInherited(models.Model):
-    _inherit = 'res.company'
-
-    crr_reminder_users = fields.Many2many('res.users', string="CRR & CUR Reminder Users", help="Users who will receive monthly CRR & CUR reminders")
