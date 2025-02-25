@@ -27,10 +27,10 @@ class ResConfigSettings(models.TransientModel):
         help="By adding maximum limit amount will let users know about the TDS limit", readonly=False)
     tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", required=False, related='company_id.tds_tax_id',
                                  readonly=False)
-    tax_entity1 = fields.Many2one(string="Tax Entity1", related='company_id.tax_entity1', readonly=False)
-    share1 = fields.Integer('Share %', related='company_id.share1', readonly=False)
-    tax_entity2 = fields.Many2one(string="Tax Entity2", related='company_id.tax_entity2', readonly=False)
-    share2 = fields.Integer('Share %', related='company_id.share2', readonly=False)
+    # tax_entity1 = fields.Many2one(string="Tax Entity1", related='company_id.tax_entity1', readonly=False)
+    # share1 = fields.Integer('Share %', related='company_id.share1', readonly=False)
+    # tax_entity2 = fields.Many2one(string="Tax Entity2", related='company_id.tax_entity2', readonly=False)
+    # share2 = fields.Integer('Share %', related='company_id.share2', readonly=False)
     crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users",
                                           help="Users who will receive monthly CRR & CUR reminders", readonly=False)
 
