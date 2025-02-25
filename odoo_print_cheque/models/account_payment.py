@@ -1,4 +1,4 @@
-from odoo import models,fields,api
+from odoo import models, fields, api
 from num2words import num2words
 import io
 import xlsxwriter
@@ -6,8 +6,6 @@ from odoo.http import request
 import base64
 from datetime import datetime
 from odoo.exceptions import AccessError, UserError, ValidationError
-
-
 
 
 class AccountPayment(models.Model):
@@ -19,26 +17,23 @@ class AccountPayment(models.Model):
     """
     _inherit = 'account.payment'
 
-
-
     cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
-                                       help='Cheque Print Formats',copy=False)
-    sr_no = fields.Char(string="Sr.No",copy=False)
-    assigned_by = fields.Many2one('res.users',string="Assigned By",copy=False)
-    managed_by = fields.Many2one('res.users',string="Managed By",copy=False)
-    comments = fields.Text(string="Comments",copy=False)
-    cheque_number = fields.Char(string="Cheque/Tax Number",copy=False)
-    towards = fields.Text(string="Towards",copy=False)
-    authorised_by = fields.Many2one('res.users',string="Authorised By",copy=False)
-    authorised_date = fields.Date(string="Authorised Date",copy=False)
-    is_cheque_cleared = fields.Boolean(string="Cheque Cleared",copy=False)
-    cheque_cleared_date = fields.Date(string="Date of Cheque Cleared",copy=False)
-    trans_id = fields.Char(string="Transaction ID",copy=False)
-    sender_account_type = fields.Char(string="Sender Account Type",copy=False)
-    beneficiary_account_type  = fields.Char(string="Beneficiary Account Type",copy=False)
-    sender_receiver_info  = fields.Char(string="Sender Receiver Information",copy=False)
-    sms_email = fields.Selection([('sms','SMS'),('email','Email')], string="SMS / Email",copy=False)
-
+                                       help='Cheque Print Formats', copy=False)
+    sr_no = fields.Char(string="Sr.No", copy=False)
+    assigned_by = fields.Many2one('res.users', string="Assigned By", copy=False)
+    managed_by = fields.Many2one('res.users', string="Managed By", copy=False)
+    comments = fields.Text(string="Comments", copy=False)
+    cheque_number = fields.Char(string="Cheque/Tax Number", copy=False)
+    towards = fields.Text(string="Towards", copy=False)
+    authorised_by = fields.Many2one('res.users', string="Authorised By", copy=False)
+    authorised_date = fields.Date(string="Authorised Date", copy=False)
+    is_cheque_cleared = fields.Boolean(string="Cheque Cleared", copy=False)
+    cheque_cleared_date = fields.Date(string="Date of Cheque Cleared", copy=False)
+    trans_id = fields.Char(string="Transaction ID", copy=False)
+    sender_account_type = fields.Char(string="Sender Account Type", copy=False)
+    beneficiary_account_type = fields.Char(string="Beneficiary Account Type", copy=False)
+    sender_receiver_info = fields.Char(string="Sender Receiver Information", copy=False)
+    sms_email = fields.Selection([('sms', 'SMS'), ('email', 'Email')], string="SMS / Email", copy=False)
 
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
     def _compute_is_internal_transfer(self):
@@ -48,10 +43,8 @@ class AccountPayment(models.Model):
                     payment.is_internal_transfer = True
             else:
                 payment.is_internal_transfer = payment.partner_id \
-                                           and payment.partner_id == payment.journal_id.company_id.partner_id \
-                                           and payment.destination_journal_id
-
-
+                                               and payment.partner_id == payment.journal_id.company_id.partner_id \
+                                               and payment.destination_journal_id
 
     def print_checks(self):
         """
@@ -78,7 +71,6 @@ class AccountPayment(models.Model):
                 'default_payment_id': self.id
             }
         }
-
 
     def action_print_cheque_payment(self):
         if self.cheque_format_id:
@@ -117,7 +109,6 @@ class AccountPayment(models.Model):
             return self.env.ref('account.action_report_payment_receipt').report_action(self, data=data)
 
 
-
 class AccountBatchPayment(models.Model):
     """
     This class inherits from the 'account.payment' model to add specific
@@ -127,23 +118,19 @@ class AccountBatchPayment(models.Model):
     """
     _inherit = 'account.batch.payment'
 
-
-
     cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
-                                       help='Cheque Print Formats',copy=False)
-    cheque_number = fields.Char(string="Cheque/Tax Number",copy=False)
-    towards = fields.Text(string="Towards",copy=False)
-    authorised_by = fields.Many2one('res.users',string="Authorised By",copy=False)
-    authorised_date = fields.Date(string="Authorised Date",copy=False)
+                                       help='Cheque Print Formats', copy=False)
+    cheque_number = fields.Char(string="Cheque/Tax Number", copy=False)
+    towards = fields.Text(string="Towards", copy=False)
+    authorised_by = fields.Many2one('res.users', string="Authorised By", copy=False)
+    authorised_date = fields.Date(string="Authorised Date", copy=False)
     amount_total_words = fields.Char(
         string="Amount total in words",
         compute="_compute_amount_total_words",
     )
 
-
     def action_print_batch_payment_pdf(self):
         return self.env.ref('odoo_print_cheque.print_cheque_payment_batch').report_action(self)
-
 
     @api.depends('amount', 'currency_id')
     def _compute_amount_total_words(self):
@@ -161,26 +148,23 @@ class AccountBatchPayment(models.Model):
 
         # Generate attachments (if not already generated)
         self.action_export_payment_details_xlsx()
-        self.action_generate_pdf_attachment()
+        # self.action_generate_pdf_attachment()
 
         # Search for attachments
         attachments = (self.env['ir.attachment'].search([
             ('res_model', '=', 'account.batch.payment'),
             ('res_id', '=', self.id),
             ('name', 'ilike', 'Batch_Payment_Details')
-            ],limit=1)
-                       +
-            self.env['ir.attachment'].search([
-            ('res_model', '=', 'account.batch.payment'),
-            ('res_id', '=', self.id),
-            ('name', 'ilike', 'Batch_Cheque_Report')
-            ], limit=1))
+        ], limit=1))
 
+        #     + self.env['ir.attachment'].search([
+        #     ('res_model', '=', 'account.batch.payment'),
+        #     ('res_id', '=', self.id),
+        #     ('name', 'ilike', 'Batch_Cheque_Report')
+        # ], limit=1)
 
         # Prepare attachment IDs
         attachment_ids = [(4, att.id) for att in attachments]
-
-
 
         ctx = {
             'default_model': 'account.batch.payment',
@@ -208,7 +192,6 @@ class AccountBatchPayment(models.Model):
         """ Generate and Attach PDF Report to the Record """
         self.ensure_one()
 
-
         pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
             'odoo_print_cheque.print_cheque_payment_batch',
             res_ids=self.ids
@@ -227,7 +210,6 @@ class AccountBatchPayment(models.Model):
 
         return attachment
 
-
     def action_export_payment_details_xlsx(self):
         # Create Excel Report in Memory
         output = io.BytesIO()
@@ -239,8 +221,10 @@ class AccountBatchPayment(models.Model):
         date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
 
         # Define Headers
-        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML','DETAIL','OoR7002 (SENDER NAME)','BENEFICIARY IFSC'
-                   , 'BENEFICIARY ACCOUNT TYPE','BENEFICIARY ACCOUNT NO','BENEFICIARY ACCOUNT NAME','SENDER TO RECEIVER INFORMATION']
+        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML',
+                   'DETAIL', 'OoR7002 (SENDER NAME)', 'BENEFICIARY IFSC'
+            , 'BENEFICIARY ACCOUNT TYPE', 'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME',
+                   'SENDER TO RECEIVER INFORMATION']
 
         for col, header in enumerate(headers):
             sheet.write(0, col, header, bold)
@@ -251,13 +235,13 @@ class AccountBatchPayment(models.Model):
         for index, line in enumerate(self.payment_ids, start=1):
             sheet.write(row, 0, index or '')
             sheet.write(row, 1, line.trans_id or '')
-            sheet.write(row, 2, line.amount or 0.0,amount_format)
+            sheet.write(row, 2, line.amount or 0.0, amount_format)
             sheet.write(row, 3, line.sender_account_type or '')
             sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
             sheet.write(row, 5, line.journal_id.bank_account_id.acc_holder_name or '')
             sheet.write(row, 6, line.sms_email or '')
             sheet.write(row, 7, line.journal_id.bank_account_id.partner_id.email or '')
-            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name  or '')
+            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name or '')
             sheet.write(row, 9, line.partner_bank_id.bank_id.bic or '')
             sheet.write(row, 10, line.beneficiary_account_type or '')
             sheet.write(row, 11, line.partner_bank_id.acc_number or '')
@@ -279,7 +263,6 @@ class AccountBatchPayment(models.Model):
         sheet.set_column(11, 11, 25)
         sheet.set_column(12, 12, 30)
         sheet.set_column(13, 13, 40)
-
 
         workbook.close()
         output.seek(0)
