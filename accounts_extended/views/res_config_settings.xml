@@ -74,7 +74,7 @@
                     </div>
                     <div>
                         <h2>Budget Share</h2>
-                        <div class="content-group">
+                        <div class="content-group col-4">
                              <div class="row mt8 o_settings_container">
 
                                 <label for="tax_entity1"/>

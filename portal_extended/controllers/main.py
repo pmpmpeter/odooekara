@@ -20,10 +20,16 @@ class CustomPortalInherit(CustomerPortal):
         uploaded_files1 = request.httprequest.files.getlist('attachment1')# Fetch all uploaded files
         uploaded_files2 = request.httprequest.files.getlist('attachment2')
         uploaded_files3 = request.httprequest.files.getlist('attachment3')
+        uploaded_files4 = request.httprequest.files.getlist('attachment4')
+        uploaded_files5 = request.httprequest.files.getlist('attachment5')
+
         attachment_ids = []
         attachment_ids1 = []
         attachment_ids2 = []
         attachment_ids3 = []
+        attachment_ids4 = []
+        attachment_ids5 = []
+
         if uploaded_files:
             filtered_files = [file for file in uploaded_files if file.filename]
             Attachments = request.env['ir.attachment']
@@ -106,11 +112,56 @@ class CustomPortalInherit(CustomerPortal):
                 })
                 attachment_ids3.append(attachment_id3)
 
-            if attachment_ids:
+            if attachment_ids3:
                 partner = request.env['res.partner'].sudo().browse(partner_id)
                 partner.message_post(
                     body=f"PAN documents uploaded.",
                     attachment_ids=[attachment.id for attachment in attachment_ids3]
+                )
+
+        if uploaded_files4:
+            filtered_files = [file for file in uploaded_files4 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id4 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids4.append(attachment_id4)
+
+            if attachment_ids4:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"Cancelled Cheque uploaded.",
+                    attachment_ids=[attachment.id for attachment in attachment_ids4]
+                )
+        if uploaded_files5:
+            filtered_files = [file for file in uploaded_files5 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id5 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids5.append(attachment_id5)
+
+            if attachment_ids5:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"LDC Certificate.",
+                    attachment_ids=[attachment.id for attachment in attachment_ids5]
                 )
 
         if post and request.httprequest.method == 'POST':
