@@ -8,89 +8,89 @@
             <field name="inherit_id" ref="base.res_config_settings_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[@id='invite_users']" position="after">
-                <div class="app_settings_block" string="CRR and CUR Reminder">
-                    <h2>CRR and CUR Reminder Settings</h2>
-                    <div class="row mt16">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="crr_reminder_users"/>
-                                <field name="crr_reminder_users" widget="many2many_tags"/>
-                                <div class="text-muted">
-                                    Select users who will receive monthly CRR and CUR reminders.
+                    <div class="app_settings_block" string="CRR and CUR Reminder">
+                        <h2>CRR and CUR Reminder Settings</h2>
+                        <div class="row mt16">
+                            <div class="col-12 col-lg-6 o_setting_box">
+                                <div class="o_setting_right_pane">
+                                    <label for="crr_reminder_users"/>
+                                    <field name="crr_reminder_users" options="{'no_quick_create':True,'no_create': True}" widget="many2many_tags"/>
+                                    <div class="text-muted">
+                                        Select users who will receive monthly CRR and CUR reminders.
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </xpath>
+                </xpath>
                 <xpath expr="/form/app//block[@name='fiscal_localization_setting_container']" position="after">
                     <div>
-                    <h2>TCS Limit</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box" title="Enables TCS Maximum Limit.">
-                            <div class="o_setting_left_pane">
-                                <field name="tcs_limit"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="tcs_limit"/>
-                                <div class="content-group" invisible="not tcs_limit">
-                                    <div class="row">
-                                        <label string="Limit Amount" for="tcs_limit_amount"
-                                               class="col-lg-3 o_light_label"/>
-                                        <field name="tcs_limit_amount" required="tcs_limit == False"/>
+                        <h2>TCS Limit</h2>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box" title="Enables TCS Maximum Limit.">
+                                <div class="o_setting_left_pane">
+                                    <field name="tcs_limit"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="tcs_limit"/>
+                                    <div class="content-group" invisible="not tcs_limit">
+                                        <div class="row">
+                                            <label string="Limit Amount" for="tcs_limit_amount"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="tcs_limit_amount" required="tcs_limit == False"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                     <div>
-                    <h2>TDS Limit</h2>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box" title="Enables TDS Maximum Limit.">
-                            <div class="o_setting_left_pane">
-                                <field name="tds_limit"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="tds_limit"/>
-                                <div class="content-group" invisible="not tds_limit">
-                                    <div class="row">
-                                        <label string="Limit Amount" for="tds_limit_amount"
-                                               class="col-lg-3 o_light_label"/>
-                                        <field name="tds_limit_amount" required="tds_limit == False"/>
+                        <h2>TDS Limit</h2>
+                        <div class="row mt16 o_settings_container">
+                            <div class="col-12 col-lg-6 o_setting_box" title="Enables TDS Maximum Limit.">
+                                <div class="o_setting_left_pane">
+                                    <field name="tds_limit"/>
+                                </div>
+                                <div class="o_setting_right_pane">
+                                    <label for="tds_limit"/>
+                                    <div class="content-group" invisible="not tds_limit">
+                                        <div class="row">
+                                            <label string="Limit Amount" for="tds_limit_amount"
+                                                   class="col-lg-3 o_light_label"/>
+                                            <field name="tds_limit_amount" required="tds_limit == False"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-12 col-lg-6 o_setting_box" title="TDS Tax">
-                            <div class="o_setting_right_pane">
-                                <group>
-                                <field name="tds_tax_id" string="TDS Tax" 
-                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                </group>
+                            <div class="col-12 col-lg-6 o_setting_box" title="TDS Tax">
+                                <div class="o_setting_right_pane">
+                                    <group>
+                                        <field name="tds_tax_id" string="TDS Tax"
+                                               options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    </group>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                     <div>
                         <h2>Budget Share</h2>
                         <div class="content-group col-4">
-                             <div class="row mt8 o_settings_container">
+                            <div class="row mt8 o_settings_container">
 
                                 <label for="tax_entity1"/>
-                                <field name="tax_entity1"/>
+                                <field name="tax_entity1" options="{'no_quick_create':True,'no_create': True}"/>
                                 <label for="share1"/>
-                                <field name="share1"/>
+                                <field name="share1" options="{'no_quick_create':True,'no_create': True}"/>
 
                             </div>
-                             <div class="row mt8 o_settings_container">
+                            <div class="row mt8 o_settings_container">
 
                                 <label for="tax_entity2"/>
-                                <field name="tax_entity2"/>
+                                <field name="tax_entity2" options="{'no_quick_create':True,'no_create': True}"/>
                                 <label for="share2"/>
-                                <field name="share2"/>
+                                <field name="share2" options="{'no_quick_create':True,'no_create': True}"/>
                             </div>
-                            </div>
+                        </div>
                     </div>
                 </xpath>
             </field>
