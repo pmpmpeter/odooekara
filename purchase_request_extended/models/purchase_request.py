@@ -20,6 +20,7 @@ class PurchaseRequest(models.Model):
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="")
     purchase_type = fields.Many2one(comodel_name='purchase.orders.type')
+    unregistered_vendor = fields.Char(string='Unregistered Vendor',copy=False)
 
     @api.depends("state")
     def _compute_is_editable(self):

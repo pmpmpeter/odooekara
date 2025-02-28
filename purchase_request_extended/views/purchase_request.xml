@@ -151,6 +151,7 @@
                                     widget="selection"
                                     readonly="is_editable == False"
                             />
+                            <field name="unregistered_vendor"/>
                             <field name="purchase_type" readonly="is_editable == False"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}" required="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
