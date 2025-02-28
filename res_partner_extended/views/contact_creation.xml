@@ -65,7 +65,7 @@
 
         <menuitem id="menu_salesperson"
                   name="Contacts Creation"
-                  parent="contacts.res_partner_menu_config"
+                  parent="contacts.menu_contacts"
                   sequence="10"
                   action="action_salesperson_form_view"/>
     </data>
