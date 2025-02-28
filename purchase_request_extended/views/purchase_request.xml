@@ -151,7 +151,7 @@
                                     widget="selection"
                                     readonly="is_editable == False"
                             />
-                            <field name="unregistered_vendor"/>
+                            <field name="unregistered_vendor" readonly="is_editable == False"/>
                             <field name="purchase_type" readonly="is_editable == False"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}" required="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
@@ -248,6 +248,17 @@
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
+        </field>
+    </record>
+    <record id="view_purchase_request_tree_inherit" model="ir.ui.view">
+        <field name="name">purchase.request.tree</field>
+        <field name="model">purchase.request</field>
+        <field name="inherit_id" ref="purchase_request.view_purchase_request_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree/field[@name='requested_by']" position="after">
+                <field name="unregistered_vendor"/>
+            </xpath>
+
         </field>
     </record>
 </odoo>
