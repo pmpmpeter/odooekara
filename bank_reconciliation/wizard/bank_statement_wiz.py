@@ -196,6 +196,8 @@ class BankStatement(models.Model):
         for record in self:
             if not record.date_to:
                 raise UserError('Please Add the Date to.')
+            if not record.account_id:
+                raise UserError('Please Add a Bank Account.')
 
             query1 = """update account_move_line set bank_statement_id=%s where id in (select aml.id from account_move_line aml
                         join account_move am on am.id=aml.move_id

@@ -34,7 +34,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="journal_id" readonly="state == 'posted'" options="{'no_create': True}"/>
+                            <field name="journal_id" readonly="state == 'posted'" required="1" options="{'no_create': True}"/>
                             <field name="account_id" readonly="state == 'posted'" options="{'no_create': True}"/>
                             <field name="company_id" options="{'no_create': True}"/>
                         </group>
