@@ -15,8 +15,10 @@
         'hr_holidays',
     ],
     'data': [
+        'security/ir.model.access.csv',
         'security/security.xml',
         'view/hr_holiday.xml',
+        'view/hr_leave_sub_type.xml',
               ],
     'images': ['static/description/banner.jpg'],
     'license': 'LGPL-3',

@@ -133,7 +133,7 @@ class JoiningDocuments(models.Model):
 
     def write(self, vals):
         for record in self:
-            if record.state == 'draft' and record.sequence > 0:
+            if record.state == 'draft' and record.sequence > 1:
                 previous_record = self.search([
                     ('employee_id', '=', record.employee_id.id),
                     ('sequence', '=', record.sequence - 1),
@@ -157,7 +157,7 @@ class JoiningDocuments(models.Model):
             if record.document_type in ['it_declaration', 'ebp_claim', 'bgv', 'epf'] and not record.submitted_file:
                 raise UserError(_("The attachment is missing. Please attach the required document before submitting."))
 
-            if record.sequence > 0:
+            if record.sequence > 1:
                 previous_record = self.search([
                     ('employee_id', '=', record.employee_id.id),
                     ('sequence', '=', record.sequence - 1),
