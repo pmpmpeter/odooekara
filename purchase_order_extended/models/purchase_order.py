@@ -18,8 +18,8 @@ from markupsafe import Markup
 class PurchaseOrderInherit(models.Model):
     _inherit = "purchase.order"
 
-    purchase_type = fields.Many2one('purchase.orders.type','Purchase Type', required=1)
-    budget_id = fields.Many2one('crossovered.budget.lines','Budget Code', copy=False, required=1)
+    purchase_type = fields.Many2one('purchase.orders.type', 'Purchase Type', required=1)
+    budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, )
     budget_balance_warning = fields.Html(
         compute='_compute_budget_balance_warning',
     )
@@ -27,7 +27,8 @@ class PurchaseOrderInherit(models.Model):
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
-    approval_history = fields.Text(string="Approval History", readonly=True, help="Tracks approval reasons and metadata",copy=False)
+    approval_history = fields.Text(string="Approval History", readonly=True,
+                                   help="Tracks approval reasons and metadata", copy=False)
     quote_matrix_approval_state = fields.Selection([
         ('draft', 'Draft'),
         ('quote_exceeds', 'Quote Exceeds'),
@@ -35,8 +36,7 @@ class PurchaseOrderInherit(models.Model):
         ('to_account_head', 'To Account Head'),
         ('to_tax_entity_head', 'To Tax Entity Head'),
         ('approved', 'Approved'),
-    ], string="Status", readonly=True, index=True, default='draft', tracking=True,copy=False)
-
+    ], string="Status", readonly=True, index=True, default='draft', tracking=True, copy=False)
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):
@@ -64,9 +64,10 @@ class PurchaseOrderInherit(models.Model):
                 else:
                     record.approval_state = 'Not Applicable'
 
-    @api.depends('budget_id','company_id', 'partner_id', 'amount_total', 'currency_id', 'order_line.product_qty', 'order_line.price_unit','amount_untaxed')
+    @api.depends('budget_id', 'company_id', 'partner_id', 'amount_total', 'currency_id', 'order_line.product_qty',
+                 'order_line.price_unit', 'amount_untaxed')
     def _compute_budget_balance_warning(self):
-        msg=''
+        msg = ''
         for order in self.filtered(lambda s: s.budget_id):
             order.with_company(order.company_id)
             order.budget_balance_warning = ''
@@ -75,29 +76,32 @@ class PurchaseOrderInherit(models.Model):
             domain1 = [('id', '=', order.budget_id.id)]
             budget_allocated_id = self.env['crossovered.budget.lines'].sudo().search(domain1, limit=1)
             if budget_allocated_id:
-                allocated_amount= budget_allocated_id.planned_amount
-                spent_amount = (abs(budget_allocated_id.practical_amount)+budget_allocated_id.reserved_amount)
+                allocated_amount = budget_allocated_id.planned_amount
+                spent_amount = (abs(budget_allocated_id.practical_amount) + budget_allocated_id.reserved_amount)
                 available_amount = allocated_amount - spent_amount
-                allocated_amount_formatted = formatLang(self.env, allocated_amount, currency_obj=order.company_id.currency_id)
-                available_amount_formatted = formatLang(self.env, available_amount, currency_obj=order.company_id.currency_id)
+                allocated_amount_formatted = formatLang(self.env, allocated_amount,
+                                                        currency_obj=order.company_id.currency_id)
+                available_amount_formatted = formatLang(self.env, available_amount,
+                                                        currency_obj=order.company_id.currency_id)
                 if order.amount_total > available_amount:
-                    budget_url = "/web#id=%s&model=crossovered.budget&view_type=form" % order.budget_id.crossovered_budget_id.id 
+                    budget_url = "/web#id=%s&model=crossovered.budget&view_type=form" % order.budget_id.crossovered_budget_id.id
                     msg = Markup(
-                    "<span style='color: red;'>Alert !! Budget is exceeding for "
-                    "<a href='%s' target='_blank' style='color: blue; text-decoration: underline;'>%s</a>."
-                    " Allocated budget is %s and Available balance is %s.</span>"
-                    ) % (budget_url, order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
+                        "<span style='color: red;'>Alert !! Budget is exceeding for "
+                        "<a href='%s' target='_blank' style='color: blue; text-decoration: underline;'>%s</a>."
+                        " Allocated budget is %s and Available balance is %s.</span>"
+                    ) % (budget_url, order.budget_id.display_name, allocated_amount_formatted,
+                         available_amount_formatted)
                 else:
                     msg = Markup(
-                              "For %s Allocated budget is %s and Available balance is %s."
-                          ) % (order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
+                        "For %s Allocated budget is %s and Available balance is %s."
+                    ) % (order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
             else:
                 msg = Markup("Alert !! No active budget found.</span>")
         self.budget_balance_warning = msg
         total_amount = self.amount_total
 
         other_pos = self.sudo().search([
-            ('state', 'not in', ['done', 'cancel','purchase'])
+            ('state', 'not in', ['done', 'cancel', 'purchase'])
         ])
         total_other_po = []
         for other_po in other_pos:
@@ -114,17 +118,26 @@ class PurchaseOrderInherit(models.Model):
         quotes_3 = int(self.company_id.quotes_required_3)
         # Compare and validate levels
         warning = False
-        if total_amount <= level_1 and len(total_other_po) < quotes_1 and self.quote_matrix_approval_state != 'approved':
+        if total_amount <= level_1 and len(
+                total_other_po) < quotes_1 and self.quote_matrix_approval_state != 'approved':
             warning = True
-        elif total_amount > level_1 and total_amount <= level_2 and len(total_other_po) < quotes_2 and self.quote_matrix_approval_state != 'approved':
+        elif total_amount > level_1 and total_amount <= level_2 and len(
+                total_other_po) < quotes_2 and self.quote_matrix_approval_state != 'approved':
             warning = True
-        elif total_amount > level_2 and len(total_other_po) < quotes_3 and self.quote_matrix_approval_state != 'approved':
+        elif total_amount > level_2 and len(
+                total_other_po) < quotes_3 and self.quote_matrix_approval_state != 'approved':
             warning = True
         if warning == True and self.quote_matrix_approval_state == 'draft':
             self.quote_matrix_approval_state = 'quote_exceeds'
-        elif warning == False and self.quote_matrix_approval_state not in ('draft','approved'):
-            self.quote_matrix_approval_state = 'draft' 
+        elif warning == False and self.quote_matrix_approval_state not in ('draft', 'approved'):
+            self.quote_matrix_approval_state = 'draft'
 
+    def _prepare_invoice(self):
+        invoice_vals = super()._prepare_invoice()
+        # self.ensure_one()
+        if self.budget_id:
+            invoice_vals['budget_id'] = self.budget_id.id
+        return invoice_vals
 
     def exceed_budget_balance_warning(self):
         msg = ''
@@ -137,7 +150,7 @@ class PurchaseOrderInherit(models.Model):
             budget_allocated_id = self.env['crossovered.budget.lines'].sudo().search(domain1, limit=1)
             if budget_allocated_id:
                 allocated_amount = budget_allocated_id.planned_amount
-                spent_amount = (abs(budget_allocated_id.practical_amount)+budget_allocated_id.reserved_amount)
+                spent_amount = (abs(budget_allocated_id.practical_amount) + budget_allocated_id.reserved_amount)
                 available_amount = allocated_amount - spent_amount
                 allocated_amount_formatted = formatLang(self.env, allocated_amount,
                                                         currency_obj=order.company_id.currency_id)
@@ -145,17 +158,17 @@ class PurchaseOrderInherit(models.Model):
                                                         currency_obj=order.company_id.currency_id)
                 if order.amount_total > available_amount:
                     msg = "Alert !! Budget is exceeding for %s. Allocated budget is %s and Available balance is %s." % (
-                    order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
+                        order.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
                     raise UserError(_(msg))
 
     def button_send_for_approval(self):
         return {
-                'type': 'ir.actions.act_window',
-                'name': 'Approval Reason',
-                'res_model': 'purchase.order.approval.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                }
+            'type': 'ir.actions.act_window',
+            'name': 'Approval Reason',
+            'res_model': 'purchase.order.approval.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
     def button_confirm(self):
         for order in self.filtered(lambda c: c.state in ['draft', 'sent', 'to approve']):
@@ -166,16 +179,17 @@ class PurchaseOrderInherit(models.Model):
             if not order.order_line:
                 raise UserError(_("Alert !! Please select Products."))
             if not order.purchase_type:
-                raise UserError(_("Alert !! Please select the Purchase Type for %s to confirm.")%(order.display_name))
+                raise UserError(_("Alert !! Please select the Purchase Type for %s to confirm.") % (order.display_name))
             total_amount = order.amount_total
 
             other_pos = self.search([
-                ('state', 'not in', ['done', 'cancel','purchase']),
-                ('id','!=',order.id)
+                ('state', 'not in', ['done', 'cancel', 'purchase']),
+                ('id', '!=', order.id)
             ])
             total_other_po = []
             for other_po in other_pos:
-                if sorted(other_po.order_line.mapped('product_id').ids) == sorted(order.order_line.mapped('product_id').ids):
+                if sorted(other_po.order_line.mapped('product_id').ids) == sorted(
+                        order.order_line.mapped('product_id').ids):
                     # total_amount += (other_po.amount_total)
                     total_other_po.append(other_po)
 
@@ -187,15 +201,20 @@ class PurchaseOrderInherit(models.Model):
             level_3 = float(order.company_id.po_value_3)
             quotes_3 = int(order.company_id.quotes_required_3)
             # Compare and validate levels
-            if total_amount <= level_1 and len(total_other_po)+1 < quotes_1 and self.quote_matrix_approval_state != 'to_tax_entity_head':
+            if total_amount <= level_1 and len(
+                    total_other_po) + 1 < quotes_1 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 1. Minimum %s quotes required.") % quotes_1)
-            elif total_amount > level_1 and total_amount <= level_2 and len(total_other_po)+1 < quotes_2 and self.quote_matrix_approval_state != 'to_tax_entity_head':
+            elif total_amount > level_1 and total_amount <= level_2 and len(
+                    total_other_po) + 1 < quotes_2 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 2. Minimum %s quotes required.") % quotes_2)
-            elif total_amount > level_2 and len(total_other_po)+1 < quotes_3 and self.quote_matrix_approval_state != 'to_tax_entity_head':
+            elif total_amount > level_2 and len(
+                    total_other_po) + 1 < quotes_3 and self.quote_matrix_approval_state != 'to_tax_entity_head':
                 raise UserError(_("PO Value exceeds Level 3. Minimum %s quotes required.") % quotes_3)
-            if self.quote_matrix_approval_state == 'to_tax_entity_head' and not self.env.user.has_group('accounts_extended.group_tax_entity_director'):
+            if self.quote_matrix_approval_state == 'to_tax_entity_head' and not self.env.user.has_group(
+                    'accounts_extended.group_tax_entity_director'):
                 raise UserError(_("You are not authorized to approve this PO."))
-            elif self.quote_matrix_approval_state == 'to_tax_entity_head' and self.env.user.has_group('accounts_extended.group_tax_entity_director'):
+            elif self.quote_matrix_approval_state == 'to_tax_entity_head' and self.env.user.has_group(
+                    'accounts_extended.group_tax_entity_director'):
                 self.quote_matrix_approval_state = 'approved'
             for line in order.order_line:
                 # Check if the price is zero or less
@@ -205,7 +224,7 @@ class PurchaseOrderInherit(models.Model):
                         "cannot be zero or less. Please correct it before confirming."
                     ) % (line.product_id.display_name))
             order.exceed_budget_balance_warning()
-            order.write({'state':'sent'})
+            order.write({'state': 'sent'})
             # Update a reserve amount in budget
             order.budget_id.reserved_amount += order.amount_untaxed
         return super(PurchaseOrderInherit, self).button_confirm()
@@ -256,7 +275,8 @@ class PurchaseOrderInherit(models.Model):
                 name += '\n' + product_lang.description_purchase
 
             # Compute taxes
-            taxes_ids = fpos.map_tax(line.product_id.supplier_taxes_id.filtered(lambda tax: tax.company_id == requisition.company_id)).ids
+            taxes_ids = fpos.map_tax(
+                line.product_id.supplier_taxes_id.filtered(lambda tax: tax.company_id == requisition.company_id)).ids
 
             # Compute quantity and price_unit
             if line.product_uom_id != line.product_id.uom_po_id:
@@ -275,6 +295,7 @@ class PurchaseOrderInherit(models.Model):
             #     taxes_ids=taxes_ids)
             # order_lines.append((0, 0, order_line_values))
         self.order_line = order_lines
+
 
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
@@ -299,7 +320,7 @@ class PurchaseOrderLine(models.Model):
         if self.order_id.budget_id.analytic_account_id:
             distribution = {}
 
-            distribution[self.order_id.budget_id.analytic_account_id.id] = 100.0 
+            distribution[self.order_id.budget_id.analytic_account_id.id] = 100.0
 
             res['analytic_distribution'] = distribution
         return res

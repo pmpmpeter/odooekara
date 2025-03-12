@@ -55,7 +55,7 @@
                             invisible="not id or state != 'draft' or move_type in ('entry','out_invoice')"/>
                     <button name="button_cancel" string="Cancel" type="object" groups="account.group_account_manager"
                             data-hotkey="x"
-                            invisible="not id or state != 'posted' or move_type in ('entry','out_invoice')"/>
+                            invisible="not id or state != 'posted' "/>
                     <!--                    <button name="button_draft" string="Reset to Draft" type="object"-->
                     <!--                            groups="account.group_account_manager"-->
                     <!--                            invisible="state != 'cancel' or x_has_request_approval" data-hotkey="r"/>-->
@@ -391,7 +391,8 @@
                                 <field name="invoice_payment_term_id"
                                        context="{'example_date': invoice_date, 'example_amount': tax_totals['amount_total']}"
                                        placeholder="Payment Terms"
-                                       options="{'no_quick_create':True,'no_create': True}" readonly="state in ['cancel', 'posted']"/>
+                                       options="{'no_quick_create':True,'no_create': True}"
+                                       readonly="state in ['cancel', 'posted']"/>
                             </div>
                             <field name="delivery_date" invisible="not show_delivery_date" readonly="state != 'draft'"/>
                             <label for="journal_id"
@@ -784,6 +785,7 @@
                                     <field name="ref" nolabel="1"/>
                                     <field name="user_id" invisible="1" force_save="1"/>
                                     <field name="invoice_user_id" domain="[('share', '=', False)]"
+                                           options="{'no_quick_create':True,'no_create': True}"
                                            widget="many2one_avatar_user"/>
                                     <field name="invoice_origin" string="Source Document" force_save="1" invisible="1"/>
                                     <field name="partner_bank_id"
@@ -866,6 +868,28 @@
             <button name="action_manual_send_for_digitization" position="attributes">
                 <attribute name="invisible">1</attribute>
             </button>
+        </field>
+    </record>
+
+    <record id="sale_account_invoice_form_inherited" model="ir.ui.view">
+        <field name="name">account.move.form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="sale.account_invoice_form"/>
+        <field name="arch" type="xml">
+            <field name="team_id" position="attributes">
+                <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+            </field>
+            <field name="campaign_id" position="attributes">
+                <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+            </field>
+            <field name="medium_id" position="attributes">
+                <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+            </field>
+            <field name="source_id" position="attributes">
+                <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+            </field>
+
+
         </field>
     </record>
 

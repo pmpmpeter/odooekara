@@ -115,17 +115,25 @@
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
+            <xpath expr="//label[@for='amount']" position="before">
+                <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id)]"
+                       readonly="state != 'draft'" invisible="payment_type != 'outbound'"
+                       required="state != 'posted' and payment_type == 'outbound'"/>
+            </xpath>
             <xpath expr="//field[@name='partner_id'][2]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
 
-            <xpath expr="//field[@name='partner_bank_id'][1]" position="attributes">
+            <xpath expr="//group[@name='group2']/field[@name='partner_bank_id'][1]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
-            <xpath expr="//field[@name='partner_bank_id'][2]" position="attributes">
+            <xpath expr="//group[@name='group2']/field[@name='partner_bank_id'][2]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
-            <xpath expr="//field[@name='partner_bank_id'][3]" position="attributes">
+            <xpath expr="//group[@name='group2']/field[@name='partner_bank_id'][3]" position="attributes">
+                <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+            </xpath>
+            <xpath expr="//group[@name='group2']/field[@name='partner_bank_id'][4]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
             <field name="journal_id" position="attributes">
@@ -160,7 +168,7 @@
                 <field name="cheque_format_id" options="{'no_open':True,'no_create': True}"/>
             </xpath>
             <xpath expr="//page[@name='batch_content']" position="after">
-                <page name="check_details" string="Check Details">
+                <page name="check_details" string="Cheque Details">
                     <group>
                         <group>
                             <field name="cheque_number"/>

@@ -141,7 +141,7 @@ class AccountMoveInherit(models.Model):
                         and am.date<=%s and am.date>=%s and am.state='posted';
                         """
                 query_params1 = (
-                move.partner_id.commercial_partner_id.id, str(fiscal_year_end_date), str(fiscal_year_start_date))
+                    move.partner_id.commercial_partner_id.id, str(fiscal_year_end_date), str(fiscal_year_start_date))
                 data_get1 = self.env.cr.execute(query1, query_params1)
                 lines1 = self.env.cr.dictfetchall()
                 if lines1[0].get('amount_untaxed_signed') and lines1[0].get('amount_untaxed_signed') != None:
@@ -158,7 +158,7 @@ class AccountMoveInherit(models.Model):
                 tcs_limit_amount_formatted = formatLang(self.env, float(tcs_limit_amount),
                                                         currency_obj=move.company_id.currency_id)
                 msg = "Cummulative Sales for - %s in %s is %s which is exceeding TCS limit of %s." % (
-                move.partner_id.name, fiscal_year.display_name, basic_amount_formatted, tcs_limit_amount_formatted)
+                    move.partner_id.name, fiscal_year.display_name, basic_amount_formatted, tcs_limit_amount_formatted)
         self.partner_tcs_warning = msg
 
     @api.depends('company_id', 'partner_id', 'amount_total', 'currency_id', 'invoice_line_ids.quantity',
