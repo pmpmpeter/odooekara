@@ -17,8 +17,8 @@ class ResPartner(models.Model):
     vat = fields.Char(string='GSTIN')
     tds_applicable = fields.Boolean('TDS Applicable?')
     tcs_applicable = fields.Boolean('TCS Applicable?')
-    tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", domain=[('type_tax_use', 'in', ['purchase','none'])])
-    tcs_tax_id = fields.Many2one('account.tax', string="TCS Tax", domain=[('type_tax_use', '=', ['sale','none'])])
+    tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", domain=[('type_tax_use', 'in', ['purchase','none'])], company_dependent=True)
+    tcs_tax_id = fields.Many2one('account.tax', string="TCS Tax", domain=[('type_tax_use', '=', ['sale','none'])],company_dependent=True)
     tds_limit_amount_partner = fields.Float(
         'Maximum TDS Amount', help="By adding maximum limit amount will let users know about the TDS limit")
     tcs_limit_amount_partner = fields.Float(
