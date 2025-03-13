@@ -284,7 +284,8 @@ class AccountMoveInherit(models.Model):
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
-            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
+            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable and 'TDS' not in rec.invoice_line_ids.tax_ids.tax_group_id.mapped(
+                    'name'):
                 if not rec.partner_id.tds_tax_id:
                     raise UserError('Please add TDS Tax for the Vendor.')
                 if not rec.amount_untaxed:
