@@ -284,7 +284,11 @@ class AccountMoveInherit(models.Model):
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
-            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
+            if rec.move_type == 'in_invoice' and rec.partner_id.country_code == "IN" and rec.partner_id.tds_applicable:
+                if not rec.partner_id.tds_tax_id:
+                    raise UserError('Please add TDS Tax for the Vendor.')
+                if not rec.amount_untaxed:
+                    raise UserError('The Untaxed Amount in the bill is Zero. Please add price for Products.')
                 wiz_tds = self.env['l10n_in.withhold.wizard'].with_context({
                     'active_ids': rec.ids,  # Pass the active record ID
                     'active_model': self._name  # Pass the current model name
