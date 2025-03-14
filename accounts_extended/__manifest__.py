@@ -21,6 +21,7 @@
         'report_xlsx',
         'odoo_print_cheque',
         'account_invoice_extract',
+        'l10n_in_withholding',
     ],
     'data': [
         'security/ir.model.access.csv',

@@ -860,6 +860,25 @@
         </field>
     </record>
 
+    <record id="account_move_view_form_inherit_l10n_in_withholding_inherited" model="ir.ui.view">
+        <field name="name">account_move_view_form_inherit_l10n_in_withholding.inherited</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_in_withholding.account_move_view_form_inherit_l10n_in_withholding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_in_withholding_line_ids']" position="attributes">
+                <attribute name="readonly">state != 'draft'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='l10n_in_withholding_line_ids']/tree"
+                   position="attributes">
+                <attribute name="create">0</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='l10n_in_withholding_line_ids']/tree/field[@name='tax_ids']"
+                   position="attributes">
+                <attribute name="domain">[('l10n_in_tds_tax_type','=','purchase')]</attribute>
+            </xpath>
+        </field>
+    </record>
     <record id="view_move_form_inherit_ocr_inherited" model="ir.ui.view">
         <field name="name">invoice.move.form.inherited.ocr</field>
         <field name="model">account.move</field>
