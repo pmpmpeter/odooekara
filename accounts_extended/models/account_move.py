@@ -254,6 +254,45 @@ class AccountMoveInherit(models.Model):
                 record.x_has_request_approval = False
 
     def button_cancel(self):
+        for rec in self:
+            month_field_map = {
+                1: 'january_cur_budget',
+                2: 'february_cur_budget',
+                3: 'march_cur_budget',
+                4: 'april_cur_budget',
+                5: 'may_cur_budget',
+                6: 'june_cur_budget',
+                7: 'july_cur_budget',
+                8: 'august_cur_budget',
+                9: 'september_cur_budget',
+                10: 'october_cur_budget',
+                11: 'november_cur_budget',
+                12: 'december_cur_budget',
+            }
+            month_field = month_field_map.get(rec.date.month)
+            if rec.move_type != 'entry':
+                setattr(rec.budget_id.crr_budget_line_id, month_field,
+                        getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
+            else:
+                # debit_value = sum(self.env['account.move.line'].sudo().search([
+                #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                #     ('debit', '>', 0),
+                #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                # ]).mapped('debit'))
+                if rec.state == 'posted':
+                    # balance = sum(self.env['account.move.line'].sudo().search([
+                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                    # ]).mapped('balance'))
+                    entry = self.env['account.move.line'].sudo().search([
+                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
+                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
+                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
+                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    balance = sum(entry.mapped('balance'))
+                    setattr(rec.budget_id.crr_budget_line_id, month_field,
+                            getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
+
         # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed
         # when sent to the government.
         moves_to_reset_draft = self.filtered(lambda x: x.state == 'posted')
@@ -282,14 +321,63 @@ class AccountMoveInherit(models.Model):
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
+            if not rec.budget_id:
+                raise UserError('Warning!! Kindly select a Budget Code')
+            month_field_map = {
+                1: 'january_cur_budget',
+                2: 'february_cur_budget',
+                3: 'march_cur_budget',
+                4: 'april_cur_budget',
+                5: 'may_cur_budget',
+                6: 'june_cur_budget',
+                7: 'july_cur_budget',
+                8: 'august_cur_budget',
+                9: 'september_cur_budget',
+                10: 'october_cur_budget',
+                11: 'november_cur_budget',
+                12: 'december_cur_budget',
+            }
+
+            month_field = month_field_map.get(rec.date.month)
+            if month_field:
+                if rec.move_type != 'entry':
+                    setattr(rec.budget_id.crr_budget_line_id, month_field,
+                            getattr(rec.budget_id.crr_budget_line_id, month_field) + rec.amount_untaxed)
+                else:
+                    # debit_value = sum(self.env['account.move.line'].sudo().search([
+                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                    #     ('debit', '>', 0),
+                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                    # ]).mapped('debit'))
+                    # balance = sum(self.env['account.move.line'].sudo().search([
+                    #     ('move_id', '=', rec.id),('move_id.date', '>=', rec.budget_id.date_from),('move_id.date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
+                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                    # ]).mapped('balance'))
+                    entry = self.env['account.move.line'].sudo().search([
+                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
+                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
+                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
+                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    balance = sum(entry.mapped('balance'))
+                    setattr(rec.budget_id.crr_budget_line_id, month_field,
+                            getattr(rec.budget_id.crr_budget_line_id, month_field) + balance)
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
-            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable and 'TDS' not in rec.invoice_line_ids.tax_ids.tax_group_id.mapped(
-                    'name'):
-                if not rec.partner_id.tds_tax_id:
-                    raise UserError('Please add TDS Tax for the Vendor.')
-                if not rec.amount_untaxed:
-                    raise UserError('The Untaxed Amount in the bill is Zero. Please add price for Products.')
+            if rec.move_type != 'entry' and rec.invoice_date and rec.invoice_date < fields.Date.today():
+                if rec.move_type == 'out_invoice':
+                    move_type = "Invoice"
+                elif rec.move_type == 'in_invoice':
+                    move_type = "Bill"
+                elif rec.move_type == 'out_refund':
+                    move_type = "Customer Credit Note"
+                elif rec.move_type == 'in_refund':
+                    move_type = "Vendor Credit Note"
+                elif rec.move_type == 'out_receipt':
+                    move_type = "Sales Receipt"
+                else:
+                    move_type = "Purchase Receipt"
+                raise UserError('You cannot post the %s with a back date' % move_type)
+            if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
                 wiz_tds = self.env['l10n_in.withhold.wizard'].with_context({
                     'active_ids': rec.ids,  # Pass the active record ID
                     'active_model': self._name  # Pass the current model name
