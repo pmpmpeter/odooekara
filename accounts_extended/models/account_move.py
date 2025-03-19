@@ -255,43 +255,43 @@ class AccountMoveInherit(models.Model):
 
     def button_cancel(self):
         for rec in self:
-            month_field_map = {
-                1: 'january_cur_budget',
-                2: 'february_cur_budget',
-                3: 'march_cur_budget',
-                4: 'april_cur_budget',
-                5: 'may_cur_budget',
-                6: 'june_cur_budget',
-                7: 'july_cur_budget',
-                8: 'august_cur_budget',
-                9: 'september_cur_budget',
-                10: 'october_cur_budget',
-                11: 'november_cur_budget',
-                12: 'december_cur_budget',
-            }
-            month_field = month_field_map.get(rec.date.month)
-            if rec.move_type != 'entry':
-                setattr(rec.budget_id.crr_budget_line_id, month_field,
-                        getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
-            else:
+            # month_field_map = {
+            #     1: 'january_cur_budget',
+            #     2: 'february_cur_budget',
+            #     3: 'march_cur_budget',
+            #     4: 'april_cur_budget',
+            #     5: 'may_cur_budget',
+            #     6: 'june_cur_budget',
+            #     7: 'july_cur_budget',
+            #     8: 'august_cur_budget',
+            #     9: 'september_cur_budget',
+            #     10: 'october_cur_budget',
+            #     11: 'november_cur_budget',
+            #     12: 'december_cur_budget',
+            # }
+            # month_field = month_field_map.get(rec.date.month)
+            # if rec.move_type != 'entry':
+            #     setattr(rec.budget_id.crr_budget_line_id, month_field,
+            #             getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
+            # else:
                 # debit_value = sum(self.env['account.move.line'].sudo().search([
                 #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
                 #     ('debit', '>', 0),
                 #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
                 # ]).mapped('debit'))
-                if rec.state == 'posted':
-                    # balance = sum(self.env['account.move.line'].sudo().search([
-                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
-                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
-                    # ]).mapped('balance'))
-                    entry = self.env['account.move.line'].sudo().search([
-                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
-                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
-                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
-                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
-                    balance = sum(entry.mapped('balance'))
-                    setattr(rec.budget_id.crr_budget_line_id, month_field,
-                            getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
+                # if rec.state == 'posted':
+                #     # balance = sum(self.env['account.move.line'].sudo().search([
+                #     #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                #     #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                #     # ]).mapped('balance'))
+                #     entry = self.env['account.move.line'].sudo().search([
+                #         ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
+                #         ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
+                #         ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
+                #     ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                #     balance = sum(entry.mapped('balance'))
+                #     setattr(rec.budget_id.crr_budget_line_id, month_field,
+                #             getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
 
         # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed
         # when sent to the government.
