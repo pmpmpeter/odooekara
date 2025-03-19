@@ -234,6 +234,10 @@
         <field name="name">Payroll Input Sheet Batches</field>
     </record>
 
+    <record id="hr_payroll.action_hr_payslip_by_employees" model="ir.actions.act_window">
+        <field name="name">Generate Payroll Input Sheets</field>
+    </record>
+
     <record id="hr_payslip_run_button_rename_form" model="ir.ui.view">
         <field name="name">hr.payslip.run.button.rename.form</field>
         <field name="model">hr.payslip.run</field>

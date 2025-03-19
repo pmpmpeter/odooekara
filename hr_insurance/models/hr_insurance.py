@@ -50,7 +50,11 @@ class HrInsurance(models.Model):
     company_id = fields.Many2one('res.company', string='Company',
                                  required=True, help="Company",
                                  default=lambda self: self.env.company, readonly=True)
-    is_manager = fields.Boolean(string="Is Manager",compute='_compute_is_manager', store=False, copy=False)
+    is_manager = fields.Boolean(string="Is Manager",compute='_compute_is_manager', default=lambda self: self._default_is_manager(), store=False, copy=False)
+
+    def _default_is_manager(self):
+        user = self.env.user
+        return user.has_group('hr.group_hr_user')
 
     @api.depends()
     def _compute_is_manager(self):

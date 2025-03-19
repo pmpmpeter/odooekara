@@ -316,7 +316,7 @@ class HrEmployeeSmartButton(models.Model):
     notice_period_start_date = fields.Date(string="Notice Period Start Date", copy=False)
     employee = fields.Char(string="Employee", compute="_compute_employee", store=True, readonly=True, copy=False)
 
-    casual_leave = fields.Integer(string="Casual Leave", default=0)
+    casual_leave = fields.Float(string="Casual Leave", default=0)
     loss_of_pay = fields.Integer(string="Loss of Pay", default=0)
     comp_off = fields.Integer(string="Comp - Off", default=0)
     earned_leave = fields.Integer(string="Earned Leave", default=0)
