@@ -378,7 +378,7 @@ class AccountMoveInherit(models.Model):
                     move_type = "Sales Receipt"
                 else:
                     move_type = "Purchase Receipt"
-                raise UserError('You cannot post the %s with a back date' % move_type)
+                #raise UserError('You cannot post the %s with a back date' % move_type)
             if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
                 wiz_tds = self.env['l10n_in.withhold.wizard'].with_context({
                     'active_ids': rec.ids,  # Pass the active record ID
