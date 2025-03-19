@@ -255,6 +255,7 @@ class AccountMoveInherit(models.Model):
 
     def button_cancel(self):
         for rec in self:
+            pass
             # month_field_map = {
             #     1: 'january_cur_budget',
             #     2: 'february_cur_budget',
