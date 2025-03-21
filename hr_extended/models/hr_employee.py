@@ -261,7 +261,8 @@ class HrEmployeeSmartButton(models.Model):
     employee_number = fields.Char(string="Employee Number", copy=False)
     type = fields.Selection([
         ('corporate', 'Corporate (Per Year)'),
-        ('unit', 'Unit/Centre (Per Year)')], string="Employment Type")
+        ('unit', 'Unit/Centre (Per Year)')], string="Unit")
+    employment_type_id = fields.Many2one('hr.contract.type', string="Employment Type", copy=False)
 
     kra_record_ids = fields.Many2many(
         'employee.kra',
@@ -308,7 +309,7 @@ class HrEmployeeSmartButton(models.Model):
     )
 
     sub_location = fields.Char(string="Sub Location", copy=False)
-    sub_location_id = fields.Many2one('sub.location',string="Sub Location", domain="[('company_id', '=', company_id)]")
+    sub_location_id = fields.Many2one('sub.location', string="Sub Location", domain="[('company_id', '=', company_id)]")
     last_working_day_current = fields.Date(string="Last Working Day", help="The last working day in our organization",
                                            copy=False)
     reason_for_leaving = fields.Text(string="Reason for Leaving", copy=False)

@@ -11,6 +11,7 @@
             <xpath expr="//field[@name='job_id']" position="after">
                 <field name="job_level_id" options="{'no_open': True, 'no_quick_create': True}"/>
                 <field name="type"/>
+                <field name="employment_type_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}"/>
                 <field name="joining_documents_ids" invisible="1"/>
                 <field name="all_documents_done" invisible="1"/>
             </xpath>
