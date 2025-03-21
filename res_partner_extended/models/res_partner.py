@@ -204,8 +204,13 @@ class ResPartner(models.Model):
                 raise UserError(_("You do not have access to trigger this action."))
 
     def reset_to_draft(self):
+        # for record in self.filtered(lambda m: m.state not in 'draft'):
+        #     record.write({'state': 'draft'})
         for record in self.filtered(lambda m: m.state not in 'draft'):
-            record.write({'state': 'draft'})
+            query = """
+                update res_partner set state='draft' where id = %s;
+            """%(record.id)
+            self.env.cr.execute(query)
         # domain1 = [('id', '=', self.env.ref('contacts.action_contacts').id)]
         # action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
         # action.context = {'default_is_company': True,'edit':True}
