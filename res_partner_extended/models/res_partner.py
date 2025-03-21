@@ -152,8 +152,8 @@ class ResPartner(models.Model):
 
     def action_approve(self):
         for record in self.filtered(lambda m: m.state in 'done'):
-            if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
-                raise UserError(_("Alert !! Kindly update Supplier Currency."))
+            # if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
+            #     raise UserError(_("Alert !! Kindly update Supplier Currency."))
             vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
             if vendor_code != '' and not self.vendor_code:
                     record.write({'vendor_code': vendor_code})
