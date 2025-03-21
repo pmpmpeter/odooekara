@@ -144,8 +144,8 @@ class ResPartner(models.Model):
 
     def action_validate(self):
         for record in self.filtered(lambda m: m.state in 'draft'):
-            if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
-                raise UserError(_("Alert !! Kindly update Supplier Currency."))
+            # if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
+            #     raise UserError(_("Alert !! Kindly update Supplier Currency."))
             # if record.is_vendor and not record.vendor_code:
             #     raise UserError(_("Alert !! Kindly update Vendor Category."))
             record.write({'state': 'done'})
