@@ -60,7 +60,7 @@
                                 data-hotkey="x"/>
                         <button name="action_reset_approval_expense_sheets"
                                 string="Reset to Draft"
-                                type="object"
+                                type="object" groups="hr_expense.group_hr_expense_manager"
                                 invisible="state != 'cancel' or x_has_request_approval"
                                 data-hotkey="k"/>
                         <button name="action_reset_expense_sheets"
