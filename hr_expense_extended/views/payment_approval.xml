@@ -205,7 +205,7 @@
                                 </div>
                             </group>
                             <group>
-                                <field name="user_id" invisible="not is_payment_approval"/>
+                                <field name="user_id" invisible="not is_payment_approval" options="{'no_quick_create':True,'no_create': True}"/>
                                 <field name="date" readonly="not is_editable" invisible="is_payment_approval"/>
                                 <field name="date" readonly="not is_editable" string="Date"
                                        invisible="not is_payment_approval"/>
@@ -372,7 +372,7 @@
                         <group>
                             <group name="employee_details" invisible="is_payment_approval">
                                 <field name="employee_id" context="{'default_company_id': company_id}"
-                                       invisible="is_payment_approval"
+                                       invisible="is_payment_approval" options="{'no_quick_create':True,'no_create': True}"
                                        widget="many2one_avatar_user" readonly="state != 'draft'"/>
                                 <field name="payment_mode"/>
                                 <field name="employee_journal_id"
