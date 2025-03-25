@@ -43,7 +43,7 @@ class FundManagementCRR(models.Model):
             version = rec.version + 1
             rec.cash_pool_line.sudo().write({
                 'version': version,
-                'revision_date': fields.Datetime.now(),
+                # 'revision_date': fields.Datetime.now(),
             })
             # pool_lines_history = self.env['crr.budget.line'].sudo().search(
             #     ['|', ('fund_management_id', 'in', rec.ids), ('rev_fund_management_id', 'in', rec.ids)])
@@ -66,6 +66,9 @@ class FundManagementCRR(models.Model):
     def _allocate_cash_pool(self):
         for rec in self:
             # rec._action_revise()
+            rec.cash_pool_line.sudo().write({
+                'revision_date': fields.Datetime.now(),
+            })
             rec.state = 'done'
             if rec.te_consolidate_id:
                 rec.te_consolidate_id.state = 'done'
@@ -291,6 +294,25 @@ class TeConsolidation(models.Model):
     is_consolidate_updated = fields.Boolean(string='Is Consolidation Updated', default=False, copy=False)
     is_fund_management = fields.Boolean(string='Is Fund Management', default=False, copy=False)
     crr_share_line_ids = fields.One2many('crr.share.line', 'te_consolidate_id', string='CRR Consolidation Lines')
+
+    @api.constrains('start_date', 'end_date', 'company_id')
+    def _check_date_range_overlap(self):
+        for record in self:
+            # Skip if dates are not set
+            if not record.start_date or not record.end_date:
+                continue
+
+            # Check for overlapping date ranges in the same company
+            overlapping = self.search([
+                ('id', '!=', record.id),
+                ('company_id', '=', record.company_id.id),
+                ('start_date', '<=', record.end_date),
+                ('end_date', '>=', record.start_date)
+            ], limit=1)
+
+            if overlapping:
+                raise ValidationError(
+                    "Date range cannot overlap with existing records for the same Entity!\nExisting Record: %s" % overlapping.name)
 
     @api.model_create_multi
     def create(self, vals_list):

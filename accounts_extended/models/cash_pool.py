@@ -53,7 +53,7 @@ class CashPoolLines(models.Model):
     quarter_4_cash_pool = fields.Float('Q4')
     version = fields.Integer("Version", default=1, readonly=True, store=True, copy=False)
     version_name = fields.Char("Version", compute='_compute_version_name', store=True, copy=False)
-    revision_date = fields.Datetime(string="Revision Date")
+    revision_date = fields.Datetime(string="Allocated Date")
 
     @api.depends('version')
     def _compute_version_name(self):

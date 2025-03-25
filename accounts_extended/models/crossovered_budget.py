@@ -986,6 +986,7 @@ class CrossoveredBudget(models.Model):
 
         share_vals = {
             'entity': entity.id,
+            'version': self.version,
             'tax_entity_percentage': share,
             'company_id': self.company_id.id,
             'budget_id': self.id,
@@ -2418,7 +2419,7 @@ class CRRShareLines(models.Model):
     crr_share_q3 = fields.Float(string="Q3", compute='_compute_to_get_quarter_values')
     crr_share_q4 = fields.Float(string="Q4", compute='_compute_to_get_quarter_values')
 
-    version = fields.Integer("Version", default=1, readonly=True, store=True, copy=False)
+    version = fields.Integer("Version", readonly=True, store=True, copy=False)
     version_name = fields.Char("Version", compute='_compute_version_name', store=True, copy=False)
     tax_entity_percentage = fields.Float(string="Tax Entity %", copy=True, tracking=True)
 
