@@ -68,8 +68,8 @@ class RequestApproval(models.TransientModel):
         record = self.env[model_name].browse(res_id)
         if model_name == 'crossovered.budget' and record.crossovered_budget_line:
             for line in record.crossovered_budget_line:
-                if not line.analytic_account_id:
-                    raise UserError('Kinldy add a Analytic Account for a Budget Line')
+                if not line.analytic_account_id and line.user_type == 'odoo':
+                    raise UserError('Kindly add a Analytic Account for a Budget Line')
                 if line.planned_amount <= 0:
                     raise UserError('Warning !! Planned Amount Should be greater than Zero')
 
@@ -189,6 +189,14 @@ class RequestApproval(models.TransientModel):
                         _("Alert !! Budget is exceeding for %s."
                               "Allocated budget is %s and Available balance is %s.")% (self.origin_ref.budget_id.display_name, allocated_amount_formatted, available_amount_formatted)
                     )
+        elif active_res_model == 'crossovered.budget':
+            budget_id = self.env['crossovered.budget'].sudo().browse(self.origin_ref.id)
+            if not budget_id.cash_payment_ids:
+                raise UserError('Please Add Monthly breakup Lines for the Budget: %s.' %budget_id.name)
+
+            elif not budget_id.show_budget_sum:
+                raise UserError('Please Get the Cash Outflow/Inflow.')
+
         # create request
         vals = {
             "name": self.name,
