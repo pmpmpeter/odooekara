@@ -27,6 +27,20 @@
         </field>
     </record>
 
+    <record id="approval_view_extend_702_inherit" model="ir.ui.view">
+        <field name="name">view.account.payment.form.view</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="multi_level_approval_configuration.approval_view_extend_702"/>
+        <field name="arch" type="xml">
+            <button name='597' position='replace'>
+                <button name="597" type="action" string="Request Approval"
+                        groups="multi_level_approval.group_approval_user"
+                        invisible="x_has_request_approval or (payment_type =='inbound' and not is_fund_requsiting)"
+                        class="oe_highlight" approval_btn="1"/>
+            </button>
+        </field>
+    </record>
+
     <record id="view_account_payment_form_view_inherit" model="ir.ui.view">
         <field name="name">view.account.payment.form.view</field>
         <field name="model">account.payment</field>

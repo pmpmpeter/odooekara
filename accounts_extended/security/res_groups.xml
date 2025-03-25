@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-     <!-- Group: Tax Entity Head -->
+        <!-- Group: Tax Entity Head -->
         <record id="group_tax_entity_head" model="res.groups">
             <field name="name">Tax Entity Head</field>
             <field name="category_id" ref="base.module_category_accounting"/>
@@ -22,5 +22,42 @@
             <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
+        <record id="cash_management_user_rule" model="ir.rule">
+            <field name="name">Cash Management - User Access</field>
+            <field name="model_id" ref="model_cash_management"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id), ('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="cash_management_manager_rule" model="ir.rule">
+            <field name="name">Cash Management - Manager Access</field>
+            <field name="model_id" ref="model_cash_management"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('account.group_account_manager'))]"/>
+        </record>
+
+        <record id="ir_rule_cash_pool_company" model="ir.rule">
+            <field name="name">Cash Pool: Multi Company</field>
+            <field name="model_id" ref="model_cash_pool"/>
+            <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        </record>
+
+        <record id="ir_rule_fund_management_company" model="ir.rule">
+            <field name="name">Fund Management: Multi Company</field>
+            <field name="model_id" ref="model_fund_management"/>
+            <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        </record>
+
+        <record id="ir_rule_te_consolidatipon_company" model="ir.rule">
+            <field name="name">TE Consolidation: Multi Company</field>
+            <field name="model_id" ref="model_te_consolidation"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <record model="ir.rule" id="budget_department_comp_rule">
+            <field name="name">Budget Department multi-company</field>
+            <field name="model_id" ref="accounts_extended.model_budget_department"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
     </data>
 </odoo>

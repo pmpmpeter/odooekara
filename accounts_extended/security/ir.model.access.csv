@@ -6,3 +6,14 @@ account_quarterly_report_wizard_user,account_quarterly_report_wizard_user,model_
 account_cur_report_wizard_user,account_cur_report_wizard_user,model_account_cur_report_wizard,base.group_user,1,1,1,1
 account_cash_management,account_cash_management,model_cash_management,base.group_user,1,1,1,1
 account_revision_history,account_revision_history,model_revision_history,base.group_user,1,1,1,1
+account_cash_management_line,account_cash_management_line,model_cash_management_line,base.group_user,1,1,1,1
+account_cash_pool,account_cash_pool,model_cash_pool,base.group_user,1,1,1,0
+crr_budget_line,crr_budget_line,model_crr_budget_line,base.group_user,1,1,1,1
+crr_budget_line_consolidate,crr_budget_line_consolidate,model_crr_budget_line_consolidate,base.group_user,1,1,1,1
+crr_share_line,crr_share_line,model_crr_share_line,base.group_user,1,1,1,1
+access_fund_management,fund_management,model_fund_management,base.group_user,1,1,1,1
+access_cash_pool_lines,cash_pool_lines,model_cash_pool_lines,base.group_user,1,1,1,1
+access_te_consolidation,access_te_consolidation,model_te_consolidation,base.group_user,1,1,1,1
+access_te_consolidation_line,access_te_consolidation_line,model_te_consolidation_line,base.group_user,1,1,1,1
+
+access_budget_department,access_budget_department,model_budget_department,base.group_user,1,1,1,1

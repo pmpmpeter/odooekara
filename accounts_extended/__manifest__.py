@@ -28,6 +28,7 @@
         'security/res_groups.xml',
         'data/budget_sequence.xml',
         'data/mail_template.xml',
+        'data/ir_cron.xml',
         'wizard/account_report_view.xml',
         'wizard/budget_revision_reason_view.xml',
         'wizard/crr_report_view.xml',
@@ -40,6 +41,9 @@
         'views/account_move.xml',
         'views/account_payment.xml',
         'views/cash_management.xml',
+        'views/fund_management.xml',
+        'views/cash_pool.xml',
+        'views/budget_department.xml',
     ],
     'license': 'LGPL-3',
 

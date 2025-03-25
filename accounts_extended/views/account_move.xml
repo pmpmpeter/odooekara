@@ -332,7 +332,11 @@
                                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"/>
                             <field name="ref"
                                    invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')"/>
-                            <field name="budget_id" invisible='1'/>
+                            <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
+                                   options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
+                                   readonly="state not in ('draft','to approve')" required="state == 'draft'"
+                                   context="{'search_default_filter_field': True}"/>
+
                             <field name="expense_sequence"
                                    invisible="move_type not in ['in_invoice'] or not is_payment_approval" readonly="1"/>
                             <field name="tax_cash_basis_origin_move_id" invisible="not tax_cash_basis_origin_move_id"/>
@@ -969,6 +973,27 @@
         <field name="arch" type="xml">
             <xpath expr="//button[@name='action_register_payment']" position="replace">
             </xpath>
+        </field>
+    </record>
+
+    <record id="account_analytic_plan_form_extend_inherit1" model="ir.ui.view">
+        <field name="name">account.analytic.plan.inherit</field>
+        <field name="model">account.analytic.plan</field>
+        <field name="inherit_id" ref="analytic.account_analytic_plan_form_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="active" invisible="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_analytic_plan_search" model="ir.ui.view">
+        <field name="name">account.analytic.plan.search</field>
+        <field name="model">account.analytic.plan</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
         </field>
     </record>
 

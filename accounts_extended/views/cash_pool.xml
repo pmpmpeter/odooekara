@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cash_pool_form" model="ir.ui.view">
+        <field name="name">cash.pool.form</field>
+        <field name="model">cash.pool</field>
+        <field name="arch" type="xml">
+            <form string="Cash Pool">
+                <sheet>
+                    <div class="oe_title" width="100">
+                        <h1>
+                            <field name="name" placeholder="New" required="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+
+                            <field name="company_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids" options="{'post_refresh': 'always'}"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cash_pool_tree" model="ir.ui.view">
+        <field name="name">cash.pool.tree</field>
+        <field name="model">cash.pool</field>
+        <field name="arch" type="xml">
+            <tree string="Cash Pool">
+                <field name="name"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--    <record id="view_cash_management_search" model="ir.ui.view">-->
+    <!--        <field name="name">cash.pool.search</field>-->
+    <!--        <field name="model">cash.pool</field>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <search string="Cash Requirement Report">-->
+    <!--                <field name="name"/>-->
+    <!--                <field name="create_uid"/>-->
+    <!--                <field name="approval_status"/>-->
+    <!--                <field name="approved_by"/>-->
+    <!--                <field name="approved_date"/>-->
+    <!--                -->
+    <!--                <filter name="filter_draft" string="Draft" domain="[('approval_status', '=', 'draft')]"/>-->
+    <!--                <filter name="filter_to_approve" string="To Approve" domain="[('approval_status', '=', 'to approve')]"/>-->
+    <!--                <filter name="filter_approved" string="Approved" domain="[('approval_status', '=', 'approved')]"/>-->
+    <!--                -->
+    <!--                <group expand="0" string="Group By">-->
+    <!--                    <filter name="group_create_uid" string="Created By" context="{'group_by': 'create_uid'}"/>-->
+    <!--                    <filter name="group_approval_status" string="Status" context="{'group_by': 'approval_status'}"/>-->
+    <!--                    <filter name="group_approved_by" string="Approved By" context="{'group_by': 'approved_by'}"/>-->
+    <!--                </group>-->
+    <!--            </search>-->
+    <!--        </field>-->
+    <!--    </record>-->
+
+    <record id="action_cash_pool" model="ir.actions.act_window">
+        <field name="name">Cash Pool</field>
+        <field name="res_model">cash.pool</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                Create and configure cash pool.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cash_pool"
+              name="Cash Pool"
+              parent="account.menu_finance_configuration"
+              action="action_cash_pool"
+              sequence="100"/>
+</odoo>
