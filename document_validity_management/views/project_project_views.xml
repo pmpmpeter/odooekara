@@ -6,9 +6,12 @@
         <field name="arch" type="xml">
             <field name='date_start' position="after">
                 <field name="is_document_validity_management" invisible='1' force_save='1'/>
-                <field name="document_type_id" invisible="not is_document_validity_management"/>
-                <field name="validity_start_date" required="document_type_id or is_document_validity_management" invisible="not is_document_validity_management"/>
-                <field name="validity_end_date" required="document_type_id or is_document_validity_management" invisible="not is_document_validity_management" />
+                <field name="document_type_id" required="is_document_validity_management"
+                       invisible="not is_document_validity_management"/>
+                <field name="validity_start_date" required="document_type_id or is_document_validity_management"
+                       invisible="not is_document_validity_management"/>
+                <field name="validity_end_date" required="document_type_id or is_document_validity_management"
+                       invisible="not is_document_validity_management"/>
                 <field name="document_reminder" invisible="not is_document_validity_management"/>
             </field>
         </field>
@@ -22,8 +25,10 @@
             <field name='partner_id' position="after">
                 <field name="is_document_validity_management" invisible='1'/>
                 <field name="document_type_id" invisible="not is_document_validity_management" readonly='1'/>
-                <field name="validity_start_date" required="document_type_id" invisible="not is_document_validity_management" readonly='1'/>
-                <field name="validity_end_date" required="document_type_id" invisible="not is_document_validity_management" readonly='1'/>
+                <field name="validity_start_date" required="document_type_id"
+                       invisible="not is_document_validity_management" readonly='1'/>
+                <field name="validity_end_date" required="document_type_id"
+                       invisible="not is_document_validity_management" readonly='1'/>
             </field>
         </field>
     </record>
@@ -33,12 +38,16 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project_extended.edit_project_view_form_extend"/>
         <field name="arch" type="xml">
-        <xpath expr="//div[@class='oe_title']/h1[@class='d-flex flex-row']" position="inside">
-                <field name="name" options="{'line_breaks': False}" widget="text" class="o_text_overflow" invisible="not is_document_validity_management" placeholder="Document Name"/>
-                <field name="name" options="{'line_breaks': False}" widget="text" class="o_text_overflow" invisible="is_legal_notice or is_statuory_notice or is_document_validity_management" placeholder="e.g. Office Party"/>
-        </xpath>
+            <xpath expr="//div[@class='oe_title']/h1[@class='d-flex flex-row']" position="inside">
+                <field name="name" options="{'line_breaks': False}" widget="text" class="o_text_overflow"
+                       invisible="not is_document_validity_management" placeholder="Document Name"/>
+                <field name="name" options="{'line_breaks': False}" widget="text" class="o_text_overflow"
+                       invisible="is_legal_notice or is_statuory_notice or is_document_validity_management"
+                       placeholder="e.g. Office Party"/>
+            </xpath>
             <xpath expr="//header" position="inside">
-                <button name="document_closed" type="object" string="Closed" class="btn-primary" invisible="not is_document_validity_management and not is_statuory_notice"/>
+                <button name="document_closed" type="object" string="Closed" class="btn-primary"
+                        invisible="not is_document_validity_management and not is_statuory_notice"/>
             </xpath>
             <field name='tag_ids' position="after">
                 <field name="closed_date" invisible="not is_document_validity_management and not is_statuory_notice"/>
@@ -46,7 +55,7 @@
             </field>
         </field>
     </record>
- 
+
 
     <record id="open_create_project_document_management" model="ir.actions.act_window">
         <field name="name">Document Validity Management</field>
@@ -57,6 +66,6 @@
     </record>
 
 
-     <menuitem id="document_validity_management_menu" name="Document Validity Management" sequence="3"
+    <menuitem id="document_validity_management_menu" name="Document Validity Management" sequence="3"
               parent="project_extended.open_create_project_menu" action="open_create_project_document_management"/>
 </odoo>

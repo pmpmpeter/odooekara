@@ -61,8 +61,8 @@
                                 readonly="state in ['cancel', 'done', 'purchase']"
                                 options="{'no_open': True, 'no_quick_create':True,'no_create': True}" 
                                 domain="[('state','=','approve')]"/>
-                            <field name="partner_ref"/>
-                            <field name="budget_id"
+                            <field name="partner_ref" readonly="state not in ['draft']"/>
+                            <field name="budget_id" required="1"
                                 domain="[('crossovered_budget_id.state','=','done')]"
                                 options="{'no_open': True, 'no_quick_create':True,'no_create': True}" 
                                 readonly="state not in ['draft']" context="{'search_default_filter_field': True}"/>
