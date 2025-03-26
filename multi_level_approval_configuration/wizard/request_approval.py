@@ -210,6 +210,8 @@ class RequestApproval(models.TransientModel):
         request.action_submit()
         res_model = self._context.get('active_model')
         if res_model == 'crossovered.budget':
+            if not self.origin_ref.crr_share_ids:
+                raise UserError(_("Can not submit for request approval without share amount."))
             self.origin_ref.approval_document = request
             self.origin_ref.state = 'to approve'
             self.origin_ref.message_post(body='Document is submitted for approval')
