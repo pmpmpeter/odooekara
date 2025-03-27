@@ -321,8 +321,8 @@ class AccountMoveInherit(models.Model):
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
-            if not rec.budget_id:
-                raise UserError('Warning!! Kindly select a Budget Code')
+            # if not rec.budget_id:
+            #     raise UserError('Warning!! Kindly select a Budget Code')
             month_field_map = {
                 1: 'january_cur_budget',
                 2: 'february_cur_budget',
