@@ -234,7 +234,7 @@ class AccountBatchPayment(models.Model):
         row = 1
         for index, line in enumerate(self.payment_ids, start=1):
             sheet.write(row, 0, index or '')
-            sheet.write(row, 1, line.trans_id or '')
+            sheet.write(row, 1, self.trans_id or '')
             sheet.write(row, 2, line.amount or 0.0, amount_format)
             sheet.write(row, 3, line.sender_account_type or '')
             sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
