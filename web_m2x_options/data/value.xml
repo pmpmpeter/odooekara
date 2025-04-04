@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="record_option_hide_create_edit" model='ir.config_parameter'>
+        <field name="key">web_m2x_options.create_edit</field>
+        <field name="value">False</field>
+    </record>
+
+    <record id="record_option_hide_create" model='ir.config_parameter'>
+        <field name="key">web_m2x_options.create</field>
+        <field name="value">False</field>
+    </record>
+    
+</odoo>
