@@ -178,10 +178,10 @@
                         string="Send Mail"
                         type="object"
                         class="btn-primary"/>
-                <button name="action_print_bank_advice_payment_pdf"
-                        string="Print Bank Payment Advice"
-                        type="object"
-                        class="btn-primary"/>
+<!--                <button name="action_print_bank_advice_payment_pdf"-->
+<!--                        string="Print Bank Payment Advice"-->
+<!--                        type="object"-->
+<!--                        class="btn-primary"/>-->
 
             </header>
             <xpath expr="//field[@name='name']" position="after">
