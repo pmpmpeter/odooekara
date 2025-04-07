@@ -115,8 +115,8 @@ class AccountPayment(models.Model):
         for pay in self:
             if pay.state != 'approved' and pay.payment_type == 'outbound':
                 raise ValidationError('You cannot confirm payments that are not Approved.')
-            if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared and pay.payment_type == 'outbound':
-                raise UserError(_("Alert !! Kindly Clear the cheque"))
+            # if pay.payment_method_line_id.name == 'Cheque' and not pay.is_cheque_cleared and pay.payment_type == 'outbound':
+            #     raise UserError(_("Alert !! Kindly Clear the cheque"))
             # if not pay.utr_number and (pay.payment_type == 'outbound' or pay.is_fund_requsiting):
             #     raise UserError(_("Alert !! Kindly update the UTR Number."))
             if pay.amount <= 0:
