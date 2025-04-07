@@ -141,3 +141,10 @@ class AccountPayment(models.Model):
     def action_reject_payment(self):
         for rec in self:
             rec.write({'state': 'cancel'})
+
+class AccountBatchPayment(models.Model):
+
+    _inherit = 'account.batch.payment'
+
+    def action_print_bank_advice_payment_pdf(self):
+        return self.env.ref('account_batch_payment.action_print_batch_payment').report_action(self)

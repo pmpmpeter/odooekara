@@ -13,26 +13,35 @@
 								<t t-esc="o.journal_id.company_id.name" />
 							</h2>
 						</div>
-						<div
-							style="border-bottom: 3px solid black; margin-bottom: 10px;"></div>
-						<div style="text-align:left;">
-							<span>
-								<strong>To:</strong>
-							</span>
-							<br></br>
-							<span>Branch Manager</span>
-							<br></br>
-							<span>122 ICICI Bank A/c - 000455</span>
-							<br></br>
-							<span>M G Road</span>
-							<br></br>
-							<span>Bangalore</span>
-							<br></br>
+						<div style="border-bottom: 3px solid black; margin-bottom: 10px;"/>
+						<div style="display: flex; justify-content: space-between; align-items: center;">
+							<div style="text-align:right; white-space: nowrap;">
+								<strong>Date:</strong>
+								<t t-esc="o.date.strftime('%d-%b-%y') or ''" />
+							</div>
+							<div style="text-align:left;">
+								<span>
+									<strong>To:</strong>
+								</span><br/>
+								<span>Branch Manager</span><br/>
+								<t t-if="o.journal_id.bank_id.name">
+									<span t-esc="o.journal_id.bank_id.name"/>
+								</t>
+								<t t-if="o.journal_id.bank_account_id.acc_number">A/c -
+									<span t-esc="o.journal_id.bank_account_id.acc_number"/>
+								</t><br/>
+								<t t-if="o.journal_id.bank_id.street">
+									<span t-esc="o.journal_id.bank_id.street"/>
+								</t>
+								<t t-if="o.journal_id.bank_id.street2">
+									<span t-esc="o.journal_id.bank_id.street2"/>
+								</t><br/>
+								<t t-if="o.journal_id.bank_id.city">
+									<span t-esc="o.journal_id.bank_id.city"/>
+								</t>
+							</div>
 						</div>
-						<div style="text-align:right">
-							<strong>Date:</strong>
-							<t t-esc="o.date or ''" />
-						</div>
+						<br/>
 						<div styel="margin-top: 35px;">
 							<strong>Dear Sir/Madam</strong>
 						</div>
@@ -47,23 +56,25 @@
 								<t t-esc="o.journal_id.bank_account_id.acc_number" />
 							</div>
 						</div>
+						<br/>
+						<br/>
 						<div style="width:100%; text-align:left;">
 							<p>
 								With reference to the above subject kindly debit A/c for total
 								sum of Rs.
-								<t t-out="o.amount"></t>
+								<t t-esc="'{:,.2f}'.format(abs(o.amount))"></t>
 								through vide
 								<br></br>
 								check no.
 								<t t-out="o.name"></t>
 								dated:
-								<t t-out="o.date"></t>
-								and credit the account listed below
+								<t t-out="o.date.strftime('%d-%b-%y')"></t>
+								and credit the account listed below.
 							</p>
 						</div>
 						<!-- Payment Details Table -->
 						<table class="table table-bordered"
-							style="width:100%; text-align:left;">
+							style="width:100%; text-align:left;border: 2px solid black;">
 							<thead>
 								<tr>
 									<th style="width:5%;">Sl No.</th>
@@ -88,7 +99,7 @@
 											t-esc="line.partner_id.bank_ids[0].bank_id.bic if line.partner_id.bank_ids.bank_id.bic else 'N/A'" />
 										<td
 											t-esc="line.partner_id.bank_ids[0].acc_number if line.partner_id.bank_ids.acc_number else 'N/A'" />
-										<td t-esc="line.amount" style="text-align:right;" />
+										<td t-esc="line.amount" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
 									</tr>
 									<t t-set="sl_no" t-value="sl_no + 1" />
 								</t>
@@ -97,7 +108,8 @@
 										<strong>Total</strong>
 									</td>
 									<td style="text-align:right;">
-										<strong t-esc="o.amount" />
+										<!--<strong t-esc="o.amount" />-->
+										<strong t-esc="abs(o.amount)" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
 									</td>
 								</tr>
 							</tbody>
@@ -106,36 +118,32 @@
 						<div style="margin-top:30px;">
 							<p>
 								<strong>Amount in Words:</strong>
-								<t t-esc="o.currency_id.amount_to_text(o.amount)" />
+								<t t-esc="o.currency_id.name"/>
+								<t t-esc="o.currency_id.amount_to_text(abs(o.amount))"/> Only.
 							</p>
-							<p>Kindly do the needful to process the above-listed payments at
-								the earliest.
-							</p>
+							<p>Kindly do the needful to process the above-listed payments at the earliest.</p>
 						</div>
 						<div style="margin-top:50px;">
-							<p>Thank you,</p>
-							<p>
-								<strong>Yours sincerely,</strong>
-							</p>
-							<p>
-								<strong style="text-decoration: underline;">
-									<t t-esc="o.journal_id.company_id.name" />
-								</strong>
+							<p>Thanking you,<br/>
+							<strong>Yours sincerely,</strong><br/>
+							<strong>
+								<t t-esc="o.journal_id.company_id.name" />
+							</strong>
 							</p>
 						</div>
-						<div>
+						<div style="margin-top:75px">
 							<span>Authorised Signatory</span>
 						</div>
 						<!-- Footer -->
 						<!--<div style="border-top: 3px solid black; margin-top: 200px;"></div>
 						<footer class="footer modal-footer"
 							style="text-align:center;">-->
-						<div class="footer" style="text-align:center; font-size:14px;">
+						<div class="footer" style="text-align:center; font-size:12px;">
 							<div style="border-top: 3px solid black;"/>
 							<!--<div style="font-size: 12px;margin-right: 400px;">-->
 								<t t-if="o.journal_id.company_id.name">
 									<p style="margin: 0; text-align: center;">
-										<t t-esc="o.journal_id.company_id.name" />
+										<strong><t t-esc="o.journal_id.company_id.name" /></strong>
 									</p>
 								</t>
 								<t t-if="o.journal_id.company_id.street">
@@ -143,25 +151,26 @@
 										<t t-esc="o.journal_id.company_id.street" />
 									</p>
 								</t>
-								<t t-if="o.journal_id.company_id.street2">
+								<t t-if="o.journal_id.company_id.street2 or o.journal_id.company_id.city">
 									<p style="margin: 0; text-align: center;">
-										<t t-esc="o.journal_id.company_id.street2" />
+										<t t-esc="o.journal_id.company_id.street2"/>,
+										<t t-esc="o.journal_id.company_id.city"/> -
+										<t t-esc="o.journal_id.company_id.zip" />
 									</p>
 								</t>
-								<t t-if="o.journal_id.company_id.city">
-									<p style="margin: 0; text-align: center;">
-										<t t-esc="o.journal_id.company_id.city" />
-										,
-										<t t-esc="o.journal_id.company_id.state_id.name" />
-									</p>
-								</t>
-								<t t-if="o.journal_id.company_id.zip">
+<!--								<t t-if="o.journal_id.company_id.city">-->
+<!--									<p style="margin: 0; text-align: center;">-->
+<!--										<t t-esc="o.journal_id.company_id.city"/>,<t t-esc="o.journal_id.company_id.zip" />-->
+<!--										&lt;!&ndash;<t t-esc="o.journal_id.company_id.state_id.name" />&ndash;&gt;-->
+<!--									</p>-->
+<!--								</t>-->
+								<!--<t t-if="o.journal_id.company_id.zip">
 									<p style="margin: 0; text-align: center;">
 										<t t-esc="o.journal_id.company_id.zip" />
 										-
 										<t t-esc="o.journal_id.company_id.country_id.name" />
 									</p>
-								</t>
+								</t>-->
 								<t t-if="o.journal_id.company_id.phone">
 									<p style="margin: 0; text-align: center;">
 										<strong>Phone:</strong>
@@ -182,5 +191,9 @@
 			</t>
 		</xpath>
 	</template>
+	<record id="account_batch_payment.action_print_batch_payment" model="ir.actions.report">
+		<field name="name">Print Bank Payment Advice</field>
+		<field name="print_report_name">'Bank Advice - %s' % (object.name)</field>
+	</record>
 
 </odoo>
