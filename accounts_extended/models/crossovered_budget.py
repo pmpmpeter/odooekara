@@ -42,8 +42,8 @@ class CrossoveredBudget(models.Model):
     show_budget_sum = fields.Boolean('Show budget Sum', default=False, copy=False)
     tax_entity1 = fields.Many2one('res.company', string="Tax Entity 1 User", copy=False)
     tax_entity2 = fields.Many2one('res.company', string="Tax Entity 2 User", copy=False)
-    tax_entity_1_percentage = fields.Float(string="Tax Entity 1 %", copy=False, tracking=True, )
-    tax_entity_2_percentage = fields.Float(string="Tax Entity 2 %", copy=False, tracking=True, )
+    tax_entity_1_percentage = fields.Float(string="Tax Entity 1 %", copy=False, tracking=True)
+    tax_entity_2_percentage = fields.Float(string="Tax Entity 2 %", copy=False, tracking=True)
     crr_share_ids = fields.One2many('crr.share.line', 'budget_id', string='CRR Share')
     freez_april_month = fields.Boolean("Freeze April")
     freez_may_month = fields.Boolean("Freeze May")
@@ -88,6 +88,7 @@ class CrossoveredBudget(models.Model):
         ('march', 'March')
     ], string="Share Revision Effective from", copy=False)
     is_update_required = fields.Boolean()
+    is_share_revised = fields.Boolean(string='Share Revised')
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Budget name already exists!"),
     ]
@@ -646,6 +647,47 @@ class CrossoveredBudget(models.Model):
                 else:
                     record.approval_state = 'Not Applicable'
 
+    def action_share_revise(self):
+        for rec in self:
+            rec.is_share_revised = True
+            for rec in self:
+                prev_version = rec.version
+                version = rec.version + 1
+                rec.cash_payment_ids.sudo().write({
+                    'version': version,
+                })
+                crr_ids = self.env['crr.budget.line'].sudo().search(
+                    ['|', ('budget_id', 'in', self.ids), ('revision_budget_id', 'in', self.ids)])
+                sequence = len(crr_ids) + 1
+                for line in rec.cash_payment_ids:
+                    line.copy({
+                        'sequence': sequence,
+                        'budget_id': False,
+                        'revision_budget_id': rec.id,
+                        'version': prev_version,
+                    })
+                    sequence += 1
+                rec.crr_share_ids.sudo().write({
+                    'version': version,
+                })
+                crr_share_ids = self.env['crr.share.line'].sudo().search(
+                    ['|', ('budget_id', 'in', self.ids), ('revision_budget_id', 'in', self.ids)])
+                share_sequence = len(crr_share_ids) + 1
+                for line in rec.crr_share_ids:
+                    line.copy({
+                        'budget_id': False,
+                        'revision_budget_id': rec.id,
+                        'version': prev_version,
+                    })
+                    share_sequence += 1
+                # print('new_lines',new_lines)
+                # new_lines = new_lines.filtered(lambda l:l.version == version)
+                rec.sudo().write({
+                    'version': version,
+                    'revision_date': fields.Datetime.now(),
+                })
+
+
     def _action_revise(self):
         for rec in self:
             prev_version = rec.version
@@ -982,6 +1024,7 @@ class CrossoveredBudget(models.Model):
             month_vals = filtered_dict
             month_vals.update({'share_rev_effective_from': self.share_rev_effective_from,
                                'revision_date': fields.Date.today(),
+                                'crr_consolidate_id':surplus_line.id,
                                })
 
         share_vals = {
@@ -1029,6 +1072,7 @@ class CrossoveredBudget(models.Model):
                 entity = line.entity
                 share_vals = self._get_share_vals(entity, surplus)
                 line.sudo().write(share_vals)
+        self.is_share_revised = False
 
     def action_consolidate_crr_lines(self):
         self.ensure_one()
@@ -1047,6 +1091,21 @@ class CrossoveredBudget(models.Model):
             raise ValidationError(
                 'Budget type for the following Budgetary Positions are not configured.\nBudgetary Positions:- %s' % ', '.join(
                     budget_positions.mapped("name")))
+
+    def action_consolidate_crr_lines_total(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Consolidate CRR Total',
+            'view_mode': 'tree',
+            'res_model': 'crr.budget.line',
+            'domain': ['&', ('budget_id', '=', self.id), '|', '|',
+                       ('is_budget_in_sum_line', '=', True),
+                       ('is_budget_total', '=', True),
+                       ('is_budget_out_sum_line', '=', True)
+                       ],
+            'context': {'group_by': ['analytic_account_id']},
+        }
 
     def update_cash_outflow_inflow_calculation(self):
         self._check_budget_position_configuration()
@@ -2402,6 +2461,7 @@ class CRRShareLines(models.Model):
 
     fund_id = fields.Many2one('fund.management', string='Fund')
     te_consolidate_id = fields.Many2one('te.consolidation', string='TE Consolidation')
+    crr_consolidate_id = fields.Many2one('crr.budget.line.consolidate', string='Consolidate ID')
     crr_share_april = fields.Float(string="Apr")
     crr_share_may = fields.Float(string="May")
     crr_share_june = fields.Float(string="Jun")
@@ -2441,6 +2501,21 @@ class CRRShareLines(models.Model):
 
     revision_date = fields.Date(string="Revision Date")
 
+    def action_open_overall_company_share(self):
+        print(self.id,self.crr_consolidate_id,'gggggggggg')
+        consolidate_ids = self.env['crr.budget.line.consolidate'].sudo().search([
+            ('id', 'in', self.crr_consolidate_id.ids)])
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'CRR Line Items',
+            'view_mode': 'tree',
+            # 'view_id': view_id,
+            'res_model': 'crr.budget.line.consolidate',
+            'domain': [('id', 'in', consolidate_ids.ids)],
+            # 'domain': [('id', 'in', self.crr_consolidate_id.id)],
+        }
+
+
     @api.depends('version')
     def _compute_version_name(self):
         for record in self:
@@ -2462,3 +2537,26 @@ class CRRShareLines(models.Model):
 
         for rec in self:
             compute_quater(rec)
+
+class CRROtherShareLines(models.Model):
+    _name = "crr.other.share.line"
+    _description = "Cash Other Share"
+
+    ref_company = fields.Char(string='Company')
+    te_consolidate_id = fields.Many2one('te.consolidation', string='Consolidate ID')
+    crr_share_april = fields.Float(string="Apr")
+    crr_share_may = fields.Float(string="May")
+    crr_share_june = fields.Float(string="Jun")
+    crr_share_july = fields.Float(string="Jul")
+    crr_share_august = fields.Float(string="Aug")
+    crr_share_september = fields.Float(string="Sep")
+    crr_share_october = fields.Float(string="Oct")
+    crr_share_november = fields.Float(string="Nov")
+    crr_share_december = fields.Float(string="Dec")
+    crr_share_january = fields.Float(string="Jan")
+    crr_share_february = fields.Float(string="Feb")
+    crr_share_march = fields.Float(string="Mar")
+    crr_share_q1 = fields.Float(string="Q1")
+    crr_share_q2 = fields.Float(string="Q2")
+    crr_share_q3 = fields.Float(string="Q3")
+    crr_share_q4 = fields.Float(string="Q4")

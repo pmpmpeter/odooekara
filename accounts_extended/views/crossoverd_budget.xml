@@ -50,6 +50,10 @@
                     <!-- <button name="consolidate_crr" type="object" string="Consolidate CRR"
                             invisible="state in ('done','cancel','validated') or show_budget_sum == False"
                             class="btn-primary"/> -->
+                    <button name="action_share_revise" type="object" string="Share Revision" class="btn-primary"
+                            groups="account.group_account_manager" invisible="is_share_revised or state not in 'done'"/>
+<!--                    <button name="action_share_revise" type="object" string="Update Revision" class="btn-primary"-->
+<!--                            groups="account.group_account_manager" invisible="is_share_revised"/>-->
                     <button name="consolidate_crr" type="object" string="Consolidate CRR"
                             invisible="1"
                             class="btn-primary"/>
@@ -141,6 +145,9 @@
                         <button name="action_open_budget_vs_actual"
                                 invisible="show_budget_sum != True"
                                 string="Budget Vs Actual" type="object" class="oe_stat_button"/>
+                        <button name="action_consolidate_crr_lines_total"
+                                invisible="show_budget_sum != True"
+                                string="Department Wise Consolidation" type="object" class="oe_stat_button"/>
 
                     </div>
                 </xpath>
@@ -410,15 +417,19 @@
                                            options="{'no_quick_create':True,'no_create': True}"/>
                                 </group>
                                 <group>
-                                    <field name="tax_entity_1_percentage" readonly="state in ('done','validated')"/>
-                                    <field name="tax_entity_2_percentage" readonly="state in ('done','validated')"/>
+                                    <field name="is_share_revised" invisible="1"/>
+                                    <field name="tax_entity_1_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>
+                                    <field name="tax_entity_1_percentage" invisible="not is_share_revised"/>
+                                    <field name="tax_entity_2_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>
+                                    <field name="tax_entity_2_percentage" invisible="not is_share_revised"/>
                                 </group>
                             </group>
                             <group>
                                 <group>
                                     <field name="cash_balance_apr" readonly="approval_state =='Approved'"/>
-                                    <field name="share_rev_effective_from" invisible="version == 1"
+                                    <field name="share_rev_effective_from" invisible="version == 1 or is_share_revised"
                                            readonly="approval_state =='Approved'"/>
+                                    <field name="share_rev_effective_from" invisible="version == 1 or not is_share_revised"/>
                                 </group>
                                 <group>
                                     <button name="get_cash_balance" string="Get Balance" type="object"
@@ -430,6 +441,8 @@
 
                         <button name="split_share_amount" string="Split Share Amount" type="object"
                                 class="btn-primary" invisible="approval_state =='Approved' or not show_budget_sum"/>
+                        <button name="split_share_amount" string="Split Share Amount" type="object"
+                                class="btn-primary" invisible="not is_share_revised"/>
                         <group string="Share Amount">
                             <!--                            <group>-->
                             <!--                                -->

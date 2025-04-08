@@ -233,7 +233,6 @@
                             <page string="Share Amount">
                                 <field name="crr_share_line_ids" readonly="state in ['done']">
                                     <tree editable="bottom" create="0" edit="0" delete='0'>
-                                        <!--                                        <field name="company_id" invisible="1"/>-->
                                         <field name="ref_company"/>
                                         <field name="crr_share_april" sum="Total"/>
                                         <field name="crr_share_may" sum="Total"/>
@@ -251,6 +250,54 @@
                                         <field name="crr_share_february" sum="Total"/>
                                         <field name="crr_share_march" sum="Total"/>
                                         <field name="crr_share_q4" sum="Total"/>
+
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Other Share Amount">
+                                <field name="crr_other_share_line" readonly="state in ['done']">
+                                    <tree editable="bottom" create="0" edit="0" delete='0'>
+                                        <field name="ref_company"/>
+                                        <field name="crr_share_april" sum="Total"/>
+                                        <field name="crr_share_may" sum="Total"/>
+                                        <field name="crr_share_june" sum="Total"/>
+                                        <field name="crr_share_q1" sum="Total"/>
+                                        <field name="crr_share_july" sum="Total"/>
+                                        <field name="crr_share_august" sum="Total"/>
+                                        <field name="crr_share_september" sum="Total"/>
+                                        <field name="crr_share_q2" sum="Total"/>
+                                        <field name="crr_share_october" sum="Total"/>
+                                        <field name="crr_share_november" sum="Total"/>
+                                        <field name="crr_share_december" sum="Total"/>
+                                        <field name="crr_share_q3" sum="Total"/>
+                                        <field name="crr_share_january" sum="Total"/>
+                                        <field name="crr_share_february" sum="Total"/>
+                                        <field name="crr_share_march" sum="Total"/>
+                                        <field name="crr_share_q4" sum="Total"/>
+
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Overall Share">
+                                <field name="crr_company_share">
+                                    <tree editable="bottom" create="0" edit="0" delete='0'>
+                                        <field name="partner_ref" readonly="1"/>
+                                        <field name="april_crr_budget_plan" readonly="1"/>
+                                        <field name="may_crr_budget_plan" readonly="1"/>
+                                        <field name="june_crr_budget_plan" readonly="1"/>
+                                        <field name="quarter_1_crr_budget_plan" readonly="1"/>
+                                        <field name="july_crr_budget_plan" readonly="1"/>
+                                        <field name="august_crr_budget_plan" readonly="1"/>
+                                        <field name="september_crr_budget_plan" readonly="1"/>
+                                        <field name="quarter_2_crr_budget_plan" readonly="1"/>
+                                        <field name="september_crr_budget_plan" readonly="1"/>
+                                        <field name="november_crr_budget_plan" readonly="1"/>
+                                        <field name="december_crr_budget_plan" readonly="1"/>
+                                        <field name="quarter_3_crr_budget_plan" readonly="1"/>
+                                        <field name="january_crr_budget_plan" readonly="1"/>
+                                        <field name="febuary_crr_budget_plan" readonly="1"/>
+                                        <field name="march_crr_budget_plan" readonly="1"/>
+                                        <field name="quarter_4_crr_budget_plan" readonly="1"/>
 
                                     </tree>
                                 </field>
