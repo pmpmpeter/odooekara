@@ -894,6 +894,17 @@
         </field>
     </record>
 
+    <record id="view_account_journal_form_inherit1" model="ir.ui.view">
+        <field name="name">account.journal.form</field>
+        <field name="model">account.journal</field>
+        <field name="inherit_id" ref="account.view_account_journal_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_sequence']" position="after">
+                <field name="is_credit_card_bank"/>
+            </xpath>
+        </field>
+    </record>
+
     <record id="sale_account_invoice_form_inherited" model="ir.ui.view">
         <field name="name">account.move.form</field>
         <field name="model">account.move</field>
@@ -955,6 +966,14 @@
         <field name="domain">[('is_internal_transfer','=', True)]</field>
     </record>
 
+    <record id="open_create_credit_card_payment_form" model="ir.actions.act_window">
+        <field name="name">Credit Card Payment</field>
+        <field name="res_model">account.payment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_is_credit_payment': True}</field>
+        <field name="domain">[('is_credit_payment','=', True)]</field>
+    </record>
+
     <menuitem
             id="menu_fund_requisting"
             action="open_create_fund_payment_form"
@@ -963,6 +982,11 @@
     <menuitem
             id="menu_contra_payment"
             action="open_create_contra_payment_form"
+            parent="account.menu_finance_entries"
+            sequence="3"/>
+    <menuitem
+            id="menu_credit_payment"
+            action="open_create_credit_card_payment_form"
             parent="account.menu_finance_entries"
             sequence="3"/>
 

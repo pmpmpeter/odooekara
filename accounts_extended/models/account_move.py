@@ -401,3 +401,8 @@ class AccountAnalyticPlan(models.Model):
     _inherit = 'account.analytic.plan'
 
     active = fields.Boolean(default=True)
+
+class AccountsJournal(models.Model):
+    _inherit = 'account.journal'
+
+    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment')

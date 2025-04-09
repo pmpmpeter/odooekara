@@ -9,6 +9,7 @@ class AccountPayment(models.Model):
     old_utr_number = fields.Char('OLD UTR Number', copy=False)
     is_fund_requsiting = fields.Boolean(string='Fund Requisition', copy=False)
     is_contra_payment = fields.Boolean(string='Contra Payment', copy=False)
+    is_credit_payment = fields.Boolean(string='Credit Payment', copy=False)
     approval_state = fields.Char(string='Approval Status', compute='compute_approval_state', store=True, copy=False,
                                  tracking=True)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
