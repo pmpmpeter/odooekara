@@ -1033,6 +1033,7 @@ class CrossoveredBudget(models.Model):
             'tax_entity_percentage': share,
             'company_id': self.company_id.id,
             'budget_id': self.id,
+            'ref_company': self.sudo().company_id.name if self.sudo().user_type == 'odoo' else self.sudo().partner_id.name,
         }
         share_vals.update(month_vals)
         return share_vals

@@ -146,7 +146,7 @@
                                 invisible="show_budget_sum != True"
                                 string="Budget Vs Actual" type="object" class="oe_stat_button"/>
                         <button name="action_consolidate_crr_lines_total"
-                                invisible="show_budget_sum != True"
+                                invisible="show_budget_sum != True or user_type == 'non_odoo'"
                                 string="Department Wise Consolidation" type="object" class="oe_stat_button"/>
 
                     </div>
@@ -452,10 +452,7 @@
                                 <tree editable="bottom" edit="0" create="0" delete='0'>
                                     <field name="company_id" column_invisible="1"
                                            options='{"no_open": True, "no_create": True}'/>
-                                    <field name="version" optional="hide"/>
-                                    <field name="entity" options='{"no_open": True, "no_create": True}'/>
-                                    <field name="share_rev_effective_from" optional="hide"/>
-                                    <field name="revision_date" optional="hide"/>
+                                    <field name="revision_date"/>
                                     <field name="tax_entity_percentage" force_save="1"/>
                                     <!--                                    <field name="id"/>-->
                                     <field name="crr_share_april" sum="Total"/>
@@ -1342,8 +1339,8 @@
                     <field name="version_name" column_invisible="1"/>
                     <field name="tax_entity_percentage" force_save="1" width="500"/>
                     <field name="entity" width="500"/>
-                    <field name="share_rev_effective_from" optional="hide"/>
-                    <field name="revision_date" optional="hide"/>
+                    <field name="share_rev_effective_from" width="500"/>
+                    <field name="revision_date" width="500"/>
                     <field name="crr_share_april"/>
                     <field name="crr_share_may"/>
                     <field name="crr_share_june"/>

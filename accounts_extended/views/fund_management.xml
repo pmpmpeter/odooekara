@@ -207,6 +207,8 @@
                                     string="Fund Management" type="object" class="oe_stat_button"/>
                             <button name="action_open_consolidation" invisible="is_consolidate_updated != True"
                                     string="Consolidation CRR" type="object" class="oe_stat_button"/>
+                            <button name="action_open_share_view" invisible="is_consolidate_updated != True"
+                                    string="View Share" type="object" class="oe_stat_button"/>
 
                         </div>
                         <div class="oe_title">
@@ -233,6 +235,12 @@
                             <page string="Share Amount">
                                 <field name="crr_share_line_ids" readonly="state in ['done']">
                                     <tree editable="bottom" create="0" edit="0" delete='0'>
+                                        <!--                                        <field name="company_id" invisible="1"/>-->
+                                        <field name="version" width="500" column_invisible="1"/>
+                                        <field name="tax_entity_percentage" width="500"/>
+                                        <field name="entity" width="500" column_invisible="1"/>
+                                        <field name="share_rev_effective_from" width="500"/>
+                                        <field name="revision_date" width="500"/>
                                         <field name="ref_company"/>
                                         <field name="crr_share_april" sum="Total"/>
                                         <field name="crr_share_may" sum="Total"/>
@@ -254,30 +262,30 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="Other Share Amount">
-                                <field name="crr_other_share_line" readonly="state in ['done']">
-                                    <tree editable="bottom" create="0" edit="0" delete='0'>
-                                        <field name="ref_company"/>
-                                        <field name="crr_share_april" sum="Total"/>
-                                        <field name="crr_share_may" sum="Total"/>
-                                        <field name="crr_share_june" sum="Total"/>
-                                        <field name="crr_share_q1" sum="Total"/>
-                                        <field name="crr_share_july" sum="Total"/>
-                                        <field name="crr_share_august" sum="Total"/>
-                                        <field name="crr_share_september" sum="Total"/>
-                                        <field name="crr_share_q2" sum="Total"/>
-                                        <field name="crr_share_october" sum="Total"/>
-                                        <field name="crr_share_november" sum="Total"/>
-                                        <field name="crr_share_december" sum="Total"/>
-                                        <field name="crr_share_q3" sum="Total"/>
-                                        <field name="crr_share_january" sum="Total"/>
-                                        <field name="crr_share_february" sum="Total"/>
-                                        <field name="crr_share_march" sum="Total"/>
-                                        <field name="crr_share_q4" sum="Total"/>
+<!--                            <page string="Other Share Amount">-->
+<!--                                <field name="crr_other_share_line" readonly="state in ['done']">-->
+<!--                                    <tree editable="bottom" create="0" edit="0" delete='0'>-->
+<!--                                        <field name="ref_company"/>-->
+<!--                                        <field name="crr_share_april" sum="Total"/>-->
+<!--                                        <field name="crr_share_may" sum="Total"/>-->
+<!--                                        <field name="crr_share_june" sum="Total"/>-->
+<!--                                        <field name="crr_share_q1" sum="Total"/>-->
+<!--                                        <field name="crr_share_july" sum="Total"/>-->
+<!--                                        <field name="crr_share_august" sum="Total"/>-->
+<!--                                        <field name="crr_share_september" sum="Total"/>-->
+<!--                                        <field name="crr_share_q2" sum="Total"/>-->
+<!--                                        <field name="crr_share_october" sum="Total"/>-->
+<!--                                        <field name="crr_share_november" sum="Total"/>-->
+<!--                                        <field name="crr_share_december" sum="Total"/>-->
+<!--                                        <field name="crr_share_q3" sum="Total"/>-->
+<!--                                        <field name="crr_share_january" sum="Total"/>-->
+<!--                                        <field name="crr_share_february" sum="Total"/>-->
+<!--                                        <field name="crr_share_march" sum="Total"/>-->
+<!--                                        <field name="crr_share_q4" sum="Total"/>-->
 
-                                    </tree>
-                                </field>
-                            </page>
+<!--                                    </tree>-->
+<!--                                </field>-->
+<!--                            </page>-->
                             <page string="Overall Share">
                                 <field name="crr_company_share">
                                     <tree editable="bottom" create="0" edit="0" delete='0'>

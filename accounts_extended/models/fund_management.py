@@ -376,37 +376,37 @@ class TeConsolidation(models.Model):
                                                               ('budget_id.date_to', '<=', self.end_date),
                                                               ('entity', '=', self.company_id.id),
                                                               ('budget_id.state', 'in', ['to approve', 'done'])])
-        share_ids1 = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
-                                                              ('budget_id.date_to', '<=', self.end_date),
-                                                              ('entity', '!=', self.company_id.id),
-                                                              ('budget_id.state', 'in', ['to approve', 'done'])])
-        # print(share_ids1,'hhhh')
-        created_others=[]
         self.crr_share_line_ids = share_ids
-        for rec in share_ids1:
-            share_vals = {
-                'ref_company': rec.company_id.name if rec.budget_id.user_type == 'odoo' else rec.budget_id.partner_id.name,
-                'crr_share_april': rec.crr_share_april,
-                'crr_share_may': rec.crr_share_may,
-                'crr_share_june': rec.crr_share_june,
-                'crr_share_july': rec.crr_share_july,
-                'crr_share_august': rec.crr_share_august,
-                'crr_share_september': rec.crr_share_september,
-                'crr_share_october': rec.crr_share_october,
-                'crr_share_november': rec.crr_share_november,
-                'crr_share_december': rec.crr_share_december,
-                'crr_share_january': rec.crr_share_january,
-                'crr_share_february': rec.crr_share_february,
-                'crr_share_march': rec.crr_share_march,
-                'crr_share_q1': rec.crr_share_q1,
-                'crr_share_q2': rec.crr_share_q2,
-                'crr_share_q3': rec.crr_share_q3,
-                'crr_share_q4': rec.crr_share_q4,
-            }
-
-            created = self.env['crr.other.share.line'].sudo().create(share_vals)
-            created_others.append(created.id)
-        self.write({'crr_other_share_line': [(6, 0, created_others)]})
+        # share_ids1 = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
+        #                                                       ('budget_id.date_to', '<=', self.end_date),
+        #                                                       ('entity', '!=', self.company_id.id),
+        #                                                       ('budget_id.state', 'in', ['to approve', 'done'])])
+        # print(share_ids1,'hhhh')
+        # created_others=[]
+        # for rec in share_ids1:
+        #     share_vals = {
+        #         'ref_company': rec.company_id.name if rec.budget_id.user_type == 'odoo' else rec.budget_id.partner_id.name,
+        #         'crr_share_april': rec.crr_share_april,
+        #         'crr_share_may': rec.crr_share_may,
+        #         'crr_share_june': rec.crr_share_june,
+        #         'crr_share_july': rec.crr_share_july,
+        #         'crr_share_august': rec.crr_share_august,
+        #         'crr_share_september': rec.crr_share_september,
+        #         'crr_share_october': rec.crr_share_october,
+        #         'crr_share_november': rec.crr_share_november,
+        #         'crr_share_december': rec.crr_share_december,
+        #         'crr_share_january': rec.crr_share_january,
+        #         'crr_share_february': rec.crr_share_february,
+        #         'crr_share_march': rec.crr_share_march,
+        #         'crr_share_q1': rec.crr_share_q1,
+        #         'crr_share_q2': rec.crr_share_q2,
+        #         'crr_share_q3': rec.crr_share_q3,
+        #         'crr_share_q4': rec.crr_share_q4,
+        #     }
+        #
+        #     created = self.env['crr.other.share.line'].sudo().create(share_vals)
+        #     created_others.append(created.id)
+        # self.write({'crr_other_share_line': [(6, 0, created_others)]})
         created_shares = []
 
         for rec in self.crr_share_line_ids:
@@ -1049,6 +1049,20 @@ class TeConsolidation(models.Model):
         self.state = 'inprogress'
         return True
 
+    def action_open_share_view(self):
+        share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
+                                                              ('budget_id.date_to', '<=', self.end_date),
+                                                              ('budget_id.state', 'in', ['to approve', 'done'])])
+        if share_ids:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'View Share',
+                'view_mode': 'tree',
+                'res_model': 'crr.share.line',
+                'domain': [('id', 'in', share_ids.ids)],
+                'context': {'group_by': ['ref_company']},
+            }
+
     def action_create_fund_management(self):
         fund_id = self.env['fund.management'].sudo().search([('te_consolidate_id', '=', self.id)])
         if not fund_id:
@@ -1093,6 +1107,100 @@ class TeConsolidation(models.Model):
 class TeConsolidationLine(models.Model):
     _name = 'te.consolidation.line'
     _description = 'Te Consolidation Line'
+
+    # @api.model
+    # def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+    #     print(groupby, "read_group called")
+    #
+    #     conditions = domain.copy()
+    #     result = super(TeConsolidationLine, self).read_group(
+    #         domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
+    #     )
+    #     print(groupby, 'wwwwwwwwwwwwwwwwwww')
+    #     # if groupby == ['user_type']:
+    #     print("Custom logic for groupby = ['user_type']")
+    #
+    #     record_ids = self.sudo().search(conditions)
+    #     conditions += [
+    #         ('id', 'in', record_ids.ids),
+    #         ('budget_name', '=', 'Surplus/ Deficit(IN-OUT)')
+    #     ]
+    #
+    #     for res in result:
+    #         user_type = res.get('user_type')
+    #         if isinstance(user_type, (list, tuple)):
+    #             user_type_id = user_type[0]
+    #         else:
+    #             user_type_id = user_type
+    #
+    #         test = conditions.copy()
+    #         test.append(('user_type', '=', user_type_id))
+    #
+    #         if isinstance(res, dict):
+    #             if 'april_crr_budget_plan' in res:
+    #                 rec_ids = self.search(test + res['__domain'])
+    #                 print('hhhhhhhhhhhhhhhhhhhhhhhhh ', len(rec_ids))
+    #                 amount_total = 0
+    #                 if rec_ids:
+    #                     amount_total = sum(rec_ids.mapped('april_crr_budget_plan'))
+    #                 res['april_crr_budget_plan'] = amount_total
+    #
+    #     return result
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+
+        result = super(TeConsolidationLine, self).read_group(
+            domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
+        )
+        if groupby == ['user_type']:
+            for res in result:
+                user_type = res.get('user_type')
+                if isinstance(user_type, (list, tuple)):
+                    user_type_id = user_type[0]
+                else:
+                    user_type_id = user_type
+                sub_domain = domain + [('user_type', '=', user_type_id),
+                                       ('budget_name', '=', 'Surplus/ Deficit(IN-OUT)')]
+                lines = self.search(sub_domain)
+                updated_values = {}
+                for f in fields:
+                    if f in groupby or f == '__domain':
+                        continue
+                    updated_values[f] = 0.0
+
+                for line in lines:
+                    for f in updated_values:
+                        val = getattr(line, f, 0.0)
+                        if isinstance(val, (int, float)):
+                            updated_values[f] += val
+                for f in updated_values:
+                    res[f] = updated_values[f]
+        if groupby == ['requested_from'] or 'requested_from' in groupby:
+            records = self.search(domain)
+            surplus_lines = records.filtered(lambda r: r.budget_name == 'Surplus/ Deficit(IN-OUT)')
+            surplus_map = {}
+            for rec in surplus_lines:
+                company_id = rec.requested_from
+                if company_id not in surplus_map:
+                    surplus_map[company_id] = {f: 0.0 for f in fields if f not in groupby and f != '__domain'}
+
+                for f in surplus_map[company_id]:
+                    val = getattr(rec, f, 0.0)
+                    if isinstance(val, (int, float)):
+                        surplus_map[company_id][f] += val
+            for res in result:
+                company_info = res.get('requested_from')
+                if isinstance(company_info, (list, tuple)):
+                    company_id = company_info[0]
+                else:
+                    company_id = company_info
+                if company_id in surplus_map:
+                    for f, val in surplus_map[company_id].items():
+                        if f in res:
+                            res[f] = val
+
+        return result
 
     @api.depends('quarter_1_crr_budget_plan', 'quarter_2_crr_budget_plan', 'quarter_3_crr_budget_plan',
                  'quarter_4_crr_budget_plan')

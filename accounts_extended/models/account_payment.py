@@ -6,6 +6,7 @@ class AccountPayment(models.Model):
     _inherit = "account.payment"
 
     utr_number = fields.Char('UTR Number', copy=False)
+    is_utr_updated = fields.Boolean(string='UTR Updated',copy=False)
     old_utr_number = fields.Char('OLD UTR Number', copy=False)
     is_fund_requsiting = fields.Boolean(string='Fund Requisition', copy=False)
     is_contra_payment = fields.Boolean(string='Contra Payment', copy=False)
@@ -20,6 +21,20 @@ class AccountPayment(models.Model):
         ("capex", "Capex"),
         ("opex", "Opex")], default='opex', string="Capex/Opex")
     payment_purchase_id = fields.Many2one('purchase.order',copy=False, string='Purchase Order')
+
+    @api.model
+    def create_batch_payment(self):
+        res = super().create_batch_payment()
+        print(self,'llllllllll')
+        check_numbers = self.mapped('cheque_number')
+        if len(set(check_numbers)) == 1:
+            same_check_number = check_numbers[0]
+        else:
+            raise UserError("Selected payments must have the same cheque number.")
+        batch_payment_id = self.env['account.batch.payment'].browse(res.get('res_id'))
+        print(batch_payment_id,'hqqqq')
+        batch_payment_id['cheque_number'] = same_check_number
+        return res
 
     def _get_closing_balance(self):
         closing_balance = 0
@@ -67,6 +82,7 @@ class AccountPayment(models.Model):
                             else:
                                 line.name += ('-' + rec.utr_number)
                     rec.old_utr_number = rec.utr_number
+                    rec.is_utr_updated = True
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):
