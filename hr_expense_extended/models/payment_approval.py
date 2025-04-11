@@ -43,8 +43,8 @@ class HrExpense(models.Model):
 
     def action_submit_expenses(self):
         for record in self.filtered(lambda s: s.state in ['draft'] and s.is_payment_approval):
-            if not record.supplier_id:
-                raise UserError(_("Cannot submit the bill without Supplier!"))
+            # if not record.supplier_id:
+            #     raise UserError(_("Cannot submit the bill without Supplier!"))
             if not record.invoice_type_id:
                 raise UserError(_("Cannot submit the bill without Invoice Type!"))
             if not record.invoice_no:
