@@ -7,12 +7,12 @@
             <field name='date_start' position="after">
                 <field name="is_document_validity_management" invisible='1' force_save='1'/>
                 <field name="document_type_id" required="is_document_validity_management"
-                       invisible="not is_document_validity_management"/>
+                       invisible="not is_document_validity_management" readonly="is_done"/>
                 <field name="validity_start_date" required="document_type_id or is_document_validity_management"
-                       invisible="not is_document_validity_management"/>
+                       invisible="not is_document_validity_management" readonly="is_done"/>
                 <field name="validity_end_date" required="document_type_id or is_document_validity_management"
-                       invisible="not is_document_validity_management"/>
-                <field name="document_reminder" invisible="not is_document_validity_management"/>
+                       invisible="not is_document_validity_management" readonly="is_done"/>
+                <field name="document_reminder" invisible="not is_document_validity_management" readonly="is_done"/>
             </field>
         </field>
     </record>
@@ -46,8 +46,12 @@
                        placeholder="e.g. Office Party"/>
             </xpath>
             <xpath expr="//header" position="inside">
-                <button name="document_closed" type="object" string="Closed" class="btn-primary"
-                        invisible="not is_document_validity_management and not is_statuory_notice"/>
+
+<!--                <field name="is_legal_notice_option" invisible="1"/>-->
+                <button name="document_closed" type="object" string="Mark as Done" class="btn-primary"
+                        invisible="is_done"/>
+<!--                <button name="document_closed" type="object" string="Mark as Done" class="btn-primary"-->
+<!--                        invisible="not is_document_validity_management and not is_statuory_notice_option or not is_legal_notice_option"/>-->
             </xpath>
             <field name='tag_ids' position="after">
                 <field name="closed_date" invisible="not is_document_validity_management and not is_statuory_notice"/>

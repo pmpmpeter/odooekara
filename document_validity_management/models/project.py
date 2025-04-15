@@ -14,10 +14,40 @@ class ProjectProject(models.Model):
     closed_date = fields.Date(string='Closed Date',readonly=1)
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
 
+    # @api.model
+    # def _get_view(self, view_id=None, view_type='form', **options):
+    #     arch, view = super()._get_view(view_id, view_type, **options)
+    #     if view_type == 'form':
+    #         for node in arch.xpath("//field"):
+    #             node.set('readonly', "not active")
+    #     return arch, view
+
+    # @api.model
+    # def _get_view(self, view_id=None, view_type='form', **options):
+    #     arch, view = super()._get_view(view_id, view_type, **options)
+    #     print(self.id,'uuuuuuu')
+    #     if view_type == 'form':
+    #         print(self.stage_id.name,'lllllll')
+    #         for node in arch.xpath("//field"):
+    #             node.set('readonly', "stage_id.name == 'Done'")
+    #     return arch, view
+
+    # @api.model
+    # def _get_view(self, view_id=None, view_type='form', **options):
+    #     arch, view = super()._get_view(view_id, view_type, **options)
+    #
+    #     if view_type == 'form':
+    #         for node in arch.xpath("//field"):
+    #             node.set('attrs', "{'readonly': [('stage_id.name', '=', 'Done')]}")
+    #     return arch, view
+
     def document_closed(self):
         self.closed_date = date.today()
         self.closed_by = self.env.user
-        self.active=False
+        self.stage_id = self.env['project.project.stage'].sudo().search([('name','=','Done')])
+        self.is_done = True
+        #print(self.stage_id.name,'yyyyyyy')
+        # self.active=False
 
     def _create_default_task_stages(self):
         context = self.env.context

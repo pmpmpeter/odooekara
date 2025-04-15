@@ -89,6 +89,7 @@ class CrossoveredBudget(models.Model):
     ], string="Share Revision Effective from", copy=False)
     is_update_required = fields.Boolean()
     is_share_revised = fields.Boolean(string='Share Revised')
+    doc_attachment = fields.One2many('doc.attach','budget_id', string='Attachments')
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Budget name already exists!"),
     ]
@@ -2561,3 +2562,11 @@ class CRROtherShareLines(models.Model):
     crr_share_q2 = fields.Float(string="Q2")
     crr_share_q3 = fields.Float(string="Q3")
     crr_share_q4 = fields.Float(string="Q4")
+
+class ConfidentialAttachments(models.Model):
+    _name = 'doc.attach'
+    _description = 'Attachments'
+
+    budget_id = fields.Many2one('crossovered.budget', string='Budget')
+    doc_name = fields.Char(string='Description')
+    doc_attach = fields.Binary(string='Attachments')

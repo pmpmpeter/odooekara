@@ -1049,6 +1049,259 @@ class TeConsolidation(models.Model):
         self.state = 'inprogress'
         return True
 
+    # def action_update_consolidate_crr(self):
+    #     self.crr_consolidate_ids.unlink()
+    #     if not self.start_date or not self.end_date:
+    #         raise UserError('kindly update Start and End date')
+    #     share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
+    #                                                           ('budget_id.date_to', '<=', self.end_date),
+    #                                                           ('entity', '=', self.company_id.id),
+    #                                                           ('budget_id.state', 'in', ['to approve','done'])])
+    #     self.crr_share_line_ids = share_ids
+    #     for rec in share_ids:
+    #         if rec.budget_id.user_type == 'odoo':
+    #             rec.ref_company = rec.budget_id.company_id.name
+    #         elif rec.budget_id.user_type == 'non_odoo':
+    #             rec.ref_company = rec.budget_id.partner_id.name
+    #         rec.te_consolidate_id = self.id
+    #     seq = 1
+    #     budget_lines = self.env['crr.budget.line'].sudo().search([
+    #         ('budget_id', 'in', share_ids.mapped('budget_id').ids), ('budget_id.state', 'in', ['to approve','done'])
+    #     ])
+    #     companies = budget_lines.mapped('budget_id').mapped('company_id')
+    #     for company in companies:
+    #         for budget_type in ['opex', 'capex']:
+    #             for user_type in ['odoo', 'non_odoo']:
+    #                 filtered_lines = budget_lines.filtered(
+    #                     lambda
+    #                         l: l.budget_type == budget_type and l.user_type == user_type and l.budget_id.company_id == company)
+    #                 self.env['te.consolidation.line'].create({
+    #                     'te_consolidate_id': self.id,
+    #                     'april_crr_budget_plan': sum(filtered_lines.mapped('april_crr_budget_plan')),
+    #                     'may_crr_budget_plan': sum(filtered_lines.mapped('may_crr_budget_plan')),
+    #                     'june_crr_budget_plan': sum(filtered_lines.mapped('june_crr_budget_plan')),
+    #                     'july_crr_budget_plan': sum(filtered_lines.mapped('july_crr_budget_plan')),
+    #                     'august_crr_budget_plan': sum(filtered_lines.mapped('august_crr_budget_plan')),
+    #                     'september_crr_budget_plan': sum(filtered_lines.mapped('september_crr_budget_plan')),
+    #                     'october_crr_budget_plan': sum(filtered_lines.mapped('october_crr_budget_plan')),
+    #                     'november_crr_budget_plan': sum(filtered_lines.mapped('november_crr_budget_plan')),
+    #                     'december_crr_budget_plan': sum(filtered_lines.mapped('december_crr_budget_plan')),
+    #                     'january_crr_budget_plan': sum(filtered_lines.mapped('january_crr_budget_plan')),
+    #                     'febuary_crr_budget_plan': sum(filtered_lines.mapped('febuary_crr_budget_plan')),
+    #                     'march_crr_budget_plan': sum(filtered_lines.mapped('march_crr_budget_plan')),
+    #                     'cash_type': 'cash_payment',
+    #                     # 'budget_name':user_type,
+    #                     'budget_name': dict(self.env['crossovered.budget']._fields['user_type'].selection).get(
+    #                         user_type),
+    #                     'budget_type': budget_type,
+    #                     'user_type': user_type,
+    #                     'company_id': company.id,
+    #                 })
+    #             filtered_lines = budget_lines.filtered(
+    #                 lambda l: l.budget_type == budget_type and l.budget_id.company_id == company)
+    #             self.env['te.consolidation.line'].create({
+    #                 'te_consolidate_id': self.id,
+    #                 'april_crr_budget_plan': sum(filtered_lines.mapped('april_crr_budget_plan')),
+    #                 'may_crr_budget_plan': sum(filtered_lines.mapped('may_crr_budget_plan')),
+    #                 'june_crr_budget_plan': sum(filtered_lines.mapped('june_crr_budget_plan')),
+    #                 'july_crr_budget_plan': sum(filtered_lines.mapped('july_crr_budget_plan')),
+    #                 'august_crr_budget_plan': sum(filtered_lines.mapped('august_crr_budget_plan')),
+    #                 'september_crr_budget_plan': sum(filtered_lines.mapped('september_crr_budget_plan')),
+    #                 'october_crr_budget_plan': sum(filtered_lines.mapped('october_crr_budget_plan')),
+    #                 'november_crr_budget_plan': sum(filtered_lines.mapped('november_crr_budget_plan')),
+    #                 'december_crr_budget_plan': sum(filtered_lines.mapped('december_crr_budget_plan')),
+    #                 'january_crr_budget_plan': sum(filtered_lines.mapped('january_crr_budget_plan')),
+    #                 'febuary_crr_budget_plan': sum(filtered_lines.mapped('febuary_crr_budget_plan')),
+    #                 'march_crr_budget_plan': sum(filtered_lines.mapped('march_crr_budget_plan')),
+    #                 'cash_type': 'cash_payment',
+    #                 'budget_name': 'Operating Expenditure (OPEX)' if budget_type == 'opex' else 'Capital  Expenditure (CAPEX)',
+    #                 'budget_type': budget_type,
+    #                 # 'user_type': user_type,
+    #                 'is_budget_sum_line': True,
+    #                 'company_id': company.id,
+    #             })
+    #
+    #         filtered_lines = budget_lines.filtered(
+    #             lambda l: l.budget_type in ['opex', 'capex'] and l.budget_id.company_id == company)
+    #         outflow_id = self.env['te.consolidation.line'].create({'budget_name': 'Total Cash Outflow',
+    #                                                                'te_consolidate_id': self.id,
+    #                                                                'april_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('april_crr_budget_plan')),
+    #                                                                'may_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('may_crr_budget_plan')),
+    #                                                                'june_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('june_crr_budget_plan')),
+    #                                                                'july_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('july_crr_budget_plan')),
+    #                                                                'august_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('august_crr_budget_plan')),
+    #                                                                'september_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'september_crr_budget_plan')),
+    #                                                                'october_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'october_crr_budget_plan')),
+    #                                                                'november_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'november_crr_budget_plan')),
+    #                                                                'december_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'december_crr_budget_plan')),
+    #                                                                'january_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'january_crr_budget_plan')),
+    #                                                                'febuary_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped(
+    #                                                                        'febuary_crr_budget_plan')),
+    #                                                                'march_crr_budget_plan': sum(
+    #                                                                    filtered_lines.mapped('march_crr_budget_plan')),
+    #                                                                'cash_type': 'cash_payment',
+    #                                                                'budget_type': budget_type,
+    #                                                                # 'user_type': user_type,
+    #                                                                'is_budget_sum_line': True,
+    #                                                                'company_id': company.id,
+    #                                                                })
+    #
+    #         # for company in companies:
+    #         for budget_type in ['ocif', 'noocif']:
+    #             for user_type in ['odoo', 'non_odoo']:
+    #                 filtered_lines = budget_lines.filtered(
+    #                     lambda
+    #                         l: l.budget_type == budget_type and l.user_type == user_type and l.budget_id.company_id == company)
+    #                 self.env['te.consolidation.line'].create({
+    #                     'te_consolidate_id': self.id,
+    #                     'april_crr_budget_plan': sum(filtered_lines.mapped('april_crr_budget_plan')),
+    #                     'may_crr_budget_plan': sum(filtered_lines.mapped('may_crr_budget_plan')),
+    #                     'june_crr_budget_plan': sum(filtered_lines.mapped('june_crr_budget_plan')),
+    #                     'july_crr_budget_plan': sum(filtered_lines.mapped('july_crr_budget_plan')),
+    #                     'august_crr_budget_plan': sum(filtered_lines.mapped('august_crr_budget_plan')),
+    #                     'september_crr_budget_plan': sum(filtered_lines.mapped('september_crr_budget_plan')),
+    #                     'october_crr_budget_plan': sum(filtered_lines.mapped('october_crr_budget_plan')),
+    #                     'november_crr_budget_plan': sum(filtered_lines.mapped('november_crr_budget_plan')),
+    #                     'december_crr_budget_plan': sum(filtered_lines.mapped('december_crr_budget_plan')),
+    #                     'january_crr_budget_plan': sum(filtered_lines.mapped('january_crr_budget_plan')),
+    #                     'febuary_crr_budget_plan': sum(filtered_lines.mapped('febuary_crr_budget_plan')),
+    #                     'march_crr_budget_plan': sum(filtered_lines.mapped('march_crr_budget_plan')),
+    #                     'budget_name': dict(self.env['crossovered.budget']._fields['user_type'].selection).get(
+    #                         user_type),
+    #                     # 'budget_name':user_type,
+    #                     'budget_type': budget_type,
+    #                     'user_type': user_type,
+    #                     'company_id': company.id,
+    #                 })
+    #             filtered_lines = budget_lines.filtered(
+    #                 lambda l: l.budget_type == budget_type and l.budget_id.company_id == company)
+    #             self.env['te.consolidation.line'].create({
+    #                 'te_consolidate_id': self.id,
+    #                 'april_crr_budget_plan': sum(filtered_lines.mapped('april_crr_budget_plan')),
+    #                 'may_crr_budget_plan': sum(filtered_lines.mapped('may_crr_budget_plan')),
+    #                 'june_crr_budget_plan': sum(filtered_lines.mapped('june_crr_budget_plan')),
+    #                 'july_crr_budget_plan': sum(filtered_lines.mapped('july_crr_budget_plan')),
+    #                 'august_crr_budget_plan': sum(filtered_lines.mapped('august_crr_budget_plan')),
+    #                 'september_crr_budget_plan': sum(filtered_lines.mapped('september_crr_budget_plan')),
+    #                 'october_crr_budget_plan': sum(filtered_lines.mapped('october_crr_budget_plan')),
+    #                 'november_crr_budget_plan': sum(filtered_lines.mapped('november_crr_budget_plan')),
+    #                 'december_crr_budget_plan': sum(filtered_lines.mapped('december_crr_budget_plan')),
+    #                 'january_crr_budget_plan': sum(filtered_lines.mapped('january_crr_budget_plan')),
+    #                 'febuary_crr_budget_plan': sum(filtered_lines.mapped('febuary_crr_budget_plan')),
+    #                 'march_crr_budget_plan': sum(filtered_lines.mapped('march_crr_budget_plan')),
+    #                 'cash_type': 'cash_payment',
+    #                 'budget_name': 'Operating Cash-In-Flow (OCIF)' if budget_type == 'ocif' else 'Non-Operating Cash-In-Flow (NOCIF)',
+    #                 'budget_type': budget_type,
+    #                 # 'user_type': user_type,
+    #                 'is_budget_sum_line': True,
+    #                 'company_id': company.id,
+    #             })
+    #
+    #         filtered_lines = budget_lines.filtered(
+    #             lambda l: l.budget_type in ['ocif', 'noocif'] and l.budget_id.company_id == company)
+    #         inflow_id = self.env['te.consolidation.line'].create({'budget_name': 'Total Cash Inflow',
+    #                                                               'te_consolidate_id': self.id,
+    #                                                               'april_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('april_crr_budget_plan')),
+    #                                                               'may_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('may_crr_budget_plan')),
+    #                                                               'june_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('june_crr_budget_plan')),
+    #                                                               'july_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('july_crr_budget_plan')),
+    #                                                               'august_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('august_crr_budget_plan')),
+    #                                                               'september_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped(
+    #                                                                       'september_crr_budget_plan')),
+    #                                                               'october_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('october_crr_budget_plan')),
+    #                                                               'november_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped(
+    #                                                                       'november_crr_budget_plan')),
+    #                                                               'december_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped(
+    #                                                                       'december_crr_budget_plan')),
+    #                                                               'january_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('january_crr_budget_plan')),
+    #                                                               'febuary_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('febuary_crr_budget_plan')),
+    #                                                               'march_crr_budget_plan': sum(
+    #                                                                   filtered_lines.mapped('march_crr_budget_plan')),
+    #                                                               'cash_type': 'cash_payment',
+    #                                                               'budget_type': budget_type,
+    #                                                               # 'user_type': user_type,
+    #                                                               'is_budget_sum_line': True,
+    #                                                               'company_id': company.id,
+    #                                                               })
+    #         self.env['te.consolidation.line'].create({'budget_name': 'Surplus/ Deficit(IN-OUT)',
+    #                                                   'te_consolidate_id': self.id,
+    #                                                   'april_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('april_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('april_crr_budget_plan')),
+    #                                                   'may_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('may_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('may_crr_budget_plan')),
+    #                                                   'june_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('june_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('june_crr_budget_plan')),
+    #                                                   'july_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('july_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('july_crr_budget_plan')),
+    #                                                   'august_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('august_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('august_crr_budget_plan')),
+    #                                                   'september_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('september_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('september_crr_budget_plan')),
+    #                                                   'october_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('october_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('october_crr_budget_plan')),
+    #                                                   'november_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('november_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('november_crr_budget_plan')),
+    #                                                   'december_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('december_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('december_crr_budget_plan')),
+    #                                                   'january_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('january_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('january_crr_budget_plan')),
+    #                                                   'febuary_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('febuary_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('febuary_crr_budget_plan')),
+    #                                                   'march_crr_budget_plan': sum(
+    #                                                       inflow_id.mapped('march_crr_budget_plan')) - sum(
+    #                                                       outflow_id.mapped('march_crr_budget_plan')),
+    #                                                   'cash_type': 'cash_payment',
+    #                                                   'budget_type': budget_type,
+    #                                                   # 'user_type': user_type,
+    #                                                   'is_budget_sum_line': True,
+    #                                                   'company_id': company.id,
+    #                                                   })
+    #
+    #     fund_id = self.env['fund.management'].sudo().search([('te_consolidate_id', '=', self.id)])
+    #     if fund_id:
+    #         fund_id.action_update_share_lines()
+    #     self.is_consolidate_updated = True
+    #     self.state = 'inprogress'
+    #     return True
+
     def action_open_share_view(self):
         share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
                                                               ('budget_id.date_to', '<=', self.end_date),

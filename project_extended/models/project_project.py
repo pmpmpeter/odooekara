@@ -18,6 +18,7 @@ class Project(models.Model):
     last_date = fields.Date(string="Last Date")
     first_reminder = fields.Integer('First Reminder',readonly=0)
     second_reminder = fields.Integer('Second Reminder',readonly=0)
+    is_done = fields.Boolean(string='Done')
 
     # @api.depends('date_of_notice', 'last_date')
     # def _compute_reminder_dates(self):

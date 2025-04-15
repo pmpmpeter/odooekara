@@ -98,33 +98,34 @@
                     </div>
                     <group>
                         <group>
-                            <field name="label_tasks" string="Name of the Tasks" placeholder="e.g. Tasks"/>
-                            <field name="partner_id" widget="res_partner_many2one"/>
-                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
-                            <field name="create_uid" invisible="not is_legal_notice"/>
-                            <field name="create_date" invisible="not is_legal_notice"/>
+                            <field name="is_done" invisible="1"/>
+                            <field name="label_tasks" string="Name of the Tasks" placeholder="e.g. Tasks" readonly="is_done"/>
+                            <field name="partner_id" widget="res_partner_many2one" readonly="is_done"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" readonly="is_done"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="is_done"/>
+                            <field name="create_uid" invisible="not is_legal_notice" readonly="is_done"/>
+                            <field name="create_date" invisible="not is_legal_notice" readonly="is_done"/>
                         </group>
                         <group>
                             <field name="active" invisible="1"/>
-                            <field name="user_id" string="Project Manager" widget="many2one_avatar_user" readonly="not active" domain="[('share', '=', False)]" options="{'no_quick_create': True}"/>
-                            <field name="date_start" string="Planned Date" widget="daterange" options='{"end_date_field": "date", "always_range": "1"}' required="date_start or date" />
+                            <field name="user_id" string="Project Manager" widget="many2one_avatar_user" readonly="not active or is_done" domain="[('share', '=', False)]" options="{'no_quick_create': True}"/>
+                            <field name="date_start" string="Planned Date" widget="daterange" options='{"end_date_field": "date", "always_range": "1"}' required="date_start or date" readonly="is_done"/>
                             <field name="date" invisible="1" required="date_start"/>
                             <field name="is_legal_notice" invisible="1"/>
                             <field name="is_statuory_notice" invisible="1"/>
-                            <field name="date_of_notice" invisible="not (is_legal_notice or is_statuory_notice)"/>
-                            <field name="last_date" invisible="not (is_legal_notice or is_statuory_notice)"/>
-                            <field name="first_reminder" invisible="not (is_legal_notice or is_statuory_notice)"/>
-                            <field name="second_reminder" invisible="not (is_legal_notice or is_statuory_notice)"/>
+                            <field name="date_of_notice" invisible="not (is_legal_notice or is_statuory_notice)" readonly="is_done"/>
+                            <field name="last_date" invisible="not (is_legal_notice or is_statuory_notice)" readonly="is_done"/>
+                            <field name="first_reminder" invisible="not (is_legal_notice or is_statuory_notice)" readonly="is_done"/>
+                            <field name="second_reminder" invisible="not (is_legal_notice or is_statuory_notice)" readonly="is_done"/>
                             <field name="first_reminder_date" invisible="1"/>
                             <field name="second_reminder_date" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
-                        <page name="description" string="Description">
+                        <page name="description" string="Description" readonly="is_done">
                             <field name="description" options="{'resizable': false}" placeholder="Project description..."/>
                         </page>
-                        <page name="settings" string="Settings">
+                        <page name="settings" string="Settings" readonly="is_done">
                             <group>
                                 <group>
                                     <field name="analytic_account_id" domain="['|', ('company_id', '=?', company_id), ('company_id', '=', False)]" context="{'default_partner_id': partner_id, 'default_company_id': company_id} " groups="analytic.group_analytic_accounting"/>

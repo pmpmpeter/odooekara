@@ -768,6 +768,16 @@
                             </tree>
                         </field>
                     </page>
+                    <page string="Confidential" groups="accounts_extended.group_budget_doc_access">
+                        <group>
+                            <field name="doc_attachment" string="Attachments">
+                                <tree editable="bottom">
+                                    <field name="doc_name"/>
+                                    <field name="doc_attach" widget="binary" width="500"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </page>
                 </page>
                 <xpath expr="//sheet" position="inside">
                     <div class="oe_button_box" name="button_box">

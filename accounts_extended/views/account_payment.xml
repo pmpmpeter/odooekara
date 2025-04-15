@@ -122,19 +122,18 @@
                         data-hotkey="w"/>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="after">
-                <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
-                        invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting)"/>
+                <field name="is_utr_updated" invisible="1"/>
+                 <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
+                         invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting) or is_utr_updated or not utr_number"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
             <xpath expr="//label[@for='amount']" position="before">
-                <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id),('state','in', ['done', 'purchase'])]"
-                       readonly="state != 'draft'" invisible="payment_type != 'outbound'"/>
-                <!-- <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id),('state','in', ['done', 'purchase'])]"
+                <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id)]"
                        readonly="state != 'draft'" invisible="payment_type != 'outbound'"
-                       required="state != 'posted' and payment_type == 'outbound'"/> -->
+                       required="state != 'posted' and payment_type == 'outbound'"/>
             </xpath>
             <xpath expr="//field[@name='partner_id'][2]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>

@@ -10,6 +10,7 @@
                 <field name="account_id"/>
                 <field name="date_from" column_invisible='1'/>
                 <field name="date_to"/>
+                <field name="gl_balance"/>
                 <field name="start_bank_balance"/>
                 <field name="bank_balance"/>
                 <field name="state" widget="badge" decoration-warning="state == 'draft'" decoration-success="state == 'posted'"/>
