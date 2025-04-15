@@ -213,3 +213,39 @@ class Project(models.Model):
                 template = self.env.ref('project_extended.statuory_notice_second_reminder_email_template')
                 template.write({'email_to': ', '.join(emails)})
                 self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
+
+
+CLOSED_STATES = {
+    '1_done': 'Done',
+    '1_canceled': 'Canceled',
+}
+class ProjectTask(models.Model):
+    _inherit = 'project.task'
+    # month_day = fields.Selection(
+    #     selection=[(str(i), str(i)) for i in range(1, 32)],
+    #     string="Day of Month",
+    #     help="Day of the month to repeat the task on (1 to 31).",
+    # )
+    recurring_start_date = fields.Date(string="Start Date")
+    def _cron_inverse_state(self):
+        task_obj = self.env['project.task'].search([('recurring_start_date', '=', fields.Date.today())])
+        for task in task_obj:
+            last_task_id_per_recurrence_id = task.recurrence_id._get_last_task_id_per_recurrence_id()
+            # print(task,'----------',task.state, 'ggggggggggggg', last_task_id_per_recurrence_id)
+            if task.state in CLOSED_STATES and task.id == last_task_id_per_recurrence_id.get(task.recurrence_id.id):
+                task.recurrence_id._create_next_occurrence(task)
+class ProjectTaskRecurrence(models.Model):
+    _inherit = 'project.task.recurrence'
+    def _create_next_occurrence(self, occurrence_from):
+        self.ensure_one()
+        if self.repeat_type == 'until' and fields.Date.today() > self.repeat_until:
+            return
+        # Prevent double mail_followers creation
+        self = self.with_context(mail_create_nosubscribe=True)
+        print("fucntion triggered")
+        # Check if the date field in the task matches today's date
+        if occurrence_from.recurring_start_date and occurrence_from.recurring_start_date == fields.Date.today():
+            print(occurrence_from.recurring_start_date,"recuring date")
+            self.env['project.task'].sudo().create(
+                self._create_next_occurrence_values(occurrence_from)
+            )
