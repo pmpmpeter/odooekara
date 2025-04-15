@@ -376,7 +376,7 @@ class AccountMoveInherit(models.Model):
                     move_type = "Sales Receipt"
                 else:
                     move_type = "Purchase Receipt"
-                raise UserError('You cannot post the %s with a back date' % move_type)
+                # raise UserError('You cannot post the %s with a back date' % move_type)
             # if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable:
             if rec.move_type == 'in_invoice' and rec.partner_id.tds_applicable and 'TDS' not in rec.invoice_line_ids.tax_ids.tax_group_id.mapped(
                     'name'):
