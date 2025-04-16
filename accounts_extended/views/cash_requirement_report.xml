@@ -5,6 +5,13 @@
         <field name="model">cash.requirement.report</field>
         <field name="arch" type="xml">
             <form string="Cash Requirement Report">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+                    <button name="button_done" type="object" string="Done" invisible="state in ['done','cancel']"/>
+                    <button name="reset_to_draft" type="object" string="Rest Draft" invisible="state not in 'cancel'"/>
+                    <button name="button_cancel" type="object" string="Cancel" invisible="state in ['done','cancel']"/>
+
+                </header>
                 <sheet>
                         <div class="oe_title" width="100">
                         <h1>
@@ -13,35 +20,36 @@
                     </div>
                         <group>
                             <group>
+                                <field name="state" invisible="1"/>
                                 <field name="create_uid"/>
                                 <field name="create_date"/>
                                 <field name="company_id" readonly="1"/>
-                                <field name="start_date"/>
-                                <field name="end_date"/>
+                                <field name="start_date" readonly="state in 'done'"/>
+                                <field name="end_date" readonly="state in 'done'"/>
                             </group>
                             <group>
-                                <field name="requested_date"/>
-                                <field name="requested_by" options="{'no_quick_create':True,'no_create': True}"/>
-                                <field name="journal_bank" options="{'no_quick_create':True,'no_create': True}"/>
+                                <field name="requested_date" readonly="state in 'done'"/>
+                                <field name="requested_by" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"/>
+                                <field name="journal_bank" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"/>
                             </group>
                         </group>
                         <notebook>
                             <page string="Cash Lines">
                                 <group>
-                                    <field name="available_balance" readonly="1" force_save="1"/>
+                                    <field name="available_balance" readonly="1" force_save="1" />
                                 </group>
 
-                                <field name="cash_requirement_lines">
+                                <field name="cash_requirement_lines" readonly="state in 'done'">
                                     <tree editable="bottom">
                                         <field name="cash_account" required="1" options="{'no_quick_create':True,'no_create': True}"/>
-                                        <field name="partner_id" required="1" options="{'no_quick_create':True,'no_create': True}"/>
+                                        <field name="partner_id" required="0" options="{'no_quick_create':True,'no_create': True}"/>
                                         <field name="requirement_month" required="1"/>
                                         <field name="amount" required="1"/>
                                         <field name="remarks"/>
                                     </tree>
                                 </field>
                                 <group>
-                                    <field name="minimum_balance"/>
+                                    <field name="minimum_balance" readonly="state in 'done'"/>
                                     <field name="amount_total" readonly="1" force_save="1"/>
                                     <field name="total_fund_required" readonly="1" force_save="1"/>
                                 </group>

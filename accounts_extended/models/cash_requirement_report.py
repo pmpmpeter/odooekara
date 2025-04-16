@@ -9,6 +9,11 @@ class CashRequirementReport(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Name",readonly=1)
+    state = fields.Selection([
+        ('draft', 'New'),
+        ('done', 'Done'),
+        ('cancel', 'Cancelled')
+    ], string='Status', default='draft', required=True, tracking=True, copy=False)
     requested_date = fields.Datetime(string="Request Date", readonly=True, tracking=True, copy=False, default=fields.Datetime.now)
     requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False)
     journal_bank  =fields.Many2one('account.journal',string='Bank',copy=False)
@@ -26,6 +31,13 @@ class CashRequirementReport(models.Model):
         for vals in vals_list:
             vals['name'] = self.env['ir.sequence'].next_by_code('cash.requirement.report')
         return super().create(vals_list)
+
+    def button_done(self):
+        self.state = 'done'
+    def reset_to_draft(self):
+        self.state = 'draft'
+    def button_cancel(self):
+        self.state = 'cancel'
 
     @api.onchange('journal_bank')
     def onchange_journal_bank(self):
