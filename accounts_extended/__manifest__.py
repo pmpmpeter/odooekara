@@ -45,6 +45,7 @@
         'views/fund_management.xml',
         'views/cash_pool.xml',
         'views/budget_department.xml',
+        'views/cash_requirement_report.xml'
     ],
     'license': 'LGPL-3',
 

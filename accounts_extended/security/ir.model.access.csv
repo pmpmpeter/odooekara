@@ -19,3 +19,5 @@ access_crr_company_share,access_crr_company_share,model_crr_company_share,base.g
 access_budget_department,access_budget_department,model_budget_department,base.group_user,1,1,1,1
 access_crr_other_share_line,access_crr_other_share_line,model_crr_other_share_line,base.group_user,1,1,1,1
 access_doc_attach,access_doc_attach,model_doc_attach,base.group_user,1,1,1,1
+access_cash_requirement_report,access_cash_requirement_report,model_cash_requirement_report,base.group_user,1,1,1,1
+access_cash_requirement_lines,access_cash_requirement_lines,model_cash_requirement_lines,base.group_user,1,1,1,1

@@ -63,5 +63,11 @@
             <field name="model_id" ref="accounts_extended.model_budget_department"/>
             <field name="domain_force">[('company_id', 'in', company_ids)]</field>
         </record>
+
+         <record model="ir.rule" id="cash_requirement_report_rule">
+            <field name="name">Cash Requirement Report</field>
+            <field name="model_id" ref="accounts_extended.model_cash_requirement_report"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
     </data>
 </odoo>

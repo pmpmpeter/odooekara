@@ -178,11 +178,11 @@
         </field>
     </record>
 
-    <menuitem id="menu_cash_management" 
-              name="Cash Requirement Report"
-              parent="account.menu_finance_reports"
-              action="action_cash_management" 
-             sequence="100"/>
+<!--    <menuitem id="menu_cash_management" -->
+<!--              name="Cash Requirement Report"-->
+<!--              parent="account.menu_finance_reports"-->
+<!--              action="action_cash_management" -->
+<!--             sequence="100"/>-->
 
         <record id="seq_cash_management" model="ir.sequence">
             <field name="name">Cash Requirement Report</field>

@@ -17,7 +17,7 @@
                     <field name="report_file" readonly="1" widget="binary" filename="file_name" invisible='not report_file'/>
                 </group>
                 <footer>
-                    <button name="action_generate_cur_report" string="Generate Report" type="object" class="btn-primary"/>
+                    <button name="action_generate_cur_report" string="Generate Report" type="object" class="btn-primary" invisible="report_file"/>
                     <button string="Close" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

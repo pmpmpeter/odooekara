@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_cash_requirement_report_form" model="ir.ui.view">
+        <field name="name">cash.requirement.report.form</field>
+        <field name="model">cash.requirement.report</field>
+        <field name="arch" type="xml">
+            <form string="Cash Requirement Report">
+                <sheet>
+                        <div class="oe_title" width="100">
+                        <h1>
+                            <field name="name" placeholder="New"/>
+                        </h1>
+                    </div>
+                        <group>
+                            <group>
+                                <field name="create_uid"/>
+                                <field name="create_date"/>
+                                <field name="company_id" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="requested_date"/>
+                                <field name="requested_by" options="{'no_quick_create':True,'no_create': True}"/>
+                                <field name="journal_bank" options="{'no_quick_create':True,'no_create': True}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Cash Lines">
+                                <group>
+                                    <field name="available_balance" readonly="1"/>
+                                </group>
+
+                                <field name="cash_requirement_lines">
+                                    <tree editable="bottom">
+                                        <field name="cash_account" required="1" options="{'no_quick_create':True,'no_create': True}"/>
+                                        <field name="partner_id" required="1" options="{'no_quick_create':True,'no_create': True}"/>
+                                        <field name="requirement_month" required="1"/>
+                                        <field name="amount" required="1"/>
+                                        <field name="remarks"/>
+                                    </tree>
+                                </field>
+                                <group>
+                                    <field name="minimum_balance"/>
+                                    <field name="amount_total" readonly="1"/>
+                                    <field name="total_fund_required" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+
+
+
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids" options="{'post_refresh': 'always'}"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_cash_requirement_report_tree" model="ir.ui.view">
+        <field name="name">cash.requirement.report</field>
+        <field name="model">cash.requirement.report</field>
+        <field name="arch" type="xml">
+            <tree string="Cash Requirement Report">
+                <field name="requested_date"/>
+                <field name="requested_by"/>
+                <field name="journal_bank"/>
+                <field name="available_balance"/>
+                <field name="minimum_balance"/>
+                <field name="amount_total"/>
+                <field name="total_fund_required"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_cash_requirement" model="ir.actions.act_window">
+        <field name="name">Cash Requirement Report</field>
+        <field name="res_model">cash.requirement.report</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p>
+                Create and configure cash pool.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_cash_requirement"
+              name="Cash Requirement Report"
+              parent="account.menu_finance_entries"
+              action="action_cash_requirement"
+              sequence="100"/>
+</odoo>

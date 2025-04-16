@@ -4,5 +4,6 @@ from . import account_move
 from . import account_payment
 from . import cash_management
 from . import cash_pool
+from . import cash_requirement_report
 from . import fund_management
 from . import budget_department

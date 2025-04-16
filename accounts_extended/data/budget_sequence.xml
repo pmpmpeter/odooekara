@@ -13,6 +13,13 @@
         <field name="prefix">CP</field>
         <field name="padding">3</field>
     </record>
+
+    <record id="seq_cash_requirement_report" model="ir.sequence">
+        <field name="name">Cash Requirement Report</field>
+        <field name="code">cash.requirement.report</field>
+        <field name="prefix">CRR</field>
+        <field name="padding">3</field>
+    </record>
     <record id="seq_fund_management_code" model="ir.sequence">
         <field name="name">Fund Management Code</field>
         <field name="code">fund.management</field>
