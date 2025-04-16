@@ -979,11 +979,11 @@
         <field name="domain">[('is_credit_payment','=', True),('payment_type','=','outbound')]</field>
     </record>
 
-    <menuitem
-            id="menu_fund_requisting"
-            action="open_create_fund_payment_form"
-            sequence="2"
-            parent="account.menu_finance_entries"/>
+<!--    <menuitem-->
+<!--            id="menu_fund_requisting"-->
+<!--            action="open_create_fund_payment_form"-->
+<!--            sequence="2"-->
+<!--            parent="account.menu_finance_entries"/>-->
     <menuitem
             id="menu_contra_payment"
             action="open_create_contra_payment_form"

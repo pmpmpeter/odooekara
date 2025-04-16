@@ -18,6 +18,8 @@ class CashRequirementReport(models.Model):
     minimum_balance = fields.Float(string='Minimum Balance',copy=False)
     amount_total = fields.Float(string='Amount Total', copy=False)
     total_fund_required = fields.Float(string='Total Fund Required', copy=False)
+    start_date = fields.Datetime(string="Start Date",default=fields.Datetime.now)
+    end_date = fields.Datetime(string='End Date')
 
     @api.model_create_multi
     def create(self, vals_list):
