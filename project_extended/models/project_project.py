@@ -229,6 +229,24 @@ class ProjectTask(models.Model):
     second_reminder_date = fields.Date(string="Second Reminder Date")
     task_valid_from = fields.Date(string="Task Period From",default=fields.Date.context_today)
 
+    @api.model
+    def check_expired_tasks_recurring(self):
+        expired_tasks = self.search([
+            ('date_deadline', '<', fields.Date.today()),
+            ('stage_id.name', '!=', 'Expired'),
+            ('recurring_task','=',True),
+        ])
+        print(expired_tasks,'ggggggggggg')
+        for task in expired_tasks:
+            task.stage_id = self.env['project.task.type'].search([('name', '=', 'Expired'),
+                                                                  ('project_ids', 'in', task.project_id.id)]).id
+            # task.action_send_status_email()
+
+    # def action_send_status_email(self):
+    #     template = self.env.ref('project_extended.email_template_status_change_task')
+    #     for task in self:
+    #         template.send_mail(task.id, force_send=True)
+
     @api.onchange('recurrence_reminder','recurrence_reminder2')
     def _onchange_dates(self):
         """
@@ -316,7 +334,6 @@ class ProjectTaskRecurrence(models.Model):
 
     def _create_next_occurrence(self, occurrence_from):
         self.ensure_one()
-
         self = self.with_context(mail_create_nosubscribe=True)
         create_values = self._create_next_occurrence_values(occurrence_from)
         date_deadline = create_values['date_deadline']
@@ -325,4 +342,8 @@ class ProjectTaskRecurrence(models.Model):
         date = datetime.strptime(date_str, "%Y-%m-%d").date()
         if not (self.repeat_type == 'until' and date_deadline and date_deadline.date() > self.repeat_until):
             if date == fields.Date.today():
-                self.env['project.task'].sudo().create(create_values)
+                task = self.env['project.task'].sudo().create(create_values)
+                task.write({
+                    'recurrence_reminder':occurrence_from.recurrence_reminder,
+                    'recurrence_reminder2':occurrence_from.recurrence_reminder2
+                })
