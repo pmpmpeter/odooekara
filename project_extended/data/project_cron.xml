@@ -36,8 +36,9 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <xpath expr="//label[@for='repeat_interval']" position="before">
-                <field name="recurrence_reminder"/>
-                <field name="recurrence_reminder2"/>
+                <field name="recurring_task" invisible="1"/>
+                <field name="recurrence_reminder" invisible="not recurring_task"/>
+                <field name="recurrence_reminder2" invisible="not recurring_task"/>
                 <field name="first_reminder_date" invisible="1"/>
                 <field name="second_reminder_date" invisible="1"/>
             </xpath>
