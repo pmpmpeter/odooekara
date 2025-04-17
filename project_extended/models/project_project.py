@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, Command, fields, models, _, _lt
-from datetime import timedelta
+from datetime import datetime,timedelta
 from odoo.exceptions import UserError, ValidationError
 
 class Project(models.Model):
@@ -221,31 +221,107 @@ CLOSED_STATES = {
 }
 class ProjectTask(models.Model):
     _inherit = 'project.task'
-    # month_day = fields.Selection(
-    #     selection=[(str(i), str(i)) for i in range(1, 32)],
-    #     string="Day of Month",
-    #     help="Day of the month to repeat the task on (1 to 31).",
-    # )
+
+    recurrence_reminder  =fields.Integer(string='First Remainder')
+    recurrence_reminder2 = fields.Integer(string='Secondary Remainder')
     recurring_start_date = fields.Date(string="Start Date")
+    first_reminder_date = fields.Date(string="First Reminder Date")
+    second_reminder_date = fields.Date(string="Second Reminder Date")
+
+    @api.onchange('recurrence_reminder','recurrence_reminder2')
+    def _onchange_dates(self):
+        """
+        Update reminder fields when the date_of_notice or last_date changes.
+        """
+        for task in self:
+            if task.recurring_task:
+
+                if task.date_deadline:
+                    end_date =  task.date_deadline
+                    date_str = task.date_deadline.strftime("%Y-%m-%d")
+                    date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                    if date < fields.Date.today():
+                        raise UserError(_("Kindly provide the correct date."))
+                    else:
+                        if task.recurrence_reminder:
+                            first_reminder = task.recurrence_reminder
+                            task.first_reminder_date = date - timedelta(days=first_reminder)
+                        if task.recurrence_reminder2:
+                            second_reminder = task.recurrence_reminder2
+                            task.second_reminder_date = date - timedelta(days=second_reminder)
+
+    def send_recurring_reminder(self):
+        today = fields.Date.today()
+        recurring_first_reminder = self.sudo().search([
+            ('first_reminder_date', '=', today),('recurring_task','=',True)
+        ])
+        recurring_second_reminder = self.sudo().search([
+            ('second_reminder_date', '=', today),('recurring_task','=',True)
+        ])
+        if recurring_first_reminder:
+            self._send_first_reminder_email_notifications_recurring(recurring_first_reminder)
+        if recurring_second_reminder:
+            self._send_second_reminder_email_notifications_recurring(recurring_second_reminder)
+
+    def _send_second_reminder_email_notifications_recurring(self,recurring_second_reminder):
+        account_manager_group = self.env.ref('account.group_account_manager')
+        emails = [user.email for user in account_manager_group.users if user.email]
+        if emails:
+            for rec in recurring_second_reminder:
+                template = self.env.ref('project_extended.recurring_second_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
+
+    def _send_first_reminder_email_notifications_recurring(self,recurring_first_reminder):
+        account_manager_group = self.env.ref('account.group_account_manager')
+        emails = [user.email for user in account_manager_group.users if user.email]
+        if emails:
+            for rec in recurring_first_reminder:
+                template = self.env.ref('project_extended.recurring_first_reminder_email_template')
+                template.write({'email_to': ', '.join(emails)})
+                self.env['mail.template'].browse(template.id).send_mail(rec.id, force_send=True)
+
+
     def _cron_inverse_state(self):
-        task_obj = self.env['project.task'].search([('recurring_start_date', '=', fields.Date.today())])
+        today = fields.Date.today()
+        start_of_day = today.strftime('%Y-%m-%d 00:00:00')
+        end_of_day = today.strftime('%Y-%m-%d 23:59:59')
+
+        task_obj = self.env['project.task'].search([
+            ('planned_date_begin', '>=', start_of_day),
+            ('planned_date_begin', '<=', end_of_day)
+        ])
+        print(task_obj,'lllll')
         for task in task_obj:
             last_task_id_per_recurrence_id = task.recurrence_id._get_last_task_id_per_recurrence_id()
-            # print(task,'----------',task.state, 'ggggggggggggg', last_task_id_per_recurrence_id)
             if task.state in CLOSED_STATES and task.id == last_task_id_per_recurrence_id.get(task.recurrence_id.id):
                 task.recurrence_id._create_next_occurrence(task)
 class ProjectTaskRecurrence(models.Model):
     _inherit = 'project.task.recurrence'
+    # def _create_next_occurrence(self, occurrence_from):
+    #     self.ensure_one()
+    #     if self.repeat_type == 'until' and fields.Date.today() > self.repeat_until:
+    #         return
+    #     # Prevent double mail_followers creation
+    #     self = self.with_context(mail_create_nosubscribe=True)
+    #     print("fucntion triggered")
+    #     # Check if the date field in the task matches today's date
+    #     if occurrence_from.recurring_start_date and occurrence_from.recurring_start_date == fields.Date.today():
+    #         print(occurrence_from.recurring_start_date,"recuring date")
+    #         self.env['project.task'].sudo().create(
+    #             self._create_next_occurrence_values(occurrence_from)
+    #         )
+
+
     def _create_next_occurrence(self, occurrence_from):
         self.ensure_one()
-        if self.repeat_type == 'until' and fields.Date.today() > self.repeat_until:
-            return
-        # Prevent double mail_followers creation
+
         self = self.with_context(mail_create_nosubscribe=True)
-        print("fucntion triggered")
-        # Check if the date field in the task matches today's date
-        if occurrence_from.recurring_start_date and occurrence_from.recurring_start_date == fields.Date.today():
-            print(occurrence_from.recurring_start_date,"recuring date")
-            self.env['project.task'].sudo().create(
-                self._create_next_occurrence_values(occurrence_from)
-            )
+        create_values = self._create_next_occurrence_values(occurrence_from)
+        date_deadline = create_values['date_deadline']
+        planned_date_begin = create_values['planned_date_begin']
+        date_str = occurrence_from.planned_date_begin.strftime("%Y-%m-%d")
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        if not (self.repeat_type == 'until' and date_deadline and date_deadline.date() > self.repeat_until):
+            if date == fields.Date.today():
+                self.env['project.task'].sudo().create(create_values)
