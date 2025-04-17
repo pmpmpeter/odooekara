@@ -227,6 +227,7 @@ class ProjectTask(models.Model):
     recurring_start_date = fields.Date(string="Start Date")
     first_reminder_date = fields.Date(string="First Reminder Date")
     second_reminder_date = fields.Date(string="Second Reminder Date")
+    task_valid_from = fields.Date(string="Task Period From",default=fields.Date.context_today)
 
     @api.onchange('recurrence_reminder','recurrence_reminder2')
     def _onchange_dates(self):

@@ -39,6 +39,7 @@
                 <field name="recurring_task" invisible="1"/>
                 <field name="recurrence_reminder" invisible="not recurring_task"/>
                 <field name="recurrence_reminder2" invisible="not recurring_task"/>
+                <field name="task_valid_from" invisible="not recurring_task"/>
                 <field name="first_reminder_date" invisible="1"/>
                 <field name="second_reminder_date" invisible="1"/>
             </xpath>
