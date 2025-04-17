@@ -56,6 +56,8 @@ class ProjectProject(models.Model):
             stage_names = ['Draft', 'In Progress', 'Review', 'Done']
         if context.get('default_is_document_validity_management'):
             stage_names = ['Draft', 'To Renew', 'Active', 'Expired']
+        else:
+            stage_names = ['Draft','In Progress','Done','Expired']
         if stage_names:
             for name in stage_names:
                 stage = self.env['project.task.type'].search([('name', '=', name),('project_ids', 'in',self._origin.id)], limit=1)
