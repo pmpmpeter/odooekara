@@ -7,3 +7,4 @@ from . import cash_pool
 from . import cash_requirement_report
 from . import fund_management
 from . import budget_department
+from . import sale_order
