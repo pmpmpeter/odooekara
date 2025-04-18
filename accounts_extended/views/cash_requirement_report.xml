@@ -31,14 +31,11 @@
                                 <field name="requested_date" readonly="state in 'done'"/>
                                 <field name="requested_by" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"/>
                                 <field name="journal_bank" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"/>
+                                <field name="available_balance" readonly="1" force_save="1" />
                             </group>
                         </group>
                         <notebook>
-                            <page string="Cash Lines">
-                                <group>
-                                    <field name="available_balance" readonly="1" force_save="1" />
-                                </group>
-
+                            <page string="Cash Request Lines">
                                 <field name="cash_requirement_lines" readonly="state in 'done'">
                                     <tree editable="bottom">
                                         <field name="cash_account" required="1" options="{'no_quick_create':True,'no_create': True}"/>
