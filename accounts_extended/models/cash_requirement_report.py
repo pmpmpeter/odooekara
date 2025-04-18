@@ -6,11 +6,14 @@ from datetime import datetime
 
 class CashRequirementReport(models.Model):
     _name = 'cash.requirement.report'
+    _description = 'Cash Requirement Request'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Name",readonly=1, copy=False)
     state = fields.Selection([
         ('draft', 'New'),
+        ('to approve','To Approve'),
+        ('approved','Approved'),
         ('done', 'Done'),
         ('cancel', 'Cancelled')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
@@ -25,6 +28,8 @@ class CashRequirementReport(models.Model):
     total_fund_required = fields.Float(string='Total Fund Required', copy=False)
     start_date = fields.Date(string="Start Date",default=fields.Datetime.now)
     end_date = fields.Date(string='End Date')
+    revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="", copy=False)
+    approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -37,6 +42,8 @@ class CashRequirementReport(models.Model):
 
     def reset_to_draft(self):
         self.state = 'draft'
+        self.x_has_request_approval = False
+        self.x_review_result = ''
 
     def button_cancel(self):
         self.state = 'cancel'

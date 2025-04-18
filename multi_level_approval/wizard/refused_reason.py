@@ -54,6 +54,24 @@ class RefusedReason(models.TransientModel):
             })
             mail_obj.sudo().send()
 
+        if multi_id.type_id.model_id == "cash.requirement.report":
+            user_name = self.env.user.name  # Current user's name
+            current_time = datetime.now()  # Current date and time
+            revision_time = (current_time + timedelta(hours=5, minutes=30)).strftime('%Y-%m-%d %H:%M:%S')  # Add 5:30 hours
+            current_revisions = multi_id.origin_ref.revision_reason or ''
+            revision_count = current_revisions.count('R') + 1  # Count existing revisions
+            new_revision = f"R{revision_count}: {self.reason} (by {user_name} on {revision_time})"
+            multi_id.origin_ref.revision_reason = f"{new_revision}\n {current_revisions}".strip()
+            multi_id.origin_ref.state = 'draft'
+            multi_id.origin_ref.x_has_request_approval = False
+            mail_obj = self.env['mail.mail'].sudo().create({
+                'subject': f'Revision Mail:{multi_id.origin_ref.name}',
+                'email_from':self.env.company.email ,  # Change to a valid email
+                'email_to': multi_id.origin_ref.requested_by.login,  # Change recipient email
+                 'body_html': f"<p>Hello,<br/><br/> your cash request has been revised because of the following reason:</p><p><strong>{self.reason}</strong></p><br/><p>Thank You.</>",
+            })
+            mail_obj.sudo().send()
+
         return approval.action_refuse(reason=self.reason)
 
 class ApproveReason(models.TransientModel):

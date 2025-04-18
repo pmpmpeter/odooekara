@@ -7,9 +7,9 @@
             <form string="Cash Requirement Report">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
-                    <button name="button_done" type="object" string="Done" invisible="state in ['done','cancel']"/>
-                    <button name="reset_to_draft" type="object" string="Rest Draft" invisible="state not in 'cancel'"/>
-                    <button name="button_cancel" type="object" string="Cancel" invisible="state in ['done','cancel']"/>
+                    <button name="button_done" type="object" string="Done" invisible="1"/>
+                    <button name="reset_to_draft" type="object" string="Reset Draft" invisible="1"/>
+                    <button name="button_cancel" type="object" string="Cancel" invisible="1"/>
 
                 </header>
                 <sheet>
@@ -54,6 +54,9 @@
                                     <field name="total_fund_required" readonly="1" force_save="1"/>
                                 </group>
                             </page>
+                            <page string="Revision Remarks" invisible='not revision_reason'>
+                                <field name='revision_reason' force_save='1' readonly="1"/>
+                            </page>
                         </notebook>
 
 
@@ -86,18 +89,18 @@
     </record>
 
     <record id="action_cash_requirement" model="ir.actions.act_window">
-        <field name="name">Cash Requirement Report</field>
+        <field name="name">Cash Requirement Request</field>
         <field name="res_model">cash.requirement.report</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
             <p>
-                Create and configure cash pool.
+                Create cash requirement request.
             </p>
         </field>
     </record>
 
     <menuitem id="menu_cash_requirement"
-              name="Cash Requirement Report"
+              name="Cash Requirement Request"
               parent="account.menu_finance_entries"
               action="action_cash_requirement"
               sequence="100"/>
