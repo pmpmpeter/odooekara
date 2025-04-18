@@ -13,8 +13,7 @@ class CashRequirementReport(models.Model):
     state = fields.Selection([
         ('draft', 'New'),
         ('to approve','To Approve'),
-        ('approved','Approved'),
-        ('done', 'Done'),
+        ('done', 'Approved'),
         ('cancel', 'Cancelled')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
     requested_date = fields.Date(string="Request Date", readonly=True, tracking=True, copy=False, default=fields.Datetime.now)
@@ -39,6 +38,12 @@ class CashRequirementReport(models.Model):
 
     def button_done(self):
         self.state = 'done'
+
+    def unlink(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError('You can able to delete Draft records only')
+        return super(CashRequirementReport, self).unlink()
 
     def reset_to_draft(self):
         self.state = 'draft'

@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Cash Requirement Report">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,done,cancel"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
                     <button name="button_done" type="object" string="Done" invisible="1"/>
                     <button name="reset_to_draft" type="object" string="Reset Draft" invisible="1"/>
                     <button name="button_cancel" type="object" string="Cancel" invisible="1"/>
