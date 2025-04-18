@@ -8,23 +8,23 @@ class CashRequirementReport(models.Model):
     _name = 'cash.requirement.report'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char(string="Name",readonly=1)
+    name = fields.Char(string="Name",readonly=1, copy=False)
     state = fields.Selection([
         ('draft', 'New'),
         ('done', 'Done'),
         ('cancel', 'Cancelled')
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
-    requested_date = fields.Datetime(string="Request Date", readonly=True, tracking=True, copy=False, default=fields.Datetime.now)
-    requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False)
-    journal_bank  =fields.Many2one('account.journal',string='Bank',copy=False)
+    requested_date = fields.Date(string="Request Date", readonly=True, tracking=True, copy=False, default=fields.Datetime.now)
+    requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False, default=lambda self: self.env.user)
+    journal_bank  =fields.Many2one('account.journal',string='Bank',copy=False, company_dependent=True, domain=[('type', '=', 'bank')])
     cash_requirement_lines = fields.One2many('cash.requirement.lines','cash_req_id',string='Lines',copy=False)
     available_balance  =fields.Float(string='Available Amount Balance',copy=False)
     company_id = fields.Many2one('res.company',string ='Company', default=lambda self: self.env.company)
     minimum_balance = fields.Float(string='Minimum Balance',copy=False)
     amount_total = fields.Float(string='Amount Total', copy=False)
     total_fund_required = fields.Float(string='Total Fund Required', copy=False)
-    start_date = fields.Datetime(string="Start Date",default=fields.Datetime.now)
-    end_date = fields.Datetime(string='End Date')
+    start_date = fields.Date(string="Start Date",default=fields.Datetime.now)
+    end_date = fields.Date(string='End Date')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -34,8 +34,10 @@ class CashRequirementReport(models.Model):
 
     def button_done(self):
         self.state = 'done'
+
     def reset_to_draft(self):
         self.state = 'draft'
+
     def button_cancel(self):
         self.state = 'cancel'
 
@@ -48,7 +50,7 @@ class CashRequirementReport(models.Model):
                         join account_move am on am.id=aml.move_id 
                         where am.state='posted' and aml.account_id=%s and aml.date <= %s and aml.company_id = %s
                         """
-            print(datetime.today().strftime('%Y-%m-%d'),'yyffffff')
+            # print(datetime.today().strftime('%Y-%m-%d'),'yyffffff')
             params = tuple(self.journal_bank.default_account_id.ids), datetime.today().strftime('%Y-%m-%d'), self.company_id.id
             data_get8 = self.env.cr.execute(query, params)
             lines8 = self.env.cr.dictfetchall()
@@ -75,14 +77,14 @@ class CashRequirementReport(models.Model):
     #     print('hf')
 
 
-
 class CashRequirementLines(models.Model):
     _name = 'cash.requirement.lines'
     _description = 'Cash Requirement Lines'
 
-    cash_req_id = fields.Many2one('cash.requirement.report',string='Cash Requirement')
-    cash_account = fields.Many2one('account.account',string='Account', copy=False)
+    cash_req_id = fields.Many2one('cash.requirement.report', string='Cash Requirement')
+    cash_account = fields.Many2one('account.account',string='Account', copy=False, company_dependent=True)
     partner_id = fields.Many2one('res.partner',string='Partner' ,copy=False)
     requirement_month = fields.Date(string='Month',copy=False, default=fields.Datetime.now)
     amount = fields.Float('Amount', copy=False, tracking=True)
     remarks = fields.Char('Remarks')
+    company_id = fields.Many2one('res.company',string ='Company', related='cash_req_id.company_id', store=True)
