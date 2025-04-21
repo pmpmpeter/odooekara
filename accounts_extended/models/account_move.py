@@ -406,3 +406,110 @@ class AccountsJournal(models.Model):
     _inherit = 'account.journal'
 
     is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment')
+
+
+    # def _get_journal_dashboard_data_batched(self):
+    #     print('hhhhhhhhhhhhh')
+    #     result = {}
+    #     for journal in self:
+    #         res = super(AccountsJournal, self)._get_journal_dashboard_data_batched()
+    #         account_sum = 0.0
+    #         bank_balance = 0.0
+    #         currency = journal.currency_id or journal.company_id.currency_id
+    #         account_ids = tuple(ac for ac in [journal.default_account_id.id] if ac)
+    #         if self.type in ['cash']:
+    #             last_bank_stmt = self.env['account.bank.statement'].search([('journal_id', 'in', self.ids)], order="date desc, id desc", limit=1)
+    #             bank_balance = last_bank_stmt and last_bank_stmt[0].balance_end or 0
+    #             if account_ids:
+    #                 amount_field = 'balance' if (
+    #                 not self.currency_id or self.currency_id == self.company_id.currency_id) else 'amount_currency'
+    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s;""" % (
+    #                 amount_field,)
+    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
+    #                 query_results = self.env.cr.dictfetchall()
+    #                 if query_results and query_results[0].get('sum') != None:
+    #                     account_sum = query_results[0].get('sum')
+    #         if self.type in ['bank']:
+    #             last_bank_stmt = self.env['account.bank.statement'].search([('journal_id', 'in', self.ids)], order="date desc, id desc", limit=1)
+    #             last_balance = last_bank_stmt and last_bank_stmt[0].balance_end or 0
+    #             if account_ids:
+    #                 amount_field = 'balance' if (
+    #                 not self.currency_id or self.currency_id == self.company_id.currency_id) else 'amount_currency'
+    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s;""" % (
+    #                 amount_field,)
+    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
+    #                 query_results = self.env.cr.dictfetchall()
+    #                 if query_results and query_results[0].get('sum') != None:
+    #                     account_sum = query_results[0].get('sum')
+    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s AND
+    #                             statement_date is not NULL;""" % (amount_field,)
+    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
+    #                 query_results = self.env.cr.dictfetchall()
+    #                 if query_results and query_results[0].get('sum') != None:
+    #                     bank_balance = query_results[0].get('sum')
+    #                 last_manual_bank_stmt = self.env['bank.statement'].search([('journal_id', 'in', self.ids)], order="id", limit=1)
+    #                 last_manual_balance = last_manual_bank_stmt and last_manual_bank_stmt[0].open_balance or 0
+    #                 # bank_balance +=last_balance
+    #                 bank_balance +=last_manual_balance
+    #         difference = currency.round(account_sum - bank_balance) + 0.0
+    #         res.update({
+    #             'last_balance': formatLang(self.env, currency.round(bank_balance) + 0.0, currency_obj=currency),
+    #             'difference': formatLang(self.env, currency.round(difference) + 0.0, currency_obj=currency)
+    #         })
+    #         return res
+
+    # def _get_journal_dashboard_data_batched(self):
+    #     result = {}
+    #
+    #     for journal in self:
+    #         res = super(AccountsJournal, journal)._get_journal_dashboard_data_batched()
+    #         account_sum = 0.0
+    #         bank_balance = 0.0
+    #
+    #         currency = journal.currency_id or journal.company_id.currency_id
+    #         account_ids = tuple(ac for ac in [journal.default_account_id.id] if ac)
+    #
+    #         if journal.type in ['cash', 'bank']:
+    #             last_bank_stmt = self.env['account.bank.statement'].search(
+    #                 [('journal_id', '=', journal.id)], order="date desc, id desc", limit=1)
+    #             if journal.type == 'cash':
+    #                 bank_balance = last_bank_stmt.balance_end if last_bank_stmt else 0
+    #             elif journal.type == 'bank':
+    #                 last_balance = last_bank_stmt.balance_end if last_bank_stmt else 0
+    #
+    #             if account_ids:
+    #                 amount_field = 'balance' if (
+    #                         not journal.currency_id or journal.currency_id == journal.company_id.currency_id
+    #                 ) else 'amount_currency'
+    #
+    #                 self.env.cr.execute(
+    #                     f"""SELECT sum({amount_field}) FROM account_move_line WHERE account_id in %s AND date <= %s""",
+    #                     (account_ids, fields.Date.today())
+    #                 )
+    #                 query_result = self.env.cr.dictfetchone()
+    #                 account_sum = query_result['sum'] or 0
+    #
+    #                 if journal.type == 'bank':
+    #                     self.env.cr.execute(
+    #                         f"""SELECT sum({amount_field}) FROM account_move_line WHERE account_id in %s AND date <= %s AND statement_date IS NOT NULL""",
+    #                         (account_ids, fields.Date.today())
+    #                     )
+    #                     result_stmt = self.env.cr.dictfetchone()
+    #                     bank_balance = result_stmt['sum'] or 0
+    #
+    #                     last_manual_stmt = self.env['bank.statement'].search(
+    #                         [('journal_id', '=', journal.id)], order="id", limit=1)
+    #                     last_manual_balance = last_manual_stmt.gl_balance if last_manual_stmt else 0
+    #                     bank_balance += last_manual_balance
+    #
+    #         difference = currency.round(account_sum - bank_balance) + 0.0
+    #         print(difference,'lllll')
+    #         res.update({
+    #             'last_balance': formatLang(self.env, currency.round(bank_balance) + 0.0, currency_obj=currency),
+    #             'difference': formatLang(self.env, currency.round(difference) + 0.0, currency_obj=currency)
+    #         })
+    #
+    #         result[journal.id] = res
+    #
+    #     return result
+
