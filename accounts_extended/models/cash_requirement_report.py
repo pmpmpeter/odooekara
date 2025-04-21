@@ -62,6 +62,7 @@ class CashRequirementReport(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             vals['name'] = self.env['ir.sequence'].next_by_code('cash.requirement.report')
+            vals['active']  =True
         return super().create(vals_list)
 
     def button_done(self):
@@ -134,7 +135,7 @@ class CashRequirementLines(models.Model):
     _description = 'Cash Requirement Lines'
 
     cash_req_id = fields.Many2one('cash.requirement.report', string='Cash Requirement')
-    cash_account = fields.Many2one('account.account',string='Account', copy=False, company_dependent=True)
+    cash_account = fields.Many2one('account.account',string='Account', copy=False)
     partner_id = fields.Many2one('res.partner',string='Partner' ,copy=False)
     requirement_month = fields.Date(string='Month',copy=False, default=fields.Datetime.now)
     amount = fields.Float('Amount', copy=False, tracking=True)
