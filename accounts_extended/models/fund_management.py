@@ -116,34 +116,34 @@ class FundManagementCRR(models.Model):
                     january_total += rec1.january_cash_pool
                     february_total += rec1.febuary_cash_pool
                     march_total += rec1.march_cash_pool
-                if current_month in Q1:
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_april')), 2)) != abs(april_total):
-                        raise UserError(_("Total Share for April month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_may')), 2)) != abs(may_total):
-                        raise UserError(_("Total Share for May month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_june')), 2)) != abs(june_total):
-                        raise UserError(_("Total Share for June month does not match."))
-                if current_month in Q2:
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_july')), 2)) != abs(july_total):
-                        raise UserError(_("Total Share for July month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_august')), 2)) != abs(august_total):
-                        raise UserError(_("Total Share for August month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_september')), 2)) != abs(september_total):
-                        raise UserError(_("Total Share for September month does not match."))
-                if current_month in Q3:
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_october')), 2)) != abs(october_total):
-                        raise UserError(_("Total Share for October month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_november')), 2)) != abs(november_total):
-                        raise UserError(_("Total Share for November month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_december')), 2)) != abs(december_total):
-                        raise UserError(_("Total Share for December month does not match."))
-                if current_month in Q4:
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_january')), 2)) != abs(january_total):
-                        raise UserError(_("Total Share for January month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_february')), 2)) != abs(february_total):
-                        raise UserError(_("Total Share for February month does not match."))
-                    if abs(round(sum(rec.crr_share_line.mapped('crr_share_march')), 2)) != abs(march_total):
-                        raise UserError(_("Total Share for March month does not match."))
+                # if current_month in Q1:
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_april')), 2)) != abs(april_total):
+                #         raise UserError(_("Total Share for April month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_may')), 2)) != abs(may_total):
+                #         raise UserError(_("Total Share for May month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_june')), 2)) != abs(june_total):
+                #         raise UserError(_("Total Share for June month does not match."))
+                # if current_month in Q2:
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_july')), 2)) != abs(july_total):
+                #         raise UserError(_("Total Share for July month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_august')), 2)) != abs(august_total):
+                #         raise UserError(_("Total Share for August month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_september')), 2)) != abs(september_total):
+                #         raise UserError(_("Total Share for September month does not match."))
+                # if current_month in Q3:
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_october')), 2)) != abs(october_total):
+                #         raise UserError(_("Total Share for October month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_november')), 2)) != abs(november_total):
+                #         raise UserError(_("Total Share for November month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_december')), 2)) != abs(december_total):
+                #         raise UserError(_("Total Share for December month does not match."))
+                # if current_month in Q4:
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_january')), 2)) != abs(january_total):
+                #         raise UserError(_("Total Share for January month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_february')), 2)) != abs(february_total):
+                #         raise UserError(_("Total Share for February month does not match."))
+                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_march')), 2)) != abs(march_total):
+                #         raise UserError(_("Total Share for March month does not match."))
                 rec._allocate_cash_pool()
                 # rec.state = 'done'
                 # if rec.te_consolidate_id:

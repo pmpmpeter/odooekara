@@ -1,7 +1,8 @@
 from odoo import api, fields, models, _, Command
 from odoo.osv import expression
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
-from datetime import datetime
+from datetime import datetime,date,timedelta
+import calendar
 
 
 class CashRequirementReport(models.Model):
@@ -25,10 +26,37 @@ class CashRequirementReport(models.Model):
     minimum_balance = fields.Float(string='Minimum Balance',copy=False)
     amount_total = fields.Float(string='Amount Total', copy=False)
     total_fund_required = fields.Float(string='Total Fund Required', copy=False)
-    start_date = fields.Date(string="Start Date",default=fields.Datetime.now)
+    start_date = fields.Date(string="Start Date")
     end_date = fields.Date(string='End Date')
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="", copy=False)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
+    active = fields.Boolean(string='Active')
+
+    @api.model
+    def default_get(self, fields):
+        defaults = super().default_get(fields)
+
+        today = date.today()
+        start_date = today.replace(day=1)
+        next_month = today.replace(day=28) + timedelta(days=4)
+        end_date = next_month.replace(day=1) - timedelta(days=1)
+        defaults.update({
+            'start_date': start_date,
+            'end_date': end_date,
+        })
+
+        return defaults
+
+    # def action_open_crr_report_consolidation(self):
+    #     self.ensure_one()
+    #     action = {
+    #         'type': 'ir.actions.act_window',
+    #         'name': 'CRR Report',
+    #         'view_mode': 'tree',
+    #         'res_model': 'cash.requirement.lines',
+    #         # 'context': {'group_by': ['version_name']},
+    #     }
+    #     return action
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -70,7 +98,13 @@ class CashRequirementReport(models.Model):
                 closing_balance = lines8[0].get('balance') or 0
             for record in self:
                 record.available_balance = closing_balance
-                record.total_fund_required = record.amount_total - abs(record.available_balance)
+                if self.available_balance > 0:
+                    if self.amount_total - self.available_balance > 0:
+                         self.total_fund_required = self.amount_total - self.available_balance
+                    else:
+                         self.total_fund_required = 0
+                else:
+                    self.total_fund_required = self.amount_total
 
     @api.onchange('cash_requirement_lines','minimum_balance')
     def onchange_minimum_balance(self):
@@ -82,7 +116,13 @@ class CashRequirementReport(models.Model):
             if self.minimum_balance:
                 min_bal = self.minimum_balance
             self.amount_total = total + min_bal
-            self.total_fund_required = self.amount_total - abs(self.available_balance)
+            if self.available_balance > 0:
+                if self.amount_total - self.available_balance > 0:
+                        self.total_fund_required = self.amount_total - self.available_balance
+                else:
+                    self.total_fund_required = 0
+            else:
+                self.total_fund_required = self.amount_total
 
     # @api.onchange('minimum_balance')
     # def onchange_min_bal(self):

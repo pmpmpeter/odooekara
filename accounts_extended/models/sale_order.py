@@ -28,12 +28,12 @@ class SaleOrderInherit(models.Model):
                 # order.write({'next_invoice_date': order.next_invoice_date.replace(month=next_month)})
                 # order._create_recurring_invoice()
                 invoices[0].write({
-                    'invoice_date': order.next_invoice_date,
+                    'invoice_date': order.next_invoice_date.replace(day=1),
                 })
                 new_invoice = invoices[0].copy()
                 next_invoice_date = order.next_invoice_date + timedelta(days=30 * (i + 1))
                 new_invoice.write({
-                    'invoice_date': next_invoice_date,
+                    'invoice_date': next_invoice_date.replace(day=1),
                 })
                 for line in order.order_line:
                     invoice_line = new_invoice.invoice_line_ids.filtered(
@@ -57,3 +57,9 @@ class SaleOrderInherit(models.Model):
         for order in self:
             if order.state == 'sale' and order.amount_untaxed == 0:
                 raise UserError(_("You cannot confirm a sale order with an untaxed amount of zero."))
+
+    def action_confirm(self):
+        for rec in self:
+            if rec.is_subscription:
+                rec.action_lock()
+            super(SaleOrderInherit, self).action_confirm()

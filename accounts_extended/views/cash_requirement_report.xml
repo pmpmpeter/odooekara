@@ -72,7 +72,7 @@
         <field name="name">cash.requirement.report</field>
         <field name="model">cash.requirement.report</field>
         <field name="arch" type="xml">
-            <tree string="Cash Requirement Report">
+            <tree string="Cash Requirement Request">
                 <field name="requested_date"/>
                 <field name="requested_by"/>
                 <field name="journal_bank"/>
@@ -96,9 +96,54 @@
         </field>
     </record>
 
+    <record id="view_cash_requirement_report_lines_tree" model="ir.ui.view">
+        <field name="name">cash.requirement.lines</field>
+        <field name="model">cash.requirement.lines</field>
+        <field name="arch" type="xml">
+            <tree string="Cash Requirement Report" edit="0" create="0" delete="0">
+                                <field name="cash_account"/>
+                                <field name="partner_id"/>
+                                <field name="requirement_month"/>
+                                <field name="amount"/>
+                                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_crr_report1_view_search" model="ir.ui.view">
+            <field name="name">cash.requirement.lines.search</field>
+            <field name="model">cash.requirement.lines</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="partner_id" string="Partner"/>
+                    <group expand="0" string="Group By">
+                      <filter string="Account" name="groupby_cash_account" context="{'group_by':'cash_account'}"/>
+                    </group>
+                </search>
+            </field>
+    </record>
+
+    <record id="action_open_crr_report_consolidation" model="ir.actions.act_window">
+        <field name="name">CRR Report</field>
+        <field name="res_model">cash.requirement.lines</field>
+        <field name="view_mode">tree</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="search_view_id" ref="action_crr_report1_view_search"/>
+        <field name="context">{'group_by':['requirement_month']}</field>
+    </record>
+
     <menuitem id="menu_cash_requirement"
-              name="Cash Requirement Request"
+              name="Cash Requirement"
               parent="account.menu_finance_entries"
+              sequence="100"/>
+    <menuitem id="menu_cash_requirement_request"
+              name="Cash Requirement Request"
+              parent="accounts_extended.menu_cash_requirement"
               action="action_cash_requirement"
+              sequence="100"/>
+    <menuitem id="menu_cash_requirement_report"
+              name="Cash Requirement Report"
+              parent="accounts_extended.menu_cash_requirement"
+              action="action_open_crr_report_consolidation"
               sequence="100"/>
 </odoo>
