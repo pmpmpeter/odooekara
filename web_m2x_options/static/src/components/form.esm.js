@@ -13,6 +13,7 @@ import {
 } from "@mail/views/web/fields/many2one_avatar_user_field/many2one_avatar_user_field";
 import {ReferenceField} from "@web/views/fields/reference/reference_field";
 import {
+    Many2ManyTagsAvatarUserField,
     KanbanMany2ManyTagsAvatarUserField,
 } from "@mail/views/web/fields/many2many_avatar_user_field/many2many_avatar_user_field";
 import {FieldMany2ManyTagsEmail} from "@mail/views/web/fields/many2many_tags_email/many2many_tags_email";
@@ -57,6 +58,13 @@ KanbanMany2OneAvatarUserField.props = {
 
 ReferenceField.props = {
     ...ReferenceField.props,
+    noSearchMore: {type: Boolean, optional: true},
+    fieldColor: {type: String, optional: true},
+    fieldColorOptions: {type: Object, optional: true},
+};
+
+Many2ManyTagsAvatarUserField.props = {
+    ...Many2ManyTagsAvatarUserField.props,
     noSearchMore: {type: Boolean, optional: true},
     fieldColor: {type: String, optional: true},
     fieldColorOptions: {type: Object, optional: true},
