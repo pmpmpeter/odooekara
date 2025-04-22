@@ -69,11 +69,26 @@
         </field>
     </record>
 
+        <record id="action_crr_report1_form_view_search" model="ir.ui.view">
+            <field name="name">cash.requirement.report.search</field>
+            <field name="model">cash.requirement.report</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field string="Code" name='name'/>
+                    <group expand="0" string="Group By">
+                      <filter string="Journal" name="groupby_cash_account" context="{'group_by':'journal_bank'}"/>
+                        <filter string="Requested By" name="groupby_cash_account" context="{'group_by':'requested_by'}"/>
+                    </group>
+                </search>
+            </field>
+    </record>
+
     <record id="view_cash_requirement_report_tree" model="ir.ui.view">
         <field name="name">cash.requirement.report</field>
         <field name="model">cash.requirement.report</field>
         <field name="arch" type="xml">
             <tree string="Cash Requirement Request">
+                <field name="name"/>
                 <field name="requested_date"/>
                 <field name="requested_by"/>
                 <field name="journal_bank"/>

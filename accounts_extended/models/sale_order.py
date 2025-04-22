@@ -5,6 +5,7 @@ import re
 import pdb
 import datetime
 from datetime import date, timedelta, datetime
+from dateutil.relativedelta import relativedelta
 
 
 class SaleOrderInherit(models.Model):
@@ -30,6 +31,26 @@ class SaleOrderInherit(models.Model):
                 invoices[0].write({
                     'invoice_date': order.next_invoice_date.replace(day=1),
                 })
+                for line in order.order_line:
+                    print(line.name,'kkkkkkkkkkk')
+                    next_month_date = invoices[0].invoice_date + relativedelta(months=1)
+                    end_date = next_month_date - timedelta(days=1)
+                    # print(invoice_line.move_id.invoice_date, before_date, 'jjj')
+
+                    month_diff = (end_date.year - invoices[0].invoice_date.year) * 12 + end_date.month - invoices[0].invoice_date.month
+                    if month_diff == 0:
+                        month_value = 1
+                    else:
+                        month_value = month_diff
+                    invoice_line_0 =  invoices[0].invoice_line_ids.filtered(
+                        lambda l: l.product_id == line.product_id and l.quantity == line.product_uom_qty)
+                    print(invoices[0].invoice_line_ids,'hhh')
+                    invoice_line_0.write({
+                        'name': f"{line.name} - {month_value} Month(s)\n{invoices[0].invoice_date.strftime('%d/%m/%Y')} to {end_date.strftime('%d/%m/%Y')}",
+                        'deferred_start_date': invoices[0].invoice_date,
+                        'deferred_end_date': end_date,
+                    })
+                # stop
                 new_invoice = invoices[0].copy()
                 next_invoice_date = order.next_invoice_date + timedelta(days=30 * (i + 1))
                 new_invoice.write({
@@ -39,16 +60,22 @@ class SaleOrderInherit(models.Model):
                     invoice_line = new_invoice.invoice_line_ids.filtered(
                         lambda l: l.product_id == line.product_id and l.quantity == line.product_uom_qty)
                     if invoice_line:
-                        start_date = next_invoice_date
-                        end_date = start_date + timedelta(days=30) - timedelta(seconds=1)
-                        month_diff = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month
+                        # start_date = next_invoice_date
+
+                        # start_date = new_invoice.invoice_date
+                        next_month_date = invoice_line.move_id.invoice_date + relativedelta(months=1)
+                        end_date = next_month_date - timedelta(days=1)
+                        month_diff = (end_date.year - new_invoice.invoice_date.year) * 12 + end_date.month - new_invoice.invoice_date.month
+                        if month_diff == 0:
+                            month_value = 1
+                        else:
+                            month_value = month_diff
                         invoice_line.write({
                             'sale_line_ids': [(6, 0, line.ids)],
-                            'name': f"{line.name} - {month_diff} Month(s)\n{start_date.strftime('%d/%m/%Y')} to {end_date.strftime('%d/%m/%Y')}",
-                            'deferred_start_date': start_date,
+                            'name': f"{line.name} - {month_value} Month(s)\n{new_invoice.invoice_date.strftime('%d/%m/%Y')} to {end_date.strftime('%d/%m/%Y')}",
+                            'deferred_start_date': new_invoice.invoice_date,
                             'deferred_end_date': end_date,
                         })
-                        print(invoice_line, "Updated sale_line_ids in duplicated invoice")
 
         return invoice_vals
 
