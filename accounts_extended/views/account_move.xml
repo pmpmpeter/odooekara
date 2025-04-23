@@ -990,6 +990,14 @@
         <field name="domain">[('is_credit_payment','=', True),('payment_type','=','outbound')]</field>
     </record>
 
+    <record id="open_create_credit_card_expense_form" model="ir.actions.act_window">
+        <field name="name">Credit Card Expense</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_move_type':'entry','default_is_payment_approval':True}</field>
+        <field name="domain">[('move_type','=','entry'),('is_payment_approval','=',True)]</field>
+    </record>
+
 <!--    <menuitem-->
 <!--            id="menu_fund_requisting"-->
 <!--            action="open_create_fund_payment_form"-->
@@ -1002,9 +1010,23 @@
             sequence="3"/>
     <menuitem
             id="menu_credit_payment"
-            action="open_create_credit_card_payment_form"
+            name="Credit Card"
             parent="account.menu_finance_entries"
             sequence="3"/>
+
+    <menuitem
+            id="menu_credit_card_payments"
+            name="Credit Card Payments"
+            action="open_create_credit_card_payment_form"
+            parent="accounts_extended.menu_credit_payment"
+            sequence="3"/>
+
+    <menuitem
+            id="menu_credit_card_expenses"
+            name="Credit Card Expenses"
+            action="open_create_credit_card_expense_form"
+            parent="accounts_extended.menu_credit_payment"
+            sequence="4"/>
 
     <record id="account_move_form_extend_inherit1" model="ir.ui.view">
         <field name="name">account.move.inherit</field>

@@ -76,7 +76,7 @@
                 <search>
                     <field string="Code" name='name'/>
                     <group expand="0" string="Group By">
-                      <filter string="Journal" name="groupby_cash_account" context="{'group_by':'journal_bank'}"/>
+                      
                         <filter string="Requested By" name="groupby_cash_account" context="{'group_by':'requested_by'}"/>
                     </group>
                 </search>
