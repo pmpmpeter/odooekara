@@ -12,5 +12,18 @@
             <field name="doall" eval="False"/>
             <field name="nextcall" eval="(datetime.today().replace(day=20, hour=8, minute=0, second=0))"/>
         </record>
+
+        <record id="ir_cron_recurring_payment" model="ir.cron">
+            <field name="name">Recurring Payment </field>
+            <field name="model_id" ref="base.model_res_config_settings"/>
+            <field name="state">code</field>
+            <field name="code">model.action_create_recurring_payments()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="(datetime.today().replace(day=20, hour=8, minute=0, second=0))"/>
+        </record>
+        
     </data>
 </odoo>

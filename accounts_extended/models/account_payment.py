@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
+from datetime import timedelta
 
 
 class AccountPayment(models.Model):
@@ -21,6 +22,31 @@ class AccountPayment(models.Model):
         ("capex", "Capex"),
         ("opex", "Opex")], default='opex', string="Capex/Opex")
     payment_purchase_id = fields.Many2one('purchase.order',copy=False, string='Purchase Order')
+    recurring = fields.Boolean(string='Recurring Payment', copy=False)
+    recurring_days = fields.Integer(string='Recurring Days', default="1", copy=False)
+    recurring_until_date = fields.Date(string='Recurring Until Date', copy=False)
+
+    def action_create_recurring_payments(self):
+        for rec in self:
+            print("rec", rec)
+            if rec.recurring and rec.recurring_days > 0 and rec.recurring_until_date and rec.state == 'posted':
+                print("if condition")
+                current_date = fields.Date.today()
+                next_payment_date = rec.date + timedelta(days=rec.recurring_days)
+                while next_payment_date <= rec.recurring_until_date:
+                    print("while condition")
+                    print(next_payment_date, "nexx")
+                    if next_payment_date == current_date:
+                        print(next_payment_date,"nex11111")
+                        new_payment = rec.copy(default={
+                            'state': 'draft',
+                            'date': next_payment_date,
+                            'recurring': True,  # Disable recurring for the copied record
+                            'recurring_days': rec.recurring_days,
+                            'recurring_until_date': rec.recurring_until_date,
+                        })
+                        print(new_payment, "new_payment")
+                    next_payment_date += timedelta(days=rec.recurring_days)
 
     @api.model
     def create_batch_payment(self):

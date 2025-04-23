@@ -60,6 +60,9 @@
                        required="require_partner_bank_account and not is_internal_transfer"/>
                 <field name="partner_cl_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
                 <field name="closing_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
+                <field name="recurring"  invisible="payment_type!='outbound'"/>
+                <field name="recurring_days" invisible="recurring==False"/>
+                <field name="recurring_until_date" invisible="recurring==False" required="recurring!=False"/>
             </xpath>
             <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'"
