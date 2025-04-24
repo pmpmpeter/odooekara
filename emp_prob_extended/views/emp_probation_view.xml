@@ -187,6 +187,7 @@
               parent="probation_menu_root"
               name="Employee Probation"
               action="employee_probation_action"
+              groups="emp_prob_extended.group_employee_probation_user"
               sequence="7"
     />
 </odoo>

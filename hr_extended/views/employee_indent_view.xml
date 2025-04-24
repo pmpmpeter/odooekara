@@ -258,7 +258,7 @@
             parent="hr_recruitment.menu_crm_case_categ0_act_job"
             id="menu_employee_indent"
             sequence="0"
-            groups="hr.group_hr_user"
+            groups="hr_recruitment.group_hr_recruitment_interviewer"
             action="action_employee_indent"/>
 </odoo>
 

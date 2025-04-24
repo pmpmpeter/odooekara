@@ -56,6 +56,7 @@
     <menuitem id="menu_survey_xlsx_report_root"
               name="Survey Reports"
               parent="survey.menu_surveys"
+              groups="survey.group_survey_manager"
               sequence="50"/>
 
     <menuitem id="menu_survey_xlsx_report"

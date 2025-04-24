@@ -456,8 +456,8 @@ class ManpowerBudget(models.Model):
                 'mimetype': 'application/vnd.ms-excel',
             })],
         }
-        self.env['mail.mail'].create(mail_values).send()
-        self.env['director.approve.manpower'].create({'from_date':fields.datetime.today(),'to_date':fields.datetime.today(),'report':attachment.id,'report_name':'Manpower_Budget_Report.xlsx'})
+        self.env['mail.mail'].sudo().create(mail_values).send()
+        self.env['director.approve.manpower'].sudo().create({'from_date':fields.datetime.today(),'to_date':fields.datetime.today(),'report':attachment.id,'report_name':'Manpower_Budget_Report.xlsx'})
 
         # Confirmation message
         return {

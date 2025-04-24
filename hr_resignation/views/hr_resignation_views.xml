@@ -33,10 +33,12 @@
                     <button string="Confirm" type="object"
                             name="action_confirm_resignation" context="{'active_id': active_id}"
                             invisible="state in ('manager_approved','hr_approved','confirm','cancel')"
+                            groups="hr.group_hr_user"
                             class="oe_highlight"/>
                     <button string="Cancel" type="object"
                             name="action_cancel_resignation"
                             invisible="state in ('manager_approved','hr_approved','confirm','cancel')"
+                            groups="hr.group_hr_user"
                             class="oe_highlight"/>
                     <!--                    <button string="Manager Approve" type="object"-->
                     <!--                            groups="hr.group_hr_user"-->
@@ -100,9 +102,9 @@
                             <field name="manager_approved_date" readonly="1"
                                    invisible="manager_approved_date == False"/>
                             <field name="hr_approved_date" readonly="1" invisible="hr_approved_date == False"/>
-                            <field name="hr_approved_reliving_date" readonly="is_employee == True or state in ('hr_approved')"
-                                   invisible="manager_approved_date == False"/>
-                            <field name="notice_period" readonly="1" force_save="1"/>
+                            <field name="hr_approved_reliving_date" readonly="is_employee == True or state in ('draft','hr_approved')"/>
+                                   <!--invisible="manager_approved_date == False"/>-->
+                            <field name="notice_period" readonly="is_employee == True or state in ('hr_approved')" force_save="1"/>
                         </group>
                         <group string="Separation Details">
                             <field name="resignation_type" string="Type"

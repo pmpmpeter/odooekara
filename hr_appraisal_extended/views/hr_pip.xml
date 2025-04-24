@@ -203,5 +203,6 @@
     <!-- Menu Item -->
     <menuitem id="menu_hr_pip" name="Performance Improvement Plan"
               parent="hr_appraisal_extended.performance_review_main"
+              groups="hr_appraisal.group_hr_appraisal_manager"
               sequence="4" action="action_hr_pip"/>
 </odoo>

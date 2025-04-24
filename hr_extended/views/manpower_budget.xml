@@ -32,7 +32,7 @@
                     <button name="action_hr_approve" type="object" string="Approve" invisible="state != 'submitted'"
                             class="btn-success" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
                     <button name="action_set_done" type="object" string="Set Done" invisible="state != 'hr_approved'"
-                            class="btn-success" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
+                            class="btn-success" groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_director"/>
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state != 'done'" class="btn-secondary"
                             groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
@@ -175,7 +175,7 @@
               parent="hr_extended.menu_manpower_employee"
               sequence="9"
               action="action_director_approve_manpower"
-              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user,hr_extended.group_hr_recruitment_bu_head"/>
+              groups="hr_extended.group_manpower_budget_manager,hr_extended.group_manpower_budget_user,hr_extended.group_hr_recruitment_director"/>
 
 
 </odoo>

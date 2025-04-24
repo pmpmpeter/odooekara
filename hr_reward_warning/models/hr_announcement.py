@@ -101,7 +101,17 @@ class HrAnnouncement(models.Model):
         else:
             vals['name'] = self.env['ir.sequence'].next_by_code(
                 'hr.announcement')
-        return super(HrAnnouncement, self).create(vals)
+
+        announcements = super(HrAnnouncement, self).create(vals)
+
+        for announcement in announcements:
+            if announcement.attachment_id:
+                announcement.attachment_id.write({
+                    'res_model': self._name,
+                    'res_id': announcement.id
+                })
+
+        return announcements
 
     def action_reject_announcement(self):
         """ Refuse button action """

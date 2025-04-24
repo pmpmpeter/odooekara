@@ -23,19 +23,19 @@
                     <field name="state" widget="statusbar" statusbar_visible="preparation,preparation_clarification,half_year_pending,
                     half_year_clarification,full_year_pending,full_year_clarification,review_completed" nolabel="1"/>
                     <button name="send_increment_letter_job_level_approved" string="Send Increment Letter" type="object"
-                            groups="hr_extended.group_hr_recruitment_director"
+                            groups="hr.group_hr_user, hr_extended.group_hr_recruitment_director"
                             class="oe_highlight"/>
                     <button name="send_appraisal_letter" string="Send Appraisal Letter" type="object"
-                            groups="hr_extended.group_hr_recruitment_director"
+                            groups="hr.group_hr_user, hr_extended.group_hr_recruitment_director"
                             class="oe_highlight"/>
                     <button name="send_annual_increment_promotion_letter" string="Send Annual Promotion Letter"
-                            groups="hr_extended.group_hr_recruitment_director"
+                            groups="hr.group_hr_user, hr_extended.group_hr_recruitment_director"
                             type="object" class="oe_highlight"/>
                     <button name="send_increment_redesignation_letter" string="Send Increment Redesignation Letter"
-                            groups="hr_extended.group_hr_recruitment_director"
+                            groups="hr.group_hr_user, hr_extended.group_hr_recruitment_director"
                             type="object" class="oe_highlight"/>
                      <button name="send_variable_pay_letter" string="Send Variable Pay Letter"
-                            groups="hr_extended.group_hr_recruitment_director"
+                            groups="hr.group_hr_user, hr_extended.group_hr_recruitment_director"
                             type="object" class="oe_highlight"/>
                     <button string="Request Appraisal" type="object"
                             name="action_request_appraisal"

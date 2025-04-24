@@ -40,6 +40,7 @@
         'views/res_config_settings.xml',
         'views/crossoverd_budget.xml',
         'views/account_move.xml',
+        'views/account_asset_views.xml',
         'views/account_payment.xml',
         'views/cash_management.xml',
         'views/fund_management.xml',

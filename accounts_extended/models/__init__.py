@@ -6,6 +6,7 @@ from . import cash_management
 from . import cash_pool
 from . import cash_requirement_report
 from . import fund_management
+from . import account_asset
 from . import budget_department
 from . import sale_order
 from . import account_aged_partner_balance

@@ -7,7 +7,7 @@ access_self_rating_assessment_kra,access.self.rating.assessment.kra,hr_appraisal
 access_self_rating_development_plan,access.self.rating.development.plan,hr_appraisal_extended.model_self_rating_development_plan,,1,1,1,1
 access_hr_pip_hr,access.hr.pip.hr,hr_appraisal_extended.model_hr_pip,hr_appraisal.group_hr_appraisal_user,1,1,1,1
 access_hr_pip_manager,access.hr.pip.manager,hr_appraisal_extended.model_hr_pip,hr_appraisal.group_hr_appraisal_manager,1,1,1,1
-access_hr_pip_user,access.hr.pip.user,hr_appraisal_extended.model_hr_pip,base.group_user,1,1,0,0
+access_hr_pip_user,access.hr.pip.user,hr_appraisal_extended.model_hr_pip,base.group_user,0,0,0,0
 access_hr_pip_improvement_goal,access.hr.pip.improvement.goal,hr_appraisal_extended.model_hr_pip_improvement_goal,,1,1,1,1
 access_hr_pip_activity_goal,access.hr.pip.activity.goal,hr_appraisal_extended.model_hr_pip_activity_goal,,1,1,1,1
 access_hr_pip_resource,access.hr.pip.resource,hr_appraisal_extended.model_hr_pip_resource,,1,1,1,1
