@@ -8,3 +8,4 @@ from . import cash_requirement_report
 from . import fund_management
 from . import budget_department
 from . import sale_order
+from . import account_aged_partner_balance
