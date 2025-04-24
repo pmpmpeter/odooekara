@@ -12,11 +12,11 @@ import {
     KanbanMany2OneAvatarUserField
 } from "@mail/views/web/fields/many2one_avatar_user_field/many2one_avatar_user_field";
 import {ReferenceField} from "@web/views/fields/reference/reference_field";
+import {FieldMany2ManyTagsEmail} from "@mail/views/web/fields/many2many_tags_email/many2many_tags_email";
 import {
     Many2ManyTagsAvatarUserField,
     KanbanMany2ManyTagsAvatarUserField,
 } from "@mail/views/web/fields/many2many_avatar_user_field/many2many_avatar_user_field";
-import {FieldMany2ManyTagsEmail} from "@mail/views/web/fields/many2many_tags_email/many2many_tags_email";
 import {Many2XAutocomplete} from "@web/views/fields/relational_utils";
 import {evaluateBooleanExpr} from "@web/core/py_js/py";
 import {isX2Many} from "@web/views/utils";
