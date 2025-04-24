@@ -366,6 +366,10 @@
                                 <field name="credit"/>
                                 <field name="days_sales_outstanding"/>
                             </group>
+                            <group string="LDC Details" name="ldc_details" groups="account.group_account_invoice,account.group_account_readonly">
+                                <field name="ldc_no"/>
+                                <field name="ldc_expiry_date" required="ldc_no"/>
+                            </group>
 <!--                            <group string="TDS Applicable" invisible="country_code != 'IN'"-->
                             <group string="TDS Applicable"
                                    name="tds_check"

@@ -102,6 +102,10 @@ class AccountMoveInherit(models.Model):
         compute='_compute_partner_tds_warning',
         groups="account.group_account_invoice,account.group_account_readonly",
     )
+    partner_ldc_warning = fields.Text(
+        compute='_compute_partner_ldc_warning',
+        groups="account.group_account_invoice,account.group_account_readonly",
+    )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
 
     @api.depends('company_id', 'invoice_filter_type_domain')
@@ -117,6 +121,17 @@ class AccountMoveInherit(models.Model):
                 *self.env['account.journal']._check_company_domain(company),
                 ('type', 'in', journal_type),
             ])
+
+    @api.depends('partner_id')
+    def _compute_partner_ldc_warning(self):
+        today = date.today()
+        for record in self:
+            warning = ''
+            if record.partner_id.ldc_expiry_date:
+                if record.partner_id.ldc_expiry_date <= today:
+                    warning =(f"The LDC expiry date ({record.partner_id.ldc_expiry_date}) for this partner "
+                              f"has passed or is effective as of today. Please review and take necessary action.")
+            record.partner_ldc_warning = warning
 
     @api.depends('company_id', 'partner_id', 'amount_total', 'currency_id', 'invoice_line_ids.quantity',
                  'invoice_line_ids.price_unit', 'amount_untaxed_signed')

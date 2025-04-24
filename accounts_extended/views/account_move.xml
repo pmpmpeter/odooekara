@@ -166,6 +166,11 @@
                 </div>
                 <div groups="account.group_account_invoice,account.group_account_readonly"
                      class="alert alert-warning mb-0" role="alert"
+                     invisible="partner_ldc_warning == '' or state in ('posted','cancel')">
+                    <field name="partner_ldc_warning"/>
+                </div>
+                <div groups="account.group_account_invoice,account.group_account_readonly"
+                     class="alert alert-warning mb-0" role="alert"
                      invisible="partner_tds_warning == ''">
                     <field name="partner_tds_warning"/>
                 </div>

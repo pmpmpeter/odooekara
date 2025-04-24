@@ -81,13 +81,14 @@ class AgedPartnerBalanceCustomHandlerInherit(models.AbstractModel):
 
         # Build query
         tables, where_clause, where_params = report._query_get(options, 'strict_range', domain=[('account_id.account_type', '=', internal_type)])
-
-        employee_partner_ids = self.env['hr.employee'].search([]).mapped('user_id.partner_id.id')
-        print(employee_partner_ids,"checking")
+        ###Avoid Employee expense in payable - Ekara Request###
+        employee_partner_ids = self.env['hr.employee'].search([]).mapped('work_contact_id.id')
+        # print(employee_partner_ids,"checking")
         if employee_partner_ids:
             where_clause += " AND account_move_line.partner_id NOT IN %s"
             where_params += (tuple(employee_partner_ids),)
-            print(where_clause, where_params,"checkinggg22")
+            # print(where_clause, where_params,"checkinggg22")
+        ###Avoid Employee expense in payable - Ekara Request###
 
         currency_table = report._get_query_currency_table(options)
         always_present_groupby = "period_table.period_index, currency_table.rate, currency_table.precision"
@@ -229,18 +230,20 @@ class PartnerLedgerCustomHandlerInherit(models.AbstractModel):
         params = []
         queries = []
         report = self.env.ref('account_reports.partner_ledger_report')
-
-        employee_partner_ids = self.env['hr.employee'].search([]).mapped('user_id.partner_id.id')
-
+        ###Avoid Employee expense in Partner Ledger - Ekara Request###
+        employee_partner_ids = self.env['hr.employee'].search([]).mapped('work_contact_id.id')
+        ###Avoid Employee expense in Partner Ledger - Ekara Request###
         # Create the currency table.
         ct_query = report._get_query_currency_table(options)
         for column_group_key, column_group_options in report._split_options_per_column_group(options).items():
             tables, where_clause, where_params = report._query_get(column_group_options, 'normal')
             params.append(column_group_key)
             params += where_params
+            ###Avoid Employee expense in Partner Ledger - Ekara Request###
             if employee_partner_ids:
                 where_clause += " AND account_move_line.partner_id NOT IN %s"
                 params.append(tuple(employee_partner_ids))
+            ###Avoid Employee expense in Partner Ledger - Ekara Request###
             queries.append(f"""
                 SELECT
                     account_move_line.partner_id                                                          AS groupby,

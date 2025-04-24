@@ -30,6 +30,8 @@ class ResPartner(models.Model):
 
     msme_number = fields.Char(string="MSME Number")
     msme_validity = fields.Date(string="MSME Validity")
+    ldc_no = fields.Char(string="LDC Number")
+    ldc_expiry_date = fields.Date(string="LDC Expiry Date")
 
     @api.model
     def name_get(self):
