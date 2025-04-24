@@ -407,7 +407,7 @@ patch(FormController.prototype, {
                 viewType = isSmall ? "kanban" : "list";
             }
             field.viewMode = viewType;
-            if (field.views[viewType] && limit) {
+            if (limit && viewType == 'list' && field.views[viewType]) {
                 field.views[viewType].limit = limit;
             }
         }
