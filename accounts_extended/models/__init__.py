@@ -9,4 +9,3 @@ from . import fund_management
 from . import account_asset
 from . import budget_department
 from . import sale_order
-from . import account_aged_partner_balance
