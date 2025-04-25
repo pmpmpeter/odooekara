@@ -65,7 +65,7 @@
     </record>
     <!--Cheque print payment-->
     <record id="print_cheque_payment" model="ir.actions.report">
-        <field name="name">Cheque payment</field>
+        <field name="name">Cheque Payment</field>
         <field name="model">account.payment</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">odoo_print_cheque.cheque_payment_document</field>

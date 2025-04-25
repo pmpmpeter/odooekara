@@ -45,11 +45,11 @@
             </div>
 
 
-            <div style="margin-top:80px;font-size:14px;padding: 5px; width: 100%;">
+            <div style="margin-top:250px;font-size:14px;padding: 5px; width: 100%;">
                 <div style="font-weight: bold; font-size: 14px; margin-bottom: 5px;">
                     <t t-esc="o.journal_id.bank_id.name"/> - <t t-esc="o.journal_id.bank_account_id.acc_number"/>
                     <span style="margin-left:120px;">NEFT/RTGS PAYMENT INSTRUCTIONS</span>
-                    <span style="float:right;padding;2px;">Date: <span style="letter-spacing:5px;border: 1px solid #000;padding: 4px;" t-esc="o.date.strftime('%d%m%Y')"/> </span>
+                    <span style="float:right;padding:2px;">Date: <span style="letter-spacing:5px;border: 1px solid #000;padding: 4px;" t-esc="o.date.strftime('%d%m%Y')"/> </span>
                 </div>
 
                 <table style="font-size:14px;width: 100%;">

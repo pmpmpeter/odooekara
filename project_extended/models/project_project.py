@@ -222,8 +222,8 @@ CLOSED_STATES = {
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    recurrence_reminder  =fields.Integer(string='First Remainder')
-    recurrence_reminder2 = fields.Integer(string='Secondary Remainder')
+    recurrence_reminder  =fields.Integer(string='First Reminder')
+    recurrence_reminder2 = fields.Integer(string='Secondary Reminder')
     recurring_start_date = fields.Date(string="Start Date")
     first_reminder_date = fields.Date(string="First Reminder Date")
     second_reminder_date = fields.Date(string="Second Reminder Date")
