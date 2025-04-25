@@ -130,5 +130,9 @@ class ContactCreation(models.Model):
                 })
             user._change_password(record.password)
             record.user_created = True
-            template = self.env.ref('res_partner_extended.contact_creation_mail')
-            template.send_mail(self.id, force_send=True)
+            if self.is_vendor:
+                template = self.env.ref('res_partner_extended.supplier_contact_creation_mail')
+                template.send_mail(self.id, force_send=True)
+            else:
+                template = self.env.ref('res_partner_extended.contact_creation_mail')
+                template.send_mail(self.id, force_send=True)

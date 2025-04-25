@@ -28,6 +28,7 @@
         'wizard/po_matrix_approve_reason.xml',
         'views/purchase_order.xml',
         'views/res_config_settings.xml',
+        'views/stock_lot.xml',
 	'views/purchase_order_type.xml',
     ],
     'license': 'LGPL-3',
