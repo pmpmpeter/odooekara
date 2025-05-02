@@ -13,5 +13,5 @@ from odoo.osv import expression
 class StockLot(models.Model):
     _inherit = 'stock.lot'
 
-    employee_id = fields.Many2one("hr.employee", String="Employee", copy=False)
+    employee_id = fields.Many2one("hr.employee", string="Employee", copy=False)
     reference_no = fields.Char(string="Reference No.", copy=False)

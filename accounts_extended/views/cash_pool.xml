@@ -5,23 +5,48 @@
         <field name="model">cash.pool</field>
         <field name="arch" type="xml">
             <form string="Cash Pool">
+                <header>
+                    <button name="action_submit_for_approval" type="object" string="Submit for Approval"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'approved'" class="btn-secondary"/>
+                    <button name="action_approved" type="object" string="Approve"
+                            invisible="state != 'waiting_for_approval'" class="btn-primary"/>
+                    <field name="state" widget="statusbar"
+                       statusbar_visible="draft,waiting_for_approval,approved"/>
+                </header>
                 <sheet>
                     <div class="oe_title" width="100">
                         <h1>
-                            <field name="name" placeholder="New" required="1"/>
+                            <field name="name" placeholder="New" required="1" readonly="state not in ('draft')"/>
                         </h1>
                     </div>
                     <group>
                         <group>
 
-                            <field name="company_id" readonly="1"/>
+                            <field name="current_balance" readonly="state not in ('draft')"/>
+                            <field name="manager_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" required="1" readonly="state not in ('draft')"/>
+                            <field name="company_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" readonly="1"/>
                         </group>
                         <group>
                             <field name="active"/>
                         </group>
                     </group>
-
-
+                    <notebook>
+                        <page string="Fund Lines">
+                            <field name="fund_line_ids" readonly="state not in ('draft')">
+                                <tree editable="bottom" delete="1">
+                                    <field name="added_by_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" required="1"/>
+                                    <field name="amount"/>
+                                    <field name="date"/>
+                                    <field name="approved_by_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" readonly="1" force_save="1"/>
+                                    <field name="state" readonly="1"/>
+                                    <field name="opening_balance" readonly="1"/>
+                                    <field name="closing_balance" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_follower_ids" groups="base.group_user"/>

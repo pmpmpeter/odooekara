@@ -8,6 +8,7 @@ account_cash_management,account_cash_management,model_cash_management,base.group
 account_revision_history,account_revision_history,model_revision_history,base.group_user,1,1,1,1
 account_cash_management_line,account_cash_management_line,model_cash_management_line,base.group_user,1,1,1,1
 account_cash_pool,account_cash_pool,model_cash_pool,base.group_user,1,1,1,0
+account_cash_pool_fund_line,account_cash_pool_fund_line,model_cash_pool_fund_line,base.group_user,1,1,1,0
 crr_budget_line,crr_budget_line,model_crr_budget_line,base.group_user,1,1,1,1
 crr_budget_line_consolidate,crr_budget_line_consolidate,model_crr_budget_line_consolidate,base.group_user,1,1,1,1
 crr_share_line,crr_share_line,model_crr_share_line,base.group_user,1,1,1,1

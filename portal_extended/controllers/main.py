@@ -22,6 +22,10 @@ class CustomPortalInherit(CustomerPortal):
         uploaded_files3 = request.httprequest.files.getlist('attachment3')
         uploaded_files4 = request.httprequest.files.getlist('attachment4')
         uploaded_files5 = request.httprequest.files.getlist('attachment5')
+        uploaded_files6 = request.httprequest.files.getlist('attachment6')
+        uploaded_files7 = request.httprequest.files.getlist('attachment7')
+        uploaded_files8 = request.httprequest.files.getlist('attachment8')
+        uploaded_files9 = request.httprequest.files.getlist('attachment9')
 
         attachment_ids = []
         attachment_ids1 = []
@@ -29,6 +33,10 @@ class CustomPortalInherit(CustomerPortal):
         attachment_ids3 = []
         attachment_ids4 = []
         attachment_ids5 = []
+        attachment_ids6 = []
+        attachment_ids7 = []
+        attachment_ids8 = []
+        attachment_ids9 = []
 
         if uploaded_files:
             filtered_files = [file for file in uploaded_files if file.filename]
@@ -141,6 +149,7 @@ class CustomPortalInherit(CustomerPortal):
                     body=f"Cancelled Cheque uploaded.",
                     attachment_ids=[attachment.id for attachment in attachment_ids4]
                 )
+
         if uploaded_files5:
             filtered_files = [file for file in uploaded_files5 if file.filename]
             Attachments = request.env['ir.attachment']
@@ -162,6 +171,98 @@ class CustomPortalInherit(CustomerPortal):
                 partner.message_post(
                     body=f"LDC Certificate.",
                     attachment_ids=[attachment.id for attachment in attachment_ids5]
+                )
+
+        if uploaded_files6:
+            filtered_files = [file for file in uploaded_files6 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id6 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids6.append(attachment_id6)
+
+            if attachment_ids6:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"Add. Attachment 1",
+                    attachment_ids=[attachment.id for attachment in attachment_ids6]
+                )
+
+        if uploaded_files7:
+            filtered_files = [file for file in uploaded_files7 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id7 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids7.append(attachment_id7)
+
+            if attachment_ids7:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"Add. Attachment 2",
+                    attachment_ids=[attachment.id for attachment in attachment_ids7]
+                )
+
+        if uploaded_files8:
+            filtered_files = [file for file in uploaded_files8 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id8 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids8.append(attachment_id8)
+
+            if attachment_ids8:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"Add. Attachment 3",
+                    attachment_ids=[attachment.id for attachment in attachment_ids8]
+                )
+
+        if uploaded_files9:
+            filtered_files = [file for file in uploaded_files9 if file.filename]
+            Attachments = request.env['ir.attachment']
+            for file in filtered_files:
+                file_name = file.filename
+                attachment_id9 = Attachments.sudo().create({
+                    'name': file_name,
+                    'res_name': file_name,
+                    'type': 'binary',
+                    'res_model': 'res.partner',
+                    'res_id': partner_id,
+                    'datas': base64.b64encode(file.read()),
+                    'public': True
+                })
+                attachment_ids9.append(attachment_id9)
+
+            if attachment_ids9:
+                partner = request.env['res.partner'].sudo().browse(partner_id)
+                partner.message_post(
+                    body=f"Add. Attachment 4",
+                    attachment_ids=[attachment.id for attachment in attachment_ids9]
                 )
 
         if post and request.httprequest.method == 'POST':

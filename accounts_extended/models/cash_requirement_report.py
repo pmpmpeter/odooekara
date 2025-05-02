@@ -137,7 +137,14 @@ class CashRequirementLines(models.Model):
     cash_req_id = fields.Many2one('cash.requirement.report', string='Cash Requirement')
     cash_account = fields.Many2one('account.account',string='Account', copy=False)
     partner_id = fields.Many2one('res.partner',string='Partner' ,copy=False)
-    requirement_month = fields.Date(string='Month',copy=False, default=fields.Datetime.now)
+    requirement_month = fields.Date(string='Date',copy=False, default=fields.Datetime.now)
+    requirement_months = fields.Selection(
+        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
+                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
+                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
+                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
+        string="Month",
+    )
     amount = fields.Float('Amount', copy=False, tracking=True)
     remarks = fields.Char('Remarks')
     company_id = fields.Many2one('res.company',string ='Company', related='cash_req_id.company_id', store=True)

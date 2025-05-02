@@ -25,6 +25,13 @@ class FundManagementCRR(models.Model):
     version = fields.Integer("Version", default=1, readonly=True, store=True, copy=False)
     revision_date = fields.Datetime(string="Revision Date")
 
+    @api.onchange('cash_pool_line')
+    def _onchange_cash_pool_line(self):
+        for record in self:
+            for line in record.cash_pool_line:
+                if line.cash_pool and line.cash_pool.current_balance <= 0:
+                    raise ValidationError("The selected cash pool has a current balance of 0.")
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -78,6 +85,11 @@ class FundManagementCRR(models.Model):
     # @api.constrains('cash_pool_line')
     def share_amount_validate(self):
         for rec in self:
+            for line in rec.cash_pool_line:
+                if line.cash_pool and line.cash_pool.current_balance <= 0:
+                    raise ValidationError(
+                        f"The cash pool '{line.cash_pool.name}' has a current balance of 0."
+                    )
             if not rec.crr_share_line:
                 raise UserError('Share Amount is not Available.')
             if not rec.cash_pool_line:
@@ -154,6 +166,12 @@ class FundManagementCRR(models.Model):
             rec.state = 'draft'
 
     def action_update_share_lines(self):
+        for record in self:
+            for line in record.cash_pool_line:
+                if line.cash_pool and line.cash_pool.current_balance <= 0:
+                    raise ValidationError(
+                        f"The cash pool '{line.cash_pool.name}' has a current balance of 0."
+                    )
         if not self.te_consolidate_id and not self.start_date or not self.end_date:
             raise UserError('kindly update Start and End date.')
         # share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from','>=',self.start_date),('budget_id.date_to','<=',self.end_date),('entity','=',self.company_id.id),('budget_id.state','=','to approve')])

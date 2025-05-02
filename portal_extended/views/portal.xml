@@ -21,13 +21,29 @@
             <input type="file" name="attachment3" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
             </div>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment4">Cancelled Cheque</label><br/>
+                <label class="col-form-label" for="attachment4">Cancelled Cheque*</label><br/>
             <input type="file" name="attachment4" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/>
 <!--            <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>-->
             </div>
              <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
                 <label class="col-form-label" for="attachment5">LDC Certificate</label><br/>
             <input type="file" name="attachment5" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+            </div>
+             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
+                <label class="col-form-label" for="attachment6">Add. Attachment 1</label><br/>
+            <input type="file" name="attachment6" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+            </div>
+             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
+                <label class="col-form-label" for="attachment7">Add. Attachment 2</label><br/>
+            <input type="file" name="attachment7" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+            </div>
+             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
+                <label class="col-form-label" for="attachment8">Add. Attachment 3</label><br/>
+            <input type="file" name="attachment8" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+            </div>
+             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
+                <label class="col-form-label" for="attachment9">Add. Attachment 4</label><br/>
+            <input type="file" name="attachment9" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
             </div>
         </xpath>
         <xpath expr="//label[@for='vat']" position="replace">

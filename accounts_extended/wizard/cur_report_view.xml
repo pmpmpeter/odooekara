@@ -9,7 +9,7 @@
                     <!-- <field name="account_ids" widget="many2many_tags" options="{'no_create': True}"/> -->
                     <group>
                         <field name="company_id" options="{'no_open':True,'no_quick_create':True,'no_create': True,}"
-                           readonly="1" invisible='report_file'/>
+                           readonly="0" invisible='report_file'/>
                         <field name="start_date" invisible='report_file'/>
                         <field name="end_date" invisible='report_file'/>
                     </group>

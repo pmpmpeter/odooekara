@@ -293,6 +293,14 @@ class MultiApproval(models.Model):
                     if second_line.state == "Approved":
                         employee_indent.approved_by_director = "yes"
 
+            #For Cash Pool to write the approved user in Cash Pool Fund Line
+            if rec.type_id.model_id == "cash.pool":
+                cash_pool = self.env['cash.pool'].search([('id', '=', rec.origin_ref.id)])
+                if cash_pool:
+                    for line in cash_pool.fund_line_ids:
+                        line.approved_by_id = self.env.user.id
+
+
             # to assign the date and state
             if rec.type_id.model_id == "hr.resignation":
                 hr_resignation = self.env['hr.resignation'].search([('id', '=', rec.origin_ref.id)])

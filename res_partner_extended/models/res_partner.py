@@ -156,6 +156,16 @@ class ResPartner(models.Model):
         for record in self.filtered(lambda m: m.state in 'done'):
             # if record.is_vendor and not record.property_purchase_currency_id and record.type=='contact' and record.is_company==True:
             #     raise UserError(_("Alert !! Kindly update Supplier Currency."))
+            if not self.email:
+                raise ValidationError("The Partner does not have a valid email address.")
+
+            contact_creation = self.env['contact.creation'].search([('partner_id', '=', self.id)], limit=1)
+            print('checking', contact_creation)
+
+            if contact_creation:
+                template = self.env.ref('res_partner_extended.approved_contact_information_mail')
+                template.send_mail(self.id, force_send=True)
+
             vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
             if vendor_code != '' and not self.vendor_code:
                     record.write({'vendor_code': vendor_code})

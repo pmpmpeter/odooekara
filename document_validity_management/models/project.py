@@ -13,6 +13,16 @@ class ProjectProject(models.Model):
     document_reminder = fields.Integer('Reminder')
     closed_date = fields.Date(string='Closed Date',readonly=1)
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
+    days_left = fields.Integer(string="Days Left", compute="_compute_days_left", store=True)
+
+    @api.depends('validity_end_date')
+    def _compute_days_left(self):
+        today = date.today()
+        for record in self:
+            if record.validity_end_date:
+                record.days_left = (record.validity_end_date - today).days
+            else:
+                record.days_left = 0
 
     # @api.model
     # def _get_view(self, view_id=None, view_type='form', **options):
@@ -111,11 +121,27 @@ class ProjectProject(models.Model):
     def send_reminder_document(self):
         today = fields.Date.today()
         document_first_reminder = self.sudo().search([
-            ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
+            ('is_document_validity_management', '=', True),
+            ('document_type_id.default_validity_period', '>', 0),
+            ('first_reminder_date', '<=', today),
+            ('validity_end_date', '>=', today),
         ])
-        if document_first_reminder:
+
+        projects_to_remind = document_first_reminder.filtered(
+            lambda p: p.first_reminder_date <= today <= p.validity_end_date
+        )
+        print(projects_to_remind,"testinggggg")
+
+        if projects_to_remind:
             self._schedule_activities_first_reminder_document()
-            self._send_first_reminder_email_notifications_document(document_first_reminder)
+            self._send_first_reminder_email_notifications_document(projects_to_remind)
+
+        # document_first_reminder = self.sudo().search([
+        #     ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
+        # ])
+        # if document_first_reminder:
+        #     self._schedule_activities_first_reminder_document()
+        #     self._send_first_reminder_email_notifications_document(document_first_reminder)
 
     def _send_first_reminder_email_notifications_document(self,document_first_reminder):
         for rec in document_first_reminder:
@@ -128,17 +154,25 @@ class ProjectProject(models.Model):
 
     def _schedule_activities_first_reminder_document(self):
         today = fields.Date.today()
+        # projects = self.search([
+        #     ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
+        # ])
         projects = self.search([
-            ('first_reminder_date', '=', today),('is_document_validity_management','=',True),('document_type_id.default_validity_period','>',0)
+            ('is_document_validity_management', '=', True),
+            ('document_type_id.default_validity_period', '>', 0),
+            ('first_reminder_date', '<=', today),
+            ('validity_end_date', '>=', today),
         ])
         for project in projects:
-            project.activity_schedule(
-                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
-                summary="Reminder: Document Validity Due",
-                note="The document deadline is approaching. Please take action.",
-                user_id=project.user_id.id,
-                date_deadline=fields.Date.today()
-            )
+            if project.first_reminder_date and project.first_reminder_date <= today <= project.validity_end_date:
+                project.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Reminder: Document Validity Due",
+                    note="The document deadline is approaching. Please take action.",
+                    user_id=project.user_id.id,
+                    # date_deadline=fields.Date.today()
+                    date_deadline=today
+                )
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'

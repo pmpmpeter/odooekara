@@ -24,8 +24,8 @@
                                 <field name="create_uid"/>
                                 <field name="create_date"/>
                                 <field name="company_id" readonly="1"/>
-                                <field name="start_date" readonly="state in 'done'"/>
-                                <field name="end_date" readonly="state in 'done'"/>
+                                <field name="start_date" required="1" readonly="state in 'done'"/>
+                                <field name="end_date" required="1" readonly="state in 'done'"/>
                                 <field name="active" invisible="1"/>
                             </group>
                             <group>
@@ -40,8 +40,9 @@
                                 <field name="cash_requirement_lines" readonly="state in 'done'">
                                     <tree editable="bottom">
                                         <field name="cash_account" required="1" options="{'no_quick_create':True,'no_create': True}"/>
-                                        <field name="partner_id" required="0" options="{'no_quick_create':True,'no_create': True}"/>
-                                        <field name="requirement_month" required="1"/>
+                                        <field name="partner_id" required="0" options="{'no_quick_create':True,'no_create': True}" optional="hide"/>
+                                        <field name="requirement_month" required="0" optional="hide"/>
+                                        <field name="requirement_months"/>
                                         <field name="amount" required="1"/>
                                         <field name="remarks"/>
                                     </tree>
@@ -74,10 +75,13 @@
             <field name="model">cash.requirement.report</field>
             <field name="arch" type="xml">
                 <search>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
                     <field string="Code" name='name'/>
                     <group expand="0" string="Group By">
-                      
                         <filter string="Requested By" name="groupby_cash_account" context="{'group_by':'requested_by'}"/>
+                        <filter string="Created By" name="groupby_created_by" context="{'group_by':'create_uid'}"/>
+                        <filter string="Status" name="groupby_state" context="{'group_by':'state'}"/>
                     </group>
                 </search>
             </field>
@@ -120,6 +124,7 @@
                                 <field name="cash_account"/>
                                 <field name="partner_id"/>
                                 <field name="requirement_month"/>
+                                <field name="requirement_months"/>
                                 <field name="amount"/>
                                 <field name="company_id"/>
             </tree>

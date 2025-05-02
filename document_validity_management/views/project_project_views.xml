@@ -69,6 +69,7 @@
                 <field name="partner_id"/>
                 <field name="validity_start_date"/>
                 <field name="validity_end_date"/>
+                <field name="days_left"/>
                 <field name="create_date"/>
                 <field name="company_id"/>
                 <field name="user_id"/>

@@ -18,6 +18,19 @@ class BankStatement(models.Model):
     _order = 'date_to desc'
     _rec_name = 'display_name'
 
+    @api.constrains('date_to', 'journal_id')
+    def _check_date_to_unique(self):
+        for record in self:
+            duplicate = self.sudo().search([
+                ('date_to', '=', record.date_to),
+                ('journal_id', '=', record.journal_id.id),
+                ('id', '!=', record.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(
+                    f"Duplicate date {record.date_to} for journal {record.journal_id.name}!"
+                )
+
     @api.onchange('journal_id', 'date_from', 'date_to')
     def _get_lines(self):
         # self.account_id = self.journal_id.default_debit_account_id.id or self.journal_id.default_credit_account_id.id

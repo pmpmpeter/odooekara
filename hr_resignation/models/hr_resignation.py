@@ -100,7 +100,7 @@ class HrResignation(models.Model):
                                      compute="_compute_change_employee",
                                      help="Checks , if the user has permission"
                                           " to change the employee")
-    employee_contract = fields.Char(String="Contract", copy=False)
+    employee_contract = fields.Char(string="Contract", copy=False)
     is_employee = fields.Boolean(string="Is Employee", compute="_compute_is_employee")
     state_manager = fields.Selection(
         [('draft', 'Draft'), ('confirm', 'Confirm'), ('manager_approved', 'Manager Approved'),

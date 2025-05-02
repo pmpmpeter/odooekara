@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError, ValidationError
 
 
 class CashPool(models.Model):
@@ -7,10 +8,18 @@ class CashPool(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string='Name', copy=False)
+    fund_line_ids = fields.One2many('cash.pool.fund.line', 'pool_id', string="Fund Lines")
     sequence = fields.Char(string='Sequence', copy=False)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, copy=False)
     amount = fields.Float(string='Amount')
     active = fields.Boolean('Active', default=True)
+    current_balance = fields.Float(string='Current Balance', copy=False)
+    manager_id = fields.Many2one('res.partner',string='Manager',copy=False)
+    state = fields.Selection([
+            ('draft', 'Draft'),
+            ('waiting_for_approval', 'Waiting for Approval'),
+            ('approved', 'Approved')
+        ], string='Status', default='draft', required=True)
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -20,11 +29,61 @@ class CashPool(models.Model):
             default['name'] = _("%s (copy)", self.name)
         return super(CashPool, self).copy(default=default)
 
+    def action_reset_to_draft(self):
+        for record in self:
+            record.state = 'draft'
+
+    def action_submit_for_approval(self):
+        for record in self:
+            if record.fund_line_ids:
+                for fund_line in record.fund_line_ids:
+                    if fund_line.amount <= 0:
+                        raise ValidationError("The fund amount must be greater than 0.")
+
+            if record.manager_id and not record.manager_id.email:
+                raise ValidationError("The selected manager must have an email address.")
+            record.fund_line_ids.write({'state': 'waiting_for_approval'})
+            record.state = 'waiting_for_approval'
+
+    def action_approved(self):
+        for record in self:
+            approved_fund_lines = record.fund_line_ids.filtered(lambda l: l.state == 'waiting_for_approval')
+            total_amount = sum(approved_fund_lines.mapped('amount'))
+            for fund_line in approved_fund_lines:
+                fund_line.opening_balance = record.current_balance
+                fund_line.closing_balance = record.current_balance + fund_line.amount
+
+            record.current_balance += total_amount
+            approved_fund_lines.write({'state': 'approved'})
+            template = self.env.ref('accounts_extended.cash_pool_manager_email_template')
+            if template:
+                template.sudo().send_mail(record.id, force_send=True)
+            record.state = 'approved'
+
     # @api.model_create_multi
     # def create(self, vals_list):
     #     for vals in vals_list:
     #             vals['sequence'] = self.env['ir.sequence'].next_by_code('cash.pool')
     #     return super().create(vals_list)
+
+
+class CashPoolFundLine(models.Model):
+    _name = "cash.pool.fund.line"
+    _description = "Cash Pool Fund Line"
+
+    pool_id = fields.Many2one('cash.pool', string="Cash Pool", ondelete="cascade")
+    added_by_id = fields.Many2one('res.users', string="Added By")
+    amount = fields.Float(string="Amount")
+    date = fields.Date(string="Date")
+    approved_by_id = fields.Many2one('res.users', string="Approved By")
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('waiting_for_approval', 'Waiting Approval'),
+        ('approved', 'Approved')
+    ], string="Status", default="draft")
+    opening_balance = fields.Float(string="Opening Balance")
+    closing_balance = fields.Float(string="Closing Balance")
+
 
 
 class CashPoolLines(models.Model):

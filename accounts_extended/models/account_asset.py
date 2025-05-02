@@ -11,5 +11,5 @@ class AccountAsset(models.Model):
     asset_tag_no = fields.Char(string="Assets Tag Number")
     end_date = fields.Date(string="End Date")
     life_of_asset = fields.Char(string="Life of Asset")
-    employee_id = fields.Many2one('hr.employee', String="User")
+    employee_id = fields.Many2one('hr.employee', string="User")
     location = fields.Char(string="Location")
