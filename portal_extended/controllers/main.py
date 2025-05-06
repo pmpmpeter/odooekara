@@ -318,6 +318,18 @@ class CustomPortalInherit(CustomerPortal):
         if mail:
             mail.send()
 
+        group = request.env.ref('account.group_account_invoice').sudo()
+        users = group.sudo().users
+        for user in users:
+            request.env['mail.activity'].sudo().create({
+                'res_model_id': request.env['ir.model']._get_id('res.partner'),
+                'res_id': partner.id,
+                'activity_type_id': request.env.ref('mail.mail_activity_data_todo').id,
+                'summary': 'Profile Updated',
+                'note': f'Profile for {partner.name} has been updated.',
+                'user_id': user.id,
+            })
+
         response = request.render("portal.portal_my_details", values)
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['Content-Security-Policy'] = "frame-ancestors 'self'"

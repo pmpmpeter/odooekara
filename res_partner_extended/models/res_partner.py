@@ -12,7 +12,7 @@ class ResPartner(models.Model):
         string='Status', default='draft', readonly=True, copy=False, tracking=True,)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
-    vendor_code = fields.Char(string='Partner Code',readonly=1, copy=False)
+    vendor_code = fields.Char(string='Partner Code',readonly=0, copy=False)
     customer_code = fields.Char(string='Customer Code', readonly=1, copy=False)
     vat = fields.Char(string='GSTIN')
     tds_applicable = fields.Boolean('TDS Applicable?')
@@ -32,6 +32,14 @@ class ResPartner(models.Model):
     msme_validity = fields.Date(string="MSME Validity")
     ldc_no = fields.Char(string="LDC Number")
     ldc_expiry_date = fields.Date(string="LDC Expiry Date")
+    can_edit_vendor_code = fields.Boolean(compute='_compute_can_edit_vendor_code')
+
+    def _compute_can_edit_vendor_code(self):
+        is_admin_or_accounts_head = (
+                self.env.user.has_group('account.group_account_manager')
+        )
+        for rec in self:
+            rec.can_edit_vendor_code = is_admin_or_accounts_head
 
     @api.model
     def name_get(self):

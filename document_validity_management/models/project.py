@@ -20,7 +20,8 @@ class ProjectProject(models.Model):
         today = date.today()
         for record in self:
             if record.validity_end_date:
-                record.days_left = (record.validity_end_date - today).days
+                days_left = (record.validity_end_date - today).days
+                record.days_left = max(days_left, 0)
             else:
                 record.days_left = 0
 

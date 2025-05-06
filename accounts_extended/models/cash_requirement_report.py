@@ -66,6 +66,13 @@ class CashRequirementReport(models.Model):
         return super().create(vals_list)
 
     def button_done(self):
+        if self.requested_by:
+            self.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary=f"Cash Requirement Request - {self.name}account.aged.partner.balance.report.handler",
+                note=f"The record {self.name} has been marked as done. Please take action if needed.",
+                user_id=self.requested_by.id,
+            )
         self.state = 'done'
 
     def unlink(self):
