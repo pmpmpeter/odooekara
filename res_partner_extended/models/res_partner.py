@@ -266,7 +266,7 @@ class ResPartner(models.Model):
             if rec.review_on == 'quarterly':
                 current_month = datetime.today().strftime('%B')
                 print(current_month,Q1,)
-                if current_month ==  Q1 or Q2 or Q3 or Q4:
+                if current_month ==  Q1 or current_month == Q2 or current_month == Q3 or current_month == Q4:
                     lines.append((0, 0, {
                         'review_date': datetime.today(),
                         'review_status': 'on_review',
@@ -284,8 +284,12 @@ class ResPartner(models.Model):
                     'review_date': datetime.today(),
                     'review_status': 'on_review',
                 }))
-                template = self.env.ref('res_partner_extended.contact_reviewed_mail')
-                template.send_mail(self.id, force_send=True)
+                rec.review_lines = lines
+                account_manager_group = self.env.ref('account.group_account_manager')
+                emails = [user.email for user in account_manager_group.users if user.email]
+                template = self.env.ref('res_partner_extended.contact_review_mail')
+                template.write({'email_to': ', '.join(emails)})
+                template.send_mail(rec.id, force_send=True)
     def mark_as_reviewed(self):
         for rec in self.review_lines:
             if rec.review_date.month == datetime.today().month and rec.review_status == 'on_review':
