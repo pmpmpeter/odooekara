@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, AccessError,ValidationError
 import logging, re
+from datetime import datetime
 from odoo.tools import SQL
 _logger = logging.getLogger(__name__)
 
@@ -33,7 +34,10 @@ class ResPartner(models.Model):
     ldc_no = fields.Char(string="LDC Number")
     ldc_expiry_date = fields.Date(string="LDC Expiry Date")
     can_edit_vendor_code = fields.Boolean(compute='_compute_can_edit_vendor_code')
-
+    approved_date = fields.Date(string="Approved Date",copy=False)
+    review_on = fields.Selection([('monthly', 'Monthly'),('quarterly', 'Quarterly')],string='Review Based on',default='quarterly')
+    review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
+    has_to_review = fields.Boolean(string='Has to Review')
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (
                 self.env.user.has_group('account.group_account_manager')
@@ -149,7 +153,9 @@ class ResPartner(models.Model):
 
     def action_approve(self):
         for record in self.filtered(lambda m: m.state not in 'approve'):
-            record.write({'state': 'approve'})
+            record.write({'state': 'approve',
+                          'approved_date':datetime.date.today()})
+
         # self.write({'state': 'approve'})
 
     def action_validate(self):
@@ -177,7 +183,8 @@ class ResPartner(models.Model):
             vendor_code = self.env['ir.sequence'].next_by_code('contact.creditor.code')
             if vendor_code != '' and not self.vendor_code:
                     record.write({'vendor_code': vendor_code})
-            record.write({'state': 'approve'})
+            record.write({'state': 'approve',
+                          'approved_date':datetime.today()})
             # Retrieve the action with the ID 'contacts.action_contacts'
         # domain1= [('id', '=', self.env.ref('contacts.action_contacts').id)]
         # action = self.env['ir.actions.act_window'].sudo().search(domain1, limit=1)
@@ -248,7 +255,58 @@ class ResPartner(models.Model):
         #     'tag': 'reload',  # This will refresh the page
         #     'params': action_to_return  # Include the action that opens contacts
         # }
+    def review_vendor(self):
+        records = self.env['res.partner'].sudo().search([('state','=','approve')])
+        for rec in records:
+            Q1 = 'June'
+            Q2 = 'September'
+            Q3 = 'December'
+            Q4 = 'March'
+            lines = []
+            if rec.review_on == 'quarterly':
+                current_month = datetime.today().strftime('%B')
+                print(current_month,Q1,)
+                if current_month ==  Q1 or Q2 or Q3 or Q4:
+                    lines.append((0, 0, {
+                        'review_date': datetime.today(),
+                        'review_status': 'on_review',
 
+                    }))
+                    rec.review_lines = lines
+                    rec.has_to_review = True
+                    account_manager_group = self.env.ref('account.group_account_manager')
+                    emails = [user.email for user in account_manager_group.users if user.email]
+                    template = self.env.ref('res_partner_extended.contact_review_mail')
+                    template.write({'email_to': ', '.join(emails)})
+                    template.send_mail(rec.id, force_send=True)
+            if rec.review_on == 'monthly':
+                lines.append((0, 0, {
+                    'review_date': datetime.today(),
+                    'review_status': 'on_review',
+                }))
+                template = self.env.ref('res_partner_extended.contact_reviewed_mail')
+                template.send_mail(self.id, force_send=True)
+    def mark_as_reviewed(self):
+        for rec in self.review_lines:
+            if rec.review_date.month == datetime.today().month and rec.review_status == 'on_review':
+                rec.review_on = datetime.today()
+                rec.review_status = 'reviewed'
+                self.has_to_review = False
+                template = self.env.ref('res_partner_extended.contact_reviewed_mail')
+                template.send_mail(self.id, force_send=True)
+    # def _schedule_activities_vendor_review(self):
+    #     today = fields.Date.today()
+    #     projects = self.search([
+    #         ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
+    #     ])
+    #     for project in projects:
+    #         project.activity_schedule(
+    #             activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+    #             summary="Second Reminder: Statutory Notice Due",
+    #             note="The Statutory notice deadline is approaching. Please take action.",
+    #             user_id=project.user_id.id,
+    #             date_deadline=fields.Date.today()
+    #         )
     def unlink(self):
         if not self.env.user.has_group('account.group_account_manager'):
             raise UserError(_("You do not have access to trigger this action."))
@@ -345,3 +403,12 @@ class ResPartner(models.Model):
     #             vals['customer_code'] = seq.next_by_code(seq.code)
     #     res = super(ResPartner, self).write(vals)
     #     return res
+
+    class ReviewLines(models.Model):
+        _name = "review.lines"
+        _description = 'Review Lines'
+
+        review_date = fields.Date(string='Review Date',copy=False)
+        review_on = fields.Date(string='Reviewed On',copy=False)
+        review_status = fields.Selection([('on_review','On Review'),('reviewed','Reviewed')],string='Status',copy=False)
+        review_link = fields.Many2one('res.partner')

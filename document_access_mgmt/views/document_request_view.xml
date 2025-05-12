@@ -44,13 +44,18 @@
                     </div>
                     <group>
                         <group>
-                            <field name="user_id" required="True" readonly="state != 'draft'" 
+                            <field name="user_id" required="True" readonly="state != 'draft'"
                                 options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
-                            <field name="document_id" required="True" readonly="state != 'draft'" 
+                            <field name="document_id" required="False" readonly="state != 'draft'"
                                 options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
-                            <field name="pdf_document" readonly="1" invisible="state not in ['approved']" 
+                            <field name="pdf_document" readonly="1" invisible="state not in ['approved']"
                                 widget="binary" filename="pdf_filename" />
                             <field name="pdf_filename" readonly="1" invisible="1"/>
+                            <field name="documents_id" readonly="state != 'draft'"
+                               options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
+                            <field name="documents_pdf_document" readonly="1" invisible="state not in ['approved']"
+                                widget="binary" filename="documents_pdf_filename" />
+                            <field name="documents_pdf_filename" readonly="1" invisible="1"/>
                             <field name="purpose" required='1' readonly="state != 'draft'"/>
                             <field name="is_watermark" readonly="state != 'draft'"/>
                             <field name="watermark_content" invisible="not is_watermark" readonly="state != 'draft'"/>

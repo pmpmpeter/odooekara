@@ -24,14 +24,19 @@
             <field name="arch" type="xml">
                 <form string="Salesperson">
                     <header>
-                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                        <field name="state" widget="statusbar" statusbar_visible="draft,active,approve,expired"/>
+                        <button name="action_confirm" string="Send Invitation" type="object" class="btn-primary"
                                 invisible="user_created == True"/>
+                        <button name="action_resend_invite" string="Resend Invitation" type="object" class="btn-primary"
+                                invisible="state not in ('expired')"/>
                         <button name="action_deactivate" string="Deactivate" type="object" class="btn-secondary" invisible="user_created == False or active == False"/>
                         <button name="action_activate" string="Activate" type="object" class="btn-secondary" invisible="active != False"/>
                     </header>
                     <sheet>
+                        <widget name="web_ribbon" title="Approved" bg_color="text-bg-success" invisible="not is_approved"/>
                         <group>
                             <group>
+                                <field name="is_approved" invisible="1"/>
                                 <field name="name" readonly="user_created == True"/>
                                 <field name="email" readonly="user_created == True"/>
                                 <field name="password" readonly="user_created == True"/>
@@ -39,6 +44,7 @@
                                 <field name="default_company_id" options="{'no_quick_create':True,'no_create': True,}"/>
                                 <field name="active"/>
                                 <field name="user_created" invisible="1"/>
+                                <field name="valid_up_to" readonly="1" force_save="1" invisible="is_approved"/>
                             </group>
                             <group>
                                 <field name="is_customer" readonly="user_created == True"/>
@@ -53,6 +59,11 @@
                             </group>
                         </group>
                     </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="activity_ids" widget="mail_activity"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>

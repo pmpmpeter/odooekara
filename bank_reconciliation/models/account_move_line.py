@@ -13,15 +13,15 @@ class AccountMoveLine(models.Model):
         help="Effective date for payment Reference")
     counter_part_ledger=fields.Char('Counter Party Ledger')
 
-    @api.onchange('statement_date','date')
-    def _onchange_bank_date_restriction(self):
-        for line in self:
-            if line.statement_date and line.date:
-                if line.statement_date < line.date:
-                    raise UserError("Alert!! You cannot enter a bank date behind the system entry date.")
-            if line.statement_date and line.bank_statement_id.date_to:
-                if not (line.date <= line.statement_date <= line.bank_statement_id.date_to):
-                    raise UserError("Alert!! The statement date must be within the range of the system entry date and date to.")
+    # @api.onchange('statement_date','date')
+    # def _onchange_bank_date_restriction(self):
+    #     for line in self:
+    #         if line.statement_date and line.date:
+    #             if line.statement_date < line.date:
+    #                 raise UserError("Alert!! You cannot enter a bank date behind the system entry date.")
+    #         if line.statement_date and line.bank_statement_id.date_to:
+    #             if not (line.date <= line.statement_date <= line.bank_statement_id.date_to):
+    #                 raise UserError("Alert!! The statement date must be within the range of the system entry date and date to.")
 
     # def write(self, vals):
     #     if not vals.get("statement_date"):

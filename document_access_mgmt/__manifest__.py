@@ -11,7 +11,7 @@
     'author': "NITS",
     'category': 'Hidden',
     'version': '0.1',
-    'depends': ['base','mail'],
+    'depends': ['base','mail','documents'],
 
     'data': [
         'security/security.xml',

@@ -69,5 +69,43 @@
         <field name="auto_delete" eval="False"/>
     </record>
 
+    <record id="contact_review_mail" model="mail.template">
+        <field name="name">Contact Review Invitation</field>
+        <field name="model_id" ref="model_res_partner"/>
+        <field name="subject">Contact Review Invitation - {{object.name}}
+        </field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    <p>Dear Team,</p>
+                    <br/>
+                    <p>Kindly review datas of <t t-out="object.name or ''"/> contact.</p>
+                    <p>Thank You.</p>
+                </p>
+            </div>
+        </field>
+<!--        <field name="lang">{{ object.partner_id.lang }}</field>-->
+        <field name="auto_delete" eval="False"/>
+    </record>
+    <record id="contact_reviewed_mail" model="mail.template">
+        <field name="name">Contact Reviewed</field>
+        <field name="model_id" ref="model_res_partner"/>
+        <field name="email_to">{{object.email}}</field>
+        <field name="subject">Contact Reviewed - {{object.name}}
+        </field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    <p>Dear <t t-out="object.name or ''"/>,</p>
+                    <br/>
+                    <p>Your datas has been reviewed by the team.</p>
+                    <p>Thank You.</p>
+                </p>
+            </div>
+        </field>
+<!--        <field name="lang">{{ object.partner_id.lang }}</field>-->
+        <field name="auto_delete" eval="False"/>
+    </record>
+
 </odoo>
 

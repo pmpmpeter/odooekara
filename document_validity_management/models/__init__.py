@@ -1,1 +1,1 @@
-from . import document_type, project
+from . import document_type, project, documents_share

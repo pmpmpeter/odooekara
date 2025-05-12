@@ -13,7 +13,7 @@ class ProjectProject(models.Model):
     document_reminder = fields.Integer('Reminder')
     closed_date = fields.Date(string='Closed Date',readonly=1)
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
-    days_left = fields.Integer(string="Days Left", compute="_compute_days_left", store=True)
+    days_left = fields.Integer(string="Days Left", compute="_compute_days_left")
 
     @api.depends('validity_end_date')
     def _compute_days_left(self):
@@ -131,7 +131,6 @@ class ProjectProject(models.Model):
         projects_to_remind = document_first_reminder.filtered(
             lambda p: p.first_reminder_date <= today <= p.validity_end_date
         )
-        print(projects_to_remind,"testinggggg")
 
         if projects_to_remind:
             self._schedule_activities_first_reminder_document()
@@ -184,6 +183,17 @@ class ProjectTask(models.Model):
     validity_end_date = fields.Date(string="Validity End Date")
     stage_id = fields.Many2one('project.task.type', string="Stage", required=True)
     is_document_validity_management = fields.Boolean(string="Is Document Validity Management", default=False)
+    days_left = fields.Integer(string="Days Left", compute="_compute_days_left")
+
+    @api.depends('validity_end_date')
+    def _compute_days_left(self):
+        today = date.today()
+        for record in self:
+            if record.validity_end_date:
+                days_left = (record.validity_end_date - today).days
+                record.days_left = max(days_left, 0)
+            else:
+                record.days_left = 0
 
     @api.model
     def create(self,vals):
@@ -261,7 +271,7 @@ class ProjectTask(models.Model):
                 'document_type_id': task.document_type_id.id,
                 'partner_id': task.project_id.partner_id.id if task.project_id.partner_id else False,
                 'user_ids': [(6, 0, task.user_ids.ids)],
-                'stage_id': self.env['project.task.type'].search([('name', '=', 'Draft'),
+                'stage_id': self.env['project.task.type'].search([('name', '=', 'To Renew'),
                                                                   ('project_ids', 'in', task.project_id.id)]).id,
                 'validity_start_date': new_start_date,
                 'validity_end_date': new_end_date,

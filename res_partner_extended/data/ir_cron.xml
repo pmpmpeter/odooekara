@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+
+	 <record id="ir_cron_vendor_review" model="ir.cron">
+            <field name="name">Vendor Review Scheduler</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">model.review_vendor()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)"/>
+        </record>
+
+        <record id="ir_cron_check_expired_contacts" model="ir.cron">
+            <field name="name">Check Expired Contact Validity</field>
+            <field name="model_id" ref="model_contact_creation"/>
+            <field name="state">code</field>
+            <field name="code">model._check_expired_contacts()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+
+	
+    </data>
+</odoo>

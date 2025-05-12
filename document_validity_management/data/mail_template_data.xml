@@ -32,7 +32,7 @@
                         </strong>
                          requires your attention.
                     </p>
-                    <p>he current status indicates that the
+                    <p>The current status indicates that the
                          <t t-out="object.name"/>
                         <strong>
                             <t t-if="object.stage_id.name == 'To Renew'"> is expired and needs to be renewed.</t>
@@ -108,5 +108,22 @@
             <field name="auto_delete" eval="False"/>
         </record>
 
+         <record id="documents_share_email_template_custom" model="mail.template">
+            <field name="name">Document Share Link</field>
+            <field name="model_id" ref="documents.model_documents_share"/>
+            <field name="subject">Shared Document Link: {{object.name or 'Document'}}</field>
+            <field name="email_from">{{ user.email_formatted }}</field>
+            <field name="email_to">{{','.join([p.email for p in object.partner_ids if p.email])}}</field>
+            <field name="body_html" type="html">
+                <p>Hello,</p>
+                <p>You can download the document here:</p>
+                <p>
+                    <p>
+                        <a t-att-href="object.full_url" class="btn btn-primary">Download Documents</a>
+                    </p>
+                </p>
+                <p>Regards,<br/><t t-out="object.name"/></p>
+            </field>
+        </record>
     </data>
 </odoo>

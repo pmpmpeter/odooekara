@@ -2,8 +2,9 @@
 <odoo>
     <template id="extend_portal_my_details_fields" inherit_id="portal.portal_my_details_fields">
         <xpath expr="//div[@class='clearfix']" position="after">
+            <t t-set="contact_creation" t-value="request.env['contact.creation'].sudo().search([('partner_id','=',partner.id)])"/>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment">Attachments</label><br/>
+                <label class="col-form-label" for="attachment">Agreement</label><br/>
             <input type="file" name="attachment" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
 
             </div>
@@ -17,12 +18,12 @@
             <input type="file" name="attachment2" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
             </div>
              <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment3">PAN</label><br/>
-            <input type="file" name="attachment3" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
+                <label class="col-form-label" for="attachment3">PAN*</label><br/>
+            <input type="file" name="attachment3" id="attachment" enctype="multipart/form-data" multiple="true" t-att-required="contact_creation.is_vendor or contact_creation.is_customer" accept="image/*,application/pdf,video/*"/>
             </div>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
                 <label class="col-form-label" for="attachment4">Cancelled Cheque*</label><br/>
-            <input type="file" name="attachment4" id="attachment" enctype="multipart/form-data" multiple="true" required="1" accept="image/*,application/pdf,video/*"/>
+            <input type="file" name="attachment4" id="attachment" enctype="multipart/form-data" multiple="true" t-att-required="contact_creation.is_vendor" accept="image/*,application/pdf,video/*"/>
 <!--            <small class="form-text text-muted">You can upload multiple attachments here (e.g., PDF, image).</small>-->
             </div>
              <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">

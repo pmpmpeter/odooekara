@@ -8,11 +8,13 @@ from datetime import date, timedelta, datetime
 from num2words import num2words
 from odoo import _, SUPERUSER_ID
 import itertools
+import random
 
 
 class ContactCreation(models.Model):
     _name = 'contact.creation'
     _description = 'Contact Creation'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Name", required=True, copy=False)
     email = fields.Char(string="Email",required=True, copy=False)
@@ -26,7 +28,7 @@ class ContactCreation(models.Model):
     user_created = fields.Boolean(string="User Created", default=False, copy=False)
     user_id = fields.Many2one('res.users', string='User', copy=False)
     partner_id = fields.Many2one('res.partner',string='Partner', copy=False)
-    password = fields.Char(string='Password', copy=False, required=True)
+    password = fields.Char(string='Password', copy=False, required=True, tracking=True)
     is_vendor = fields.Boolean(string='Is Supplier')
     is_customer = fields.Boolean(string='Is Customer')
     msme_status = fields.Selection([
@@ -36,6 +38,20 @@ class ContactCreation(models.Model):
 
     msme_number = fields.Char(string="MSME Number")
     msme_validity = fields.Date(string="MSME Validity")
+    confirmation_date = fields.Datetime(string="Confirmation Date", tracking=True)
+    valid_up_to = fields.Date(string="Valid Up to", tracking=True)
+    state = fields.Selection([('draft', 'Draft'), ('active', 'Active'), ('expired','Expired'),('in_active','In Active')],
+        string='Status', default='draft', readonly=True, copy=False, tracking=True)
+    is_approved = fields.Boolean(string="Partner Approved", compute="_compute_is_approved")
+
+    @api.depends('partner_id')
+    def _compute_is_approved(self):
+        for record in self:
+            partner = self.env['res.partner'].sudo().search([('id', '=', record.partner_id.id)], limit=1)
+            if partner.state == 'approve':
+                record.is_approved = True
+            else:
+                record.is_approved = False
 
     def portal_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -47,6 +63,7 @@ class ContactCreation(models.Model):
             user = self.env['res.users'].sudo().search([('login', '=', record.email), ('active', '=', False)], limit=1)
             if user:
                 user.sudo().write({'active': True})
+            record.state = 'active'
 
     def action_deactivate(self):
         for record in self:
@@ -55,6 +72,7 @@ class ContactCreation(models.Model):
                 user = self.env['res.users'].sudo().search([('login', '=', record.email)], limit=1)
                 if user:
                     user.sudo().write({'active': False})
+            record.state = 'in_active'
 
 
     def write(self, vals):
@@ -71,6 +89,31 @@ class ContactCreation(models.Model):
                 })
 
         return res
+
+    @api.model
+    def _check_expired_contacts(self):
+        today = fields.Date.today()
+        expired_records = self.search([
+            ('valid_up_to', '<', today),
+            ('partner_id', '!=', False),
+            ('partner_id.state', '!=', 'approve'),
+            ('state','!=', 'expired')
+        ])
+        for record in expired_records:
+            suffix = str(random.randint(1000, 9999))
+            new_password = (record.password or "pass") + suffix
+            record.password = new_password
+            user = self.env['res.users'].sudo().search([('partner_id', '=', record.partner_id.id)], limit=1)
+
+            if user:
+                user._change_password(new_password)
+
+            record.state = 'expired'
+
+    def _set_confirmation_dates(self):
+        for record in self:
+            record.confirmation_date = fields.Date.today()
+            record.valid_up_to = fields.Date.today() + timedelta(days=14)
 
     def action_confirm(self):
         if not self.active:
@@ -129,10 +172,23 @@ class ContactCreation(models.Model):
                     'msme_validity':record.msme_validity,
                 })
             user._change_password(record.password)
-            record.user_created = True
-            if self.is_vendor:
+            if record.is_vendor:
                 template = self.env.ref('res_partner_extended.supplier_contact_creation_mail')
                 template.send_mail(self.id, force_send=True)
             else:
                 template = self.env.ref('res_partner_extended.contact_creation_mail')
                 template.send_mail(self.id, force_send=True)
+            record._set_confirmation_dates()
+            record.user_created = True
+            record.state = 'active'
+
+    def action_resend_invite(self):
+        self._set_confirmation_dates()
+        if self.is_vendor:
+            template = self.env.ref('res_partner_extended.supplier_contact_creation_mail')
+            template.send_mail(self.id, force_send=True)
+        else:
+            template = self.env.ref('res_partner_extended.contact_creation_mail')
+            template.send_mail(self.id, force_send=True)
+        if self.state == 'expired':
+            self.state = 'active'

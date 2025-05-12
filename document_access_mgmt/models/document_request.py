@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from odoo.exceptions import UserError, ValidationError
 import base64
 import pdb
+import mimetypes
 from datetime import date
 
 class DocumentRequest(models.Model):
@@ -17,11 +18,14 @@ class DocumentRequest(models.Model):
     request_date = fields.Date(string='Request Date', tracking=True, default=datetime.today())
     name = fields.Char(string='Name', default='New', copy=False)
     document_id = fields.Many2one('document.item', string="Document Requested", copy=False, tracking=True)
+    documents_id = fields.Many2one('documents.document', string="Documents")
     company_id = fields.Many2one('res.company', string='Company', tracking=True)
     approved_date = fields.Datetime(string='Approved Date', tracking=True, copy=False)
     approve_uid = fields.Many2one('res.users', string="Approved By", tracking=True, readonly=True)
     pdf_document = fields.Binary(string="Generated PDF")
     pdf_filename = fields.Char(string="PDF Filename")
+    documents_pdf_document = fields.Binary(string="Additional PDF")
+    documents_pdf_filename = fields.Char(string="Additional PDF Filename")
     pdf_expiry_date = fields.Datetime(string="PDF Expiry Date")
     state = fields.Selection([
         ('draft','Draft'),
@@ -72,47 +76,63 @@ class DocumentRequest(models.Model):
     def action_send_approval_request(self):
         for rec in self:
             document_manager_group = self.env.ref('document_access_mgmt.group_document_manager')
+            group_emails = []
+            partner_ids_to_follow = []
             if document_manager_group.users:
                 for user in document_manager_group.users:
                     user_name = user.name
                     if not user.email:
                         raise UserError(_('Please configure Email for %s.', user_name))
-                    base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-                    action_id = self.env['ir.model.data']._xmlid_lookup('document_access_mgmt.document_request_action')[1]
-                    subject = "Document Access Approval Request: " + rec.name
-                    mail_content = """<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: rgb(255, 255, 255); ">
-                                                    <p>Dear """ + str(user_name) + """,</p>
-                                                    Please review the details and provide your approval at your earliest convenience.
-                                                    <br/><br/>
+                    group_emails.append(user.email)
+                    partner_ids_to_follow.append(user.partner_id.id)
 
-                                                    You can view the details here: 
-                                                    <a href=""" + str(base_url) + """/web#id=""" + str(
-                        rec.id) + """&view_type=form&model=document.request&action=""" + str(action_id) + """>
-                                                   """ + str(rec.name) + """
+                rec.message_subscribe(partner_ids=partner_ids_to_follow)
+                follower_emails = rec.message_follower_ids.mapped('partner_id.email')
+                all_emails = list(set(group_emails + follower_emails))
 
-                                                    </a>
-                                                    <br/>
-                                                    <br/>
-                                                    Your prompt response would be highly appreciated.
-                                                    <br/>
-                                                    <br/>
-                                                    <p/>
-                                                    Thanks,
-                                                    <br/>
-                                                    <br/>
-                                                    <br/><br/>
-                                                    <p style="color:#808080"><i>
-                                                    Do not reply to this email as its an automatic alert send by ERP
+                base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                action_id = self.env['ir.model.data']._xmlid_lookup('document_access_mgmt.document_request_action')[1]
+                subject = "Document Access Approval Request: " + rec.name
+                mail_content = """<div style="font-family: 'Lucica Grande', Ubuntu, Arial, Verdana, sans-serif; font-size: 12px; color: rgb(34, 34, 34); background-color: rgb(255, 255, 255); ">
+                                                <p>Dear """ + str(user_name) + """,</p>
+                                                Please review the details and provide your approval at your earliest convenience.
+                                                <br/><br/>
 
-                                                </div>"""
-                    email_to = [user.email]
-                    main_content = {
+                                                You can view the details here: 
+                                                <a href=""" + str(base_url) + """/web#id=""" + str(
+                    rec.id) + """&view_type=form&model=document.request&action=""" + str(action_id) + """>
+                                               """ + str(rec.name) + """
+
+                                                </a>
+                                                <br/>
+                                                <br/>
+                                                Your prompt response would be highly appreciated.
+                                                <br/>
+                                                <br/>
+                                                <p/>
+                                                Thanks,
+                                                <br/>
+                                                <br/>
+                                                <br/><br/>
+                                                <p style="color:#808080"><i>
+                                                Do not reply to this email as its an automatic alert send by ERP
+
+                                            </div>"""
+                # email_to = [user.email]
+                # main_content = {
+                #     'subject': subject,
+                #     'author_id': self.env.user.partner_id.id,
+                #     'body_html': mail_content,
+                #     'email_to': ','.join(email_to),
+                # }
+                if all_emails:
+                    self.env['mail.mail'].sudo().create({
                         'subject': subject,
                         'author_id': self.env.user.partner_id.id,
                         'body_html': mail_content,
-                        'email_to': ','.join(email_to),
-                    }
-                    self.env['mail.mail'].create(main_content).send()
+                        'email_to': ','.join(all_emails),
+                    }).send()
+                # self.env['mail.mail'].create(main_content).send()
             else:
                 raise UserError(_('Please configure Document Access Manager'))
             rec.state = 'to_approve'
@@ -142,22 +162,53 @@ class DocumentRequest(models.Model):
             raise UserError("The document is no longer available for download.")
 
     def action_approve(self):
-        for rec in self.filtered(lambda d: d.state in ['to_approve']):
-            pdf_content = self._generate_pdf()
-            rec.write({
+        for rec in self.filtered(lambda d: d.state == 'to_approve'):
+            values_to_write = {
                 'state': 'approved',
                 'approve_uid': self.env.user.id,
                 'approved_date': fields.Datetime.now(),
-                'pdf_document': pdf_content,
-                'pdf_filename': f'{rec.document_id.name}.pdf',
-                'pdf_expiry_date': datetime.now() + timedelta(hours=rec.document_id.doc_available_hours),
-            })
+            }
+
+            if rec.document_id:
+                pdf_content = rec._generate_pdf(rec.document_id)
+                values_to_write.update({
+                    'pdf_document': pdf_content,
+                    'pdf_filename': f'{rec.document_id.name}.pdf',
+                    'pdf_expiry_date': datetime.now() + timedelta(hours=rec.document_id.doc_available_hours),
+                })
+
+            if rec.documents_id:
+                documents_pdf = rec.documents_id.datas
+                doc_name = rec.documents_id.name or 'document'
+
+                if '.' not in doc_name:
+                    extension = mimetypes.guess_extension(rec.documents_id.mimetype or '') or '.bin'
+                    doc_name += extension
+
+                values_to_write.update({
+                    'documents_pdf_document': documents_pdf,
+                    'documents_pdf_filename': doc_name,
+                })
+
+            rec.write(values_to_write)
+
+    # def action_approve(self):
+    #     for rec in self.filtered(lambda d: d.state in ['to_approve']):
+    #         pdf_content = self._generate_pdf()
+    #         rec.write({
+    #             'state': 'approved',
+    #             'approve_uid': self.env.user.id,
+    #             'approved_date': fields.Datetime.now(),
+    #             'pdf_document': pdf_content,
+    #             'pdf_filename': f'{rec.document_id.name}.pdf',
+    #             'pdf_expiry_date': datetime.now() + timedelta(hours=rec.document_id.doc_available_hours),
+    #         })
 
     def action_reject(self):
         for rec in self:
             rec.state = 'rejected'
 
-    def _generate_pdf(self):
+    def _generate_pdf(self, document):
         custom_context = {
             'generation_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             'username': self.env.user.name,
@@ -166,7 +217,7 @@ class DocumentRequest(models.Model):
             'is_watermark':self.is_watermark,
             'watermark_content':self.watermark_content
         }
-        report = self.env['ir.actions.report'].with_context(custom_context)._render_qweb_pdf("document_access_mgmt.action_document_report", self.document_id.id)[0]
+        report = self.env['ir.actions.report'].with_context(custom_context)._render_qweb_pdf("document_access_mgmt.action_document_report", document.id)[0]
         return base64.b64encode(report)
 
     # def submit_document_request(self):

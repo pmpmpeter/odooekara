@@ -19,6 +19,8 @@ class Project(models.Model):
     first_reminder = fields.Integer('First Reminder',readonly=0)
     second_reminder = fields.Integer('Second Reminder',readonly=0)
     is_done = fields.Boolean(string='Done')
+    has_task_stage_changed = fields.Boolean(string='Has Task Stage Changed', copy=False)
+    document_count = fields.Integer(string="Documents", compute="_compute_document_count")
 
     # @api.depends('date_of_notice', 'last_date')
     # def _compute_reminder_dates(self):
@@ -49,6 +51,55 @@ class Project(models.Model):
     #             project.second_reminder_date = False
     #             project.second_reminder = 0
 
+    def _compute_document_count(self):
+        Task = self.env['project.task']
+        for record in self:
+            tasks = Task.search([('project_id', '=', record.id)])
+            subtasks = Task.search([('parent_id', 'in', tasks.ids)])
+            related_ids = [(record._name, record.id)] + [('project.task', tid) for tid in tasks.ids + subtasks.ids]
+
+            domain = []
+            for model, res_id in related_ids:
+                domain.append('|')
+            domain = domain[:-1]
+            for model, res_id in related_ids:
+                domain.extend(['&', ('res_model', '=', model), ('res_id', '=', res_id)])
+
+            attachments = self.env['ir.attachment'].search(domain)
+            docs = self.env['documents.document'].search([('attachment_id', 'in', attachments.ids)])
+            record.document_count = len(docs)
+
+    def action_open_documents(self):
+        self.ensure_one()
+
+        folder = self.documents_folder_id
+
+        Task = self.env['project.task']
+        all_tasks = Task.search([('project_id', '=', self.id)])
+        sub_tasks = Task.search([('parent_id', 'in', all_tasks.ids)])
+        all_task_ids = all_tasks.ids + sub_tasks.ids
+
+        attachments = self.env['ir.attachment'].search([
+            '|','&', ('res_model', '=', self._name), ('res_id', '=', self.id),
+            '&', ('res_model', '=', 'project.task'), ('res_id', 'in', all_task_ids),
+        ])
+
+        docs = self.env['documents.document'].search([('attachment_id', 'in', attachments.ids)])
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Documents'),
+            'res_model': 'documents.document',
+            'view_mode': 'kanban',
+            'domain': [('id', 'in', docs.ids)],
+            'context': {
+                'searchpanel_default_folder_id': folder.id if folder else False,
+                'search_default_folder_id': folder.id if folder else False,
+                'default_folder_id': folder.id if folder else False,
+            },
+            'view_id': self.env.ref('documents.document_view_kanban').id,
+        }
+
     @api.onchange('last_date','first_reminder','second_reminder')
     def _onchange_dates(self):
         """
@@ -71,30 +122,67 @@ class Project(models.Model):
 
     def send_reminder(self):
         today = fields.Date.today()
-        legal_first_reminder = self.sudo().search([
-            ('first_reminder_date', '=', today),('is_legal_notice','=',True)
+        projects = self.sudo().search([
+            ('first_reminder_date', '<=', today),
+            ('last_date', '>=', today),
+            '|', ('is_legal_notice', '=', True), ('is_statuory_notice', '=', True),
         ])
-        legal_second_reminder = self.sudo().search([
-            ('second_reminder_date', '=', today),('is_legal_notice','=',True)
-        ])
-        statuory_first_reminder = self.sudo().search([
-            ('first_reminder_date', '=', today),('is_statuory_notice','=',True)
-        ])
-        statuory_second_reminder = self.sudo().search([
-            ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
-        ])
-        if legal_first_reminder:
-            self._schedule_activities_first_reminder_legal()
-            self._send_first_reminder_email_notifications_legal(legal_first_reminder)
-        if legal_second_reminder:
-            self._schedule_activities_second_reminder_legal()
-            self._send_second_reminder_email_notifications_legal(legal_second_reminder)
-        if statuory_first_reminder:
-            self._schedule_activities_first_reminder_statuory()
-            self._send_first_reminder_email_notifications_statuory(statuory_first_reminder)
-        if statuory_second_reminder:
-            self._schedule_activities_second_reminder_statuory()
-            self._send_second_reminder_email_notifications_statuory(statuory_second_reminder)
+
+        stagnant_projects = self.env['project.project']
+        for project in projects:
+            tasks = self.env['project.task'].search([
+                ('project_id', '=', project.id),
+                ('date_last_stage_update', '!=', False),
+            ])
+            unchanged_tasks = tasks.filtered(
+                lambda t: t.date_last_stage_update.replace(microsecond=0) == t.create_date.replace(microsecond=0)
+            )
+            if unchanged_tasks:
+                reminder_cutoff = project.first_reminder_date - timedelta(days=1)
+                # recent_update = max(tasks.mapped('date_last_stage_update')).date()
+                stale_tasks = tasks.filtered(lambda t: t.date_last_stage_update.date() <= reminder_cutoff)
+                if project.first_reminder_date and stale_tasks:
+                    stagnant_projects |= project
+            elif not tasks:
+                stagnant_projects |= project
+
+        legal_reminders = stagnant_projects.filtered(lambda p: p.is_legal_notice)
+        statuory_reminders = stagnant_projects.filtered(lambda p: p.is_statuory_notice)
+
+        if legal_reminders:
+            self._schedule_activities_first_reminder_legal(legal_reminders)
+            self._send_first_reminder_email_notifications_legal(legal_reminders)
+
+        if statuory_reminders:
+            self._schedule_activities_first_reminder_statuory(statuory_reminders)
+            self._send_first_reminder_email_notifications_statuory(statuory_reminders)
+
+    # def send_reminder(self):
+    #     today = fields.Date.today()
+    #     legal_first_reminder = self.sudo().search([
+    #         ('first_reminder_date', '=', today),('is_legal_notice','=',True)
+    #     ])
+    #     legal_second_reminder = self.sudo().search([
+    #         ('second_reminder_date', '=', today),('is_legal_notice','=',True)
+    #     ])
+    #     statuory_first_reminder = self.sudo().search([
+    #         ('first_reminder_date', '=', today),('is_statuory_notice','=',True)
+    #     ])
+    #     statuory_second_reminder = self.sudo().search([
+    #         ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
+    #     ])
+    #     if legal_first_reminder:
+    #         self._schedule_activities_first_reminder_legal()
+    #         self._send_first_reminder_email_notifications_legal(legal_first_reminder)
+    #     if legal_second_reminder:
+    #         self._schedule_activities_second_reminder_legal()
+    #         self._send_second_reminder_email_notifications_legal(legal_second_reminder)
+    #     if statuory_first_reminder:
+    #         self._schedule_activities_first_reminder_statuory()
+    #         self._send_first_reminder_email_notifications_statuory(statuory_first_reminder)
+    #     if statuory_second_reminder:
+    #         self._schedule_activities_second_reminder_statuory()
+    #         self._send_second_reminder_email_notifications_statuory(statuory_second_reminder)
 
     @api.model
     def create(self,vals):
@@ -122,12 +210,12 @@ class Project(models.Model):
             record['is_statuory_notice'] = self.env.context.get('is_statuory_notice_option', False)
         return result
 
-    def _schedule_activities_first_reminder_legal(self):
+    def _schedule_activities_first_reminder_legal(self, legal_reminders):
         today = fields.Date.today()
-        projects = self.search([
-            ('first_reminder_date', '=', today),('is_legal_notice','=',True)
-        ])
-        for project in projects:
+        # projects = self.search([
+        #     ('first_reminder_date', '=', today),('is_legal_notice','=',True)
+        # ])
+        for project in legal_reminders:
             project.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="First Reminder: Legal Notice Due",
@@ -136,12 +224,12 @@ class Project(models.Model):
                 date_deadline=fields.Date.today()
             )
 
-    def _schedule_activities_first_reminder_statuory(self):
+    def _schedule_activities_first_reminder_statuory(self, statuory_reminders):
         today = fields.Date.today()
-        projects = self.search([
-            ('first_reminder_date', '=', today),('is_statuory_notice','=',True)
-        ])
-        for project in projects:
+        # projects = self.search([
+        #     ('first_reminder_date', '=', today),('is_statuory_notice','=',True)
+        # ])
+        for project in statuory_reminders:
             project.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="First Reminder: Statutory Notice Due",
@@ -150,12 +238,12 @@ class Project(models.Model):
                 date_deadline=fields.Date.today()
             )
 
-    def _schedule_activities_second_reminder_legal(self):
+    def _schedule_activities_second_reminder_legal(self, legal_second_reminder):
         today = fields.Date.today()
-        projects = self.search([
-            ('second_reminder_date', '=', today),('is_legal_notice','=',True)
-        ])
-        for project in projects:
+        # projects = self.search([
+        #     ('second_reminder_date', '=', today),('is_legal_notice','=',True)
+        # ])
+        for project in legal_second_reminder:
             project.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="Second Reminder: Legal Notice Due",
@@ -164,12 +252,12 @@ class Project(models.Model):
                 date_deadline=fields.Date.today()
             )
 
-    def _schedule_activities_second_reminder_statuory(self):
+    def _schedule_activities_second_reminder_statuory(self, statuory_second_reminder):
         today = fields.Date.today()
-        projects = self.search([
-            ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
-        ])
-        for project in projects:
+        # projects = self.search([
+        #     ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
+        # ])
+        for project in statuory_second_reminder:
             project.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="Second Reminder: Statutory Notice Due",

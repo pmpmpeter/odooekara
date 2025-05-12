@@ -7,12 +7,17 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='current_values']" position="after">
                 <group string="Asset Usage Info" name="asset_usage_info">
-                    <field name="asset_tag_no"/>
-                    <field name="end_date"/>
-                    <field name="life_of_asset"/>
-                    <field name="employee_id" string="User" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
-                    <field name="location"/>
+                    <field name="can_edit_asset_fields" invisible="1"/>
+                    <field name="asset_tag_no" readonly="not can_edit_asset_fields or state not in ('draft')"/>
+                    <field name="end_date" readonly="not can_edit_asset_fields or state not in ('draft')"/>
+                    <field name="life_of_asset" readonly="not can_edit_asset_fields or state not in ('draft')"/>
+                    <field name="employee_id" string="Employee/User" options="{'no_open': True, 'no_quick_create':True,'no_create': True}" readonly="not can_edit_asset_fields or state not in ('draft')"/>
+                    <field name="location_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True}" readonly="not can_edit_asset_fields or state not in ('draft')"/>
+                    <field name="mobile_number" widget="phone" readonly="not can_edit_asset_fields or state not in ('draft')"/>
                 </group>
+            </xpath>
+            <xpath expr="//field[@name='original_value']" position="after">
+                <field name="asset_value"/>
             </xpath>
         </field>
     </record>
@@ -28,6 +33,12 @@
                 <field name="life_of_asset"/>
                 <field name="employee_id" optional="hide" string="User"/>
                 <field name="location" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='original_value']" position="after">
+                <field name="asset_value"/>
+            </xpath>
+	    <xpath expr="//field[@name='acquisition_date']" position="after">
+                <field name="salvage_value"/>
             </xpath>
         </field>
     </record>
