@@ -417,7 +417,8 @@
                                         <field name="review_on" width="500"/>
                                         <field name="review_status" width="500" widget="badge"
                                                    decoration-muted="review_status == 'on_review'"
-                                                   decoration-success="review_status == 'reviewed'"/>
+                                                   decoration-success="review_status == 'reviewed'"
+                                                   decoration-danger="review_status == 'expired'"/>
                                     </tree>
                                 </field>
                             </group>

@@ -14,6 +14,17 @@
             <field name="nextcall" eval="datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)"/>
         </record>
 
+        <record id="ir_cron_vendor_review_reminder" model="ir.cron">
+            <field name="name">Vendor Review Reminder Scheduler</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="state">code</field>
+            <field name="code">model.schedule_activities_vendor_review()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
+
         <record id="ir_cron_check_expired_contacts" model="ir.cron">
             <field name="name">Check Expired Contact Validity</field>
             <field name="model_id" ref="model_contact_creation"/>
@@ -23,6 +34,18 @@
             <field name="interval_type">days</field>
             <field name="numbercall">-1</field>
             <field name="active">True</field>
+        </record>
+
+        <record id="ir_cron_vendor_review_expired" model="ir.cron">
+            <field name="name">Vendor Review Expiration Scheduler</field>
+            <field name="model_id" ref="model_review_lines"/>
+            <field name="state">code</field>
+            <field name="code">model.review_expired()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">months</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+            <field name="nextcall" eval="datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)"/>
         </record>
 
 	

@@ -79,7 +79,7 @@
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
                     <p>Dear Team,</p>
                     <br/>
-                    <p>Kindly review datas of <t t-out="object.name or ''"/> contact.</p>
+                    <p>Kindly review datas of contact <t t-out="object.name or ''"/> .</p>
                     <p>Thank You.</p>
                 </p>
             </div>

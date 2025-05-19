@@ -265,7 +265,6 @@ class ResPartner(models.Model):
             lines = []
             if rec.review_on == 'quarterly':
                 current_month = datetime.today().strftime('%B')
-                print(current_month,Q1,)
                 if current_month ==  Q1 or current_month == Q2 or current_month == Q3 or current_month == Q4:
                     lines.append((0, 0, {
                         'review_date': datetime.today(),
@@ -285,6 +284,7 @@ class ResPartner(models.Model):
                     'review_status': 'on_review',
                 }))
                 rec.review_lines = lines
+                rec.has_to_review = True
                 account_manager_group = self.env.ref('account.group_account_manager')
                 emails = [user.email for user in account_manager_group.users if user.email]
                 template = self.env.ref('res_partner_extended.contact_review_mail')
@@ -298,19 +298,26 @@ class ResPartner(models.Model):
                 self.has_to_review = False
                 template = self.env.ref('res_partner_extended.contact_reviewed_mail')
                 template.send_mail(self.id, force_send=True)
-    # def _schedule_activities_vendor_review(self):
-    #     today = fields.Date.today()
-    #     projects = self.search([
-    #         ('second_reminder_date', '=', today),('is_statuory_notice','=',True)
-    #     ])
-    #     for project in projects:
-    #         project.activity_schedule(
-    #             activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
-    #             summary="Second Reminder: Statutory Notice Due",
-    #             note="The Statutory notice deadline is approaching. Please take action.",
-    #             user_id=project.user_id.id,
-    #             date_deadline=fields.Date.today()
-    #         )
+
+
+    def schedule_activities_vendor_review(self):
+        today = fields.Date.today()
+        rec = self.env['review.lines'].sudo().search([
+            ('review_date', '<=', today),('review_status','=','on_review')
+        ])
+        group = self.env.ref('account.group_account_invoice').sudo()
+        users = group.sudo().users
+        for record in rec:
+            for user in users:
+                self.env['mail.activity'].sudo().create({
+                    'res_model_id': self.env['ir.model']._get_id('res.partner'),
+                    'res_id': record.review_link.id,
+                    'activity_type_id': self.env.ref('mail.mail_activity_data_todo').id,
+                    'summary': _('Alert !! Need to review contact %s.',record.review_link.name),
+                    'note': f'Need to review datas of contact {record.review_link.name}.Your Review Deadline date is on {record.review_date}',
+                    'user_id': user.id,
+                    'date_deadline' : today,
+                })
     def unlink(self):
         if not self.env.user.has_group('account.group_account_manager'):
             raise UserError(_("You do not have access to trigger this action."))
@@ -408,11 +415,19 @@ class ResPartner(models.Model):
     #     res = super(ResPartner, self).write(vals)
     #     return res
 
-    class ReviewLines(models.Model):
+class ReviewLines(models.Model):
         _name = "review.lines"
         _description = 'Review Lines'
 
         review_date = fields.Date(string='Review Date',copy=False)
         review_on = fields.Date(string='Reviewed On',copy=False)
-        review_status = fields.Selection([('on_review','On Review'),('reviewed','Reviewed')],string='Status',copy=False)
+        review_status = fields.Selection([('on_review','On Review'),('reviewed','Reviewed'),('expired','Expired')],string='Status',copy=False)
         review_link = fields.Many2one('res.partner')
+
+        def review_expired(self):
+            record = self.sudo().search([('review_status','=','on_review')])
+            for rec in record:
+                if rec.review_date.month < datetime.today().month:
+                    rec.review_status = 'expired'
+                    rec.review_link.has_to_review = False
+
