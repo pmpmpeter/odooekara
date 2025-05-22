@@ -36,9 +36,9 @@
                         <page string="Fund Lines">
                             <field name="fund_line_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom" delete="1">
-                                    <field name="added_by_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" required="1"/>
-                                    <field name="amount"/>
-                                    <field name="date"/>
+                                    <field name="added_by_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" required="1" readonly="state not in ('draft')"/>
+                                    <field name="amount" readonly="state not in ('draft')"/>
+                                    <field name="date" readonly="state not in ('draft')"/>
                                     <field name="approved_by_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" readonly="1" force_save="1"/>
                                     <field name="state" readonly="1"/>
                                     <field name="opening_balance" readonly="1"/>

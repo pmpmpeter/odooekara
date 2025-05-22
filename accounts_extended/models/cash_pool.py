@@ -42,22 +42,30 @@ class CashPool(models.Model):
 
             if record.manager_id and not record.manager_id.email:
                 raise ValidationError("The selected manager must have an email address.")
-            record.fund_line_ids.write({'state': 'waiting_for_approval'})
+
+            for fund_line in record.fund_line_ids:
+                if fund_line.state != 'approved':
+                    fund_line.state = 'waiting_for_approval'
             record.state = 'waiting_for_approval'
 
     def action_approved(self):
         for record in self:
             approved_fund_lines = record.fund_line_ids.filtered(lambda l: l.state == 'waiting_for_approval')
-            total_amount = sum(approved_fund_lines.mapped('amount'))
+            current_balance = record.current_balance
+            total_amount = 0.0
             for fund_line in approved_fund_lines:
-                fund_line.opening_balance = record.current_balance
-                fund_line.closing_balance = record.current_balance + fund_line.amount
+                fund_line.opening_balance = current_balance
+                fund_line.closing_balance = current_balance + fund_line.amount
+                current_balance = fund_line.closing_balance
+                total_amount += fund_line.amount
 
             record.current_balance += total_amount
             approved_fund_lines.write({'state': 'approved'})
             template = self.env.ref('accounts_extended.cash_pool_manager_email_template')
             if template:
                 template.sudo().send_mail(record.id, force_send=True)
+            if hasattr(self, 'x_has_request_approval'):
+                self.x_has_request_approval = False
             record.state = 'approved'
 
     # @api.model_create_multi
