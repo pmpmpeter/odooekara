@@ -17,6 +17,11 @@ import {
     Many2ManyTagsAvatarUserField,
     KanbanMany2ManyTagsAvatarUserField,
 } from "@mail/views/web/fields/many2many_avatar_user_field/many2many_avatar_user_field";
+
+import {
+    ListMany2ManyTagsAvatarField,
+} from "@web/views/fields/many2many_tags_avatar/many2many_tags_avatar_field";
+
 import {Many2XAutocomplete} from "@web/views/fields/relational_utils";
 import {evaluateBooleanExpr} from "@web/core/py_js/py";
 import {isX2Many} from "@web/views/utils";
@@ -72,6 +77,13 @@ Many2ManyTagsAvatarUserField.props = {
 
 KanbanMany2ManyTagsAvatarUserField.props = {
     ...KanbanMany2ManyTagsAvatarUserField.props,
+    noSearchMore: {type: Boolean, optional: true},
+    fieldColor: {type: String, optional: true},
+    fieldColorOptions: {type: Object, optional: true},
+};
+
+ListMany2ManyTagsAvatarField.props = {
+    ...ListMany2ManyTagsAvatarField.props,
     noSearchMore: {type: Boolean, optional: true},
     fieldColor: {type: String, optional: true},
     fieldColorOptions: {type: Object, optional: true},
