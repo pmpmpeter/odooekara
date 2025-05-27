@@ -25,7 +25,7 @@
                         <t t-set="current_date" t-value="context_timestamp(datetime.datetime.now()).strftime('%B %Y')"/>
                         <t t-set="company_name" t-value="request.env['res.company'].sudo().search([('id','=',comp_id)])"/>
                         <b style="font-size: 15px;">COMBINE MUSTER ROLL CUM REGISTER OF WAGES<br/>
-                        FORM - T FOR THE MONTH OF JUNE (<t t-esc="current_date"/>)</b><br/><br/>
+                        FORM - T FOR THE MONTH OF (<t t-esc="current_date"/>)</b><br/><br/>
                         Location : <t t-esc="company_name.city"/><br/>
                         Name &amp; Address of the establishment : <br/><br/>
                         Name &amp; Address of Principal Employer :<br/><br/>
