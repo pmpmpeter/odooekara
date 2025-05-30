@@ -34,5 +34,8 @@ class BudgetRevisionWizard(models.TransientModel):
             budget._action_revise()
             budget.sudo().message_post(body='This document has been revised')
             template = self.env.ref('accounts_extended.email_template_budget_revision_email')
+            account_manager_group = self.env.ref('account.group_account_manager')
+            emails = [user.email for user in account_manager_group.users if user.email]
+            template.write({'email_to': ', '.join(emails)})
             template.send_mail(self.id, force_send=True)
 
