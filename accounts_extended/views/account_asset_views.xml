@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record model="ir.ui.view" id="inherit_account_form_active_form">
+        <field name="name">account.form.active.inherit</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="before">
+                <field name="active"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_active_view_account_search" model="ir.ui.view">
+        <field name="name">account.account.active.search</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/filter[@name='receivableacc']" position="before">
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
     <record model="ir.ui.view" id="inherit_view_account_asset_form">
         <field name="name">account.asset.form.inherit</field>
         <field name="model">account.asset</field>

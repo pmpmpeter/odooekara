@@ -31,6 +31,9 @@ class CashPool(models.Model):
 
     def action_reset_to_draft(self):
         for record in self:
+            for fund_line in record.fund_line_ids:
+                if fund_line.state != 'approved':
+                    fund_line.state = 'draft'
             record.state = 'draft'
 
     def action_submit_for_approval(self):

@@ -4,7 +4,7 @@
         <xpath expr="//div[@class='clearfix']" position="after">
             <t t-set="contact_creation" t-value="request.env['contact.creation'].sudo().search([('partner_id','=',partner.id)])"/>
             <div t-attf-class="mb-3 #{error.get('attachment') and 'o_has_error' or ''} col-xl-6">
-                <label class="col-form-label" for="attachment">Agreement</label><br/>
+                <label class="col-form-label" for="attachment">Agreements</label><br/>
             <input type="file" name="attachment" id="attachment" enctype="multipart/form-data" multiple="true" accept="image/*,application/pdf,video/*"/>
 
             </div>

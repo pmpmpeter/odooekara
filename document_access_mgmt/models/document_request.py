@@ -60,6 +60,10 @@ class DocumentRequest(models.Model):
                 raise UserError(_("Alert !! Only records in the 'Draft' state can be deleted."))
         return super(DocumentRequest, self).unlink()
 
+    def action_reset_to_draft(self):
+        for rec in self:
+            rec.state = "draft"
+
     @api.model
     def delete_old_files(self):
         # Calculate the time limit (24 hours ago)
