@@ -5,6 +5,12 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
 
+class AccountAccount(models.Model):
+    _inherit = 'account.account'
+
+    active = fields.Boolean(string="Active",default=True, copy=False)
+
+
 class AccountAsset(models.Model):
     _inherit = 'account.asset'
 
@@ -43,7 +49,7 @@ class AccountAsset(models.Model):
     def compute_asset_value(self):
         print('jj')
         for rec in self:
-            val  = rec.original_value - rec.salvage_value
+            val = rec.original_value - rec.salvage_value
             if rec.depreciation_move_ids:
                 entries = rec.depreciation_move_ids.filtered(lambda line: line.state == 'posted')
                 # print(sum(entries.depreciation_value),'kkkkkkkkkkkkkk')
