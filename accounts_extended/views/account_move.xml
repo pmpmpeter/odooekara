@@ -348,9 +348,10 @@
                                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"/>
                             <field name="ref"
                                    invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')"/>
+                            <field name="journal_type" invisible="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
-                                   readonly="state not in ('draft','to approve')" required="state == 'draft'"
+                                   readonly="state not in ('draft','to approve')" required="state == 'draft' and journal_type in ('sale','purchase','cash','bank')"
                                    context="{'search_default_filter_field': True}"/>
 
                             <field name="expense_sequence"

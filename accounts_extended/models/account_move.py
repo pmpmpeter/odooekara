@@ -107,6 +107,7 @@ class AccountMoveInherit(models.Model):
         groups="account.group_account_invoice,account.group_account_readonly",
     )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
+    journal_type = fields.Selection(related='journal_id.type')
 
     @api.depends('company_id', 'invoice_filter_type_domain')
     def _compute_suitable_journal_ids(self):
