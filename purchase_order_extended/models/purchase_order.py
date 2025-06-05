@@ -6,6 +6,7 @@ from collections import defaultdict
 from math import *
 import datetime
 import re
+import random
 import pdb
 from datetime import date, timedelta, datetime
 from num2words import num2words
@@ -13,6 +14,7 @@ from odoo.osv import expression
 from odoo.tools import format_amount, format_date, formatLang, groupby
 from odoo.tools.float_utils import float_is_zero
 from markupsafe import Markup
+import ast
 
 
 class PurchaseOrderInherit(models.Model):
@@ -37,6 +39,92 @@ class PurchaseOrderInherit(models.Model):
         ('to_tax_entity_head', 'To Tax Entity Head'),
         ('approved', 'Approved'),
     ], string="Status", readonly=True, index=True, default='draft', tracking=True, copy=False)
+    rfq_reminder_sent = fields.Boolean(string="RFQ Reminder Sent", default=False, copy=False)
+    rfq_lock_applied = fields.Boolean(default=False, copy=False)
+
+    def portal_url(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        return f"{base_url}/web/login"
+
+    @api.model
+    def cron_send_rfq_vendor_reminder(self):
+        now = fields.Datetime.now()
+        deadline_reminder = now - timedelta(days=5)
+        deadline_lock = now - timedelta(days=12)
+
+        rfqs = self.search([
+            ('state', '=', 'sent'),
+            ('partner_id', '!=', False),
+        ])
+        processed_partners = set()
+
+        for rfq in rfqs:
+            partner = rfq.partner_id
+            last_vendor_reply = max(
+                (
+                    msg.date for msg in rfq.message_ids
+                    if msg.author_id == rfq.partner_id and msg.message_type == 'comment'
+                ),
+                default=None
+            )
+
+            no_recent_reply = (
+                    not last_vendor_reply or
+                    last_vendor_reply <= deadline_reminder
+            )
+
+            # 5th-day reminder
+            if no_recent_reply and rfq.date_order <= deadline_reminder and not rfq.rfq_reminder_sent:
+                template = self.env.ref('purchase_order_extended.rfq_vendor_reminder_template',
+                                        raise_if_not_found=False)
+                if template:
+                    template.send_mail(rfq.id, force_send=True)
+                    rfq.rfq_reminder_sent = True
+
+            # 12th-day password lock
+            if no_recent_reply and rfq.date_order <= deadline_lock:
+                if partner.id not in processed_partners and not rfq.rfq_lock_applied:
+                    locked_users = []
+                    for user in rfq.partner_id.user_ids:
+                        new_password = f"{user.name}_{random.randint(1000, 9999)}"
+                        user.sudo().write({'password': new_password})
+                        locked_users.append(user.name)
+
+                        template_notify = self.env.ref(
+                            'purchase_order_extended.vendor_password_change_notify_template',
+                            raise_if_not_found=False
+                        )
+                        if template_notify:
+                            template_notify.sudo().with_context(
+                                user_name=user.name,
+                                vendor_name=partner.name,
+                                rfq_name=rfq.name,
+                                new_password=new_password,
+                            ).send_mail(rfq.id, force_send=True)
+
+                        if user.partner_id:
+                            user.partner_id.message_post(
+                                body=(
+                                    f"🔒 Your password has been changed by the system due to no response on RFQ {rfq.name} "
+                                    f"for over 12 days. New password: {new_password}"
+                                ),
+                                message_type="comment",
+                                subtype_xmlid="mail.mt_note"
+                            )
+
+                    if locked_users:
+                        rfq.message_post(
+                            body=f"⚠️ No response received from vendor after 12 days. "
+                                 f"Password changed for user(s): {', '.join(locked_users)}."
+                        )
+                    rfq.rfq_lock_applied = True
+                    processed_partners.add(partner.id)
+                elif partner.id in processed_partners and not rfq.rfq_lock_applied:
+                    rfq.message_post(
+                        body="⚠️ No response received from vendor after 12 days. "
+                             f"Password already changed for this user."
+                    )
+                    rfq.rfq_lock_applied = True
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):
@@ -324,3 +412,23 @@ class PurchaseOrderLine(models.Model):
 
             res['analytic_distribution'] = distribution
         return res
+
+
+class MailComposeMessage(models.TransientModel):
+    _inherit = 'mail.compose.message'
+
+    def _action_send_mail(self, auto_commit=False):
+        result_mails_su, result_messages = super()._action_send_mail(auto_commit=auto_commit)
+
+        for wizard in self:
+            if wizard.model == 'purchase.order' and wizard.res_ids:
+                try:
+                    res_ids_list = ast.literal_eval(wizard.res_ids)
+                    for res_id in res_ids_list:
+                        order = self.env['purchase.order'].browse(res_id)
+                        order.rfq_reminder_sent = False
+                        order.rfq_lock_applied = False
+                except (SyntaxError, ValueError):
+                    print("Failed to parse res_ids for Purchase Order in mail wizard")
+
+        return result_mails_su, result_messages

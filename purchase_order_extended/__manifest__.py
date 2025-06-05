@@ -25,6 +25,8 @@
     'data': [
         'security/ir.model.access.csv',
         'security/security.xml',
+        'data/ir_cron.xml',
+        'data/mail_templates.xml',
         'wizard/po_matrix_approve_reason.xml',
         'views/purchase_order.xml',
         'views/res_config_settings.xml',
