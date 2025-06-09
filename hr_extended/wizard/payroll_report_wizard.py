@@ -3,6 +3,8 @@ from datetime import datetime
 import base64
 from io import BytesIO
 import xlsxwriter
+from odoo.exceptions import ValidationError
+
 
 class PayrollReportWizard(models.TransientModel):
     _name = 'payroll.report.wizard'
@@ -26,6 +28,44 @@ class PayrollReportWizard(models.TransientModel):
     department_id = fields.Many2one('hr.department',string='Department')
     report_file = fields.Binary(string="Report File", readonly=True)
     file_name = fields.Char(string="File Name", readonly=True)
+    partner_ids = fields.Many2many('res.partner', string="Email To")
+
+    def action_send_payroll_report_mail(self):
+        template = self.env.ref('hr_extended.payroll_report_share_email_template')
+        for record in self:
+            if not record.partner_ids:
+                raise ValidationError("Please add at least one partner to send the email.")
+
+            missing = [p.name for p in record.partner_ids if not p.email]
+            if missing:
+                raise ValidationError(f"Missing email for: {', '.join(missing)}")
+
+            if not record.report_file:
+                raise ValidationError("Please upload the report file before sending the email.")
+
+            attachment = self.env['ir.attachment'].create({
+                'name': record.file_name or 'report.pdf',
+                'type': 'binary',
+                'datas': record.report_file,
+                'res_model': record._name,
+                'res_id': record.id,
+                'mimetype': 'application/pdf',
+            })
+
+            template.send_mail(record.id, force_send=True, email_values={
+                'attachment_ids': [attachment.id],
+            })
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Success',
+                'message': 'Email sent to selected recipients.',
+                'type': 'success',
+                'sticky': True,
+            }
+        }
 
     def action_generate_report(self):
         workbook = self._prepare_excel_workbook()

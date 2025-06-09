@@ -404,4 +404,20 @@
         </field>
     </record>
 
+    <!-- payroll attachment mail -->
+    <record id="payroll_report_share_email_template" model="mail.template">
+        <field name="name">Payroll Report Sharing</field>
+        <field name="model_id" ref="hr_extended.model_payroll_report_wizard"/>
+        <field name="subject">Payroll Report</field>
+        <field name="email_from">{{user.email or ''}}</field>
+        <field name="email_to">{{','.join([p.email for p in object.partner_ids if p.email])}}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Hello,</p>
+                <p>Please find attached the payroll report: <strong><t t-out="object.file_name"/></strong>.
+                </p>
+            </div>
+        </field>
+    </record>
+
 </odoo>
