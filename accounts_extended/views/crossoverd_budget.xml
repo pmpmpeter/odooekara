@@ -20,6 +20,7 @@
                 </xpath>
                 <xpath expr="//group/group[2]//field[@name='company_id']" position="before">
                     <field name="version" force_save="1"/>
+                    <field name="fy_crr_budget_total"/>
                     <field name="revision_date" invisible="version == 1" readonly="1" force_save="1"/>
                 </xpath>
                 <xpath expr="//field[@name='user_id']" position="after">
@@ -98,16 +99,17 @@
                     <attribute name="column_invisible">parent.user_type == 'non_odoo'</attribute>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='practical_amount']"
-                       position="attributes">
-                    <attribute name="string">Utilised Amount</attribute>
+                       position="replace">
+                       <field name="practical_amount" string="Utilised Amount"/>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='theoritical_amount']"
-                       position="attributes">
-                    <attribute name="optional">hide</attribute>
+                       position="replace">
+                       <field name="theoritical_amount" string="Theoretical Amount" optional='hide'/>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='planned_amount']"
-                       position="attributes">
-                    <attribute name="readonly">parent.state =='revision'</attribute>
+                       position="replace">
+                       <field name="planned_amount" string="Planned Amount" 
+                        readonly="parent.state =='revision'"/>
                 </xpath>
                 <xpath expr="//page[@name='budget_lines']/field[@name='crossovered_budget_line']/tree/field[@name='practical_amount']"
                        position="after">

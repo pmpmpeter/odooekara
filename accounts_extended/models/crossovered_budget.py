@@ -6,14 +6,14 @@ from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWar
 class CrossoveredBudget(models.Model):
     _inherit = 'crossovered.budget'
 
-    name = fields.Char('Budget Name', required=True, tracking=True)
+    name = fields.Char('Budget Name', required=True, tracking=1)
     user_id = fields.Many2one('res.users', 'Responsible', default=lambda self: self.env.user, tracking=True)
     date_from = fields.Date('Start Date', tracking=True)
     date_to = fields.Date('End Date', tracking=True)
     crossovered_budget_line = fields.One2many('crossovered.budget.lines', 'crossovered_budget_id', 'Budget Lines',
                                               copy=False)
     revision_date = fields.Datetime(string='Last Revised Date')
-
+    fy_crr_budget_total = fields.Float("Total CRR", tracking=1, readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('revision', 'To Revision'),
@@ -1109,11 +1109,17 @@ class CrossoveredBudget(models.Model):
             'context': {'group_by': ['analytic_account_id']},
         }
 
+    def update_main_budget_cashflow_surplus(self):
+        for record in self:
+            for line in self.cash_payment_ids.filtered(lambda c: c.is_budget_surples_sum_line):
+                record.write({'fy_crr_budget_total': line.crr_budget_total})
+
     def update_cash_outflow_inflow_calculation(self):
         self._check_budget_position_configuration()
         self._get_cash_outflow_inflow()
         self.cash_payment_ids._compute_to_get_quarter_values()
         self.consolidate_crr()
+        self.update_main_budget_cashflow_surplus()
         # self.cash_payment_ids._compute_total_budget_value(self.id)
 
     def get_cash_outflow_inflow_calculation(self):
