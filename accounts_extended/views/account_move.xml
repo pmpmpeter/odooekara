@@ -351,7 +351,7 @@
                             <field name="journal_type" invisible="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
-                                   readonly="state not in ('draft','to approve')" required="state == 'draft' and journal_type in ('sale','purchase','cash','bank')"
+                                   readonly="state not in ('draft','to approve')" 
                                    context="{'search_default_filter_field': True}"/>
 
                             <field name="expense_sequence"
