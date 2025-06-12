@@ -11,7 +11,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import format_amount, format_date, formatLang, groupby
 from datetime import datetime
-
+import pdb
 
 class RequestApproval(models.TransientModel):
     _name = "request.approval"
@@ -196,6 +196,22 @@ class RequestApproval(models.TransientModel):
 
             elif not budget_id.show_budget_sum:
                 raise UserError('Please Get the Cash Outflow/Inflow.')
+        ##checking budget Code for Accounts
+        elif active_res_model == 'account.move':
+            account_move_id = self.env['account.move'].sudo().browse(self.origin_ref.id)
+            for line1 in account_move_id.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+                if not account_move_id.budget_id:
+                    raise UserError('Warning!! Kindly select a Budget Code.')
+                if not account_move_id.budget_id.general_budget_id.account_ids:
+                    raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
+                        account_move_id.budget_id.general_budget_id.display_name))
+                # pdb.set_trace()
+                if not line1.filtered(lambda e: e.analytic_distribution):
+                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                        line1.account_id.display_name,account_move_id.display_name))
+                if not line1.filtered(lambda e: {str(account_move_id.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                    raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                        line1.account_id.display_name,account_move_id.budget_id.analytic_account_id.display_name,account_move_id.budget_id.display_name))
 
         # create request
         vals = {

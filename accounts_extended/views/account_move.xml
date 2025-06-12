@@ -353,7 +353,6 @@
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
                                    readonly="state not in ('draft','to approve')" 
                                    context="{'search_default_filter_field': True}"/>
-
                             <field name="expense_sequence"
                                    invisible="move_type not in ['in_invoice'] or not is_payment_approval" readonly="1"/>
                             <field name="tax_cash_basis_origin_move_id" invisible="not tax_cash_basis_origin_move_id"/>
