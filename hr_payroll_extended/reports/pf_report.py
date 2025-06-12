@@ -87,8 +87,8 @@ class ExcelReportWizard(models.TransientModel):
             ('date_from', '>=', self.date_from),
             ('date_to', '<', self.date_to),('company_id','=',self.company_id.id)
         ])
-        print(payslips.date_from,'hhhh')
-
+        total_salary_per_month = 0
+        basic_da_per_month = 0
         row = 8
         for index, line in enumerate(payslips, start=1):
             worksheet.write(row, 0, line.employee_id.name or '',text_bold)
