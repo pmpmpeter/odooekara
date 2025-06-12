@@ -12,7 +12,7 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-        'reports/payroll_for_the_month.xml',
+        #'reports/payroll_for_the_month.xml',
         'reports/pf_report.py'
         'views/hr_payslip.xml',
 
