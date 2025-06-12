@@ -37,6 +37,8 @@
         'report/reports.xml',
         'report/proforma_invoice.xml',
         'report/batch_payment_view.xml',
+        'report/tax_invoice.xml',
+        'report/tax_invoice_view.xml',
         'views/res_config_settings.xml',
         'views/crossoverd_budget.xml',
         'views/account_move.xml',

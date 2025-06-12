@@ -341,8 +341,22 @@ class AccountMoveInherit(models.Model):
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
-            # if not rec.budget_id:
-            #     raise UserError('Warning!! Kindly select a Budget Code')
+            # for line in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+            #     if not rec.budget_id:
+            #         raise UserError('Warning!! Kindly select a Budget Code.')
+            for line1 in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+                if not rec.budget_id:
+                    raise UserError('Warning!! Kindly select a Budget Code.')
+                if not rec.budget_id.general_budget_id.account_ids:
+                    raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
+                        rec.budget_id.general_budget_id.display_name))
+                # pdb.set_trace()
+                if not line1.filtered(lambda e: e.analytic_distribution):
+                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                        line1.account_id.display_name,rec.display_name))
+                if not line1.filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                    raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                        line1.account_id.display_name,rec.budget_id.analytic_account_id.display_name,rec.budget_id.display_name))
             month_field_map = {
                 1: 'january_cur_budget',
                 2: 'february_cur_budget',
@@ -373,11 +387,9 @@ class AccountMoveInherit(models.Model):
                     #     ('move_id', '=', rec.id),('move_id.date', '>=', rec.budget_id.date_from),('move_id.date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
                     #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
                     # ]).mapped('balance'))
-                    entry = self.env['account.move.line'].sudo().search([
-                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
-                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
-                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
-                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    domain12 = [('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),('date', '<=', rec.budget_id.date_to),('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids)]
+                    entry = self.env['account.move.line'].sudo().search(domain12).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    # pdb.set_trace()
                     balance = sum(entry.mapped('balance'))
                     setattr(rec.budget_id.crr_budget_line_id, month_field,
                             getattr(rec.budget_id.crr_budget_line_id, month_field) + balance)
@@ -536,7 +548,6 @@ class AccountsJournal(models.Model):
     _inherit = 'account.journal'
 
     is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment')
-
 
     # def _get_journal_dashboard_data_batched(self):
     #     print('hhhhhhhhhhhhh')
