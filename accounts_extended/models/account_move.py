@@ -14,11 +14,15 @@ from unittest.mock import patch
 import base64
 from io import BytesIO
 from odoo.tools.misc import xlsxwriter
+from odoo.tools import html2plaintext, plaintext2html
 from num2words import num2words
 from odoo import api, fields, models, _, Command
 from odoo.addons.base.models.decimal_precision import DecimalPrecision
 from odoo.addons.account.tools import format_structured_reference_iso
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
+import io
+import xlsxwriter
+from datetime import datetime
 from odoo.tools import (
     date_utils,
     email_re,
@@ -411,6 +415,116 @@ class AccountMoveInherit(models.Model):
                 })
                 wiz_tds.action_create_and_post_withhold()
         return res
+
+    def action_export_salary_jv_xlsx(self):
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet('Salary JV')
+
+        # Formats
+        bold = workbook.add_format({'bold': True,})
+        bold1 = workbook.add_format({'bold': True,'fg_color':'#D3D3D3'})
+        input_style = workbook.add_format({'font_color': 'red'})
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+        amount_format1 = workbook.add_format({'bold': True, 'fg_color': '#D3D3D3','num_format': '#,##0.00'})
+        total_style = workbook.add_format({'num_format': '#,##0.00','align': 'right'})
+        # Define Headers
+        payslip_ref = html2plaintext(self.narration)
+        payslip = self.env['hr.payslip'].sudo().search([('number', '=', str(payslip_ref))])
+        print(payslip,payslip_ref,'bbbbbbbbbbb')
+        month = payslip.date_from.strftime('%B')  # Full month name: "May"
+        year = payslip.date_from.strftime('%Y')
+        total_salary_per_month = 0
+        basic_da_per_month = 0
+        print(month, year, 'nnnnnnnnnnnn')
+        table_headers = ['Account Head', 'DR', 'CR']
+        sheet.write(0, 0, self.company_id.name,bold)
+        sheet.write(2, 0, 'Employee Payroll', bold)
+        sheet.write(4, 0, 'Financial Year', bold)
+        sheet.write(4, 3, 'Month Year', bold)
+        sheet.write(4, 1, year,input_style)
+        sheet.write(4, 4, month + ' ' + year,input_style)
+        for col, header in enumerate(table_headers):
+            sheet.write(6, col, header, bold1)
+        amount_format = workbook.add_format({'num_format': '#,##0.00','align': 'right'})
+        #
+        # # Populate Data
+        row = 7
+        for index, line in enumerate(self.line_ids, start=1):
+            sheet.write(row, 0, line.account_id.name or '')
+            sheet.write(row, 1, line.debit or '0.0', amount_format)
+            sheet.write(row, 2, line.credit or '0.0', amount_format)
+            row += 1
+        row = row+1
+        sheet.write(row, 0, 'Total', bold1)
+        sheet.write(row, 1, sum(self.line_ids.mapped('debit')), amount_format1)
+        sheet.write(row, 2, sum(self.line_ids.mapped('credit')), amount_format1)
+        row = row+1
+        basic_salary  =payslip.line_ids.filtered(lambda l: l.name == 'Basic Salary')
+        food_coupons = payslip.line_ids.filtered(lambda l: l.name == 'Food Coupons')
+        row = row + 2
+        sheet.write(row, 0, 'Employee Name',bold)
+        sheet.write(row, 1, 'Employee ID',bold)
+        sheet.write(row, 2, 'Salary On Hold',bold)
+        sheet.write(row, 3, 'Parental Insurance',bold)
+        sheet.write(row, 4, 'Food Coupon', bold)
+        row = row + 1
+        sheet.write(row, 0, payslip.employee_id.name)
+        sheet.write(row, 1, payslip.employee_id.employee_number)
+        sheet.write(row, 2, basic_salary.total or 0.0,total_style)
+        sheet.write(row, 3, food_coupons.total or 0.0,total_style)
+        sheet.write(row, 4, food_coupons.total or 0.0,total_style)
+        row=row+2
+        # sheet.write(row, 1, 'As per input',bold)
+        # sheet.write(row, 2, basic_salary.total or 0.0,total_style)
+        # sheet.write(row, 3, food_coupons.total or 0.0,total_style)
+        # sheet.write(row, 4, food_coupons.total or 0.0,total_style)
+        # row=row+1
+        # sheet.write(row, 1, 'Diff',bold)
+        # sheet.write(row, 2, '-')
+        # sheet.write(row, 3, '-')
+        # sheet.write(row, 4, '-')
+        # sheet.write(row, 4, 'Employee ID', bold)
+        sheet.set_column(0, 0, 25)
+        sheet.set_column(1, 1, 15)
+        sheet.set_column(2, 2, 15)
+        sheet.set_column(3, 3, 20)
+        sheet.set_column(4, 4, 20)
+        sheet.set_column(5, 5, 25)
+        sheet.set_column(6, 6, 15)
+        sheet.set_column(7, 7, 30)
+        sheet.set_column(8, 8, 25)
+        sheet.set_column(9, 9, 20)
+        sheet.set_column(10, 10, 20)
+        sheet.set_column(11, 11, 25)
+        sheet.set_column(12, 12, 30)
+        sheet.set_column(13, 13, 40)
+
+        workbook.close()
+        output.seek(0)
+
+        # Encode File to Base64
+        file_data = base64.b64encode(output.read())
+        output.close()
+
+        # Create Attachment
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'type': 'binary',
+            'datas': file_data,
+            'store_fname': f'Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': 'account.move',
+            'res_id': self.id,
+        })
+
+        # Return the attachment download URL
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }
 
 
 class AccountAnalyticPlan(models.Model):
