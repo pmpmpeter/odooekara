@@ -1,5 +1,5 @@
 {
-    'name': 'Employee Payroll Integration',
+    'name': 'HR Payroll',
     'version': '17.0',
     'category': 'Human Resources',
     'summary': 'Integrate custom employee fields with the hr_payroll module.',
@@ -13,7 +13,7 @@
     'data': [
         'security/ir.model.access.csv',
         #'reports/payroll_for_the_month.xml',
-        'reports/pf_report.py'
+        'reports/pf_report.py',
         'views/hr_payslip.xml',
 
     ],
