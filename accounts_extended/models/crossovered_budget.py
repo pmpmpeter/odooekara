@@ -1898,6 +1898,44 @@ class CrossoveredBudget(models.Model):
 class Crossoverbudgetlines(models.Model):
     _inherit = 'crossovered.budget.lines'
 
+    def _compute_practical_amount(self):
+        groups = defaultdict(lambda: defaultdict(set))  # {(model, fname): {(date_from, date_to): account_ids}}
+        for line in self:
+            model, fname, accounts = self._get_accounts_from_line(line)
+            groups[(model, fname)][(line.date_from, line.date_to)].update(accounts)
+
+        queries = []
+        queries_params = []
+        for (model, fname), by_date in groups.items():
+            for (date_from, date_to), account_ids in by_date.items():
+                query, params = self._get_query_account_analytic_line(model, fname, date_from, date_to, account_ids)
+                queries.append(query)
+                queries_params += params
+
+        self.env.cr.execute(" UNION ALL ".join(queries), queries_params)
+
+        agg_general = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {(analytic, general): amount}}
+        agg_analytic = defaultdict(lambda: defaultdict(float))  # {(model, date_from, date_to): {analytic: amount}}
+        for model, fname, date_from, date_to, account_id, general_account_id, amount in self.env.cr.fetchall():
+            agg_general[(model, fname, date_from, date_to)][(account_id, general_account_id)] += amount
+            agg_analytic[(model, fname, date_from, date_to)][account_id] += amount
+
+        for line in self:
+            model, fname, accounts = self._get_accounts_from_line(line)
+            general_accounts = line.general_budget_id.account_ids
+            if general_accounts:
+                line.practical_amount = sum(
+                    agg_general.get((model, fname, line.date_from, line.date_to), {}).get((account, general_account), 0)
+                    for account in accounts
+                    for general_account in general_accounts.ids
+                )
+            else:
+                # line.practical_amount = sum(
+                #     agg_analytic.get((model, fname, line.date_from, line.date_to), {}).get(account, 0)
+                #     for account in accounts
+                # )
+                line.practical_amount = 0
+
     def unlink(self):
         for rec in self:
             if rec.crossovered_budget_id.is_budget_consolidate:
