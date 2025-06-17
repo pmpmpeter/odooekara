@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _, Command
 from odoo.osv import expression
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
+from collections import defaultdict
 
 
 class CrossoveredBudget(models.Model):
