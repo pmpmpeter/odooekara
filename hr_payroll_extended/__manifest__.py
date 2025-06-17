@@ -12,7 +12,8 @@
     ],
     'data': [
         'security/ir.model.access.csv',
-        #'reports/payroll_for_the_month.xml',
+        'reports/payroll_for_the_month.xml',
+        'reports/payslip_pdf_format.xml',
         'views/hr_payslip.xml',
 
     ],
