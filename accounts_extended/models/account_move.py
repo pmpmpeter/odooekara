@@ -42,6 +42,20 @@ from odoo.tools import (
 
 _logger = logging.getLogger(__name__)
 import pdb
+month_field_map = {
+                1: 'january_cur_budget',
+                2: 'february_cur_budget',
+                3: 'march_cur_budget',
+                4: 'april_cur_budget',
+                5: 'may_cur_budget',
+                6: 'june_cur_budget',
+                7: 'july_cur_budget',
+                8: 'august_cur_budget',
+                9: 'september_cur_budget',
+                10: 'october_cur_budget',
+                11: 'november_cur_budget',
+                12: 'december_cur_budget',
+            }
 
 MAX_HASH_VERSION = 3
 
@@ -111,6 +125,7 @@ class AccountMoveInherit(models.Model):
         groups="account.group_account_invoice,account.group_account_readonly",
     )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
+    budget_update = fields.Boolean("Is Budget Updated?")
     journal_type = fields.Selection(related='journal_id.type')
 
     @api.depends('company_id', 'invoice_filter_type_domain')
@@ -275,44 +290,7 @@ class AccountMoveInherit(models.Model):
 
     def button_cancel(self):
         for rec in self:
-            month_field_map = {
-                1: 'january_cur_budget',
-                2: 'february_cur_budget',
-                3: 'march_cur_budget',
-                4: 'april_cur_budget',
-                5: 'may_cur_budget',
-                6: 'june_cur_budget',
-                7: 'july_cur_budget',
-                8: 'august_cur_budget',
-                9: 'september_cur_budget',
-                10: 'october_cur_budget',
-                11: 'november_cur_budget',
-                12: 'december_cur_budget',
-            }
-            month_field = month_field_map.get(rec.date.month)
-            if rec.move_type != 'entry':
-                setattr(rec.budget_id.crr_budget_line_id, month_field,
-                        getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
-            else:
-                # debit_value = sum(self.env['account.move.line'].sudo().search([
-                #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
-                #     ('debit', '>', 0),
-                #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
-                # ]).mapped('debit'))
-                if rec.state == 'posted':
-                    # balance = sum(self.env['account.move.line'].sudo().search([
-                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
-                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
-                    # ]).mapped('balance'))
-                    entry = self.env['account.move.line'].sudo().search([
-                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
-                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
-                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
-                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
-                    balance = sum(entry.mapped('balance'))
-                    setattr(rec.budget_id.crr_budget_line_id, month_field,
-                            getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
-
+            rec.action_update_budget_cur_figure_minus()
         # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed
         # when sent to the government.
         moves_to_reset_draft = self.filtered(lambda x: x.state == 'posted')
@@ -336,43 +314,86 @@ class AccountMoveInherit(models.Model):
             'state': 'cancel'
         })
 
-    def action_post(self):
-        for rec in self:
-            purchase_order = self.line_ids.purchase_line_id.order_id
-            if purchase_order:
-                purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
-            # for line in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
-            #     if not rec.budget_id:
-            #         raise UserError('Warning!! Kindly select a Budget Code.')
-            for move in rec.filtered(lambda l: not l.journal_id.is_opening_balance):
-                for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
-                    if not move.budget_id:
-                        raise UserError('Warning!! Kindly select a Budget Code.')
-                    if not move.budget_id.general_budget_id.account_ids:
-                        raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
-                            move.budget_id.general_budget_id.display_name))
-                    # pdb.set_trace()
-                    if not line1.filtered(lambda e: e.analytic_distribution):
-                        raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                            line1.account_id.display_name,move.display_name))
-                    if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
-                        raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
-                            line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
-            month_field_map = {
-                1: 'january_cur_budget',
-                2: 'february_cur_budget',
-                3: 'march_cur_budget',
-                4: 'april_cur_budget',
-                5: 'may_cur_budget',
-                6: 'june_cur_budget',
-                7: 'july_cur_budget',
-                8: 'august_cur_budget',
-                9: 'september_cur_budget',
-                10: 'october_cur_budget',
-                11: 'november_cur_budget',
-                12: 'december_cur_budget',
-            }
+    def budget_code_selection_validation(self):
+        for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
+            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+                if not move.budget_id:
+                    raise UserError('Warning!! Kindly select a Budget Code.')
+                if not move.budget_id.general_budget_id.account_ids:
+                    raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
+                        move.budget_id.general_budget_id.display_name))
+                # pdb.set_trace()
+                if not line1.filtered(lambda e: e.analytic_distribution):
+                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                        line1.account_id.display_name,move.display_name))
+                if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                    raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                        line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
 
+    def update_actual_cur_figure_server_action(self):
+        record_ids = self._context.get('active_ids')
+        if record_ids:
+            month_list = []
+            # budget_list=[]
+            for rec in record_ids:
+                move = self.env['account.move'].browse(rec)
+                print("Case11111111111111111111111sdfffffffffff",move,record_ids)
+                # pdb.set_trace()
+                # for budget in move.budget_id.crossovered_budget_id:
+                # domain1 = [('budget_id', '=', move.budget_id.crossovered_budget_id.id),('budget_position_id', '=', move.budget_id.general_budget_id.id)]
+                # cur_budget_lines = self.env['crr.budget.line'].sudo().search(domain1)
+                # for line in cur_budget_lines:
+                #     line.write({
+                #             'april_cur_budget':
+                #         })
+                
+                month_field = month_field_map.get(move.date.month)
+                if month_field not in month_list:
+                # pdb.set_trace()
+                    setattr(move.budget_id.crr_budget_line_id, month_field, 0)
+                month_list.append(month_field)
+                if move.state in ['posted']:
+                    if move.budget_update == True:
+                        move.write({'budget_update': False})
+                        print("Case11111111111111111111111",move,record_ids)
+                        move.action_update_budget_cur_figure_add()
+                    else:
+                        move.action_update_budget_cur_figure_add()
+                if move.state not in ['posted']:
+                    print("Case222222222222222222222222222",move,record_ids)
+                    move.action_update_budget_cur_figure_minus()
+
+    def action_update_budget_cur_figure_minus(self):
+        for rec in self:
+            rec.budget_code_selection_validation()            
+            month_field = month_field_map.get(rec.date.month)
+            if rec.move_type != 'entry':
+                setattr(rec.budget_id.crr_budget_line_id, month_field,
+                        getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
+            else:
+                # debit_value = sum(self.env['account.move.line'].sudo().search([
+                #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                #     ('debit', '>', 0),
+                #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                # ]).mapped('debit'))
+                if rec.state == 'posted':
+                    # balance = sum(self.env['account.move.line'].sudo().search([
+                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
+                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
+                    # ]).mapped('balance'))
+                    entry = self.env['account.move.line'].sudo().search([
+                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
+                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
+                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
+                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    balance = sum(entry.mapped('balance'))
+                    setattr(rec.budget_id.crr_budget_line_id, month_field,
+                            getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
+            rec.write({'budget_update': False})
+
+    def action_update_budget_cur_figure_add(self):
+        for rec in self.filtered(lambda l: not l.budget_update):
+            rec.budget_code_selection_validation()
             month_field = month_field_map.get(rec.date.month)
             if month_field:
                 if rec.move_type != 'entry':
@@ -394,6 +415,18 @@ class AccountMoveInherit(models.Model):
                     balance = sum(entry.mapped('balance'))
                     setattr(rec.budget_id.crr_budget_line_id, month_field,
                             getattr(rec.budget_id.crr_budget_line_id, month_field) + balance)
+            rec.write({'budget_update': True})
+
+    def action_post(self):
+        for rec in self:
+            purchase_order = self.line_ids.purchase_line_id.order_id
+            if purchase_order:
+                purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
+            # for line in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+            #     if not rec.budget_id:
+            #         raise UserError('Warning!! Kindly select a Budget Code.')
+            # rec.budget_code_selection_validation()
+            rec.action_update_budget_cur_figure_add()
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
             if rec.move_type != 'entry' and rec.invoice_date and rec.invoice_date < fields.Date.today():
