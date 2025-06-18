@@ -925,7 +925,8 @@
         <field name="inherit_id" ref="account.view_account_journal_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_sequence']" position="after">
-                <field name="is_credit_card_bank"/>
+                <field name="is_credit_card_bank" invisible="type not in ['cash','bank']"/>
+                <field name="is_opening_balance" invisible="type not in ['general']"/>
             </xpath>
         </field>
     </record>

@@ -344,19 +344,20 @@ class AccountMoveInherit(models.Model):
             # for line in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
             #     if not rec.budget_id:
             #         raise UserError('Warning!! Kindly select a Budget Code.')
-            for line1 in rec.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
-                if not rec.budget_id:
-                    raise UserError('Warning!! Kindly select a Budget Code.')
-                if not rec.budget_id.general_budget_id.account_ids:
-                    raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
-                        rec.budget_id.general_budget_id.display_name))
-                # pdb.set_trace()
-                if not line1.filtered(lambda e: e.analytic_distribution):
-                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                        line1.account_id.display_name,rec.display_name))
-                if not line1.filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
-                    raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
-                        line1.account_id.display_name,rec.budget_id.analytic_account_id.display_name,rec.budget_id.display_name))
+            for move in rec.filtered(lambda l: not l.journal_id.is_opening_balance):
+                for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+                    if not move.budget_id:
+                        raise UserError('Warning!! Kindly select a Budget Code.')
+                    if not move.budget_id.general_budget_id.account_ids:
+                        raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
+                            move.budget_id.general_budget_id.display_name))
+                    # pdb.set_trace()
+                    if not line1.filtered(lambda e: e.analytic_distribution):
+                        raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                            line1.account_id.display_name,move.display_name))
+                    if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                        raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                            line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
             month_field_map = {
                 1: 'january_cur_budget',
                 2: 'february_cur_budget',
@@ -547,7 +548,8 @@ class AccountAnalyticPlan(models.Model):
 class AccountsJournal(models.Model):
     _inherit = 'account.journal'
 
-    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment')
+    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?')
+    is_opening_balance = fields.Boolean(string='Is Opening Balance?')
 
     # def _get_journal_dashboard_data_batched(self):
     #     print('hhhhhhhhhhhhh')
