@@ -7,8 +7,8 @@ class AccountJournal(models.Model):
     _inherit = 'account.journal'
 
     liquidity_end_date = fields.Date(string="Date To")
-    bank_statements_source = fields.Selection([('manual', 'Record Manually'), ('undefined', 'Undefined')],
-                                              string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
+    # bank_statements_source = fields.Selection([('manual', 'Record Manually'), ('undefined', 'Undefined')],
+    #                                           string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
 
     def create_bank_statement(self):
         context = self._context.copy()
