@@ -125,6 +125,7 @@ class AccountMoveInherit(models.Model):
         groups="account.group_account_invoice,account.group_account_readonly",
     )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
+    crossovered_budget = fields.Many2one('crossovered.budget',string='Budget',copy=False)
     budget_update = fields.Boolean("Is Budget Updated?")
     journal_type = fields.Selection(related='journal_id.type')
 
@@ -314,6 +315,16 @@ class AccountMoveInherit(models.Model):
             'state': 'cancel'
         })
 
+    def budget_id_selection_validation(self):
+        for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
+            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+                if not move.crossovered_budget:
+                    raise UserError('Warning!! Kindly select a Budget.')
+                if not line1.filtered(lambda e: e.analytic_distribution):
+                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                        line1.account_id.display_name,move.display_name))
+
+
     def budget_code_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
             for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
@@ -330,6 +341,15 @@ class AccountMoveInherit(models.Model):
                     raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
                         line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
 
+    def update_budget_code_id(self):
+        for rec in self.line_ids:
+            if rec.move_id.move_type == 'entry':
+                if rec.move_id.crossovered_budget:
+                    if rec.account_id:
+                        budget_post = self.env['account.budget.post'].sudo().search([('account_ids.name','in',[rec.account_id.name])])
+                        budget_id = rec.move_id.crossovered_budget.crossovered_budget_line.filtered(lambda l:l.general_budget_id in budget_post)
+                        rec.write({'budget_id':budget_id.ids})
+
     def update_actual_cur_figure_server_action(self):
         record_ids = self._context.get('active_ids')
         if record_ids:
@@ -337,7 +357,6 @@ class AccountMoveInherit(models.Model):
             # budget_list=[]
             for rec in record_ids:
                 move = self.env['account.move'].browse(rec)
-                print("Case11111111111111111111111sdfffffffffff",move,record_ids)
                 # pdb.set_trace()
                 # for budget in move.budget_id.crossovered_budget_id:
                 # domain1 = [('budget_id', '=', move.budget_id.crossovered_budget_id.id),('budget_position_id', '=', move.budget_id.general_budget_id.id)]
@@ -350,24 +369,24 @@ class AccountMoveInherit(models.Model):
                 month_field = month_field_map.get(move.date.month)
                 if month_field not in month_list:
                 # pdb.set_trace()
-                    setattr(move.budget_id.crr_budget_line_id, month_field, 0)
+                    setattr(move.line_ids.budget_id.crr_budget_line_id, month_field, 0)
                 month_list.append(month_field)
+                move.update_budget_code_id()
                 if move.state in ['posted']:
                     if move.budget_update == True:
                         move.write({'budget_update': False})
-                        print("Case11111111111111111111111",move,record_ids)
                         move.action_update_budget_cur_figure_add()
                     else:
                         move.action_update_budget_cur_figure_add()
                 if move.state not in ['posted']:
-                    print("Case222222222222222222222222222",move,record_ids)
                     move.action_update_budget_cur_figure_minus()
 
     def action_update_budget_cur_figure_minus(self):
         for rec in self:
-            rec.budget_code_selection_validation()            
+
             month_field = month_field_map.get(rec.date.month)
             if rec.move_type != 'entry':
+                rec.budget_code_selection_validation()
                 setattr(rec.budget_id.crr_budget_line_id, month_field,
                         getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
             else:
@@ -382,39 +401,35 @@ class AccountMoveInherit(models.Model):
                     #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
                     # ]).mapped('balance'))
                     entry = self.env['account.move.line'].sudo().search([
-                        ('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),
-                        ('date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
-                        ('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids),
-                    ]).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
-                    balance = sum(entry.mapped('balance'))
-                    setattr(rec.budget_id.crr_budget_line_id, month_field,
-                            getattr(rec.budget_id.crr_budget_line_id, month_field) - balance)
+                        ('move_id', '=', rec.id), ('date', '>=', rec.crossovered_budget.date_from),
+                        ('date', '<=', rec.crossovered_budget.date_to),  # Ensure we fetch lines from this move
+                        ('account_id', 'in', rec.crossovered_budget.crossovered_budget_line.general_budget_id.account_ids.ids),
+                    ]).filtered(lambda e: {str(e.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    for v1 in entry:
+                        balance = sum(v1.mapped('balance'))
+                        for line in v1.budget_id.crr_budget_line_id:
+                            setattr(line, month_field, getattr(line, month_field) - balance)
             rec.write({'budget_update': False})
 
     def action_update_budget_cur_figure_add(self):
         for rec in self.filtered(lambda l: not l.budget_update):
-            rec.budget_code_selection_validation()
+
             month_field = month_field_map.get(rec.date.month)
             if month_field:
                 if rec.move_type != 'entry':
+                    rec.budget_code_selection_validation()
                     setattr(rec.budget_id.crr_budget_line_id, month_field,
                             getattr(rec.budget_id.crr_budget_line_id, month_field) + rec.amount_untaxed)
                 else:
-                    # debit_value = sum(self.env['account.move.line'].sudo().search([
-                    #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
-                    #     ('debit', '>', 0),
-                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
-                    # ]).mapped('debit'))
-                    # balance = sum(self.env['account.move.line'].sudo().search([
-                    #     ('move_id', '=', rec.id),('move_id.date', '>=', rec.budget_id.date_from),('move_id.date', '<=', rec.budget_id.date_to),  # Ensure we fetch lines from this move
-                    #     ('account_id', '=', rec.budget_id.general_budget_id.account_ids.id),
-                    # ]).mapped('balance'))
-                    domain12 = [('move_id', '=', rec.id), ('date', '>=', rec.budget_id.date_from),('date', '<=', rec.budget_id.date_to),('account_id', 'in', rec.budget_id.general_budget_id.account_ids.ids)]
-                    entry = self.env['account.move.line'].sudo().search(domain12).filtered(lambda e: {str(rec.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
-                    # pdb.set_trace()
-                    balance = sum(entry.mapped('balance'))
-                    setattr(rec.budget_id.crr_budget_line_id, month_field,
-                            getattr(rec.budget_id.crr_budget_line_id, month_field) + balance)
+                    rec.budget_id_selection_validation()
+                    domain12 = [('move_id', '=', rec.id), ('date', '>=', rec.crossovered_budget.date_from),('date', '<=', rec.crossovered_budget.date_to),('account_id', 'in', rec.crossovered_budget.crossovered_budget_line.general_budget_id.account_ids.ids)]
+                    entry = self.env['account.move.line'].sudo().search(domain12).filtered(lambda e: {str(e.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
+                    print(entry,'sssss')
+                    for v1 in entry:
+                        balance = sum(v1.mapped('balance'))
+                        print(balance,'bbbbbbb')
+                        for line in v1.budget_id.crr_budget_line_id:
+                            setattr(line, month_field, getattr(line, month_field) + balance)
             rec.write({'budget_update': True})
 
     def action_post(self):
@@ -584,108 +599,20 @@ class AccountsJournal(models.Model):
     is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?')
     is_opening_balance = fields.Boolean(string='Is Opening Balance?')
 
-    # def _get_journal_dashboard_data_batched(self):
-    #     print('hhhhhhhhhhhhh')
-    #     result = {}
-    #     for journal in self:
-    #         res = super(AccountsJournal, self)._get_journal_dashboard_data_batched()
-    #         account_sum = 0.0
-    #         bank_balance = 0.0
-    #         currency = journal.currency_id or journal.company_id.currency_id
-    #         account_ids = tuple(ac for ac in [journal.default_account_id.id] if ac)
-    #         if self.type in ['cash']:
-    #             last_bank_stmt = self.env['account.bank.statement'].search([('journal_id', 'in', self.ids)], order="date desc, id desc", limit=1)
-    #             bank_balance = last_bank_stmt and last_bank_stmt[0].balance_end or 0
-    #             if account_ids:
-    #                 amount_field = 'balance' if (
-    #                 not self.currency_id or self.currency_id == self.company_id.currency_id) else 'amount_currency'
-    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s;""" % (
-    #                 amount_field,)
-    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
-    #                 query_results = self.env.cr.dictfetchall()
-    #                 if query_results and query_results[0].get('sum') != None:
-    #                     account_sum = query_results[0].get('sum')
-    #         if self.type in ['bank']:
-    #             last_bank_stmt = self.env['account.bank.statement'].search([('journal_id', 'in', self.ids)], order="date desc, id desc", limit=1)
-    #             last_balance = last_bank_stmt and last_bank_stmt[0].balance_end or 0
-    #             if account_ids:
-    #                 amount_field = 'balance' if (
-    #                 not self.currency_id or self.currency_id == self.company_id.currency_id) else 'amount_currency'
-    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s;""" % (
-    #                 amount_field,)
-    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
-    #                 query_results = self.env.cr.dictfetchall()
-    #                 if query_results and query_results[0].get('sum') != None:
-    #                     account_sum = query_results[0].get('sum')
-    #                 query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s AND
-    #                             statement_date is not NULL;""" % (amount_field,)
-    #                 self.env.cr.execute(query, (account_ids, fields.Date.today(),))
-    #                 query_results = self.env.cr.dictfetchall()
-    #                 if query_results and query_results[0].get('sum') != None:
-    #                     bank_balance = query_results[0].get('sum')
-    #                 last_manual_bank_stmt = self.env['bank.statement'].search([('journal_id', 'in', self.ids)], order="id", limit=1)
-    #                 last_manual_balance = last_manual_bank_stmt and last_manual_bank_stmt[0].open_balance or 0
-    #                 # bank_balance +=last_balance
-    #                 bank_balance +=last_manual_balance
-    #         difference = currency.round(account_sum - bank_balance) + 0.0
-    #         res.update({
-    #             'last_balance': formatLang(self.env, currency.round(bank_balance) + 0.0, currency_obj=currency),
-    #             'difference': formatLang(self.env, currency.round(difference) + 0.0, currency_obj=currency)
-    #         })
-    #         return res
+class AccountMoveLine(models.Model):
+    _inherit = 'account.move.line'
 
-    # def _get_journal_dashboard_data_batched(self):
-    #     result = {}
-    #
-    #     for journal in self:
-    #         res = super(AccountsJournal, journal)._get_journal_dashboard_data_batched()
-    #         account_sum = 0.0
-    #         bank_balance = 0.0
-    #
-    #         currency = journal.currency_id or journal.company_id.currency_id
-    #         account_ids = tuple(ac for ac in [journal.default_account_id.id] if ac)
-    #
-    #         if journal.type in ['cash', 'bank']:
-    #             last_bank_stmt = self.env['account.bank.statement'].search(
-    #                 [('journal_id', '=', journal.id)], order="date desc, id desc", limit=1)
-    #             if journal.type == 'cash':
-    #                 bank_balance = last_bank_stmt.balance_end if last_bank_stmt else 0
-    #             elif journal.type == 'bank':
-    #                 last_balance = last_bank_stmt.balance_end if last_bank_stmt else 0
-    #
-    #             if account_ids:
-    #                 amount_field = 'balance' if (
-    #                         not journal.currency_id or journal.currency_id == journal.company_id.currency_id
-    #                 ) else 'amount_currency'
-    #
-    #                 self.env.cr.execute(
-    #                     f"""SELECT sum({amount_field}) FROM account_move_line WHERE account_id in %s AND date <= %s""",
-    #                     (account_ids, fields.Date.today())
-    #                 )
-    #                 query_result = self.env.cr.dictfetchone()
-    #                 account_sum = query_result['sum'] or 0
-    #
-    #                 if journal.type == 'bank':
-    #                     self.env.cr.execute(
-    #                         f"""SELECT sum({amount_field}) FROM account_move_line WHERE account_id in %s AND date <= %s AND statement_date IS NOT NULL""",
-    #                         (account_ids, fields.Date.today())
-    #                     )
-    #                     result_stmt = self.env.cr.dictfetchone()
-    #                     bank_balance = result_stmt['sum'] or 0
-    #
-    #                     last_manual_stmt = self.env['bank.statement'].search(
-    #                         [('journal_id', '=', journal.id)], order="id", limit=1)
-    #                     last_manual_balance = last_manual_stmt.gl_balance if last_manual_stmt else 0
-    #                     bank_balance += last_manual_balance
-    #
-    #         difference = currency.round(account_sum - bank_balance) + 0.0
-    #         print(difference,'lllll')
-    #         res.update({
-    #             'last_balance': formatLang(self.env, currency.round(bank_balance) + 0.0, currency_obj=currency),
-    #             'difference': formatLang(self.env, currency.round(difference) + 0.0, currency_obj=currency)
-    #         })
-    #
-    #         result[journal.id] = res
-    #
-    #     return result
+    budget_id  = fields.Many2many('crossovered.budget.lines', string='Budget Code', copy=False, required=0)
+
+    @api.onchange('account_id')
+    def update_budget_code(self):
+        for rec in self:
+            if rec.move_id.move_type == 'entry':
+                if rec.move_id.crossovered_budget:
+                    if rec.account_id:
+                        budget_post = self.env['account.budget.post'].sudo().search([('account_ids.name','in',[rec.account_id.name])])
+                        budget_id = rec.move_id.crossovered_budget.crossovered_budget_line.filtered(lambda l:l.general_budget_id in budget_post)
+                        rec.budget_id = [(6, 0, budget_id.ids)]
+
+
 

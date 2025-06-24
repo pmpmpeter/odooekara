@@ -20,6 +20,7 @@ import {
 
 import {
     ListMany2ManyTagsAvatarField,
+    Many2ManyTagsAvatarField,
 } from "@web/views/fields/many2many_tags_avatar/many2many_tags_avatar_field";
 
 import {Many2XAutocomplete} from "@web/views/fields/relational_utils";
@@ -84,6 +85,13 @@ KanbanMany2ManyTagsAvatarUserField.props = {
 
 ListMany2ManyTagsAvatarField.props = {
     ...ListMany2ManyTagsAvatarField.props,
+    noSearchMore: {type: Boolean, optional: true},
+    fieldColor: {type: String, optional: true},
+    fieldColorOptions: {type: Object, optional: true},
+};
+
+Many2ManyTagsAvatarField.props = {
+    ...Many2ManyTagsAvatarField.props,
     noSearchMore: {type: Boolean, optional: true},
     fieldColor: {type: String, optional: true},
     fieldColorOptions: {type: Object, optional: true},

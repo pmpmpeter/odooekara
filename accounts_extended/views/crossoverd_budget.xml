@@ -930,6 +930,7 @@
                     <field name="is_budget_out_sum_line" column_invisible='1'/>
                     <field name="is_budget_in_sum_line" column_invisible='1'/>
                     <field name="is_budget_surples_sum_line" column_invisible='1'/>
+                    <field name="is_budget_total" column_invisible="1"/>
                     <field name="show_budget_sum" column_invisible='1'/>
                     <field name="user_type" column_invisible='1'/>
                     <field name="budget_id" column_invisible='1'/>

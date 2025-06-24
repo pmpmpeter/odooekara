@@ -2152,6 +2152,157 @@ class CrrBudgetLine(models.Model):
             rec.cur_budget_total = rec.quarter_1_cur_budget + rec.quarter_2_cur_budget + rec.quarter_3_cur_budget + rec.quarter_4_cur_budget
             rec.var_budget_total = rec.quarter_1_var_budget + rec.quarter_2_var_budget + rec.quarter_3_var_budget + rec.quarter_4_var_budget
 
+
+    @api.depends('april_crr_budget_plan',
+                 'may_crr_budget_plan',
+                 'june_crr_budget_plan',
+                 'july_crr_budget_plan',
+                 'august_crr_budget_plan',
+                 'september_crr_budget_plan',
+                 'october_crr_budget_plan',
+                 'november_crr_budget_plan',
+                 'december_crr_budget_plan',
+                 'january_crr_budget_plan',
+                 'febuary_crr_budget_plan',
+                 'march_crr_budget_plan',)
+    def _compute_cur(self):
+        for rec in self:
+            budget_lines = rec.sudo().search([])
+            opex_total_line = budget_lines.search([('budget_name','=','Operational Expenditure(OPEX) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
+            capex_total_line = budget_lines.search([('budget_name', '=', 'Capital Expenditure(CAPEX) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
+            noocif_total_line = budget_lines.search([('budget_name', '=', 'Non-Operating Cash-In-Flow (NOCIF) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
+            ocif_total_line = budget_lines.search([('budget_name', '=', 'Operating Cash-In-Flow (NOCIF) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
+            cash_inflow = budget_lines.search([('budget_name', '=', 'Total Cash Inflow'),('is_budget_in_sum_line','=',True),('budget_id','=',self.budget_id.id)])
+            cash_outflow = budget_lines.search([('budget_name', '=', 'Total Cash Outflow'), ('is_budget_out_sum_line', '=', True),('budget_id','=',self.budget_id.id)])
+            surples_sum_line = budget_lines.search([('budget_name', '=', 'Surplus/ Deficit(IN-OUT)'), ('is_budget_surples_sum_line', '=', True),('budget_id','=',self.budget_id.id)])
+            opex_budget_lines = budget_lines.filtered(lambda b: b.budget_id.id == self.budget_id.id  and b.budget_type == 'opex' and not b.is_budget_total and not b.is_buget_categ and not b.is_actual_surples and not b.is_budget_out_sum_line and not b.is_budget_in_sum_line and not b.is_budget_surples_sum_line)
+            opex_total_line.write({
+                'april_cur_budget': sum(opex_budget_lines.mapped('april_cur_budget')),
+                'may_cur_budget': sum(opex_budget_lines.mapped('may_cur_budget')),
+                'june_cur_budget': sum(opex_budget_lines.mapped('june_cur_budget')),
+                'july_cur_budget': sum(opex_budget_lines.mapped('july_cur_budget')),
+                'august_cur_budget': sum(opex_budget_lines.mapped('august_cur_budget')),
+                'september_cur_budget': sum(opex_budget_lines.mapped('september_cur_budget')),
+                'october_cur_budget': sum(opex_budget_lines.mapped('october_cur_budget')),
+                'november_cur_budget': sum(opex_budget_lines.mapped('november_cur_budget')),
+                'december_cur_budget': sum(opex_budget_lines.mapped('december_cur_budget')),
+                'january_cur_budget': sum(opex_budget_lines.mapped('january_cur_budget')),
+                'february_cur_budget': sum(opex_budget_lines.mapped('february_cur_budget')),
+                'march_cur_budget': sum(opex_budget_lines.mapped('march_cur_budget')),
+            })
+            capex_budget_lines = budget_lines.filtered(lambda b: b.budget_id.id == self.budget_id.id and b.budget_type == 'capex'and not b.is_budget_total and not b.is_buget_categ and not b.is_actual_surples and not b.is_budget_out_sum_line and not b.is_budget_in_sum_line and not b.is_budget_surples_sum_line)
+            capex_total_line.write({
+                'april_cur_budget': sum(capex_budget_lines.mapped('april_cur_budget')),
+                'may_cur_budget': sum(capex_budget_lines.mapped('may_cur_budget')),
+                'june_cur_budget': sum(capex_budget_lines.mapped('june_cur_budget')),
+                'july_cur_budget': sum(capex_budget_lines.mapped('july_cur_budget')),
+                'august_cur_budget': sum(capex_budget_lines.mapped('august_cur_budget')),
+                'september_cur_budget': sum(capex_budget_lines.mapped('september_cur_budget')),
+                'october_cur_budget': sum(capex_budget_lines.mapped('october_cur_budget')),
+                'november_cur_budget': sum(capex_budget_lines.mapped('november_cur_budget')),
+                'december_cur_budget': sum(capex_budget_lines.mapped('december_cur_budget')),
+                'january_cur_budget': sum(capex_budget_lines.mapped('january_crr_budget_plan')),
+                'february_cur_budget': sum(capex_budget_lines.mapped('february_cur_budget')),
+                'march_cur_budget': sum(capex_budget_lines.mapped('march_cur_budget')),
+            })
+            cash_outflow.write({
+                'april_cur_budget' : sum(opex_total_line.mapped('april_cur_budget')) + sum(capex_total_line.mapped('april_cur_budget')),
+                'may_cur_budget':sum(opex_total_line.mapped('may_cur_budget')) + sum(capex_total_line.mapped('may_cur_budget')),
+                'june_cur_budget': sum(opex_total_line.mapped('june_cur_budget')) + sum(capex_total_line.mapped('june_cur_budget')),
+                'july_cur_budget': sum(opex_total_line.mapped('july_cur_budget')) + sum(capex_total_line.mapped('july_cur_budget')),
+                'august_cur_budget': sum(opex_total_line.mapped('august_cur_budget')) + sum(capex_total_line.mapped('august_cur_budget')),
+                'september_cur_budget':sum(opex_total_line.mapped('september_cur_budget')) + sum(capex_total_line.mapped('september_cur_budget')),
+                'october_cur_budget': sum(opex_total_line.mapped('october_cur_budget')) + sum(capex_total_line.mapped('october_cur_budget')),
+                'november_cur_budget': sum(opex_total_line.mapped('november_cur_budget')) + sum(capex_total_line.mapped('november_cur_budget')),
+                'december_cur_budget': sum(opex_total_line.mapped('december_cur_budget')) + sum(capex_total_line.mapped('december_cur_budget')),
+                'january_cur_budget': sum(opex_total_line.mapped('january_cur_budget')) + sum(capex_total_line.mapped('january_cur_budget')),
+                'february_cur_budget':sum(opex_total_line.mapped('february_cur_budget')) + sum(capex_total_line.mapped('february_cur_budget')),
+                'march_cur_budget': sum(opex_total_line.mapped('march_cur_budget')) + sum(capex_total_line.mapped('march_cur_budget')),
+            })
+            noocif_budget_lines = budget_lines.filtered(lambda b: b.budget_id.id == self.budget_id.id and b.budget_type == 'noocif'and not b.is_budget_total and not b.is_buget_categ and not b.is_actual_surples and not b.is_budget_out_sum_line and not b.is_budget_in_sum_line and not b.is_budget_surples_sum_line)
+            noocif_total_line.write({
+                'april_cur_budget': sum(noocif_budget_lines.mapped('april_cur_budget')),
+                'may_cur_budget': sum(noocif_budget_lines.mapped('may_cur_budget')),
+                'june_cur_budget': sum(noocif_budget_lines.mapped('june_cur_budget')),
+                'july_cur_budget': sum(noocif_budget_lines.mapped('july_cur_budget')),
+                'august_cur_budget': sum(noocif_budget_lines.mapped('august_cur_budget')),
+                'september_cur_budget': sum(noocif_budget_lines.mapped('september_cur_budget')),
+                'october_cur_budget': sum(noocif_budget_lines.mapped('october_cur_budget')),
+                'november_cur_budget': sum(noocif_budget_lines.mapped('november_cur_budget')),
+                'december_cur_budget': sum(noocif_budget_lines.mapped('december_cur_budget')),
+                'january_cur_budget': sum(noocif_budget_lines.mapped('january_cur_budget')),
+                'february_cur_budget': sum(noocif_budget_lines.mapped('february_cur_budget')),
+                'march_cur_budget': sum(noocif_budget_lines.mapped('march_cur_budget')),
+            })
+
+            ocif_budget_lines = budget_lines.filtered(lambda b: b.budget_id.id == self.budget_id.id and b.budget_type == 'ocif'and not b.is_budget_total and not b.is_buget_categ and not b.is_actual_surples and not b.is_budget_out_sum_line and not b.is_budget_in_sum_line and not b.is_budget_surples_sum_line)
+            ocif_total_line.write({
+                'april_cur_budget': sum(ocif_budget_lines.mapped('april_cur_budget')),
+                'may_cur_budget': sum(ocif_budget_lines.mapped('may_cur_budget')),
+                'june_cur_budget': sum(ocif_budget_lines.mapped('june_cur_budget')),
+                'july_cur_budget': sum(ocif_budget_lines.mapped('july_cur_budget')),
+                'august_cur_budget': sum(ocif_budget_lines.mapped('august_cur_budget')),
+                'september_cur_budget': sum(ocif_budget_lines.mapped('september_cur_budget')),
+                'october_cur_budget': sum(ocif_budget_lines.mapped('october_cur_budget')),
+                'november_cur_budget': sum(ocif_budget_lines.mapped('november_cur_budget')),
+                'december_cur_budget': sum(ocif_budget_lines.mapped('december_cur_budget')),
+                'january_cur_budget': sum(ocif_budget_lines.mapped('january_cur_budget')),
+                'february_cur_budget': sum(ocif_budget_lines.mapped('february_cur_budget')),
+                'march_cur_budget': sum(ocif_budget_lines.mapped('march_cur_budget')),
+            })
+            cash_inflow.write({
+                'april_cur_budget': sum(ocif_total_line.mapped('april_cur_budget')) + sum(
+                    noocif_total_line.mapped('april_cur_budget')),
+                'may_cur_budget': sum(ocif_total_line.mapped('may_cur_budget')) + sum(
+                    noocif_total_line.mapped('may_cur_budget')),
+                'june_cur_budget': sum(ocif_total_line.mapped('june_cur_budget')) + sum(
+                    noocif_total_line.mapped('june_cur_budget')),
+                'july_cur_budget': sum(ocif_total_line.mapped('july_cur_budget')) + sum(
+                    noocif_total_line.mapped('july_cur_budget')),
+                'august_cur_budget': sum(ocif_total_line.mapped('august_cur_budget')) + sum(
+                    noocif_total_line.mapped('august_cur_budget')),
+                'september_cur_budget': sum(ocif_total_line.mapped('september_cur_budget')) + sum(
+                    noocif_total_line.mapped('september_cur_budget')),
+                'october_cur_budget': sum(ocif_total_line.mapped('october_cur_budget')) + sum(
+                    noocif_total_line.mapped('october_cur_budget')),
+                'november_cur_budget': sum(ocif_total_line.mapped('november_cur_budget')) + sum(
+                    noocif_total_line.mapped('november_cur_budget')),
+                'december_cur_budget': sum(ocif_total_line.mapped('december_cur_budget')) + sum(
+                    noocif_total_line.mapped('december_cur_budget')),
+                'january_cur_budget': sum(ocif_total_line.mapped('january_cur_budget')) + sum(
+                    noocif_total_line.mapped('january_cur_budget')),
+                'february_cur_budget': sum(ocif_total_line.mapped('february_cur_budget')) + sum(
+                    noocif_total_line.mapped('february_cur_budget')),
+                'march_cur_budget': sum(ocif_total_line.mapped('march_cur_budget')) + sum(
+                    noocif_total_line.mapped('march_cur_budget')),
+            })
+            surples_sum_line.write({
+                'april_cur_budget': sum(cash_inflow.mapped('april_cur_budget')) - sum(
+                    cash_outflow.mapped('april_cur_budget')),
+                'may_cur_budget': sum(cash_inflow.mapped('may_cur_budget')) - sum(
+                    cash_outflow.mapped('may_cur_budget')),
+                'june_cur_budget': sum(cash_inflow.mapped('june_cur_budget')) - sum(
+                    cash_outflow.mapped('june_cur_budget')),
+                'july_cur_budget': sum(cash_inflow.mapped('july_cur_budget')) - sum(
+                    cash_outflow.mapped('july_cur_budget')),
+                'august_cur_budget': sum(cash_inflow.mapped('august_cur_budget')) - sum(
+                    cash_outflow.mapped('august_cur_budget')),
+                'september_cur_budget': sum(cash_inflow.mapped('september_cur_budget')) - sum(
+                    cash_outflow.mapped('september_cur_budget')),
+                'october_cur_budget': sum(cash_inflow.mapped('october_cur_budget')) - sum(
+                    cash_outflow.mapped('october_cur_budget')),
+                'november_cur_budget': sum(cash_inflow.mapped('november_cur_budget')) - sum(
+                    cash_outflow.mapped('november_cur_budget')),
+                'december_cur_budget': sum(cash_inflow.mapped('december_cur_budget')) - sum(
+                    cash_outflow.mapped('december_cur_budget')),
+                'january_cur_budget': sum(cash_inflow.mapped('january_cur_budget')) - sum(
+                    cash_outflow.mapped('january_cur_budget')),
+                'february_cur_budget': sum(cash_inflow.mapped('february_cur_budget')) - sum(
+                    cash_outflow.mapped('february_cur_budget')),
+                'march_cur_budget': sum(cash_inflow.mapped('march_cur_budget')) - sum(
+                    cash_outflow.mapped('march_cur_budget')),
+            })
+
     show_budget_sum = fields.Boolean('Show budget Sum', related="budget_id.show_budget_sum", store=True)
     company_id = fields.Many2one('res.company', string="Company")
     department_id = fields.Many2one('hr.department', string='Department')
@@ -2170,39 +2321,39 @@ class CrrBudgetLine(models.Model):
                                     ('noocif', 'NOOCIF')], store=True, compute='_compute_budget_type',
                                    string="Budget Type")
     april_crr_budget_plan = fields.Float(string="Apr")
-    april_cur_budget = fields.Float(string="April CUR")
+    april_cur_budget = fields.Float(string="April CUR", compute="_compute_cur",store=True)
     april_var_budget = fields.Float(string="April VAR", compute='_compute_var', store=True)
     may_crr_budget_plan = fields.Float(string="May")
-    may_cur_budget = fields.Float(string="May CUR")
+    may_cur_budget = fields.Float(string="May CUR",compute="_compute_cur",store=True)
     may_var_budget = fields.Float(string="May VAR", compute='_compute_var', store=True)
     june_crr_budget_plan = fields.Float(string="Jun")
-    june_cur_budget = fields.Float(string="June CUR")
+    june_cur_budget = fields.Float(string="June CUR",compute="_compute_cur",store=True)
     june_var_budget = fields.Float(string="June VAR", compute='_compute_var', store=True)
     july_crr_budget_plan = fields.Float(string="Jul")
-    july_cur_budget = fields.Float(string="July CUR")
+    july_cur_budget = fields.Float(string="July CUR",compute="_compute_cur",store=True)
     july_var_budget = fields.Float(string="July VAR", compute='_compute_var', store=True)
     august_crr_budget_plan = fields.Float(string="Aug")
-    august_cur_budget = fields.Float(string="August CUR")
+    august_cur_budget = fields.Float(string="August CUR",compute="_compute_cur",store=True)
     august_var_budget = fields.Float(string="August VAR", compute='_compute_var', store=True)
     september_crr_budget_plan = fields.Float(string="Sep")
-    september_cur_budget = fields.Float(string="September CUR")
+    september_cur_budget = fields.Float(string="September CUR",compute="_compute_cur",store=True)
     september_var_budget = fields.Float(string="September VAR", compute='_compute_var', store=True)
     october_crr_budget_plan = fields.Float(string="Oct")
-    october_cur_budget = fields.Float(string="October CUR")
+    october_cur_budget = fields.Float(string="October CUR",compute="_compute_cur",store=True)
     october_var_budget = fields.Float(string="October VAR", compute='_compute_var', store=True)
     november_crr_budget_plan = fields.Float(string="Nov")
-    november_cur_budget = fields.Float(string="November CUR")
+    november_cur_budget = fields.Float(string="November CUR",compute="_compute_cur",store=True)
     november_var_budget = fields.Float(string="November VAR", compute='_compute_var', store=True)
     december_crr_budget_plan = fields.Float(string="Dec")
-    december_cur_budget = fields.Float(string="December CUR")
+    december_cur_budget = fields.Float(string="December CUR",compute="_compute_cur",store=True)
     december_var_budget = fields.Float(string="December VAR", compute='_compute_var', store=True)
     january_crr_budget_plan = fields.Float(string="Jan")
-    january_cur_budget = fields.Float(string="January CUR")
+    january_cur_budget = fields.Float(string="January CUR",compute="_compute_cur",store=True)
     january_var_budget = fields.Float(string="January VAR", compute='_compute_var', store=True)
     febuary_crr_budget_plan = fields.Float(string="Feb")
-    february_cur_budget = fields.Float(string="February CUR")
+    february_cur_budget = fields.Float(string="February CUR",compute="_compute_cur",store=True)
     february_var_budget = fields.Float(string="February VAR", compute='_compute_var', store=True)
-    march_cur_budget = fields.Float(string="March CUR")
+    march_cur_budget = fields.Float(string="March CUR",compute="_compute_cur",store=True)
     march_var_budget = fields.Float(string="March VAR", compute='_compute_var', store=True)
     march_crr_budget_plan = fields.Float(string="Mar")
     quarter_1_crr_budget_plan = fields.Float('Q1', compute='_compute_to_get_quarter_values')

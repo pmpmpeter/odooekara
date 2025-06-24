@@ -355,8 +355,10 @@
                             <field name="journal_type" invisible="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
-                                   readonly="state not in ('draft','to approve')" 
-                                   context="{'search_default_filter_field': True}"/>
+                                   context="{'search_default_filter_field': True}" invisible="move_type in ('entry')"/>
+                            <field name="crossovered_budget" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
+                                   context="{'search_default_filter_field': True}" invisible="move_type not in ('entry')"
+                                    />
                             <field name="expense_sequence"
                                    invisible="move_type not in ['in_invoice'] or not is_payment_approval" readonly="1"/>
                             <field name="tax_cash_basis_origin_move_id" invisible="not tax_cash_basis_origin_move_id"/>
@@ -692,6 +694,8 @@
                                            column_invisible="parent.move_type != 'entry'"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="name" widget="section_and_note_text" optional="show"/>
+                                    <field name="move_type" invisible="1"/>
+                                    <field name="budget_id" options="{'no_quick_create':True,'no_create': True}" widget="many2many_tags"/>
                                     <field name="analytic_distribution" widget="analytic_distribution"
                                            groups="analytic.group_analytic_accounting"
                                            optional="show"
