@@ -27,7 +27,9 @@
                     <field name="approval_state"/>
                     <field name="user_type" readonly='1'/>
                     <field name="partner_id" options="{'no_quick_create':True,'no_create': True}"
-                           invisible="user_type != 'non_odoo'" readonly="approval_state == 'Approved'" domain="[('is_nonodoo_company', '=', True),('state','=','approve')]"/>
+                           invisible="user_type != 'non_odoo'" readonly="approval_state == 'Approved'"/>
+<!--                     <field name="partner_id" options="{'no_quick_create':True,'no_create': True}"-->
+<!--                           invisible="user_type != 'non_odoo'" readonly="approval_state == 'Approved'" domain="[('is_nonodoo_company', '=', True),('state','=','approve')]"/>-->
                     <field name="x_has_request_approval" invisible="1"/>
                     <field name="x_review_result" invisible="1"/>
                     <field name="is_budget_consolidate" invisible="1"/>
