@@ -197,22 +197,22 @@ class RequestApproval(models.TransientModel):
             elif not budget_id.show_budget_sum:
                 raise UserError('Please Get the Cash Outflow/Inflow.')
         ##checking budget Code for Accounts
-        elif active_res_model == 'account.move':
-            account_move_id = self.env['account.move'].sudo().browse(self.origin_ref.id)
-            for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance):
-                for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
-                    if not move.budget_id:
-                        raise UserError('Warning!! Kindly select a Budget Code.')
-                    if not move.budget_id.general_budget_id.account_ids:
-                        raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
-                            move.budget_id.general_budget_id.display_name))
-                    # pdb.set_trace()
-                    if not line1.filtered(lambda e: e.analytic_distribution):
-                        raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                            line1.account_id.display_name,move.display_name))
-                    if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
-                        raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
-                            line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
+        # elif active_res_model == 'account.move':
+        #     account_move_id = self.env['account.move'].sudo().browse(self.origin_ref.id)
+        #     for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance):
+        #         for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+        #             if not move.budget_id:
+        #                 raise UserError('Warning!! Kindly select a Budget Code.')
+        #             if not move.budget_id.general_budget_id.account_ids:
+        #                 raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
+        #                     move.budget_id.general_budget_id.display_name))
+        #             # pdb.set_trace()
+        #             if not line1.filtered(lambda e: e.analytic_distribution):
+        #                 raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+        #                     line1.account_id.display_name,move.display_name))
+        #             if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+        #                 raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+        #                     line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
 
         # create request
         vals = {
