@@ -289,31 +289,57 @@ class AccountMoveInherit(models.Model):
                 record.approval_state = 'To Submit for Approval'
                 record.x_has_request_approval = False
 
+    # def button_cancel(self):
+    #     for rec in self:
+    #         rec.action_update_budget_cur_figure_minus()
+    #     # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed
+    #     # when sent to the government.
+    #     moves_to_reset_draft = self.filtered(lambda x: x.state == 'posted')
+    #     if moves_to_reset_draft:
+    #         moves_to_reset_draft.button_draft()
+    #
+    #     # Check if any journal entry is neither in 'draft' nor 'approve' state
+    #     if any(move.state not in ['draft', 'to approve'] for move in self):
+    #         raise UserError(_("Only draft or to approved journal entries can be cancelled."))
+    #
+    #     # Write state change to 'cancel'
+    #     model_name = 'account.move'
+    #     res_id = self.id
+    #     origin_ref = f"{model_name},{res_id}"
+    #     existing_approvals = self.env['multi.approval'].search([("origin_ref", "=", origin_ref)])
+    #     existing_approvals.write({'state': 'Cancel'})
+    #     self.write({
+    #         'auto_post': 'no',
+    #         'approval_state': 'Not Applicable',
+    #         'x_has_request_approval': False,
+    #         'state': 'cancel'
+    #     })
+
     def button_cancel(self):
         for rec in self:
             rec.action_update_budget_cur_figure_minus()
-        # Shortcut to move from posted to cancelled directly. Useful for E-invoices that must not be changed
-        # when sent to the government.
-        moves_to_reset_draft = self.filtered(lambda x: x.state == 'posted')
-        if moves_to_reset_draft:
-            moves_to_reset_draft.button_draft()
+            # Shortcut to move from posted to cancelled directly
+            if rec.state == 'posted':
+                rec.button_draft()
 
-        # Check if any journal entry is neither in 'draft' nor 'approve' state
-        if any(move.state not in ['draft', 'to approve'] for move in self):
-            raise UserError(_("Only draft or to approved journal entries can be cancelled."))
+            # Ensure record is in a valid state
+            if rec.state not in ['draft', 'to approve']:
+                raise UserError(_("Only draft or to approved journal entries can be cancelled."))
 
-        # Write state change to 'cancel'
-        model_name = 'account.move'
-        res_id = self.id
-        origin_ref = f"{model_name},{res_id}"
-        existing_approvals = self.env['multi.approval'].search([("origin_ref", "=", origin_ref)])
-        existing_approvals.write({'state': 'Cancel'})
-        self.write({
-            'auto_post': 'no',
-            'approval_state': 'Not Applicable',
-            'x_has_request_approval': False,
-            'state': 'cancel'
-        })
+            # Update approval status
+            model_name = 'account.move'
+            res_id = rec.id
+            origin_ref = f"{model_name},{res_id}"
+            existing_approvals = self.env['multi.approval'].search([("origin_ref", "=", origin_ref)])
+            existing_approvals.write({'state': 'Cancel'})
+
+            # Write state change
+            rec.write({
+                'auto_post': 'no',
+                'approval_state': 'Not Applicable',
+                'x_has_request_approval': False,
+                'state': 'cancel'
+            })
 
     def budget_id_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):

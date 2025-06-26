@@ -38,7 +38,7 @@ class ResPartner(models.Model):
     review_on = fields.Selection([('monthly', 'Monthly'),('quarterly', 'Quarterly')],string='Review Based on',default='quarterly')
     review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
     has_to_review = fields.Boolean(string='Has to Review')
-    # is_nonodoo_company = fields.Boolean(string='IS Company')
+    is_nonodoo_company = fields.Boolean(string='IS Company')
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (
                 self.env.user.has_group('account.group_account_manager')
