@@ -125,7 +125,7 @@ class AccountMoveInherit(models.Model):
         groups="account.group_account_invoice,account.group_account_readonly",
     )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
-    crossovered_budget = fields.Many2one('crossovered.budget',string='Budget',copy=False)
+    crossovered_budget = fields.Many2one('crossovered.budget',string='Budget',copy=False,default=lambda self: self.env['crossovered.budget'].sudo().search([('user_type','=','odoo'),('company_id','=',self.env.company.id)]),limit=1)
     budget_update = fields.Boolean("Is Budget Updated?",copy=False)
     journal_type = fields.Selection(related='journal_id.type')
 
@@ -340,6 +340,11 @@ class AccountMoveInherit(models.Model):
                 if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
                     raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
                         line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
+
+    @api.onchange('crossovered_budget')
+    def update_budget_lines(self):
+        for rec in self.line_ids:
+            rec.update_budget_code()
 
     def update_budget_code_id(self):
         for rec in self.line_ids:

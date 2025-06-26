@@ -50,7 +50,7 @@
             <field name="arch" type="xml">
                 <field name="l10n_in_pan" position="after">
                     <field name="msme_status" widget="radio" readonly="state in ('approve', 'done')"/>
-<!--                    <field name="is_nonodoo_company" readonly="state in ('approve', 'done')"/>-->
+                    <field name="is_nonodoo_company" readonly="state in ('approve', 'done')"/>
                     <field name="msme_number" invisible="msme_status ==  'unregistered'"
                            readonly="state in ('approve', 'done')"/>
                     <field name="msme_validity" invisible="msme_status ==  'unregistered'"
