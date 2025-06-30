@@ -92,6 +92,17 @@
                             </div>
                         </div>
                     </div>
+                    <div>
+                        <h2>Purchase Order Threshold Limit For Vendor Bill</h2>
+                        <div class="content-group col-4">
+                            <div class="row mt8 o_settings_container">
+
+                                <label for="po_threshold_amount"/>
+                                <field name="po_threshold_amount"/>
+
+                            </div>
+                        </div>
+                    </div>
                 </xpath>
             </field>
         </record>

@@ -4,13 +4,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
-
-class AccountAccount(models.Model):
-    _inherit = 'account.account'
-
-    active = fields.Boolean(string="Active",default=True, copy=False)
-
-
 class AccountAsset(models.Model):
     _inherit = 'account.asset'
 

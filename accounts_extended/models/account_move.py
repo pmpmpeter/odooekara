@@ -128,6 +128,14 @@ class AccountMoveInherit(models.Model):
     crossovered_budget = fields.Many2one('crossovered.budget',string='Budget',copy=False,default=lambda self: self.env['crossovered.budget'].sudo().search([('user_type','=','odoo'),('company_id','=',self.env.company.id)]),limit=1)
     budget_update = fields.Boolean("Is Budget Updated?",copy=False)
     journal_type = fields.Selection(related='journal_id.type')
+    active = fields.Boolean(string="Active",default=True, copy=False)
+
+    def toggle_active(self):
+        # Prevent archiving if the state is not 'cancelled'
+        for record in self:
+            if record.state not in ('cancel'):
+                raise UserError(_("Alert !! You cannot archive a record in the Draft or Posted state."))
+        return super(AccountMoveInherit, self).toggle_active()
 
     @api.depends('company_id', 'invoice_filter_type_domain')
     def _compute_suitable_journal_ids(self):
@@ -463,6 +471,16 @@ class AccountMoveInherit(models.Model):
                             setattr(line, month_field, getattr(line, month_field) + balance)
             rec.write({'budget_update': True})
 
+    def action_validate_no_bill(self):
+        for move in self.filtered(lambda l: l.move_type in ['in_invoice']):
+            if move.company_id.po_threshold_amount <=0:
+                raise UserError(_("Alert !! Please define the PO Threshold Amount to post the Vendor Bill."))
+            if move.company_id.po_threshold_amount< move.amount_total:
+                if not move.line_ids.purchase_line_id.order_id:
+                    raise UserError(_("Alert !! You cannot post a Vendor Bill without linking it to Purchase Order as it exceeds the PO Threshold Amount of %s")
+                        %(move.company_id.po_threshold_amount))
+                # raise UserError(_("Alert !! You cannot post a Vendor Bill above the PO Threshold Amount."))
+
     def action_post(self):
         for rec in self:
             purchase_order = self.line_ids.purchase_line_id.order_id
@@ -473,6 +491,7 @@ class AccountMoveInherit(models.Model):
             #         raise UserError('Warning!! Kindly select a Budget Code.')
             # rec.budget_code_selection_validation()
             rec.action_update_budget_cur_figure_add()
+            rec.action_validate_no_bill()
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
             if rec.move_type != 'entry' and rec.invoice_date and rec.invoice_date < fields.Date.today():
