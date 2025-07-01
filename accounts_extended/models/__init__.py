@@ -1,5 +1,7 @@
+from . import res_company
 from . import res_config_settings
 from . import crossovered_budget
+from . import account_account
 from . import account_move
 from . import account_payment
 from . import cash_management
@@ -9,3 +11,4 @@ from . import fund_management
 from . import account_asset
 from . import budget_department
 from . import sale_order
+from . import l10n_in_withholding

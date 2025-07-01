@@ -1,18 +1,6 @@
 from odoo import api, fields, models, _, tools
 from datetime import datetime
 
-
-class ResCompanyInherited(models.Model):
-    _inherit = 'res.company'
-
-    tax_entity1 = fields.Many2one('res.company', string="Tax Entity1")
-    share1 = fields.Integer('Share %')
-    tax_entity2 = fields.Many2one('res.company', string="Tax Entity2")
-    share2 = fields.Integer('Share %')
-    crr_reminder_users = fields.Many2many('res.users', string="CRR & CUR Reminder Users",
-                                          help="Users who will receive monthly CRR & CUR reminders")
-
-
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
@@ -33,6 +21,7 @@ class ResConfigSettings(models.TransientModel):
     share2 = fields.Integer('Share %', related='company_id.share2', readonly=False)
     crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users",
                                           help="Users who will receive monthly CRR & CUR reminders", readonly=False)
+    po_threshold_amount = fields.Float(string="PO Threshold Amount", related='company_id.po_threshold_amount', readonly=False)
 
     @api.model
     def send_crr_reminder(self):
