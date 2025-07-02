@@ -46,6 +46,7 @@
                             <field name="sub_total_a_per_annum" readonly="1" force_save="1" invisible="1"/>
                             <field name="statutory_bonus_per_annum" readonly="1" force_save="1"/>
                             <field name="pf_employer_per_annum" readonly="1" force_save="1"/>
+                            <field name="pf_employee_per_annum" readonly="1" force_save="1"/>
                             <field name="esic_employer_per_annum" readonly="1" force_save="1"/>
                             <field name="sub_total_b_per_annum" readonly="1" force_save="1" invisible="1"/>
                             <field name="store_performance_incentive_annum" invisible="1" readonly="1" force_save="1"/>
@@ -68,6 +69,7 @@
                             <field name="sub_total_a_per_month" readonly="1" force_save="1" invisible="1"/>
                             <field name="statutory_bonus_per_month" readonly="1" force_save="1"/>
                             <field name="pf_employer_per_month" readonly="1" force_save="1"/>
+                            <field name="pf_employee_per_month" readonly="1" force_save="1"/>
                             <field name="esic_employer_per_month" readonly="1" force_save="1"/>
                             <field name="sub_total_b_per_month" readonly="1" force_save="1" invisible="1"/>
                             <field name="store_performance_incentive_month" invisible="1" readonly="1" force_save="1"/>

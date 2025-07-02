@@ -19,6 +19,8 @@ class HrContract(models.Model):
     statutory_bonus_per_month = fields.Float(string='Statutory Bonus', copy=False)
     pf_employer_per_annum = fields.Float(string="Provident Fund (Employer's Contribution)", copy=False)
     pf_employer_per_month = fields.Float(string="Provident Fund (Employer's Contribution)", copy=False)
+    pf_employee_per_annum = fields.Float(string="Provident Fund (Employee's Contribution)", copy=False)
+    pf_employee_per_month = fields.Float(string="Provident Fund (Employee's Contribution)", copy=False)
     esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     sub_total_b_per_annum = fields.Float(string='Sub-total Part B', copy=False)
