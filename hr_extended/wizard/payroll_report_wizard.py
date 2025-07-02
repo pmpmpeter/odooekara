@@ -106,12 +106,12 @@ class PayrollReportWizard(models.TransientModel):
         sheet.set_column('G:H',20)
         sheet.set_column('I:I',15)
         sheet.set_column('J:J',25)
-        sheet.set_column('K:AB',15)
+        sheet.set_column('K:AN',20)
         sheet.set_row(3,28)
         # Headers
         headers = [
             "Sl #", "Employee", "Employment Status", "Empl. No.", "UAN", "Date of Joining",
-            "Date of Resignation\n Acceptance", "Last Working Day", "Location", "Annual Compensation",
+            "Last Working Day", "Location", "Annual Compensation",
             "Days Paid \nThis Month"]
         if self.report_based_on == 'batch':
             payslips = self.env['hr.payslip'].search([
@@ -142,17 +142,50 @@ class PayrollReportWizard(models.TransientModel):
             work_col +=1
         wrk_names =['CL this month','EL this month','LoP this month']
         comp_col = work_col
-        for comp_name in payslips.struct_id.rule_ids.mapped('name'):
-            sheet.write(row,comp_col,comp_name,header_format)
-            comp_col +=1
-        sheet.merge_range(2,comp_col,3,comp_col,'Remarks',merge_format)
+        components = payslips.struct_id.rule_ids.filtered(
+            lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] for rule in l)
+        )
+        for comp_name in components.mapped('name'):
+            sheet.write(row, comp_col, comp_name, header_format)
+            comp_col += 1
+        sheet.write(row, comp_col,'Total', header_format)
+        comp_col += 1
+        ded_col = comp_col
+        deduction = payslips.struct_id.rule_ids.filtered(
+            lambda l: any(rule.category_id.name in ['Deduction'] for rule in l)
+        )
+        for comp_name in deduction.mapped('name'):
+            sheet.write(row, ded_col, comp_name, header_format)
+            ded_col += 1
+        sheet.write(row, ded_col,'Total Deductions', header_format)
+        ded_col += 1
+        pay_col = ded_col
+        payments = payslips.struct_id.rule_ids.filtered(
+            lambda l: any(rule.category_id.name in ['Payments'] for rule in l)
+        )
+        for comp_name in payments.mapped('name'):
+            sheet.write(row, pay_col, comp_name, header_format)
+            pay_col += 1
+        sheet.write(row, pay_col, 'Batch Payments', header_format)
+        pay_col += 1
+        sheet.write(row, pay_col,'Total Payments', header_format)
+        # for comp_name in payslips.struct_id.rule_ids.mapped('name'):
+        #     sheet.write(row,comp_col,comp_name,header_format)
+        #     comp_col +=1
         sheet.merge_range(2,col,2,work_col-1, 'Worked and Leave Days', merge_format) if len(wrk_names) > 1 else sheet.write(2,col,'Worked and Leave Days',header_format)
         sheet.merge_range(2,work_col,2,comp_col-1, 'Components', merge_format)
-        comp_names = payslips.struct_id.rule_ids.mapped('name')
+        sheet.merge_range(2,comp_col,2,ded_col-1, 'Deductions', merge_format)
+        sheet.merge_range(2, ded_col, 2, pay_col, 'Payments', merge_format)
+        comp_names = components.mapped('name')
+        ded_names = deduction.mapped('name')
+        pay_names = payments.mapped('name')
         row = 4
         comp_fin_list = []
         wrk_fin_list = []
-        for slip in payslips:
+        ded_fin_list = []
+        pay_fin_list = []
+        for slip in payslips.filtered(
+            lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] for rule in l.struct_id.rule_ids)):
             comp_list = []
             wrk_list = []
             for line in slip.line_ids:
@@ -168,6 +201,20 @@ class PayrollReportWizard(models.TransientModel):
                     lv_name = 'EL this month' 
                 wrk_list.append({lv_name:line.number_of_days})
             wrk_fin_list.append(wrk_list)
+        for slip in payslips.filtered(
+            lambda l: any(rule.category_id.name in ['Deduction'] for rule in l.struct_id.rule_ids)):
+            ded_list = []
+            total = 0
+            for line in slip.line_ids:
+                ded_list.append({line.name:line.total})
+                total = total + line.total
+            ded_fin_list.append(ded_list)
+        for slip in payslips.filtered(
+            lambda l: any(rule.category_id.name in ['Payments'] for rule in l.struct_id.rule_ids)):
+            pay_list = []
+            for line in slip.line_ids:
+                pay_list.append({line.name:line.total})
+            pay_fin_list.append(pay_list)
         start_row = row
         start_col = col
         value = 0
@@ -177,19 +224,59 @@ class PayrollReportWizard(models.TransientModel):
                     value = 0
                     if work in item:
                         value = item[work]
-                        break 
+                        break
                 sheet.write(start_row, start_col + idx, value, data_format)
             start_row += 1
         start_row = row
         start_col = work_col
+        comp_list = []
         for comp in comp_fin_list:
+            total = 0
             for idx, component in enumerate(comp_names):
                 for item in comp:
                     value = 0
                     if component in item:
                         value = item[component]
-                        break 
+                        total = total + int(item[component])
+
+                        break
                 sheet.write(start_row, start_col + idx, value, data_format)
+                sheet.write(start_row, start_col+1 + idx, total, data_format)
+            comp_list.append(total)
+            start_row += 1
+        start_row = row
+        start_col = comp_col
+        ded_list = []
+        for comp in ded_fin_list:
+            total = 0
+            for idx, component in enumerate(ded_names):
+                for item in comp:
+                    value = 0
+                    if component in item:
+                        value = item[component]
+                        total = total + int(item[component])
+
+                        break
+                sheet.write(start_row, start_col + idx, value, data_format)
+                sheet.write(start_row, start_col + 1 + idx, total, data_format)
+            ded_list.append(total)
+            start_row += 1
+        start_row = row
+        start_col = ded_col
+        print(comp_list,ded_list,'bbbbbbbbb')
+        for comp in pay_fin_list:
+            total = 0
+            for idx, component in enumerate(pay_names):
+                for item in comp:
+                    value = 0
+                    if component in item:
+                        value = item[component]
+                        total = total + int(item[component])
+                        break
+                diff_value = comp_list[idx] - ded_list[idx]
+                sheet.write(start_row, start_col + idx, value, data_format)
+                sheet.write(start_row, start_col + 1 + idx, diff_value, data_format)
+                sheet.write(start_row, start_col + 2 + idx, total, data_format)
             start_row += 1
         for idx, slip in enumerate(payslips, start=1):
             col = 0
@@ -200,11 +287,11 @@ class PayrollReportWizard(models.TransientModel):
             sheet.write(row, col + 3, slip.employee_id.employee_number if slip.employee_id.employee_number else '', char_format)  # Employee No.
             sheet.write(row, col + 4, slip.employee_id.uan_no if slip.employee_id.uan_no else '', char_format)  # UAN
             sheet.write(row, col + 5, datetime.strftime((slip.employee_id.joining_date),"%d-%m-%Y") if slip.employee_id.joining_date else '' , char_format)  # Date of Joining
-            sheet.write(row, col + 6, datetime.strftime((resig_date.hr_approved_reliving_date),"%d-%m-%Y") if resig_date else '', char_format)  # Date of Resignation Acceptance
-            sheet.write(row, col + 7, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
-            sheet.write(row, col + 8, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
-            sheet.write(row, col + 9, slip.contract_id.total_ctc_annum, data_format)  # Annual Compensation
-            sheet.write(row, col + 10, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
+            # sheet.write(row, col + 6, datetime.strftime((resig_date.hr_approved_reliving_date),"%d-%m-%Y") if resig_date else '', char_format)  # Date of Resignation Acceptance
+            sheet.write(row, col + 6, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
+            sheet.write(row, col + 7, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
+            sheet.write(row, col + 8, slip.contract_id.total_ctc_annum, data_format)  # Annual Compensation
+            sheet.write(row, col + 9, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
             sheet.write(row, col + comp_col,'', data_format) 
             row += 1
 
