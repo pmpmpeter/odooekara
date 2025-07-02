@@ -78,6 +78,7 @@ class AccountPayment(models.Model):
             # pdb.set_trace()
             record.closing_balance = closing_balance
 
+    @api.onchange('partner_id')
     def _get_partner_cl_balance(self):
         partner_cl_balance = 0
         if self.partner_id:
