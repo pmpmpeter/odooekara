@@ -108,11 +108,11 @@
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Branch:</td>
-                        <td style="border: 1px solid #000; padding: 2px;">
+                        <td>
                             <div t-if="o.partner_bank_id.bank_id.bank_branch" t-esc="o.partner_bank_id.bank_id.bank_branch" style="border: 1px solid #000; padding: 2px;"/>
                         </td>
                         <td style="font-weight: bold;">City:</td>
-                        <td style="border: 1px solid #000; padding: 2px;">
+                        <td>
                             <div t-if="o.partner_bank_id.bank_id.city" t-esc="o.partner_bank_id.bank_id.city" style="border: 1px solid #000; padding: 2px;"/>
                         </td>
                     </tr>
