@@ -39,6 +39,7 @@ class ResPartner(models.Model):
     review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
     has_to_review = fields.Boolean(string='Has to Review')
     is_nonodoo_company = fields.Boolean(string='IS Company')
+
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (
                 self.env.user.has_group('account.group_account_manager')
@@ -46,16 +47,16 @@ class ResPartner(models.Model):
         for rec in self:
             rec.can_edit_vendor_code = is_admin_or_accounts_head
 
-    @api.model
-    def name_get(self):
-        result = []
-        for record in self:
-            if record.vendor_code:
-                name = f"{record.vendor_code} {record.name}"
-            else:
-                name= record.name
-            result.append((record.id, name))
-        return result
+    # @api.model
+    # def name_get(self):
+    #     result = []
+    #     for record in self:
+    #         if record.vendor_code:
+    #             name = f"{record.vendor_code} {record.name}"
+    #         else:
+    #             name= record.name
+    #         result.append((record.id, name))
+    #     return result
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -63,29 +64,28 @@ class ResPartner(models.Model):
         domain = ['|',('name', operator, name),('vendor_code', operator, name)]
         return self.search(domain + args, limit=limit).name_get()
 
-    @api.depends('complete_name', 'email', 'vat', 'state_id', 'country_id', 'commercial_company_name')
-    @api.depends_context('show_address', 'partner_show_db_id', 'address_inline', 'show_email', 'show_vat', 'lang')
-    def _compute_display_name(self):
-        for partner in self:
-            name = partner.with_context(lang=self.env.lang)._get_complete_name()
-            if not partner.vendor_code:
-                name = name
-            if partner.vendor_code:
-                name = partner.vendor_code + " " + name
-            if partner._context.get('show_address'):
-                name = name + "\n" + partner._display_address(without_company=True)
-            name = re.sub(r'\s+\n', '\n', name)
-            if partner._context.get('partner_show_db_id'):
-                name = f"{name} ({partner.id})"
-            if partner._context.get('address_inline'):
-                splitted_names = name.split("\n")
-                name = ", ".join([n for n in splitted_names if n.strip()])
-            if partner._context.get('show_email') and partner.email:
-                name = f"{name} <{partner.email}>"
-            if partner._context.get('show_vat') and partner.vat:
-                name = f"{name} ‒ {partner.vat}"
-            partner.display_name = name.strip() 
-
+    # @api.depends('complete_name', 'email', 'vat', 'state_id', 'country_id', 'commercial_company_name')
+    # @api.depends_context('show_address', 'partner_show_db_id', 'address_inline', 'show_email', 'show_vat', 'lang')
+    # def _compute_display_name(self):
+    #     for partner in self:
+    #         name = partner.with_context(lang=self.env.lang)._get_complete_name()
+    #         if not partner.vendor_code:
+    #             name = name
+    #         if partner.vendor_code:
+    #             name = partner.vendor_code + " " + name
+    #         if partner._context.get('show_address'):
+    #             name = name + "\n" + partner._display_address(without_company=True)
+    #         name = re.sub(r'\s+\n', '\n', name)
+    #         if partner._context.get('partner_show_db_id'):
+    #             name = f"{name} ({partner.id})"
+    #         if partner._context.get('address_inline'):
+    #             splitted_names = name.split("\n")
+    #             name = ", ".join([n for n in splitted_names if n.strip()])
+    #         if partner._context.get('show_email') and partner.email:
+    #             name = f"{name} <{partner.email}>"
+    #         if partner._context.get('show_vat') and partner.vat:
+    #             name = f"{name} ‒ {partner.vat}"
+    #         partner.display_name = name.strip()
 
     @api.constrains('msme_number')
     def _check_msme_number(self):
