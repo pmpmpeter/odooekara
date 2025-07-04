@@ -20,6 +20,11 @@ class ManpowerBudget(models.Model):
             for line in rec.employee_monthly_ids:
                 rec.ctc_annual += (line.ctc_month * line.employee_count)
 
+    @api.depends('employee_monthly_ids')
+    def _compute_ctc_month(self):
+        for rec in self:
+            for line in rec.employee_monthly_ids:
+                rec.ctc_monthly += (line.ctc_month)
 
     name = fields.Char(string='Reference', required=True, readonly=True, default='New')
     create_date = fields.Datetime(string="Creation Date", readonly=True, default=fields.Datetime.now)
@@ -38,6 +43,7 @@ class ManpowerBudget(models.Model):
     job_level_id = fields.Many2one('hr.job.levels',domain="[('company_id', '=', company_id)]", string="Job Level/Grade")
     justification = fields.Char(string="Justification")
     ctc_annual = fields.Float(string="CTC-Annual",compute='_compute_ctc_annual')
+    ctc_monthly = fields.Float(string="CTC-Month", compute='_compute_ctc_month')
     employee_monthly_ids = fields.One2many(
         'manpower.budget.employee.monthly',
         'budget_id',
@@ -50,7 +56,7 @@ class ManpowerBudget(models.Model):
             ('draft', 'Draft'),
             ('assigned', 'Assigned'),
             ('submitted', 'Submitted'),
-            ('hr_approved', 'HR Approved'),
+            ('hr_approved', 'HR Head Approved'),
             ('done', 'Done')
         ],
         string='Status',
@@ -58,7 +64,7 @@ class ManpowerBudget(models.Model):
         required=True
     )
     assigned_user_id = fields.Many2one('res.users',string='Assigned To')
-    hr_id = fields.Many2one('res.users',string='HR')
+    hr_id = fields.Many2one('res.users',string='Assigned By')
     director_id = fields.Many2one('res.users',string='Director')
 
     @api.model
@@ -498,7 +504,7 @@ class ManpowerBudgetEmployeeMonthly(models.Model):
         ('10', 'October'), ('11', 'November'), ('12', 'December'),
         ('01', 'January'), ('02', 'February'), ('03', 'March'),
     ], string="Month")
-    employee_count = fields.Integer(string="Employee Count", required=True)
+    employee_count = fields.Integer(string="Position Count", required=True)
     ctc_month = fields.Float(string='CTC/Month')
 
 

@@ -14,6 +14,7 @@
                 <field name="job_id"/>
                 <field name="job_level_id"/>
                 <field name="ctc_annual"/>
+                <field name="ctc_monthly"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -76,6 +77,7 @@
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="justification" required="state == 'assigned'" readonly="state != 'assigned'"/>
                             <field name="ctc_annual"/>
+                            <field name="ctc_monthly"/>
                             <field name="create_date" required="state == 'assigned'" readonly='1' force_save='1'/>
                         </group>
                     </group>
