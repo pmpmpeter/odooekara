@@ -1124,6 +1124,14 @@
         <field name="code">action = model.update_actual_cur_figure_server_action()</field>
     </record>
 
+    <record id="action_update_tax_grids_account_entries" model="ir.actions.server">
+        <field name="name">Update Tax Grids</field>
+        <field name="model_id" ref="model_account_move"/>
+        <field name="binding_model_id" ref="model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_update_account_move_tax_grids()</field>
+    </record>
+
     <record id="view_account_move_filter_budget_code" model="ir.ui.view">
         <field name="name">account.move.filter.budget_code</field>
         <field name="model">account.move</field>

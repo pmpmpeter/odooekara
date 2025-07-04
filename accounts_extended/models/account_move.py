@@ -471,8 +471,26 @@ class AccountMoveInherit(models.Model):
                             setattr(line, month_field, getattr(line, month_field) + balance)
             rec.write({'budget_update': True})
 
+    def action_update_account_move_tax_grids(self):
+        ###Update Tax Grids
+        records = self.env['account.move'].browse(self._context.get('active_ids', False))
+        for record in records:
+            for line in record.line_ids.filtered(lambda l: l.tax_line_id):
+                if not line.tax_tag_ids:
+                    my_list =[]
+                    if record.move_type in ['out_invoice', 'in_invoice', 'out_receipt', 'in_receipt', 'entry']:
+                        for tax_grid in line.tax_line_id.invoice_repartition_line_ids.filtered(lambda t: t.tag_ids):
+                            tax_grid_values = tax_grid.tag_ids.ids
+                            line.write({'tax_tag_ids': tax_grid_values})
+                    if record.move_type in ['out_refund', 'in_refund']:
+                        for tax_grid in line.tax_line_id.refund_repartition_line_ids.filtered(lambda t: t.tag_ids):
+                            tax_grid_values = tax_grid.tag_ids.ids
+                            line.write({'tax_tag_ids': tax_grid_values})
+
     def action_validate_no_bill(self):
         for move in self.filtered(lambda l: l.move_type in ['in_invoice']):
+            if not move.invoice_date:
+                raise UserError(_("Alert !! Please update the Vendor Bill Date."))
             if move.company_id.po_threshold_amount <=0:
                 raise UserError(_("Alert !! Please define the PO Threshold Amount to post the Vendor Bill."))
             if move.company_id.po_threshold_amount< move.amount_total:
