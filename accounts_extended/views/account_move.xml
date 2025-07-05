@@ -1115,7 +1115,6 @@
         </field>
     </record>
 
-
     <record id="action_update__budget_actual_cur_figure" model="ir.actions.server">
         <field name="name">Update Budget CUR</field>
         <field name="model_id" ref="model_account_move"/>
@@ -1146,5 +1145,15 @@
         </field>
     </record>
 
+    <record id="view_out_invoice_tree_budget_code" model="ir.ui.view">
+        <field name="name">account.out.invoice.tree.budget_code</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <field name="invoice_date" position="after">
+                <field name="budget_id"/>
+            </field>
+        </field>
+    </record>
 
 </odoo>

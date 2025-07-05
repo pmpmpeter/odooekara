@@ -5,7 +5,6 @@ import calendar
 from io import BytesIO
 from datetime import date, timedelta, datetime
 
-
 class AccountCURReportWizard(models.TransientModel):
     _name = 'account.cur.report.wizard'
     _description = 'Cash Utilization Report Wizard'
@@ -30,12 +29,9 @@ class AccountCURReportWizard(models.TransientModel):
     file_name = fields.Char('File Name', readonly=True)
 
     def action_generate_cur_report(self):
-
         report_content = self._generate_excel_report()
-
         self.report_file = base64.b64encode(report_content)
         self.file_name = f"Cash_Utilization_Report_{datetime.now().strftime('%d%m%y')}.xlsx"
-
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'account.cur.report.wizard',
@@ -69,6 +65,13 @@ class AccountCURReportWizard(models.TransientModel):
             # 'border': 1,
             'align': 'right',
         })
+        header_format_num = workbook.add_format({
+            'bold': True,
+            'font_color': '#000000',
+            'num_format': '#,##0.00',
+            # 'border': 1,
+            'align': 'right',
+        })
         total_format1 = workbook.add_format({
             'bold': True,
             'font_color': '#000000',
@@ -77,7 +80,7 @@ class AccountCURReportWizard(models.TransientModel):
             'num_format': '#,##0',
         })
         value_format = workbook.add_format(
-            {'num_format': '#,##0',
+            {'num_format': '#,##0.00',
              # 'border': 1,
              'align': 'right'})  # Float format and border
 
@@ -140,7 +143,7 @@ class AccountCURReportWizard(models.TransientModel):
                     account_account aa ON aml.account_id = aa.id
                 WHERE 
                     aj.type IN ('bank', 'cash') 
-                    AND aa.account_type NOT IN ('asset_cash')
+                    AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
                     AND aml.date BETWEEN %s AND %s
             """
         # Add company_id condition if it exists
@@ -157,7 +160,6 @@ class AccountCURReportWizard(models.TransientModel):
             """
         self.env.cr.execute(query, query_params)
         records = self.env.cr.dictfetchall()
-
         opening_balance_1 = 0
         end_balance_1 = 0
         # query8 = """
@@ -168,12 +170,11 @@ class AccountCURReportWizard(models.TransientModel):
         #             AND aml.company_id = %s;
         #         """
         # query_params8 = (self.start_date, self.company_id.id)
-
         query8 = """
                 select sum(aml.debit-aml.credit) as balance
                 from account_move_line aml
                 join account_account aa on (aa.id = aml.account_id)
-                where aa.account_type='asset_cash' and aml.date<%s
+                where aa.account_type='asset_cash' and aml.date<%s and aa.code NOT IN ('100203','100204','100202','100801')
             """
         # Add company_id condition if it exists
         if self.company_id:
@@ -181,13 +182,11 @@ class AccountCURReportWizard(models.TransientModel):
             query_params8 = (self.start_date, self.company_id.id)
         else:
             query_params8 = (self.start_date,)
-
         self.env.cr.execute(query8, query_params8)
         lines8 = self.env.cr.dictfetchall()
         if (lines8[0].get('balance') != None):
             opening_balance_1 = lines8[0].get('balance')
             sheet.write(1, 3, opening_balance_1, value_format)
-
         # end_balance = """
         #                     select sum(aml.debit-aml.credit) as balance
         #                     from account_move_line aml
@@ -196,12 +195,11 @@ class AccountCURReportWizard(models.TransientModel):
         #                     AND aml.company_id = %s;
         #                 """
         # end_balance_params = (self.end_date, self.company_id.id)
-
         end_balance = """
                 select sum(aml.debit-aml.credit) as balance
                 from account_move_line aml
                 join account_account aa on (aa.id = aml.account_id)
-                where aa.account_type='asset_cash' and aml.date<%s
+                where aa.account_type='asset_cash' and aml.date<%s and aa.code NOT IN ('100203','100204','100202','100801')
             """
         # Add company_id condition if it exists
         if self.company_id:
@@ -209,7 +207,6 @@ class AccountCURReportWizard(models.TransientModel):
             end_balance_params = (self.end_date, self.company_id.id)
         else:
             end_balance_params = (self.end_date,)
-
         self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
         if (end_balance[0].get('balance') != None):
@@ -249,7 +246,6 @@ class AccountCURReportWizard(models.TransientModel):
                                                                                  'total_debit'] != 0 else sheet.write(
                 row_num, 2, '', value_format)
             row_num += 1
-
         # for account in debit_accounts:
         #     print(account,'pppppppppppsssssssssssss')
         #     sheet.write(row_num, 0, account['account_name']['en_US'],value_format)
@@ -262,19 +258,18 @@ class AccountCURReportWizard(models.TransientModel):
             total_d = total_d + rec['total_debit']
         for rec in credit_accounts:
             total_c = total_c + rec['total_credit']
-        sheet.write(row_num, 0, 'Total', header_format1)
-        sheet.write(row_num, 2, total_d, total_format1)
-        sheet.write(row_num, 3, total_c, total_format1)
+        sheet.write(row_num, 0, 'Total', header_format_num)
+        sheet.write(row_num, 2, total_d, header_format_num)
+        sheet.write(row_num, 3, total_c, header_format_num)
         row_num += 2
-        sheet.write(row_num, 0, 'Total expense as on  %s' % (formatted_en_date), header_format1)
-        sheet.write(row_num, 2, total_d, value_format)
+        sheet.write(row_num, 0, 'Total expense as on  %s' % (formatted_en_date), header_format_num)
+        sheet.write(row_num, 2, total_d, header_format_num)
         row_num += 1
-        sheet.write(row_num, 0, 'Total receipts as on  %s' % (formatted_en_date), header_format1)
-        sheet.write(row_num, 2, total_c, value_format)
+        sheet.write(row_num, 0, 'Total receipts as on  %s' % (formatted_en_date), header_format_num)
+        sheet.write(row_num, 2, total_c, header_format_num)
         row_num += 2
-        sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format1)
-        sheet.write(row_num, 3, end_balance_1, value_format)
-
+        sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
+        sheet.write(row_num, 3, end_balance_1, header_format_num)
         workbook.close()
         buffer.seek(0)
         return buffer.read()

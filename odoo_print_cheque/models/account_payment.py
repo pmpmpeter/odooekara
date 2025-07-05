@@ -6,7 +6,7 @@ from odoo.http import request
 import base64
 from datetime import datetime
 from odoo.exceptions import AccessError, UserError, ValidationError
-
+import pdb
 
 class AccountPayment(models.Model):
     """
@@ -34,6 +34,17 @@ class AccountPayment(models.Model):
     beneficiary_account_type = fields.Char(string="Beneficiary Account Type", copy=False)
     sender_receiver_info = fields.Char(string="Sender Receiver Information", copy=False)
     sms_email = fields.Selection([('sms', 'SMS'), ('email', 'Email')], string="SMS / Email", copy=False)
+
+    @api.onchange('cheque_format_id', 'payment_method_line_id')
+    def _onchange_cheque_format_id(self):
+        for line in self:
+            if line.cheque_format_id or line.payment_method_line_id.payment_method_id.name == 'Checks':
+                domain1 = [('user_id', '=', self.env.user.id)]
+                employee = self.env['hr.employee'].sudo().search(domain1, limit=1)
+                print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
+                line.assigned_by = self.env.user
+                # pdb.set_trace()
+                line.managed_by = employee.parent_id.user_id.id or False
 
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
     def _compute_is_internal_transfer(self):

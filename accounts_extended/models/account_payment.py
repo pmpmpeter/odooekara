@@ -1,7 +1,7 @@
 from odoo import api, fields, models, _, Command
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 from datetime import timedelta
-
+import pdb
 
 class AccountPayment(models.Model):
     _inherit = "account.payment"
@@ -25,6 +25,20 @@ class AccountPayment(models.Model):
     recurring = fields.Boolean(string='Recurring Payment', copy=False)
     recurring_days = fields.Integer(string='Recurring Days', default="1", copy=False)
     recurring_until_date = fields.Date(string='Recurring Until Date', copy=False)
+
+    # def action_update_account_payment_outstanding_payment(self):
+    #     ###Update Outstanding Payments
+    #     records = self.env['account.payment'].browse(self._context.get('active_ids', False))
+    #     for record in records:
+    #         # pdb.set_trace()
+    #         for line in record.move_id.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_cash']):
+    #             domain1 =[('code','=', 100204),('company_id','=', record.journal_id.company_id.id)]
+    #             coa_id = self.env['account.account'].sudo().search(domain1, order='id desc', limit=1)
+    #             # print("dffrt45555556". record.name)
+    #             # pdb.set_trace()
+    #             if coa_id:
+    #                 print("Case1222222222222222222222222222222222222222")
+    #             line.write({'account_id': coa_id.id})
 
     def action_create_recurring_payments(self):
         for rec in self:

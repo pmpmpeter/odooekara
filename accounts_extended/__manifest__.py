@@ -35,6 +35,7 @@
         'wizard/cur_report_view.xml',
         'wizard/account_payment_register_views.xml',
         'report/reports.xml',
+        'report/report_invoice.xml',
         'report/proforma_invoice.xml',
         'report/batch_payment_view.xml',
         'report/tax_invoice.xml',

@@ -491,12 +491,13 @@ class AccountMoveInherit(models.Model):
         for move in self.filtered(lambda l: l.move_type in ['in_invoice']):
             if not move.invoice_date:
                 raise UserError(_("Alert !! Please update the Vendor Bill Date."))
+            po_threshold_amount_formatted = formatLang(self.env, move.company_id.po_threshold_amount, currency_obj=move.company_id.currency_id)
             if move.company_id.po_threshold_amount <=0:
                 raise UserError(_("Alert !! Please define the PO Threshold Amount to post the Vendor Bill."))
             if move.company_id.po_threshold_amount< move.amount_total:
                 if not move.line_ids.purchase_line_id.order_id:
                     raise UserError(_("Alert !! You cannot post a Vendor Bill without linking it to Purchase Order as it exceeds the PO Threshold Amount of %s")
-                        %(move.company_id.po_threshold_amount))
+                        %(po_threshold_amount_formatted))
                 # raise UserError(_("Alert !! You cannot post a Vendor Bill above the PO Threshold Amount."))
 
     def action_post(self):
@@ -660,12 +661,6 @@ class AccountAnalyticPlan(models.Model):
     _inherit = 'account.analytic.plan'
 
     active = fields.Boolean(default=True)
-
-class AccountsJournal(models.Model):
-    _inherit = 'account.journal'
-
-    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?')
-    is_opening_balance = fields.Boolean(string='Is Opening Balance?')
 
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
