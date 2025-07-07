@@ -408,9 +408,12 @@ class AccountMoveInherit(models.Model):
                 month_field = month_field_map.get(move.date.month)
                 if month_field not in month_list:
                 # pdb.set_trace()
-                    setattr(move.line_ids.budget_id.crr_budget_line_id, month_field, 0)
+                    setattr(move.budget_id.crr_budget_line_id, month_field, 0)
+                    print("Get attr", getattr(move.line_ids.budget_id.crr_budget_line_id, month_field))
                 month_list.append(month_field)
                 move.update_budget_code_id()
+                # pdb.set_trace()
+                # pdb.set_trace()
                 if move.state in ['posted']:
                     if move.budget_update == True:
                         move.write({'budget_update': False})
@@ -455,6 +458,7 @@ class AccountMoveInherit(models.Model):
 
             month_field = month_field_map.get(rec.date.month)
             if month_field:
+                # pdb.set_trace()
                 if rec.move_type != 'entry':
                     rec.budget_code_selection_validation()
                     setattr(rec.budget_id.crr_budget_line_id, month_field,
@@ -661,21 +665,3 @@ class AccountAnalyticPlan(models.Model):
     _inherit = 'account.analytic.plan'
 
     active = fields.Boolean(default=True)
-
-class AccountMoveLine(models.Model):
-    _inherit = 'account.move.line'
-
-    budget_id  = fields.Many2many('crossovered.budget.lines', string='Budget Code', copy=False, required=0)
-
-    @api.onchange('account_id')
-    def update_budget_code(self):
-        for rec in self:
-            if rec.move_id.move_type == 'entry':
-                if rec.move_id.crossovered_budget:
-                    if rec.account_id:
-                        budget_post = self.env['account.budget.post'].sudo().search([('account_ids.name','in',[rec.account_id.name])])
-                        budget_id = rec.move_id.crossovered_budget.crossovered_budget_line.filtered(lambda l:l.general_budget_id in budget_post)
-                        rec.budget_id = [(6, 0, budget_id.ids)]
-
-
-
