@@ -499,7 +499,7 @@ class AccountingBalanceReport(models.Model):
     # ]
 
     account_id = fields.Many2one('account.account', 'Account', required=True)
-    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.user.company_id)
+    company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company)
     date_from = fields.Date("From Date")
     date_to = fields.Date("To Date")
     partner_id = fields.Many2one('res.partner', 'Partner')

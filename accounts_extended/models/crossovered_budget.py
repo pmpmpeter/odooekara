@@ -2171,7 +2171,7 @@ class CrrBudgetLine(models.Model):
             opex_total_line = budget_lines.search([('budget_name','=','Operational Expenditure(OPEX) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
             capex_total_line = budget_lines.search([('budget_name', '=', 'Capital Expenditure(CAPEX) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
             noocif_total_line = budget_lines.search([('budget_name', '=', 'Non-Operating Cash-In-Flow (NOCIF) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
-            ocif_total_line = budget_lines.search([('budget_name', '=', 'Operating Cash-In-Flow (NOCIF) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
+            ocif_total_line = budget_lines.search([('budget_name', '=', 'Operating Cash-In-Flow (OCIF) Total'),('is_budget_total','=',True),('budget_id','=',self.budget_id.id)])
             cash_inflow = budget_lines.search([('budget_name', '=', 'Total Cash Inflow'),('is_budget_in_sum_line','=',True),('budget_id','=',self.budget_id.id)])
             cash_outflow = budget_lines.search([('budget_name', '=', 'Total Cash Outflow'), ('is_budget_out_sum_line', '=', True),('budget_id','=',self.budget_id.id)])
             surples_sum_line = budget_lines.search([('budget_name', '=', 'Surplus/ Deficit(IN-OUT)'), ('is_budget_surples_sum_line', '=', True),('budget_id','=',self.budget_id.id)])
