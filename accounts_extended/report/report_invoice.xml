@@ -288,7 +288,10 @@
 
                                     <t class="mb-auto justify-text">
                                         <strong>Bank:</strong>
-                                        <span t-field="o.partner_bank_id.bank_name"/>
+                                        <span t-field="o.partner_bank_id.bank_name"/>,
+                                    </t>
+                                    <t>
+                                        <span t-field="o.partner_bank_id.bank_id.bank_branch"/>
                                     </t>
                                     <br/>
                                      <t class="mb-auto justify-text">
@@ -296,20 +299,9 @@
                                         <span t-field="o.partner_bank_id.acc_number"/>
                                     </t>
                                     <br/>
-                                    <t class="mb-auto justify-text">
-                                        <strong>BIC / SWIFT:</strong>
-                                        <span
-                                                t-field="o.partner_bank_id.bank_id.bic"/>
-                                    </t>
-                                    <br/>
                                     <t>
                                         <strong>IFSC:</strong>
                                         <span t-field="o.partner_bank_id.bank_id.ifsc_code"/>
-                                    </t>
-                                    <br/>
-                                    <t>
-                                        <strong>Bank Branch:</strong>
-                                        <span t-field="o.partner_bank_id.bank_id.bank_branch"/>
                                     </t>
                                     <br/>
 <!--                                    <t>-->
