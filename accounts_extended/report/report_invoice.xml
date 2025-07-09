@@ -281,6 +281,57 @@
                                         <p>Scan this QR Code to<br/>pay with your mobile</p>
                                     </div>
                                 </div>
+                                <div>
+                                    <b><span>Bank Details</span></b>
+                                    <br/>
+                                    <br/>
+
+                                    <t class="mb-auto justify-text">
+                                        <strong>Bank:</strong>
+                                        <span t-field="o.partner_bank_id.bank_name"/>
+                                    </t>
+                                    <br/>
+                                     <t class="mb-auto justify-text">
+                                        <strong>Account Number:</strong>
+                                        <span t-field="o.partner_bank_id.acc_number"/>
+                                    </t>
+                                    <br/>
+                                    <t class="mb-auto justify-text">
+                                        <strong>BIC / SWIFT:</strong>
+                                        <span
+                                                t-field="o.partner_bank_id.bank_id.bic"/>
+                                    </t>
+                                    <br/>
+                                    <t>
+                                        <strong>IFSC:</strong>
+                                        <span t-field="o.partner_bank_id.bank_id.ifsc_code"/>
+                                    </t>
+                                    <br/>
+                                    <t>
+                                        <strong>Bank Branch:</strong>
+                                        <span t-field="o.partner_bank_id.bank_id.bank_branch"/>
+                                    </t>
+                                    <br/>
+<!--                                    <t>-->
+<!--                                        <strong>Address:</strong>-->
+<!--                                        <t t-if="o.partner_bank_id.bank_id.street">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.street"/>,-->
+<!--                                        </t>-->
+<!--                                        <t t-if="o.partner_bank_id.bank_id.street2">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.street2"/>, <br/>-->
+<!--                                        </t>-->
+<!--                                         <t t-if="o.partner_bank_id.bank_id.city">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.city"/>,-->
+<!--                                        </t> <t t-if="o.partner_bank_id.bank_id.state">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.state.name"/>,-->
+<!--                                        </t> <t t-if="o.partner_bank_id.bank_id.zip">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.zip"/>,<br/>-->
+<!--                                        </t>-->
+<!--                                        <t t-if="o.partner_bank_id.bank_id.country">-->
+<!--                                            <span t-field="o.partner_bank_id.bank_id.country.name"/>,<br/>-->
+<!--                                        </t>-->
+<!--                                    </t>-->
+                                </div>
                                 <!--terms and conditions-->
                                 <div class="text-muted mb-3" t-attf-style="#{'text-align:justify;text-justify:inter-word;' if o.company_id.terms_type != 'html' else ''}" t-if="not is_html_empty(o.narration)" name="comment">
                                     <span t-field="o.narration"/>
