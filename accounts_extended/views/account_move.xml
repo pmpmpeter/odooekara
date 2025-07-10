@@ -397,7 +397,7 @@
                             <field name="journal_type" invisible="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
-                                   context="{'search_default_filter_field': True}" invisible="move_type in ('entry')"/>
+                                   context="{'search_default_filter_field': True}" invisible="move_type in ('entry')" readonly="state in ('posted')"/>
                             <field name="crossovered_budget" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
                                    context="{'search_default_filter_field': True}" invisible="move_type not in ('entry')"
                                     domain="[('user_type','=','odoo'),('company_id','=',company_id)]"/>
