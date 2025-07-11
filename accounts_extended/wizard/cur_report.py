@@ -241,7 +241,7 @@ class AccountCURReportWizard(models.TransientModel):
             # Write detailed rows below the main group
             for detail in detail_records:
                 if detail.get('line_credit') > 0:
-                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + ' ' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
                     sheet.write(row_num, 1, account['account_code'], value_format)
                     sheet.write(row_num, 3, detail.get('line_credit') or 0, value_format)
                     row_num += 1
@@ -286,7 +286,7 @@ class AccountCURReportWizard(models.TransientModel):
             # Write detailed rows below the main group
             for detail in detail_records:
                 if detail.get('line_debit') > 0:
-                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + ' ' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
                     sheet.write(row_num, 1, account['account_code'], value_format)
                     sheet.write(row_num, 2, detail.get('line_debit') or 0, value_format)
                     row_num += 1
@@ -327,7 +327,7 @@ class AccountCURReportWizard(models.TransientModel):
             # Write detailed rows below the main group
             for detail in detail_records:
                 if detail.get('line_debit'):
-                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + '-' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
                     sheet.write(row_num, 1, account['account_code'], value_format)
                     sheet.write(row_num, 2, detail.get('line_debit') or 0, value_format)
                     row_num += 1
