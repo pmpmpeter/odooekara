@@ -281,6 +281,7 @@
                                         <p>Scan this QR Code to<br/>pay with your mobile</p>
                                     </div>
                                 </div>
+                                <t t-if="o.partner_bank_id">
                                 <div>
                                     <b><span>Bank Details</span></b>
                                     <br/>
@@ -324,6 +325,7 @@
 <!--                                        </t>-->
 <!--                                    </t>-->
                                 </div>
+                                </t>
                                 <!--terms and conditions-->
                                 <div class="text-muted mb-3" t-attf-style="#{'text-align:justify;text-justify:inter-word;' if o.company_id.terms_type != 'html' else ''}" t-if="not is_html_empty(o.narration)" name="comment">
                                     <span t-field="o.narration"/>
@@ -345,7 +347,7 @@
             -->
             <t t-foreach="tax_totals.get('subtotals')" t-as="subtotal">
                 <tr class="border-black o_subtotal">
-                    <td><strong t-out="subtotal['name']">Untaxed Amount</strong></td>
+                    <td><strong>Taxable Amount</strong></td>
 
                     <td class="text-end">
                         <span

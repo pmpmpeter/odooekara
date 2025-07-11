@@ -35,20 +35,20 @@
 
                     </div>
 
-
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Dear Sir/Madam,</span>
-                        <span>
-                            <strong>Date:</strong>
-                            <t t-esc="doc.to_date"/>
-                        </span>
+                    <div style="width: 100%;">
+                        <div style="width: 48%; display: inline-block; vertical-align: top; text-align: left;">
+                            <span>Dear Sir/Madam,</span>
+                        </div>
+                        <div style="width: 48%; display: inline-block; vertical-align: top; text-align: right;">
+                            <span>Date: <t t-esc="datetime.datetime.now().strftime('%d-%m-%Y')"/></span>
+                        </div>
                     </div>
                     <p style="text-align: center;">
                         <strong>Sub: Confirmation of Accounts</strong>
                         <br></br>
-                        <t t-esc="doc.from_date"/>
+                        <t t-esc="doc.from_date.strftime('%d-%m-%Y')"/>
                         to
-                        <t t-esc="doc.to_date"/>
+                        <t t-esc="doc.to_date.strftime('%d-%m-%Y')"/>
                     </p>
                     <p>
                         Given below are the details of your Accounts as standing in our Books of Accounts

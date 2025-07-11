@@ -83,6 +83,11 @@ class AccountCURReportWizard(models.TransientModel):
             {'num_format': '#,##0.00',
              # 'border': 1,
              'align': 'right'})  # Float format and border
+        value_format1= workbook.add_format(
+            {'num_format': '#,##0.00',
+             # 'border': 1,
+             'align': 'right',
+             'bg_color': '#FFFF00',})
 
         total_format = workbook.add_format({
             'bold': True,
@@ -99,32 +104,6 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(0, 3, 'Amount', header_format)
         sheet.write(1, 0, 'Opening Balance as on %s' % (formatted_date), value_format)
         sheet.write(2, 0, 'Receipts:', header_format1)
-        #         query = """
-        #            SELECT
-        #     aa.name AS account_name,
-        #     aa.code As account_code,
-        #     am.expense_type As expense_type,
-        #     SUM(aml.debit) AS total_debit,
-        #     SUM(aml.credit) AS total_credit
-        # FROM
-        #     account_move_line aml
-        # JOIN
-        #     account_move am ON aml.move_id = am.id
-        # JOIN
-        #     account_journal aj ON aml.journal_id = aj.id
-        # JOIN
-        #     account_account aa ON aml.account_id = aa.id
-        # WHERE
-        #     aj.type IN ('bank', 'cash')
-        #     AND aa.account_type NOT IN ('asset_cash')
-        #     AND aml.date BETWEEN %s AND %s
-        #     AND aml.company_id = %s
-        # GROUP BY
-        #     aa.name,aa.code,am.expense_type
-        # ORDER BY
-        #     aa.name,aa.code,am.expense_type;
-        #         """
-        # self.env.cr.execute(query, (self.start_date, self.end_date, self.company_id.id))
 
         query = """
                SELECT 
@@ -160,6 +139,7 @@ class AccountCURReportWizard(models.TransientModel):
             """
         self.env.cr.execute(query, query_params)
         records = self.env.cr.dictfetchall()
+
         opening_balance_1 = 0
         end_balance_1 = 0
         # query8 = """
@@ -170,6 +150,7 @@ class AccountCURReportWizard(models.TransientModel):
         #             AND aml.company_id = %s;
         #         """
         # query_params8 = (self.start_date, self.company_id.id)
+
         query8 = """
                 select sum(aml.debit-aml.credit) as balance
                 from account_move_line aml
@@ -182,11 +163,13 @@ class AccountCURReportWizard(models.TransientModel):
             query_params8 = (self.start_date, self.company_id.id)
         else:
             query_params8 = (self.start_date,)
+
         self.env.cr.execute(query8, query_params8)
         lines8 = self.env.cr.dictfetchall()
         if (lines8[0].get('balance') != None):
             opening_balance_1 = lines8[0].get('balance')
             sheet.write(1, 3, opening_balance_1, value_format)
+
         # end_balance = """
         #                     select sum(aml.debit-aml.credit) as balance
         #                     from account_move_line aml
@@ -214,38 +197,141 @@ class AccountCURReportWizard(models.TransientModel):
         credit_accounts = [record for record in records if record['total_credit'] > 0]
         debit_accounts = [record for record in records if record['total_debit'] > 0]
         row_num = 3
+
+        # for account in credit_accounts:
+        #     print(account['account_name'],'jjjjjjjjjjjjjjjjjj')
+        #     sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
+        #     sheet.write(row_num, 1, account['account_code'], value_format)
+        #     sheet.write(row_num, 3, account['total_credit'], value_format) if account[
+        #                                                                           'total_credit'] != 0 else sheet.write(
+        #         row_num, 3, '', value_format)
+        #     row_num += 1
+        # Loop through summarized accounts (main group)
         for account in credit_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
-            sheet.write(row_num, 1, account['account_code'], value_format)
-            sheet.write(row_num, 3, account['total_credit'], value_format) if account[
-                                                                                  'total_credit'] != 0 else sheet.write(
-                row_num, 3, '', value_format)
-            row_num += 1
+            # Write the main group row
+            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
+            sheet.write(row_num, 1, account['account_code'], value_format1)
+            sheet.write(row_num, 3, account['total_credit'], value_format1)
+            row_num += 2
+
+            # Fetch detailed transactions for this account
+            self.env.cr.execute("""
+                SELECT
+                    aml.name AS line_name,
+                    rp.name AS partner_name,
+                    SUM(aml.credit) AS line_credit
+                    FROM account_move_line aml
+                    LEFT JOIN res_partner rp ON aml.partner_id = rp.id
+                    JOIN 
+                    account_journal aj ON aml.journal_id = aj.id
+                    JOIN 
+                    account_account aa ON aml.account_id = aa.id
+
+                    WHERE aml.account_id = (
+                        SELECT id FROM account_account WHERE code = %s LIMIT 1
+                    )
+                    AND aj.type IN ('bank', 'cash') 
+                    AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                    AND aml.date BETWEEN %s AND %s
+                    AND aml.company_id = %s
+                    GROUP BY aml.name, rp.name
+            """, (account['account_code'], self.start_date, self.end_date,self.company_id.id))
+            detail_records = self.env.cr.dictfetchall()
+            print(detail_records, 'ppppppppppppppppppp')
+            # Write detailed rows below the main group
+            for detail in detail_records:
+                if detail.get('line_credit') > 0:
+                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + ' ' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 3, detail.get('line_credit') or 0, value_format)
+                    row_num += 1
+        row_num += 1
         sheet.write(row_num, 0, 'Payments:', header_format1)
         row_num += 1
         # print(debit_accounts,'vcccccccccccxxxxxxxxxxxxx')
         capex_accounts = [account for account in debit_accounts if account['expense_type'] == 'capex']
         opex_accounts = [account for account in debit_accounts if account['expense_type'] == 'opex']
         sheet.write(row_num, 0, 'Vendor Payment CAPEX:', header_format1)
-        row_num += 1
+        row_num += 2
         for account in capex_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
-            sheet.write(row_num, 1, account['account_code'], value_format)
-            sheet.write(row_num, 2, account['total_debit'], value_format) if account[
+            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
+            sheet.write(row_num, 1, account['account_code'], value_format1)
+            sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
                                                                                  'total_debit'] != 0 else sheet.write(
                 row_num, 2, '', value_format)
-            row_num += 1
+            row_num += 2
+            self.env.cr.execute("""
+                            SELECT
+                                aml.name AS line_name,
+                                rp.name AS partner_name,
+                                SUM(aml.debit) AS line_debit
+                                FROM account_move_line aml
+                                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
+                                JOIN 
+                                account_journal aj ON aml.journal_id = aj.id
+                                JOIN 
+                                account_account aa ON aml.account_id = aa.id
+
+                                WHERE aml.account_id = (
+                                    SELECT id FROM account_account WHERE code = %s LIMIT 1
+                                )
+                                AND aj.type IN ('bank', 'cash') 
+                                AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                                AND aml.date BETWEEN %s AND %s
+                                AND aml.company_id = %s
+                                GROUP BY aml.name, rp.name
+                        """, (account['account_code'], self.start_date, self.end_date, self.company_id.id))
+            detail_records = self.env.cr.dictfetchall()
+
+            # Write detailed rows below the main group
+            for detail in detail_records:
+                if detail.get('line_debit') > 0:
+                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + ' ' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, detail.get('line_debit') or 0, value_format)
+                    row_num += 1
 
             row_num += 2
         sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
-        row_num += 1
+        row_num += 2
         for account in opex_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format)
-            sheet.write(row_num, 1, account['account_code'], value_format)
-            sheet.write(row_num, 2, account['total_debit'], value_format) if account[
+            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
+            sheet.write(row_num, 1, account['account_code'], value_format1)
+            sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
                                                                                  'total_debit'] != 0 else sheet.write(
                 row_num, 2, '', value_format)
-            row_num += 1
+            row_num += 2
+            self.env.cr.execute("""
+                            SELECT
+                                aml.name AS line_name,
+                                rp.name AS partner_name,
+                                SUM(aml.debit) AS line_debit
+                                FROM account_move_line aml
+                                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
+                                JOIN 
+                                account_journal aj ON aml.journal_id = aj.id
+                                JOIN 
+                                account_account aa ON aml.account_id = aa.id
+
+                                WHERE aml.account_id = (
+                                    SELECT id FROM account_account WHERE code = %s LIMIT 1
+                                )
+                                AND aj.type IN ('bank', 'cash') 
+                                AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                                AND aml.date BETWEEN %s AND %s
+                                AND aml.company_id = %s
+                                GROUP BY aml.name, rp.name
+                        """, (account['account_code'], self.start_date, self.end_date, self.company_id.id))
+            detail_records = self.env.cr.dictfetchall()
+
+            # Write detailed rows below the main group
+            for detail in detail_records:
+                if detail.get('line_debit'):
+                    sheet.write(row_num, 0, (str(detail.get('line_name') or '') + '-' + str(detail.get('partner_name') or '')), value_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, detail.get('line_debit') or 0, value_format)
+                    row_num += 1
+        row_num += 1
         # for account in debit_accounts:
         #     print(account,'pppppppppppsssssssssssss')
         #     sheet.write(row_num, 0, account['account_name']['en_US'],value_format)
