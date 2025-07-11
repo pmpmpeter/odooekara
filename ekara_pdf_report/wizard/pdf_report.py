@@ -33,7 +33,7 @@ class GeneratePdfReport(models.TransientModel):
                 amount = move.amount_residual
                 result.append({
                     'date': move.invoice_date.strftime('%d-%b-%Y') if move.invoice_date else '',
-                    'label': f"{line.account_id.code or ''} {line.account_id.name or ''}".strip(),
+                    'label': line.account_id.name,
                     'amount': amount,
                 })
 

@@ -4,8 +4,8 @@
         <t t-foreach="docs" t-as="doc">
             <t t-set="data" t-value="doc.get_invoice_data()"/>
             <t t-set="invoices" t-value="data['lines']"/>
-            <t t-call="web.external_layout">
-                <main class="page" style="font-size: 16px;">
+            <t t-call="web.basic_layout">
+                <div class="page" style="font-size: 16px;">
                     <div style="width: 100%;">
 
                         <!-- To section (left side) -->
@@ -180,7 +180,7 @@
                             Yours faithfully
                         </div>
                     </div>
-                </main>
+                </div>
             </t>
         </t>
     </template>

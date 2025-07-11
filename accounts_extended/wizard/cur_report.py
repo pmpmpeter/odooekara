@@ -276,7 +276,7 @@ class AccountCURReportWizard(models.TransientModel):
                                     SELECT id FROM account_account WHERE code = %s LIMIT 1
                                 )
                                 AND aj.type IN ('bank', 'cash') 
-                                AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                                AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
                                 AND aml.date BETWEEN %s AND %s
                                 AND aml.company_id = %s
                                 GROUP BY aml.name, rp.name
@@ -317,7 +317,7 @@ class AccountCURReportWizard(models.TransientModel):
                                     SELECT id FROM account_account WHERE code = %s LIMIT 1
                                 )
                                 AND aj.type IN ('bank', 'cash') 
-                                AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                                AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
                                 AND aml.date BETWEEN %s AND %s
                                 AND aml.company_id = %s
                                 GROUP BY aml.name, rp.name
