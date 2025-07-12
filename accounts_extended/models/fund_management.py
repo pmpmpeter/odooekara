@@ -97,19 +97,20 @@ class FundManagementCRR(models.Model):
             if rec.state == 'draft':
                 rec.state = 'inprogress'
             if rec.state == 'inprogress':
-                if line.cash_pool.current_balance < abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
-                       line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool):
-                    raise ValidationError(
-                        f"Alert!! The cash pool '{line.cash_pool.name}' has a current balance of {line.cash_pool.available_balance},but you are trying to allocate {line.quarter_1_cash_pool+line.quarter_2_cash_pool+line.quarter_3_cash_pool+line.quarter_4_cash_pool}"
-                    )
-                else:
-                    total_amount = abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
-                       line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool)
+                for line in rec.cash_pool_line:
+                    if line.cash_pool.current_balance < abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
+                           line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool):
+                        raise ValidationError(
+                            f"Alert!! The cash pool '{line.cash_pool.name}' has a current balance of {line.cash_pool.available_balance},but you are trying to allocate {line.quarter_1_cash_pool+line.quarter_2_cash_pool+line.quarter_3_cash_pool+line.quarter_4_cash_pool}"
+                        )
+                    else:
+                        total_amount = abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
+                           line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool)
 
-                    line.cash_pool.write({
-                        'available_balance':line.cash_pool.current_balance - total_amount
-                    })
-                    rec._allocate_cash_pool()
+                        line.cash_pool.write({
+                            'available_balance':line.cash_pool.current_balance - total_amount
+                        })
+                        rec._allocate_cash_pool()
 
     def action_draft(self):
         for rec in self:
