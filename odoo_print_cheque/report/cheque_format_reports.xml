@@ -77,7 +77,7 @@
     </record>
 
     <record id="print_cheque_payment_account_move" model="ir.actions.report">
-        <field name="name">Cheque Payment Move</field>
+        <field name="name">Cheque Payment Journal Entry</field>
         <field name="model">account.move</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">odoo_print_cheque.cheque_payment_document_account_move</field>
