@@ -86,9 +86,9 @@ class FundManagementCRR(models.Model):
     def share_amount_validate(self):
         for rec in self:
             for line in rec.cash_pool_line:
-                if line.cash_pool and line.cash_pool.current_balance <= 0:
+                if line.cash_pool and line.cash_pool.available_balance <= 0:
                     raise ValidationError(
-                        f"The cash pool '{line.cash_pool.name}' has a current balance of 0."
+                        f"The cash pool '{line.cash_pool.name}' has a balance of 0."
                     )
             if not rec.crr_share_line:
                 raise UserError('Share Amount is not Available.')
@@ -97,69 +97,19 @@ class FundManagementCRR(models.Model):
             if rec.state == 'draft':
                 rec.state = 'inprogress'
             if rec.state == 'inprogress':
-                april_total = 0.0
-                may_total = 0.0
-                june_total = 0.0
-                july_total = 0.0
-                august_total = 0.0
-                september_total = 0.0
-                october_total = 0.0
-                november_total = 0.0
-                december_total = 0.0
-                january_total = 0.0
-                february_total = 0.0
-                march_total = 0.0
-                months = list(calendar.month_name)[1:]
-                current_month = datetime.now().strftime("%B")
-                Q1 = ['April', 'May', 'June']
-                Q2 = ['July', 'August', 'September']
-                Q3 = ['October', 'November', 'December']
-                Q4 = ['January', 'February', 'March']
-                for rec1 in rec.cash_pool_line:
-                    april_total += rec1.april_cash_pool
-                    may_total += rec1.may_cash_pool
-                    june_total += rec1.june_cash_pool
-                    july_total += rec1.july_cash_pool
-                    august_total += rec1.august_cash_pool
-                    september_total += rec1.september_cash_pool
-                    october_total += rec1.october_cash_pool
-                    november_total += rec1.november_cash_pool
-                    december_total += rec1.december_cash_pool
-                    january_total += rec1.january_cash_pool
-                    february_total += rec1.febuary_cash_pool
-                    march_total += rec1.march_cash_pool
-                # if current_month in Q1:
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_april')), 2)) != abs(april_total):
-                #         raise UserError(_("Total Share for April month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_may')), 2)) != abs(may_total):
-                #         raise UserError(_("Total Share for May month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_june')), 2)) != abs(june_total):
-                #         raise UserError(_("Total Share for June month does not match."))
-                # if current_month in Q2:
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_july')), 2)) != abs(july_total):
-                #         raise UserError(_("Total Share for July month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_august')), 2)) != abs(august_total):
-                #         raise UserError(_("Total Share for August month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_september')), 2)) != abs(september_total):
-                #         raise UserError(_("Total Share for September month does not match."))
-                # if current_month in Q3:
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_october')), 2)) != abs(october_total):
-                #         raise UserError(_("Total Share for October month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_november')), 2)) != abs(november_total):
-                #         raise UserError(_("Total Share for November month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_december')), 2)) != abs(december_total):
-                #         raise UserError(_("Total Share for December month does not match."))
-                # if current_month in Q4:
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_january')), 2)) != abs(january_total):
-                #         raise UserError(_("Total Share for January month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_february')), 2)) != abs(february_total):
-                #         raise UserError(_("Total Share for February month does not match."))
-                #     if abs(round(sum(rec.crr_share_line.mapped('crr_share_march')), 2)) != abs(march_total):
-                #         raise UserError(_("Total Share for March month does not match."))
-                rec._allocate_cash_pool()
-                # rec.state = 'done'
-                # if rec.te_consolidate_id:
-                #     rec.te_consolidate_id.state = 'done'
+                if line.cash_pool.current_balance < abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
+                       line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool):
+                    raise ValidationError(
+                        f"Alert!! The cash pool '{line.cash_pool.name}' has a current balance of {line.cash_pool.available_balance},but you are trying to allocate {line.quarter_1_cash_pool+line.quarter_2_cash_pool+line.quarter_3_cash_pool+line.quarter_4_cash_pool}"
+                    )
+                else:
+                    total_amount = abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
+                       line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool)
+
+                    line.cash_pool.write({
+                        'available_balance':line.cash_pool.current_balance - total_amount
+                    })
+                    rec._allocate_cash_pool()
 
     def action_draft(self):
         for rec in self:

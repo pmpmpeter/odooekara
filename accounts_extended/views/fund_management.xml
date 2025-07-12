@@ -86,7 +86,7 @@
                                         <field name="version" optional="hide"/>
                                         <field name="revision_date" optional="hide" readonly="1" force_save="1"/>
                                         <field name="cash_pool" required="1" width='800'
-                                               options="{'no_quick_create':True,'no_create': True}"/>
+                                               options="{'no_quick_create':True,'no_create': True}" domain="[('state', '=', 'approved')]"/>
                                         <field name="april_cash_pool" sum="Total"/>
                                         <field name="may_cash_pool" sum="Total"/>
                                         <field name="june_cash_pool" sum="Total"/>

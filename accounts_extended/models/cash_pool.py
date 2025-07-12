@@ -14,6 +14,8 @@ class CashPool(models.Model):
     amount = fields.Float(string='Amount')
     active = fields.Boolean('Active', default=True)
     current_balance = fields.Float(string='Current Balance', copy=False)
+    available_balance = fields.Float(string='Available Balance', copy=False)
+    is_available_balance = fields.Float(string='Is Available Balance')
     manager_id = fields.Many2one('res.partner',string='Manager',copy=False)
     state = fields.Selection([
             ('draft', 'Draft'),
@@ -35,6 +37,7 @@ class CashPool(models.Model):
                 if fund_line.state != 'approved':
                     fund_line.state = 'draft'
             record.state = 'draft'
+            record.is_available_balance = False
 
     def action_submit_for_approval(self):
         for record in self:
@@ -56,6 +59,7 @@ class CashPool(models.Model):
             approved_fund_lines = record.fund_line_ids.filtered(lambda l: l.state == 'waiting_for_approval')
             current_balance = record.current_balance
             total_amount = 0.0
+            avail_total_amount = 0.0
             for fund_line in approved_fund_lines:
                 fund_line.opening_balance = current_balance
                 fund_line.closing_balance = current_balance + fund_line.amount
@@ -69,6 +73,16 @@ class CashPool(models.Model):
                 template.sudo().send_mail(record.id, force_send=True)
             if hasattr(self, 'x_has_request_approval'):
                 self.x_has_request_approval = False
+            if not record.is_available_balance:
+                record.available_balance = record.current_balance
+                cash_pool = self.env['cash.pool.lines'].sudo().search([('cash_pool', '=', record.id)],limit=1)
+                if cash_pool:
+                    for line in cash_pool:
+                        avail_total_amount += abs(
+                            line.april_cash_pool + line.may_cash_pool + line.june_cash_pool + line.july_cash_pool + line.august_cash_pool + line.september_cash_pool +
+                            line.october_cash_pool + line.november_cash_pool + line.december_cash_pool + line.january_cash_pool + line.febuary_cash_pool + line.march_cash_pool)
+                record.available_balance = record.current_balance - avail_total_amount
+                record.is_available_balance = True
             record.state = 'approved'
 
     # @api.model_create_multi

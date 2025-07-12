@@ -25,6 +25,7 @@
                         <group>
 
                             <field name="current_balance" readonly="state not in ('draft')"/>
+                            <field name="available_balance" readonly="1"/>
                             <field name="manager_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" required="1" readonly="state not in ('draft')"/>
                             <field name="company_id" options="{'no_open': True, 'no_create': True, 'no_quick_create': True}" readonly="1"/>
                         </group>
