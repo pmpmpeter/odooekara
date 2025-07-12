@@ -38,6 +38,7 @@
         'views/cheque_format_views.xml',
         # 'views/account_payment_views.xml',
         'report/cheque_format_templates.xml',
+        'report/cheque_payment_templates_move.xml',
         'report/cheque_format_reports.xml',
         'report/cheque_payment_templates.xml',
         'report/cheque_batch_payment_templates.xml',
