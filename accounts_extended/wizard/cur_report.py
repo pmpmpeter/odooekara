@@ -103,7 +103,7 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(0, 2, 'Amount', header_format)
         sheet.write(0, 3, 'Amount', header_format)
         sheet.write(1, 0, 'Opening Balance as on %s' % (formatted_date), value_format)
-        sheet.write(2, 0, 'Receipts:', header_format1)
+        sheet.write(7, 0, 'Receipts:', header_format1)
 
         query = """
                SELECT 
@@ -122,7 +122,7 @@ class AccountCURReportWizard(models.TransientModel):
                     account_account aa ON aml.account_id = aa.id
                 WHERE 
                     aj.type IN ('bank', 'cash') 
-                    AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
+                    AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
                     AND aml.date BETWEEN %s AND %s
             """
         # Add company_id condition if it exists
@@ -169,7 +169,38 @@ class AccountCURReportWizard(models.TransientModel):
         if (lines8[0].get('balance') != None):
             opening_balance_1 = lines8[0].get('balance')
             sheet.write(1, 3, opening_balance_1, value_format)
+        query9 = """
+            SELECT aa.code AS account_code, aa.name AS account_name,
+                   SUM(aml.debit - aml.credit) AS balance
+            FROM account_move_line aml
+            JOIN account_account aa ON aa.id = aml.account_id
+            WHERE aa.account_type = 'asset_cash'
+              AND aml.date < %s
+              AND aa.code NOT IN ('100203','100204','100202','100801')
+        """
 
+        if self.company_id:
+            query9 += " AND aml.company_id = %s"
+
+        query9 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+
+        if self.company_id:
+            query_params9 = (self.start_date, self.company_id.id)
+        else:
+            query_params9 = (self.start_date,)
+
+        self.env.cr.execute(query9, query_params9)
+        split_lines = self.env.cr.dictfetchall()
+        row_num = 2  # Starting row just below the total
+        # sheet.write(row_num, 2, "Account", header_format)
+        # sheet.write(row_num, 3, "Balance", header_format)
+        # row_num += 1
+
+        for line in split_lines:
+            sheet.write(row_num, 0, line['account_name']['en_US'],value_format)
+            sheet.write(row_num, 1, line['account_code'],value_format)
+            sheet.write(row_num, 3, line['balance'] or 0.0, value_format)
+            row_num += 1
         # end_balance = """
         #                     select sum(aml.debit-aml.credit) as balance
         #                     from account_move_line aml
@@ -192,11 +223,44 @@ class AccountCURReportWizard(models.TransientModel):
             end_balance_params = (self.end_date,)
         self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
+
+        # query8 = """
+        #         select sum(aml.debit-aml.credit) as balance
+        #         from account_move_line aml
+        #         join account_account aa on (aa.id = aml.account_id)
+        #         where aa.account_type='asset_cash' and aml.date<%s and aa.code NOT IN ('100203','100204','100202','100801')
+        #     """
+        # end_balance_query = """
+        #     SELECT aa.code AS account_code, aa.name AS account_name,
+        #            SUM(aml.debit - aml.credit) AS balance
+        #     FROM account_move_line aml
+        #     JOIN account_account aa ON aa.id = aml.account_id
+        #     WHERE aa.account_type = 'asset_cash'
+        #       AND aml.date > %s
+        #         AND aml.date < %s
+        #       AND aa.code NOT IN ('100203','100204','100202','100801')
+        # """
+        # if self.company_id:
+        #     end_balance_query += " AND aml.company_id = %s"
+        #
+        # # ✅ Add GROUP BY clause to fix the error
+        # end_balance_query += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+        #
+        # # Parameters
+        # if self.company_id:
+        #     end_balance_params_query = (self.start_date,self.end_date, self.company_id.id)
+        # else:
+        #     end_balance_params_query = (self.end_date,)
+        #
+        # # Execute and fetch
+        # self.env.cr.execute(end_balance_query, end_balance_params_query)
+        # end_balance_lines = self.env.cr.dictfetchall()
+
         if (end_balance[0].get('balance') != None):
             end_balance_1 = end_balance[0].get('balance')
         credit_accounts = [record for record in records if record['total_credit'] > 0]
         debit_accounts = [record for record in records if record['total_debit'] > 0]
-        row_num = 3
+        row_num = 7
 
         # for account in credit_accounts:
         #     print(account['account_name'],'jjjjjjjjjjjjjjjjjj')
@@ -346,16 +410,23 @@ class AccountCURReportWizard(models.TransientModel):
             total_c = total_c + rec['total_credit']
         sheet.write(row_num, 0, 'Total', header_format_num)
         sheet.write(row_num, 2, total_d, header_format_num)
-        sheet.write(row_num, 3, total_c, header_format_num)
+        sheet.write(row_num, 3, total_c+opening_balance_1, header_format_num)
         row_num += 2
         sheet.write(row_num, 0, 'Total expense as on  %s' % (formatted_en_date), header_format_num)
         sheet.write(row_num, 2, total_d, header_format_num)
         row_num += 1
         sheet.write(row_num, 0, 'Total receipts as on  %s' % (formatted_en_date), header_format_num)
-        sheet.write(row_num, 2, total_c, header_format_num)
+        sheet.write(row_num, 2, total_c+opening_balance_1, header_format_num)
         row_num += 2
         sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
-        sheet.write(row_num, 3, end_balance_1, header_format_num)
+        sheet.write(row_num, 3, total_c+opening_balance_1 -(total_d), header_format_num)
+        row_num += 1
+
+        # for line in end_balance_lines:
+        #     sheet.write(row_num, 0, line['account_name']['en_US'],value_format)
+        #     sheet.write(row_num, 1, line['account_code'],value_format)
+        #     sheet.write(row_num, 3, line['balance'] or 0.0, value_format)
+        #     row_num += 1
         workbook.close()
         buffer.seek(0)
         return buffer.read()

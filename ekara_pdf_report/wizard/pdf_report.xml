@@ -38,7 +38,7 @@
 
     <menuitem id="menu_account_balance_confirmation"
               name="Balance Confirmation"
-              parent="account.menu_account_supplier"
+              parent="account.menu_finance_payables"
               action="account_action_balance_confirmation"
               sequence="220"/>
 
