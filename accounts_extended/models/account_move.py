@@ -665,3 +665,23 @@ class AccountAnalyticPlan(models.Model):
     _inherit = 'account.analytic.plan'
 
     active = fields.Boolean(default=True)
+
+
+class AccountTax(models.Model):
+    _inherit = 'account.tax'
+
+    def _prepare_tax_totals(self, base_lines, currency, tax_lines=None, is_company_currency_requested=False):
+        result = super()._prepare_tax_totals(base_lines, currency, tax_lines=tax_lines, is_company_currency_requested=is_company_currency_requested)
+        for subtotal in result['subtotals']:
+            if subtotal['name'] == _("Untaxed Amount"):
+                subtotal['name'] = _("Taxable Amount")
+
+        result['subtotals_order'] = [
+            _("Taxable Amount") if name == _("Untaxed Amount") else name
+            for name in result['subtotals_order']
+        ]
+        if _("Untaxed Amount") in result['groups_by_subtotal']:
+            result['groups_by_subtotal'][_("Taxable Amount")] = result['groups_by_subtotal'].pop(_("Untaxed Amount"))
+
+        return result
+
