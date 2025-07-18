@@ -83,13 +83,18 @@ class FundManagementCRR(models.Model):
                 rec.te_consolidate_id.state = 'done'
 
     # @api.constrains('cash_pool_line')
+
+    def reset_to_draft(self):
+        for rec in self:
+            print('hjjjsss')
+            rec.write({'state':'draft'})
     def share_amount_validate(self):
         for rec in self:
-            for line in rec.cash_pool_line:
-                if line.cash_pool and line.cash_pool.available_balance <= 0:
-                    raise ValidationError(
-                        f"The cash pool '{line.cash_pool.name}' has a balance of 0."
-                    )
+            # for line in rec.cash_pool_line:
+            #     if line.cash_pool and line.cash_pool.available_balance <= 0:
+            #         raise ValidationError(
+            #             f"The cash pool '{line.cash_pool.name}' has a balance of 0."
+            #         )
             if not rec.crr_share_line:
                 raise UserError('Share Amount is not Available.')
             if not rec.cash_pool_line:
@@ -97,32 +102,57 @@ class FundManagementCRR(models.Model):
             if rec.state == 'draft':
                 rec.state = 'inprogress'
             if rec.state == 'inprogress':
-                for line in rec.cash_pool_line:
-                    if line.cash_pool.current_balance < abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
-                           line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool):
+
+                cash_p = rec.cash_pool_line
+                pool = cash_p.mapped('cash_pool')
+                for p in pool:
+                    total_amount = 0
+                    for line in rec.cash_pool_line:
+                        if line.cash_pool == p:
+                                total_amount += abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
+                                   line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool)
+                    if p.current_balance < total_amount:
                         raise ValidationError(
-                            f"Alert!! The cash pool '{line.cash_pool.name}' has a current balance of {line.cash_pool.available_balance},but you are trying to allocate {line.quarter_1_cash_pool+line.quarter_2_cash_pool+line.quarter_3_cash_pool+line.quarter_4_cash_pool}"
+                            f"The cash pool '{p.name}' has a  balance of '{p.available_balance}'\n"
+                            f"Kindly Allocate fund within available balance"
                         )
                     else:
-                        total_amount = abs(line.april_cash_pool+line.may_cash_pool+line.june_cash_pool+line.july_cash_pool+line.august_cash_pool+line.september_cash_pool+
-                           line.october_cash_pool+ line.november_cash_pool+line.december_cash_pool+line.january_cash_pool+line.febuary_cash_pool+line.march_cash_pool)
-
-                        line.cash_pool.write({
-                            'available_balance':line.cash_pool.current_balance - total_amount
+                        p.write({
+                                    'available_balance':p.current_balance - total_amount
                         })
+                        if p.available_balance == 0:
+                            p.invalid_cash_pool = True
+                        else:
+                            p.invalid_cash_pool = False
                         rec._allocate_cash_pool()
+
+    def write(self, vals):
+        for rec in self:
+            print('hhhhhhhhh')
+            res = super().write(vals)
+            if rec.cash_pool_line:
+                    cash_p = rec.cash_pool_line
+                    pool = cash_p.mapped('cash_pool')
+                    for p in pool:
+                        total_amount = 0
+                        for line in rec.cash_pool_line:
+                            if line.cash_pool == p:
+                                total_amount += abs(
+                                    line.april_cash_pool + line.may_cash_pool + line.june_cash_pool + line.july_cash_pool + line.august_cash_pool + line.september_cash_pool +
+                                    line.october_cash_pool + line.november_cash_pool + line.december_cash_pool + line.january_cash_pool + line.febuary_cash_pool + line.march_cash_pool)
+                        if p.current_balance < total_amount:
+                            raise ValidationError(
+                                f"The cash pool '{p.name}' has a  balance of '{p.available_balance}'.\n"
+                                f"Kindly Allocate fund within available balance."
+                            )
+                    print(cash_p,'hhhhhhhhhhhhhh')
+        return res
 
     def action_draft(self):
         for rec in self:
             rec.state = 'draft'
 
     def action_update_share_lines(self):
-        for record in self:
-            for line in record.cash_pool_line:
-                if line.cash_pool and line.cash_pool.current_balance <= 0:
-                    raise ValidationError(
-                        f"The cash pool '{line.cash_pool.name}' has a current balance of 0."
-                    )
         if not self.te_consolidate_id and not self.start_date or not self.end_date:
             raise UserError('kindly update Start and End date.')
         # share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from','>=',self.start_date),('budget_id.date_to','<=',self.end_date),('entity','=',self.company_id.id),('budget_id.state','=','to approve')])

@@ -22,6 +22,7 @@ class CashPool(models.Model):
             ('waiting_for_approval', 'Waiting for Approval'),
             ('approved', 'Approved')
         ], string='Status', default='draft', required=True)
+    invalid_cash_pool = fields.Boolean(string='Invalid Cash Pool')
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -75,13 +76,19 @@ class CashPool(models.Model):
                 self.x_has_request_approval = False
             if not record.is_available_balance:
                 record.available_balance = record.current_balance
-                cash_pool = self.env['cash.pool.lines'].sudo().search([('cash_pool', '=', record.id)],limit=1)
-                if cash_pool:
-                    for line in cash_pool:
-                        avail_total_amount += abs(
-                            line.april_cash_pool + line.may_cash_pool + line.june_cash_pool + line.july_cash_pool + line.august_cash_pool + line.september_cash_pool +
-                            line.october_cash_pool + line.november_cash_pool + line.december_cash_pool + line.january_cash_pool + line.febuary_cash_pool + line.march_cash_pool)
-                record.available_balance = record.current_balance - avail_total_amount
+                fund = self.env['fund.management'].sudo().search([])
+                lines = fund.cash_pool_line
+                if lines:
+                    for line in lines:
+                        if line.cash_pool.id == record.id:
+                            avail_total_amount += abs(
+                                line.april_cash_pool + line.may_cash_pool + line.june_cash_pool + line.july_cash_pool + line.august_cash_pool + line.september_cash_pool +
+                                line.october_cash_pool + line.november_cash_pool + line.december_cash_pool + line.january_cash_pool + line.febuary_cash_pool + line.march_cash_pool)
+                    record.available_balance = record.current_balance - avail_total_amount
+                    if record.available_balance == 0:
+                        record.invalid_cash_pool = True
+                    else:
+                        record.invalid_cash_pool = False
                 record.is_available_balance = True
             record.state = 'approved'
 
@@ -116,6 +123,7 @@ class CashPoolLines(models.Model):
     _description = "Cash Pool Lines"
 
     fund_management_id = fields.Many2one('fund.management', string="Fund ID")
+    available_balance = fields.Float(string='Available Cash Pool Balance', related='cash_pool.available_balance')
     rev_fund_management_id = fields.Many2one('fund.management', string="Rev Fund ID")
     sequence = fields.Char(string='Sequence', copy=False)
     cash_pool = fields.Many2one('cash.pool', string='Cash Pool')

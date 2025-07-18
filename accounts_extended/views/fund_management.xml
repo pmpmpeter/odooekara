@@ -12,6 +12,7 @@
                                 class="btn-primary"
                                 invisible="te_consolidate_id or state not in ['draft','inprogress']">
                         </button>
+                        <button name="reset_to_draft" type="object" string="Reset to Draft"/>
                         <!--                        <button name="action_update_cash_pool" string="Update Cash Pool" type="object" class="oe_stat_button" invisible="state != 'inprogress'" />-->
                         <button name="share_amount_validate" string="Allocate Cash Pool" type="object"
                                 invisible="state not in ['draft','inprogress']" class="oe_highlight"/>
@@ -83,10 +84,13 @@
                             <page string="Cash Pool">
                                 <field name="cash_pool_line" readonly="state in ['done']">
                                     <tree editable="bottom" create="1" delete='1'>
+<!--                                        <field name="available_balance" invisible="1"/>-->
                                         <field name="version" optional="hide"/>
                                         <field name="revision_date" optional="hide" readonly="1" force_save="1"/>
                                         <field name="cash_pool" required="1" width='800'
-                                               options="{'no_quick_create':True,'no_create': True}" domain="[('state', '=', 'approved')]"/>
+                                               options="{'no_quick_create':True,'no_create': True}" domain="[('state', '=', 'approved'),('invalid_cash_pool', '=', False)]"
+                                        />
+                                        <field name="available_balance" readonly="1" decoration-success="1"/>
                                         <field name="april_cash_pool" sum="Total"/>
                                         <field name="may_cash_pool" sum="Total"/>
                                         <field name="june_cash_pool" sum="Total"/>
