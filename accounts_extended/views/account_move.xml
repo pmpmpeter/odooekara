@@ -357,10 +357,19 @@
                                        context="{
                                         'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                         'show_address': 1, 'default_is_company': True, 'show_vat': True}"
-                                       domain="[('company_id', 'in', (False, company_id)),('state','=','approve')]"
+                                       domain="[('company_id', 'in', (False, company_id)),('state','=','approve'),('is_customer','=',True)]"
                                        options="{'no_quick_create':True,'no_create': True,}"
-                                       invisible="move_type not in ('out_invoice', 'out_refund','out_receipt','in_invoice', 'in_refund','in_receipt')"
+                                       invisible="move_type not in ('out_invoice', 'out_refund','out_receipt')"
                                        readonly="state != 'draft'"/>
+                                <field name="partner_id" widget="res_partner_many2one" nolabel="1"
+                                       context="{
+                                        'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
+                                        'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                                       domain="[('company_id', 'in', (False, company_id)),('state','=','approve'),('is_vendor','=',True)]"
+                                       options="{'no_quick_create':True,'no_create': True,}"
+                                       invisible="move_type not in ('in_invoice', 'in_refund','in_receipt')"
+                                       readonly="state != 'draft'"/>
+
                                 <!--                                <button name="action_update_fpos_values" type="object"-->
                                 <!--                                        string="Update Taxes and Accounts"-->
                                 <!--                                        help="Recompute all taxes and accounts based on this fiscal position"-->
@@ -391,9 +400,9 @@
                                    invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"/>
                             <field name='is_payment_approval' invisible='1'/>
                             <field name="ref" nolabel="1"
-                                   invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')"/>
+                                   invisible="move_type not in ('in_invoice', 'in_receipt', 'in_refund')" readonly="state not in ('draft','to approve')"/>
                             <field name="ref"
-                                   invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')"/>
+                                   invisible="move_type in ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund')" readonly="state not in ('draft','to approve')"/>
                             <field name="journal_type" invisible="1"/>
                             <field name="budget_id" domain="[('crossovered_budget_id.state','=','done')]"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True}"
@@ -432,7 +441,7 @@
                                    readonly="state != 'draft'"/>
                             <field name="payment_reference"
                                    invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')"
-                                   readonly="inalterable_hash != False"/>
+                                    readonly="state not in ('draft','to approve')"/>
                             <field name="partner_bank_id"
                                    context="{'default_partner_id': bank_partner_id, 'display_account_trust': True}"
                                    domain="[('partner_id', '=', bank_partner_id)]"
@@ -452,7 +461,7 @@
                                  name="due_date">
                                 <field name="invoice_date_due" force_save="1"
                                        placeholder="Date"
-                                       invisible="invoice_payment_term_id"/>
+                                       invisible="invoice_payment_term_id"  readonly="state not in ('draft','to approve')"/>
                                 <span class="o_form_label mx-3 oe_edit_only"
                                       invisible="state != 'draft' or invoice_payment_term_id">or
                                 </span>
@@ -685,7 +694,7 @@
                             </field>
                             <group col="12" class="oe_invoice_lines_tab">
                                 <group colspan="8">
-                                    <field name="narration" placeholder="Terms and Conditions" colspan="2" nolabel="1"/>
+                                    <field name="narration" placeholder="Terms and Conditions" colspan="2" nolabel="1" readonly="state not in ('draft','to approve')"/>
                                 </group>
                                 <!-- Totals (only invoices / receipts) -->
                                 <group colspan="4">
@@ -857,7 +866,7 @@
                                        name="sale_info_group"
                                        invisible="move_type not in ('out_invoice', 'out_refund')">
                                     <label for="ref" string="Customer Reference"/>
-                                    <field name="ref" nolabel="1"/>
+                                    <field name="ref" nolabel="1" readonly="state not in ('draft','to approve')"/>
                                     <field name="user_id" invisible="1" force_save="1"/>
                                     <field name="invoice_user_id" domain="[('share', '=', False)]"
                                            options="{'no_quick_create':True,'no_create': True}"
