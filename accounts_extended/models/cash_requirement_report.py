@@ -19,7 +19,7 @@ class CashRequirementReport(models.Model):
     ], string='Status', default='draft', required=True, tracking=True, copy=False)
     requested_date = fields.Date(string="Request Date", readonly=True, tracking=True, copy=False, default=fields.Datetime.now)
     requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False, default=lambda self: self.env.user)
-    journal_bank  =fields.Many2one('account.journal',string='Bank',copy=False, company_dependent=True, domain=[('type', '=', 'bank')])
+    journal_bank  =fields.Many2many('account.journal',string='Bank',copy=False)
     cash_requirement_lines = fields.One2many('cash.requirement.lines','cash_req_id',string='Lines',copy=False)
     available_balance  =fields.Float(string='Available Amount Balance',copy=False)
     company_id = fields.Many2one('res.company',string ='Company', default=lambda self: self.env.company)
@@ -93,17 +93,17 @@ class CashRequirementReport(models.Model):
     def onchange_journal_bank(self):
         if self.journal_bank:
             closing_balance = 0
-            query = """
-                        select sum(balance) as balance FROM account_move_line aml 
-                        join account_move am on am.id=aml.move_id 
-                        where am.state='posted' and aml.account_id=%s and aml.date <= %s and aml.company_id = %s
-                        """
-            # print(datetime.today().strftime('%Y-%m-%d'),'yyffffff')
-            params = tuple(self.journal_bank.default_account_id.ids), datetime.today().strftime('%Y-%m-%d'), self.company_id.id
-            data_get8 = self.env.cr.execute(query, params)
-            lines8 = self.env.cr.dictfetchall()
-            if (lines8[0].get('balance') != None):
-                closing_balance = lines8[0].get('balance') or 0
+            for rec in self.journal_bank:
+                query = """
+                            select sum(balance) as balance FROM account_move_line aml 
+                            join account_move am on am.id=aml.move_id 
+                            where am.state='posted' and aml.account_id=%s and aml.date <= %s and aml.company_id = %s
+                            """
+                params = tuple(rec.default_account_id.ids), datetime.today().strftime('%Y-%m-%d'), self.company_id.id
+                data_get8 = self.env.cr.execute(query, params)
+                lines8 = self.env.cr.dictfetchall()
+                if (lines8[0].get('balance') != None):
+                    closing_balance += lines8[0].get('balance') or 0
             for record in self:
                 record.available_balance = closing_balance
                 if self.available_balance > 0:
