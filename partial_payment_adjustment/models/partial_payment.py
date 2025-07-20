@@ -6,7 +6,7 @@ import pdb
 class AccountPaymentInvoices(models.Model):
     _name = 'account.payment.invoice.line'
     _description = "Account Payment Invoices"
-    _order = 'reconcile_amount desc'
+    _order = 'date'
 
     invoice_id = fields.Many2one('account.move.line', string='Invoice')
     date = fields.Date(string='Date', related='invoice_id.date', store=True)
@@ -34,6 +34,7 @@ class AccountPayment(models.Model):
                 ('amount_residual', '!=', 0),('credit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
             invoice_recs = self.env['account.move.line'].sudo().search(domain1)
+            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
             payment_invoice_values = []
             for invoice_rec in invoice_recs:
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
@@ -64,6 +65,7 @@ class AccountPayment(models.Model):
                 ('amount_residual', '!=', 0),('debit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
             invoice_recs = self.env['account.move.line'].sudo().search(domain1)
+            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
             # pdb.set_trace()
             # payment_invoice_values = []
             # for invoice_rec in invoice_recs:
@@ -82,6 +84,26 @@ class AccountPayment(models.Model):
             for invoice_rec in invoice_recs:
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
             self.payment_invoice_ids = payment_invoice_values
+
+
+    @api.onchange('amount')
+    def amount_onchange(self):
+        for rec in self:
+            if rec.payment_invoice_ids:
+                for line in rec.payment_invoice_ids:
+                    line.reconcile_amount = 0.0
+                if rec.amount > 0:
+                    for line in rec.payment_invoice_ids:
+                        total_reconcile = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
+                        if total_reconcile < rec.amount:
+                            available_amount = rec.amount - total_reconcile
+                            if abs(line.residual) < available_amount:
+                                    line.reconcile_amount = abs(line.residual)
+                            else:
+                                line.reconcile_amount = available_amount
+                else:
+                    for line in rec.payment_invoice_ids:
+                        line.reconcile_amount = 0
 
     def action_post(self):
         super(AccountPayment, self).action_post()
