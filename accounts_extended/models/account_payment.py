@@ -25,6 +25,7 @@ class AccountPayment(models.Model):
     recurring = fields.Boolean(string='Recurring Payment', copy=False)
     recurring_days = fields.Integer(string='Recurring Days', default="1", copy=False)
     recurring_until_date = fields.Date(string='Recurring Until Date', copy=False)
+    is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed')
 
     # def action_update_account_payment_outstanding_payment(self):
     #     ###Update Outstanding Payments
@@ -39,6 +40,10 @@ class AccountPayment(models.Model):
     #             if coa_id:
     #                 print("Case1222222222222222222222222222222222222222")
     #             line.write({'account_id': coa_id.id})
+
+    def action_freeze_cheque_details(self):
+        for rec in self:
+            rec.is_cheque_details_freeze = True
 
     def action_create_recurring_payments(self):
         for rec in self:

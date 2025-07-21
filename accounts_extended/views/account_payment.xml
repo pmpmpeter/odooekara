@@ -71,8 +71,8 @@
             <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'"
                        options="{'no_open':True,'no_create': True}" readonly="state not in ('draft','to approve')"/>
-                <field name="is_cheque_cleared" invisible="show_partner_bank_account or payment_type != 'outbound'"/>
-                <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared"/>
+                <field name="is_cheque_cleared" invisible="show_partner_bank_account or payment_type != 'outbound'" readonly="is_cheque_details_freeze"/>
+                <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared" readonly="is_cheque_details_freeze"/>
             </xpath>
             <xpath expr="//group[@name='main_group']" position="after">
                 <notebook>
@@ -80,23 +80,23 @@
                           invisible="show_partner_bank_account or payment_type != 'outbound'">
                         <group>
                             <group>
-                                <field name="sr_no"/>
-                                <field name="cheque_number"/>
-                                <field name="assigned_by" options="{'no_open':True,'no_create': True}"/>
-                                <field name="managed_by" options="{'no_open':True,'no_create': True}"/>
+                                <field name="sr_no" readonly="is_cheque_details_freeze"/>
+                                <field name="cheque_number" readonly="is_cheque_details_freeze"/>
+                                <field name="assigned_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                <field name="managed_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
                             </group>
                             <group>
-                                <field name="authorised_by" options="{'no_open':True,'no_create': True}"/>
-                                <field name="authorised_date"/>
-                                <field name="comments"/>
-                                <field name="towards"/>
+                                <field name="authorised_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                <field name="authorised_date" readonly="is_cheque_details_freeze"/>
+                                <field name="comments" readonly="is_cheque_details_freeze"/>
+                                <field name="towards" readonly="is_cheque_details_freeze"/>
                             </group>
                             <group>
-                                <field name="trans_id" options="{'no_open':True,'no_create': True}"/>
-                                <field name="sender_account_type" options="{'no_open':True,'no_create': True}"/>
-                                <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}"/>
-                                <field name="sender_receiver_info"/>
-                                <field name="sms_email"/>
+                                <field name="trans_id" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                <field name="sender_account_type" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                <field name="sender_receiver_info" readonly="is_cheque_details_freeze"/>
+                                <field name="sms_email" readonly="is_cheque_details_freeze"/>
                             </group>
                         </group>
                     </page>
@@ -135,8 +135,10 @@
             </xpath>
             <xpath expr="//button[@name='action_post']" position="after">
                 <field name="is_utr_updated" invisible="1"/>
+                <field name="is_cheque_details_freeze" invisible="1"/>
                  <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
                          invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting) or is_utr_updated or not utr_number"/>
+                <button name="action_freeze_cheque_details" string="Freeze Cheque Details" type="object" class="oe_highlight" invisible="state != 'posted' or is_cheque_details_freeze or show_partner_bank_account or payment_type != 'outbound'"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="attributes">

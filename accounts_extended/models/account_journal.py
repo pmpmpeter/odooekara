@@ -34,3 +34,14 @@ class AccountsJournal(models.Model):
     #     else:
     #         # Open reconciliation view for customers/suppliers
     #         return self.env['ir.actions.act_window']._for_xml_id('account_accountant.action_move_line_posted_unreconciled')
+
+
+class AccountBankStatementLine(models.Model):
+    _inherit = 'account.bank.statement.line'
+
+    def _get_default_amls_matching_domain(self):
+        self.ensure_one()
+        domain = super()._get_default_amls_matching_domain()
+        if self.journal_id:
+            domain.append(('journal_id', '=', self.journal_id.id))
+        return domain

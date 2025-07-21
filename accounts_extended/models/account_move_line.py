@@ -90,7 +90,6 @@ class AccountMoveLine(models.Model):
     @api.onchange('account_id')
     def update_budget_code(self):
         for rec in self:
-            if rec.move_id.move_type == 'entry':
                 if rec.move_id.crossovered_budget:
                     if rec.account_id:
                         budget_post = self.env['account.budget.post'].sudo().search([('account_ids.name','in',[rec.account_id.name])])
@@ -108,9 +107,11 @@ class AccountMoveLine(models.Model):
                 month_field = month_field_map.get(move.date.month)
                 if month_field not in month_list:
                     if move not in entry_list:
-                        setattr(move.budget_id.crr_budget_line_id, month_field, 0)
-                        print("Get attr", getattr(move.line_ids.budget_id.crr_budget_line_id, month_field))
-                    entry_list.append(move)
+                        print(aml.budget_id,'pppp')
+                        rec_id = aml.budget_id
+                        setattr(rec_id.crr_budget_line_id, month_field, 0)
+                        # print("Get attr", getattr(move.line_ids.budget_id.crr_budget_line_id, month_field))
+                        entry_list.append(move)
                 month_list.append(month_field)
                 move.update_budget_code_id()
                 if move.state in ['posted']:

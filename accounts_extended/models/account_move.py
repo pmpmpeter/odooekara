@@ -426,12 +426,13 @@ class AccountMoveInherit(models.Model):
     def action_update_budget_cur_figure_minus(self):
         for rec in self:
 
-            month_field = month_field_map.get(rec.date.month)
-            if rec.move_type != 'entry':
-                rec.budget_code_selection_validation()
-                setattr(rec.budget_id.crr_budget_line_id, month_field,
-                        getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
-            else:
+                month_field = month_field_map.get(rec.date.month)
+                # Budget code is moved to line items.
+                # if rec.move_type != 'entry':
+                #     rec.budget_code_selection_validation()
+                #     setattr(rec.budget_id.crr_budget_line_id, month_field,
+                #             getattr(rec.budget_id.crr_budget_line_id, month_field) - rec.amount_untaxed)
+                # else:
                 # debit_value = sum(self.env['account.move.line'].sudo().search([
                 #     ('move_id', '=', rec.id),  # Ensure we fetch lines from this move
                 #     ('debit', '>', 0),
@@ -451,26 +452,24 @@ class AccountMoveInherit(models.Model):
                         balance = sum(v1.mapped('balance'))
                         for line in v1.budget_id.crr_budget_line_id:
                             setattr(line, month_field, getattr(line, month_field) - balance)
-            rec.write({'budget_update': False})
+                rec.write({'budget_update': False})
 
     def action_update_budget_cur_figure_add(self):
         for rec in self.filtered(lambda l: not l.budget_update):
 
             month_field = month_field_map.get(rec.date.month)
             if month_field:
-                # pdb.set_trace()
-                if rec.move_type != 'entry':
-                    rec.budget_code_selection_validation()
-                    setattr(rec.budget_id.crr_budget_line_id, month_field,
-                            getattr(rec.budget_id.crr_budget_line_id, month_field) + rec.amount_untaxed)
-                else:
+                    # Budget code is moved to line items.
+                    # if rec.move_type != 'entry':
+                    #     rec.budget_code_selection_validation()
+                    #     setattr(rec.budget_id.crr_budget_line_id, month_field,
+                    #             getattr(rec.budget_id.crr_budget_line_id, month_field) + rec.amount_untaxed)
+                    # else:
                     rec.budget_id_selection_validation()
                     domain12 = [('move_id', '=', rec.id), ('date', '>=', rec.crossovered_budget.date_from),('date', '<=', rec.crossovered_budget.date_to),('account_id', 'in', rec.crossovered_budget.crossovered_budget_line.general_budget_id.account_ids.ids)]
                     entry = self.env['account.move.line'].sudo().search(domain12).filtered(lambda e: {str(e.budget_id.analytic_account_id.id): 100} == e.analytic_distribution)
-                    print(entry,'sssss')
                     for v1 in entry:
                         balance = sum(v1.mapped('balance'))
-                        print(balance,'bbbbbbb')
                         for line in v1.budget_id.crr_budget_line_id:
                             setattr(line, month_field, getattr(line, month_field) + balance)
             rec.write({'budget_update': True})
@@ -566,12 +565,10 @@ class AccountMoveInherit(models.Model):
         # Define Headers
         payslip_ref = html2plaintext(self.narration)
         payslip = self.env['hr.payslip'].sudo().search([('number', '=', str(payslip_ref))])
-        print(payslip,payslip_ref,'bbbbbbbbbbb')
         month = payslip.date_from.strftime('%B')  # Full month name: "May"
         year = payslip.date_from.strftime('%Y')
         total_salary_per_month = 0
         basic_da_per_month = 0
-        print(month, year, 'nnnnnnnnnnnn')
         table_headers = ['Account Head', 'DR', 'CR']
         sheet.write(0, 0, self.company_id.name,bold)
         sheet.write(2, 0, 'Employee Payroll', bold)
