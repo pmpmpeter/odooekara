@@ -46,27 +46,31 @@
         <field name="model">account.payment</field>
         <field name="inherit_id" ref="account.view_account_payment_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//group[@name='main_group']/group[@name='group1']/field[@name='ref']" position="replace">
+                <field name="ref" readonly="state not in ('draft','to approve')"/>
+            </xpath>
             <field name="ref" position="after">
                 <field name='utr_number' invisible="state not in  ('approved','posted') or (payment_type =='inbound' and not is_fund_requsiting) or
-                        (not show_partner_bank_account and not is_cheque_cleared)"/>
+                        (not show_partner_bank_account and not is_cheque_cleared)" readonly="is_utr_updated"/>
                 <field name='old_utr_number' invisible='1'/>
             </field>
             <xpath expr="//field[@name='partner_bank_id']" position="after">
-                <field name="type" invisible="payment_type != 'outbound'"/>
+                <field name="type" invisible="payment_type != 'outbound'" readonly="state not in ('draft','to approve')"/>
                 <field name="partner_bank_id" string="Vendor Bank Account"
                        options="{'no_quick_create':True,'no_create': True}"
                        context="{'default_partner_id': partner_id, 'display_account_trust': True}"
                        invisible="show_partner_bank_account or partner_type != 'supplier' or is_internal_transfer or payment_type == 'inbound'"
-                       required="require_partner_bank_account and not is_internal_transfer"/>
+                       required="require_partner_bank_account and not is_internal_transfer"
+                       readonly="state not in ('draft','to approve')"/>
                 <field name="partner_cl_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
                 <field name="closing_balance" readonly='1' force_save='1' invisible="payment_type != 'outbound'"/>
-                <field name="recurring"  invisible="payment_type!='outbound'"/>
+                <field name="recurring"  invisible="payment_type!='outbound'" readonly="state not in ('draft','to approve')"/>
                 <field name="recurring_days" invisible="recurring==False"/>
                 <field name="recurring_until_date" invisible="recurring==False" required="recurring!=False"/>
             </xpath>
             <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'"
-                       options="{'no_open':True,'no_create': True}"/>
+                       options="{'no_open':True,'no_create': True}" readonly="state not in ('draft','to approve')"/>
                 <field name="is_cheque_cleared" invisible="show_partner_bank_account or payment_type != 'outbound'"/>
                 <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared"/>
             </xpath>
