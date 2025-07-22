@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <xpath expr='//sheet' position="inside">
                     <separator string="Invoices"/>
-                    <field name="payment_invoice_ids">
+                    <field name="payment_invoice_ids" readonly="state not in ('draft','to approve','approved')">
                         <tree editable="bottom" create="false">
                             <field name="invoice_id" readonly="1" force_save="1"/>
                             <field name="date" readonly="1" force_save="1"/>
