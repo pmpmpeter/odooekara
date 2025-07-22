@@ -92,7 +92,7 @@ class AccountPayment(models.Model):
                 total += pay.reconcile_amount
             if rec.amount < total:
                 raise UserError(
-                    _("Alert!! You are trying to allocate more amount."))
+                    _("Alert!! You are trying to allocate an amount that exceeds the payment amount."))
 
     @api.onchange('amount')
     def amount_onchange(self):
