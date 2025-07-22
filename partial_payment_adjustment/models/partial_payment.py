@@ -6,7 +6,6 @@ import pdb
 class AccountPaymentInvoices(models.Model):
     _name = 'account.payment.invoice.line'
     _description = "Account Payment Invoices"
-    _order = 'date'
 
     invoice_id = fields.Many2one('account.move.line', string='Invoice')
     date = fields.Date(string='Date', related='invoice_id.date', store=True)
@@ -85,6 +84,15 @@ class AccountPayment(models.Model):
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
             self.payment_invoice_ids = payment_invoice_values
 
+    @api.onchange('payment_invoice_ids')
+    def reconcile_amount_onchange(self):
+        for rec in self:
+            total = 0
+            for pay in rec.payment_invoice_ids:
+                total += pay.reconcile_amount
+            if rec.amount < total:
+                raise UserError(
+                    _("Alert!! You are trying to allocate more amount."))
 
     @api.onchange('amount')
     def amount_onchange(self):
@@ -185,7 +193,6 @@ class AccountPayment(models.Model):
                                                 my_list2.append(line_id.id)
                                     my_list.append(line_id.id)
                     elif payment.payment_type == 'outbound':
-                        # print("Test111111111111")
                         if line_id.invoice_id.move_id.filtered(lambda line: line.move_type != 'entry'):
                             lines = payment.move_id.line_ids.filtered(lambda line: line.debit > 0 and line.account_id.account_type in ['asset_receivable','liability_payable'])
                             if lines:
@@ -193,7 +200,6 @@ class AccountPayment(models.Model):
                                     lambda line: line.account_id == lines[0].account_id and not line.reconciled)
                                 lines.with_context(amount=line_id.reconcile_amount).reconcile()
                         elif line_id.invoice_id.move_id.filtered(lambda line: line.move_type == 'entry'):
-                            # print("Test555555555555555555555")
                             lines = payment.move_id.line_ids.filtered(lambda line: line.debit > 0 and line.account_id.account_type in ['asset_receivable','liability_payable'])
                             for m in range(len(lines)):
                                 my_list = []
