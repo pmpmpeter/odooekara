@@ -17,6 +17,7 @@ class CashPool(models.Model):
     available_balance = fields.Float(string='Available Balance', copy=False)
     is_available_balance = fields.Float(string='Is Available Balance')
     manager_id = fields.Many2one('res.partner',string='Manager',copy=False)
+    manager = fields.Many2one('hr.employee',string='Manager',copy=False)
     state = fields.Selection([
             ('draft', 'Draft'),
             ('waiting_for_approval', 'Waiting for Approval'),

@@ -103,7 +103,7 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(0, 2, 'Amount', header_format)
         sheet.write(0, 3, 'Amount', header_format)
         sheet.write(1, 0, 'Opening Balance as on %s' % (formatted_date), value_format)
-        sheet.write(7, 0, 'Receipts:', header_format1)
+        sheet.write(5, 0, 'Receipts:', header_format1)
 
         query = """
                SELECT 
