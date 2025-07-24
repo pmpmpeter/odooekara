@@ -351,7 +351,7 @@ class AccountMoveInherit(models.Model):
 
     def budget_id_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
-            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
                 if not move.crossovered_budget:
                     raise UserError('Warning!! Kindly select a Budget.')
                 if not line1.filtered(lambda e: e.analytic_distribution):
@@ -361,7 +361,7 @@ class AccountMoveInherit(models.Model):
 
     def budget_code_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
-            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
+            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
                 if not move.budget_id:
                     raise UserError('Warning!! Kindly select a Budget Code.')
                 if not move.budget_id.general_budget_id.account_ids:
@@ -382,7 +382,7 @@ class AccountMoveInherit(models.Model):
 
     def update_budget_code_id(self):
         for rec in self.line_ids:
-            if rec.move_id.move_type == 'entry':
+                # if rec.move_id.move_type == 'entry':
                 if rec.move_id.crossovered_budget:
                     if rec.account_id:
                         budget_post = self.env['account.budget.post'].sudo().search([('account_ids.name','in',[rec.account_id.name])])

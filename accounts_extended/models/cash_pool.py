@@ -17,7 +17,7 @@ class CashPool(models.Model):
     available_balance = fields.Float(string='Available Balance', copy=False)
     is_available_balance = fields.Float(string='Is Available Balance')
     manager_id = fields.Many2one('res.partner',string='Manager',copy=False)
-    manager = fields.Many2one('hr.employee',string='Manager',copy=False)
+    manager = fields.Many2one('res.users',string='Manager',copy=False)
     state = fields.Selection([
             ('draft', 'Draft'),
             ('waiting_for_approval', 'Waiting for Approval'),
@@ -105,7 +105,7 @@ class CashPoolFundLine(models.Model):
     _description = "Cash Pool Fund Line"
 
     pool_id = fields.Many2one('cash.pool', string="Cash Pool", ondelete="cascade")
-    added_by_id = fields.Many2one('res.users', string="Added By")
+    added_by_id = fields.Many2one('res.users', string="Added By", default=lambda self:self.env.user)
     amount = fields.Float(string="Amount")
     date = fields.Date(string="Date")
     approved_by_id = fields.Many2one('res.users', string="Approved By")

@@ -551,6 +551,7 @@
                                            options="{'no_quick_create':True,'no_create': True}"
                                            domain="[('deprecated', '=', False), ('account_type', 'not in', ('asset_receivable', 'liability_payable', 'off_balance')), ('company_id', 'parent_of', parent.company_id)]"
                                            required="display_type not in ('line_note', 'line_section')"/>
+                                    <field name="budget_id" options="{'no_quick_create':True,'no_create': True}" widget="many2many_tags"/>
                                     <field name="analytic_distribution" widget="analytic_distribution"
                                            groups="analytic.group_analytic_accounting"
                                            optional="show"

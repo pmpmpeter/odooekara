@@ -9,6 +9,9 @@
             <xpath expr="//field[@name='currency_id']" position="before">
                 <field name="active"/>
             </xpath>
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="is_cash_rounding"/>
+            </xpath>
         </field>
     </record>
 
