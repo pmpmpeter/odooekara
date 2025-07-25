@@ -43,5 +43,6 @@ class AccountBankStatementLine(models.Model):
         self.ensure_one()
         domain = super()._get_default_amls_matching_domain()
         if self.journal_id:
-            domain.append(('journal_id', '=', self.journal_id.id))
+            # domain.append(('journal_id', '=', self.journal_id.id))
+            domain.extend([('journal_id', '=', self.journal_id.id),('statement_line_id', '=', False)])
         return domain

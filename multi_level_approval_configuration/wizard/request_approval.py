@@ -224,8 +224,9 @@ class RequestApproval(models.TransientModel):
                         if not move.crossovered_budget:
                             raise UserError('Warning!! Kindly select a Budget.')
                         if not line1.budget_id.general_budget_id.account_ids:
-                            raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
-                                line1.budget_id.general_budget_id.display_name))
+                            raise UserError(
+                                _("Budget Code is mandatory for COAs with account type Fixed Asset or Expenses.\n"
+                                  "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
                         # pdb.set_trace()
                         if not line1.filtered(lambda e: e.analytic_distribution):
                             raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
