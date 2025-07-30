@@ -1,0 +1,230 @@
+
+import base64
+import io
+import xlsxwriter
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
+from odoo.tools import html2plaintext
+from datetime import datetime
+
+class AccountBatchJV(models.Model):
+    _name = "account.batch.jv"
+    _description = "Batch Salary JV"
+    _order = "date desc, id desc"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
+
+    name = fields.Char(required=True, copy=False, string='Reference')
+    date = fields.Date(required=True, copy=False, default=fields.Date.context_today, tracking=True)
+    state = fields.Selection([
+        ('draft', 'New'),
+        ('sent', 'Sent'),
+        ('reconciled', 'Reconciled'),
+    ], store=True, compute='_compute_state', default='draft', tracking=True)
+    journal_id = fields.Many2one(
+        'account.journal',
+        string='Bank',
+        check_company=True,
+        domain=[('type', '=', 'bank')],
+        tracking=True,
+    )
+    cheque_format_id = fields.Many2one('cheque.format', string='Cheque Format',
+                                       help='Cheque Print Formats', copy=False)
+    journal_ids = fields.One2many('account.move', 'batch_journal_id', string="Journals", required=True)
+    export_file_create_date = fields.Date(string='Generation Date', default=fields.Date.today, readonly=True, help="Creation date of the related export file.", copy=False)
+    export_file = fields.Binary(string='File', readonly=True, help="Export file related to this batch", copy=False)
+    export_filename = fields.Char(string='File Name', help="Name of the export file generated for this batch", store=True, copy=False)
+
+    file_generation_enabled = fields.Boolean(help="Whether or not this batch payment should display the 'Generate File' button instead of 'Print' in form view.")
+    cheque_number = fields.Char(string="Cheque/Tax Number", copy=False)
+    towards = fields.Text(string="Towards", copy=False)
+    authorised_by = fields.Many2one('res.users', string="Authorised By", copy=False)
+    authorised_date = fields.Date(string="Authorised Date", copy=False)
+    company_currency_id = fields.Many2one(
+        string="Company Currency",
+        related='journal_id.company_id.currency_id',
+        store=True,
+    )
+    currency_id = fields.Many2one('res.currency', compute='_compute_currency', store=True, readonly=True)
+    amount = fields.Monetary(
+        currency_field='currency_id',
+        compute='_compute_from_journal_ids',
+    )
+    amount_total_words = fields.Char(
+        string="Amount total in words",
+        compute="_compute_amount_total_words",
+    )
+
+    @api.onchange('journal_ids')
+    def _compute_from_journal_ids(self):
+        for rec in self:
+            if rec.journal_ids:
+                print('1111111111111')
+                rec.amount = sum(line.amount_total for line in rec.journal_ids)
+
+
+    @api.depends('journal_id')
+    def _compute_currency(self):
+        for batch in self:
+            batch.currency_id = batch.journal_id.currency_id or batch.company_currency_id or self.env.company.currency_id
+
+    @api.depends('amount', 'currency_id')
+    def _compute_amount_total_words(self):
+        for rec in self:
+            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.amount)).replace(',', '')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        today = fields.Date.context_today(self)
+        for vals in vals_list:
+            vals['name'] = self._get_batch_name(
+                vals.get('date', today),
+                vals)
+        return super().create(vals_list)
+
+    @api.model
+    def _get_batch_name(self,sequence_date, vals):
+        if not vals.get('name'):
+            sequence_code = 'account.batch.jv'
+            return self.env['ir.sequence'].with_context(sequence_date=sequence_date).next_by_code(sequence_code)
+        return vals['name']
+
+
+    def action_print_bank_advice_jv_pdf(self):
+        return self.env.ref('batch_salary_cheque_printing.action_print_batch_jv').report_action(self)
+
+    def action_open_mail_wizard(self):
+        """ Opens a wizard to compose an email, with relevant mail template loaded by default """
+        self.ensure_one()
+        # self.order_line._validate_analytic_distribution()
+        lang = self.env.context.get('lang')
+        mail_template = self.env.ref('batch_salary_cheque_printing.email_template_batch_jv')
+        if mail_template and mail_template.lang:
+            lang = mail_template._render_lang(self.ids)[self.id]
+
+        # Generate attachments (if not already generated)
+        self.action_export_jv_details_xlsx()
+        # self.action_generate_pdf_attachment()
+
+        # Search for attachments
+        attachments = (self.env['ir.attachment'].search([
+            ('res_model', '=', 'account.batch.jv'),
+            ('res_id', '=', self.id),
+            ('name', 'ilike', 'Batch_Salary_JV_Details')
+        ], limit=1))
+
+        # Prepare attachment IDs
+        attachment_ids = [(4, att.id) for att in attachments]
+
+        ctx = {
+            'default_model': 'account.batch.jv',
+            'default_res_ids': self.ids,
+            'default_template_id': mail_template.id if mail_template else None,
+            'default_composition_mode': 'comment',
+            'default_attachment_ids': attachment_ids,
+            'mark_so_as_sent': True,
+            'default_email_layout_xmlid': 'mail.mail_notification_layout_with_responsible_signature',
+            'force_email': True,
+            'model_description': self.with_context(lang=lang).name,
+        }
+        return {
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'mail.compose.message',
+            'views': [(False, 'form')],
+            'view_id': False,
+            'target': 'new',
+            'context': ctx,
+        }
+
+    def action_export_jv_details_xlsx(self):
+        # Create Excel Report in Memory
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet('Payment Details')
+
+        # Formats
+        bold = workbook.add_format({'bold': True, 'bg_color': '#D7E4BC'})
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+
+        # Define Headers
+        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML',
+                   'DETAIL', 'OoR7002 (SENDER NAME)', 'BENEFICIARY IFSC'
+            , 'BENEFICIARY ACCOUNT TYPE', 'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME',
+                   'SENDER TO RECEIVER INFORMATION']
+
+        for col, header in enumerate(headers):
+            sheet.write(0, col, header, bold)
+        amount_format = workbook.add_format({'num_format': '#,##0.00'})
+
+        # Populate Data
+        row = 1
+        for index, line in enumerate(self.journal_ids, start=1):
+            sheet.write(row, 0, index or '')
+            sheet.write(row, 1, self.cheque_number or '')
+            sheet.write(row, 2, line.amount_total or 0.0, amount_format)
+            sheet.write(row, 3, line.sender_account_type or '')
+            sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
+            sheet.write(row, 5, line.journal_id.bank_account_id.acc_holder_name or '')
+            sheet.write(row, 6, line.sms_email or '')
+            sheet.write(row, 7, line.journal_id.bank_account_id.partner_id.email or '')
+            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name or '')
+            sheet.write(row, 9, line.partner_bank_id.bank_id.bic or '')
+            sheet.write(row, 10, line.beneficiary_account_type or '')
+            sheet.write(row, 11, line.partner_bank_id.acc_number or '')
+            sheet.write(row, 12, line.partner_bank_id.partner_id.name or '')
+            sheet.write(row, 13, line.sender_receiver_info or '')
+            row += 1
+
+        sheet.set_column(0, 0, 5)
+        sheet.set_column(1, 1, 15)
+        sheet.set_column(2, 2, 10)
+        sheet.set_column(3, 3, 20)
+        sheet.set_column(4, 4, 20)
+        sheet.set_column(5, 5, 25)
+        sheet.set_column(6, 6, 15)
+        sheet.set_column(7, 7, 30)
+        sheet.set_column(8, 8, 25)
+        sheet.set_column(9, 9, 20)
+        sheet.set_column(10, 10, 20)
+        sheet.set_column(11, 11, 25)
+        sheet.set_column(12, 12, 30)
+        sheet.set_column(13, 13, 40)
+
+        workbook.close()
+        output.seek(0)
+
+        # Encode File to Base64
+        file_data = base64.b64encode(output.read())
+        output.close()
+
+        # Create Attachment
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Batch_JV_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'type': 'binary',
+            'datas': file_data,
+            'store_fname': f'Batch_Payment_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': 'account.batch.jv',
+            'res_id': self.id,
+        })
+
+        # Return the attachment download URL
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }
+
+
+
+class AccountMove(models.Model):
+    _inherit = "account.move"
+
+    batch_journal_id = fields.Many2one('account.batch.jv', ondelete='set null', copy=False,
+        store=True, readonly=False)
+    payslip_ref = fields.Char("Payslip No", compute='_compute_narration_clean', store=True)
+
+    @api.depends('narration')
+    def _compute_narration_clean(self):
+        for rec in self:
+            rec.payslip_ref = html2plaintext(rec.narration or '').strip()
