@@ -54,6 +54,8 @@ class AccountBatchJV(models.Model):
         compute="_compute_amount_total_words",
     )
     is_lock = fields.Boolean(string='Locked')
+    consolidated_jv = fields.One2many('account.move','cons_journal_id',string='Consolidated JV')
+    is_consolidated = fields.Boolean(string='Is Consolidated')
 
     def action_lock(self):
         for rec in self:
@@ -97,6 +99,46 @@ class AccountBatchJV(models.Model):
 
     def action_print_bank_advice_jv_pdf(self):
         return self.env.ref('batch_salary_cheque_printing.action_print_batch_jv').report_action(self)
+
+    def action_view_salary_jv(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Journal Entries',
+            'view_mode': 'tree,form',
+            'res_model': 'account.move',
+            'domain': [('id', 'in', self.journal_ids.ids)],
+        }
+
+    def create_consolidated_jv(self):
+        for rec in self:
+            if rec.journal_ids:
+                all_lines = []
+
+                for journal_entry in rec.journal_ids:
+                    for line in journal_entry.line_ids:
+                        all_lines.append((0, 0, {
+                            'account_id': line.account_id.id,
+                            'name': line.name,
+                            'debit': line.debit,
+                            'credit': line.credit,
+                            'partner_id': line.partner_id.id if line.partner_id else False,
+                            # 'analytic_account_id': line.analytic_account_id.id if line.analytic_account_id else False,
+                            'currency_id': line.currency_id.id if line.currency_id else False,
+                            'amount_currency': line.amount_currency,
+                        }))
+                move = self.env['account.move'].sudo().create({
+                    'move_type':'entry',
+                    'journal_id':rec.journal_id.id,
+                    'line_ids':all_lines,
+                })
+                for entry in rec.journal_ids:
+                    if entry.state == 'posted':
+                        entry.button_draft()  # Set to draft
+                    entry.button_cancel()
+                rec.write({
+                    'consolidated_jv':move,
+                    'is_consolidated':True
+                })
 
     def action_open_mail_wizard(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
@@ -222,6 +264,8 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     batch_journal_id = fields.Many2one('account.batch.jv', ondelete='set null', copy=False,
+        store=True, readonly=False)
+    cons_journal_id = fields.Many2one('account.batch.jv', ondelete='set null', copy=False,
         store=True, readonly=False)
     payslip_ref = fields.Char("Payslip No", compute='_compute_narration_clean', store=True)
 

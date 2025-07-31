@@ -2,7 +2,7 @@
 <odoo>
 
         <record model="ir.actions.server" id="action_account_create_batch_jv">
-            <field name="name">Create batch JV</field>
+            <field name="name">Create Batch JV</field>
             <field name="model_id" ref="hr_payroll.model_hr_payslip"/>
             <field name="binding_view_types">list</field>
             <field name="state">code</field>
@@ -31,6 +31,8 @@
                         string="Send Mail"
                         type="object"
                         class="btn-primary"/>
+                    <field name="is_consolidated" invisible="1"/>
+                    <button name="create_consolidated_jv" type="object" string="Create Consolidated JV" invisible="is_consolidated"/>
                     <button name="action_lock" string="Lock" type="object" invisible="is_lock"/>
 <!--                    <button name="action_unlock" atring="Lock" invisible="not is_lock"/>-->
                     <field name="file_generation_enabled" invisible="1"/>
@@ -40,6 +42,10 @@
 <!--                    <field name="state" widget="statusbar"/>-->
                 </header>
                 <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button type="object" name="action_view_salary_jv" string="Journal Entries"
+                            class="oe_stat_button" icon="fa-file"/>
+                    </div>
                     <group>
                         <group>
                             <field name="is_lock" invisible="1"/>
@@ -55,6 +61,19 @@
                     </group>
 
                     <notebook>
+                        <page string="Consolidated JV" name="consolidated_content">
+                            <field name="consolidated_jv"
+                                   readonly="is_lock"
+                                   widget="many2many"
+                                   options="{'no_create': True}">
+                                <tree string="Consolidated JV" create="false" options="{'no_open':True,'no_create': True}">
+                                    <field name="name"/>
+                                    <field name="ref"/>
+                                     <field name="payslip_ref"/>
+                                    <field name="amount_total"/>
+                                </tree>
+                            </field>
+                        </page>
                         <page string="Batch Content" name="batch_content">
                             <field name="journal_ids"
                                    readonly="is_lock"
