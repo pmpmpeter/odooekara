@@ -169,12 +169,11 @@ class AccountBatchJV(models.Model):
             sheet.write(row, 1, self.cheque_number or '')
             sheet.write(row, 2, line.journal_id.bank_account_id.acc_number or '', date_format)
             sheet.write(row, 3, line.amount_total or 0.0, amount_format)
-            sheet.write(row, 4, line.journal_id.bank_account_id.acc_holder_name or '')
-            sheet.write(row, 5, slip.employee_id.bank_account_id.acc_number or '')
-            sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.name or '')
-            sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
-            sheet.write(row, 8, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
-            sheet.write(row, 9, line.towards or '')
+            sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
+            sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
+            sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
+            sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
+            sheet.write(row, 8, line.towards or '')
             row += 1
 
         sheet.set_column(0, 0, 5)
