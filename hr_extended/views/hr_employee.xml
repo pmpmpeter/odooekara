@@ -246,6 +246,7 @@
         <field name="arch" type="xml">
             <field name="name" position="after">
                 <field name="ifsc_code"/>
+                <field name="beneficiary_lei"/>
                 <field name="bank_branch"/>
             </field>
         </field>

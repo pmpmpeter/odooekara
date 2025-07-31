@@ -620,3 +620,4 @@ class PartnerBank(models.Model):
         string="Bank Branch",
         help="The branch of the bank."
     )
+    beneficiary_lei = fields.Char(string="Beneficiary LEI",copy=False)
