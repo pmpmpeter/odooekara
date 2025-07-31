@@ -35,7 +35,7 @@ class AccountBatchJV(models.Model):
     export_filename = fields.Char(string='File Name', help="Name of the export file generated for this batch", store=True, copy=False)
 
     file_generation_enabled = fields.Boolean(help="Whether or not this batch payment should display the 'Generate File' button instead of 'Print' in form view.")
-    cheque_number = fields.Char(string="Cheque/Tax Number", copy=False)
+    cheque_number = fields.Char(string="Cheque / RTGS Slip No", copy=False)
     towards = fields.Text(string="Towards", copy=False)
     authorised_by = fields.Many2one('res.users', string="Authorised By", copy=False)
     authorised_date = fields.Date(string="Authorised Date", copy=False)
@@ -53,12 +53,18 @@ class AccountBatchJV(models.Model):
         string="Amount total in words",
         compute="_compute_amount_total_words",
     )
+    is_lock = fields.Boolean(string='Locked')
+
+    def action_lock(self):
+        for rec in self:
+            rec.write({
+                'is_lock':True
+            })
 
     @api.onchange('journal_ids')
     def _compute_from_journal_ids(self):
         for rec in self:
             if rec.journal_ids:
-                print('1111111111111')
                 rec.amount = sum(line.amount_total for line in rec.journal_ids)
 
 
@@ -147,10 +153,9 @@ class AccountBatchJV(models.Model):
         date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
 
         # Define Headers
-        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML',
-                   'DETAIL', 'OoR7002 (SENDER NAME)', 'BENEFICIARY IFSC'
-            , 'BENEFICIARY ACCOUNT TYPE', 'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME',
-                   'SENDER TO RECEIVER INFORMATION']
+        headers = ['Sr.No.', 'Cheque / RTGS Slip No','SENDER ACCOUNT NO', 'AMOUNT',
+            'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME','BENEFICIARY IFSC',
+                   'BENEFICIARY LEI (If applicable)','Remarks']
 
         for col, header in enumerate(headers):
             sheet.write(0, col, header, bold)
@@ -159,20 +164,17 @@ class AccountBatchJV(models.Model):
         # Populate Data
         row = 1
         for index, line in enumerate(self.journal_ids, start=1):
+            slip = self.env['hr.payslip'].sudo().search([('number','=',html2plaintext(line.narration))])
             sheet.write(row, 0, index or '')
             sheet.write(row, 1, self.cheque_number or '')
-            sheet.write(row, 2, line.amount_total or 0.0, amount_format)
-            sheet.write(row, 3, line.sender_account_type or '')
-            sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
-            sheet.write(row, 5, line.journal_id.bank_account_id.acc_holder_name or '')
-            sheet.write(row, 6, line.sms_email or '')
-            sheet.write(row, 7, line.journal_id.bank_account_id.partner_id.email or '')
-            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name or '')
-            sheet.write(row, 9, line.partner_bank_id.bank_id.bic or '')
-            sheet.write(row, 10, line.beneficiary_account_type or '')
-            sheet.write(row, 11, line.partner_bank_id.acc_number or '')
-            sheet.write(row, 12, line.partner_bank_id.partner_id.name or '')
-            sheet.write(row, 13, line.sender_receiver_info or '')
+            sheet.write(row, 2, line.journal_id.bank_account_id.acc_number or '', date_format)
+            sheet.write(row, 3, line.amount_total or 0.0, amount_format)
+            sheet.write(row, 4, line.journal_id.bank_account_id.acc_holder_name or '')
+            sheet.write(row, 5, slip.employee_id.bank_account_id.acc_number or '')
+            sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.name or '')
+            sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
+            sheet.write(row, 8, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
+            sheet.write(row, 9, line.towards or '')
             row += 1
 
         sheet.set_column(0, 0, 5)

@@ -31,21 +31,24 @@
                         string="Send Mail"
                         type="object"
                         class="btn-primary"/>
+                    <button name="action_lock" string="Lock" type="object" invisible="is_lock"/>
+<!--                    <button name="action_unlock" atring="Lock" invisible="not is_lock"/>-->
                     <field name="file_generation_enabled" invisible="1"/>
 <!--                    <button name="print_batch_payment" string="Print" type="object" invisible="state != 'sent'"/>-->
 <!--                    <button name="validate_batch_button" string="Re-generate Export File" type="object" invisible="not file_generation_enabled or state != 'sent' or not payment_ids"/>-->
 <!--                    <button name="validate_batch_button" class="oe_highlight" string="Validate" type="object" invisible="state != 'draft' or not payment_ids"/>-->
-                    <field name="state" widget="statusbar"/>
+<!--                    <field name="state" widget="statusbar"/>-->
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="journal_id" domain="[('type', '=', 'bank')]" options="{'no_open': True, 'no_create': True}" readonly="state != 'draft'"/>
-                            <field name="cheque_format_id"/>
-                            <field name="amount"/>
+                            <field name="is_lock" invisible="1"/>
+                            <field name="journal_id" domain="[('type', '=', 'bank')]" options="{'no_open': True, 'no_create': True}" readonly="1"/>
+                            <field name="cheque_format_id" readonly="is_lock"/>
+                            <field name="amount" readonly="1"/>
                         </group><group>
-                            <field name="date" readonly="state != 'draft'"/>
-                            <field name="name" placeholder="Leave empty to generate automatically..." required="0" readonly="state != 'draft'"/>
+                            <field name="date" readonly="1"/>
+                            <field name="name" placeholder="Leave empty to generate automatically..." required="0" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="amount_total_words" invisible="1"/>
                     </group>
@@ -54,11 +57,11 @@
                     <notebook>
                         <page string="Batch Content" name="batch_content">
                             <field name="journal_ids"
-                                   readonly="state != 'draft'"
+                                   readonly="is_lock"
                                    force_save="1"
                                    widget="many2many"
                                    options="{'no_create': True}">
-                                <tree string="Salary Journals" create="false">
+                                <tree string="Salary Journals" create="false" options="{'no_open':True,'no_create': True}">
                                     <field name="name"/>
                                     <field name="ref"/>
                                      <field name="payslip_ref"/>
@@ -69,12 +72,12 @@
                         <page name="check_details" string="Cheque Details">
                             <group>
                                 <group>
-                                    <field name="cheque_number"/>
-                                    <field name="authorised_by" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="authorised_date"/>
+                                    <field name="cheque_number" readonly="is_lock"/>
+                                    <field name="authorised_by" readonly="is_lock"/>
+                                    <field name="authorised_date" readonly="is_lock"/>
                                 </group>
                                 <group>
-                                    <field name="towards"/>
+                                    <field name="towards" readonly="is_lock"/>
                                 </group>
                             </group>
                         </page>

@@ -82,38 +82,38 @@
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Account Number:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.acc_number" t-esc="o.partner_bank_id.acc_number" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.acc_number"/>
                         </td>
                         <td style="font-weight: bold;">Confirm Beneficiary Account Number:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.acc_number" t-esc="o.partner_bank_id.acc_number" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.acc_number"/>
                         </td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Name:</td>
-                        <td colspan="3">
-                            <div t-esc="o.partner_id.name" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;" colspan="3">
+                            <t t-esc="o.partner_id.name"/>
                         </td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Bank Name:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.bank_id.name" t-esc="o.partner_bank_id.bank_id.name" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.bank_id.name"/>
                         </td>
                         <td style="font-weight: bold;">Beneficiary Branch IFSC Code:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.bank_id.ifsc_code" t-esc="o.partner_bank_id.bank_id.ifsc_code" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.bank_id.ifsc_code"/>
                         </td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Branch:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.bank_id.bank_branch" t-esc="o.partner_bank_id.bank_id.bank_branch" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.bank_id.bank_branch"/>
                         </td>
                         <td style="font-weight: bold;">City:</td>
-                        <td>
-                            <div t-if="o.partner_bank_id.bank_id.city" t-esc="o.partner_bank_id.bank_id.city" style="border: 1px solid #000; padding: 2px;"/>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.partner_bank_id.bank_id.city"/>
                         </td>
                     </tr>
                 </table>

@@ -23,7 +23,7 @@ class AccountPayment(models.Model):
     assigned_by = fields.Many2one('res.users', string="Assigned By", copy=False)
     managed_by = fields.Many2one('res.users', string="Managed By", copy=False)
     comments = fields.Text(string="Comments", copy=False)
-    cheque_number = fields.Char(string="Cheque/Tax Number", copy=False)
+    cheque_number = fields.Char(string="Cheque / RTGS Slip No", copy=False)
     towards = fields.Text(string="Towards", copy=False)
     authorised_by = fields.Many2one('res.users', string="Authorised By", copy=False)
     authorised_date = fields.Date(string="Authorised Date", copy=False)
