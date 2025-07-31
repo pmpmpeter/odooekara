@@ -39,6 +39,7 @@ class ResPartner(models.Model):
     review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
     has_to_review = fields.Boolean(string='Has to Review')
     is_nonodoo_company = fields.Boolean(string='IS Company')
+    company_ids = fields.Many2many('res.company', 'contact_company_rel', string="Companies")
 
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (
@@ -46,6 +47,14 @@ class ResPartner(models.Model):
         )
         for rec in self:
             rec.can_edit_vendor_code = is_admin_or_accounts_head
+
+    @api.model
+    def default_get(self, fields_list):
+        """Override default_get to set both company fields at once"""
+        defaults = super().default_get(fields_list)
+        if 'company_ids' in fields_list:
+            defaults['company_ids'] = [(6, 0, [self.env.company.id])]
+        return defaults
 
     # @api.model
     # def name_get(self):

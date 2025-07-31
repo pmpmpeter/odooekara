@@ -48,6 +48,20 @@
             <field name="nextcall" eval="datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)"/>
         </record>
 
+        <record model="ir.rule" id="base.res_partner_rule">
+        <field name="name">Contacts Multi-Company Rule</field>
+        <!-- We exclude partners that have internal users (`partner_share` field) from
+        the multi-company rule because it might interfere with the user's company rule
+        and make some users unselectable in relational fields. This means that partners
+        of internal users are always visible, not matter the company setting. -->
+        <!--        Rule rewritten as the rule will work based on Multiple companies given in the partner form not based on-->
+        <!--        'company_id'-->
+        <field name="domain_force">['|','|',('partner_share', '=', False),('company_ids', 'in',
+            company_ids),('company_ids', '=', False)]
+        </field>
+    </record>
+
+
 	
     </data>
 </odoo>
