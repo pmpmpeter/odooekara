@@ -212,38 +212,37 @@ class AccountCURReportWizard(models.TransientModel):
         #                     AND aml.company_id = %s;
         #                 """
         # end_balance_params = (self.end_date, self.company_id.id)
-        end_balance = """
-                select sum(aml.debit-aml.credit) as balance
-                from account_move_line aml
-                join account_account aa on (aa.id = aml.account_id)
-                where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state != 'cancel' and  aa.code NOT IN ('100203','100204','100202','100801')
-            """
+        # end_balance = """
+        #         select sum(aml.debit-aml.credit) as balance
+        #         from account_move_line aml
+        #         join account_account aa on (aa.id = aml.account_id)
+        #         where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state != 'cancel' and  aa.code NOT IN ('100203','100204','100202','100801')
+        #     """
 
         end_balance1 = """SELECT aa.code AS account_code, aa.name AS account_name,
                    SUM(aml.debit - aml.credit) AS balance
             FROM account_move_line aml
             JOIN account_account aa ON aa.id = aml.account_id
             WHERE aa.account_type = 'asset_cash'
-              AND aml.date BETWEEN %s AND %s
+              AND aml.date <=%s
               AND aml.parent_state != 'cancel' 
               AND aa.code NOT IN ('100203','100204','100202','100801')
         """
 
         # Add company_id condition if it exists
         if self.company_id:
-            end_balance += " AND aml.company_id = %s"
+            # end_balance += " AND aml.company_id = %s"
             end_balance1 += " AND aml.company_id = %s"
             end_balance1 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
             end_balance_params = (self.end_date, self.company_id.id)
-            end_balance_params1 = (self.start_date,self.end_date, self.company_id.id)
+            end_balance_params1 = (self.end_date, self.company_id.id)
         else:
             end_balance_params = (self.end_date,)
             end_balance_params1 = (self.end_date,)
-        self.env.cr.execute(end_balance, end_balance_params)
+        # self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
         self.env.cr.execute(end_balance1, end_balance_params1)
         end_balance1 = self.env.cr.dictfetchall()
-        print(end_balance1,'kkkkkkkkkkkkkkkk')
 
         # query8 = """
         #         select sum(aml.debit-aml.credit) as balance
@@ -277,8 +276,8 @@ class AccountCURReportWizard(models.TransientModel):
         # self.env.cr.execute(end_balance_query, end_balance_params_query)
         # end_balance_lines = self.env.cr.dictfetchall()
 
-        if (end_balance[0].get('balance') != None):
-            end_balance_1 = end_balance[0].get('balance')
+        if (end_balance1[0].get('balance') != None):
+            end_balance_1 = end_balance1[0].get('balance')
         credit_accounts = [record for record in records if record['total_credit'] > 0]
         debit_accounts = [record for record in records if record['total_debit'] > 0]
         row_num = 7
