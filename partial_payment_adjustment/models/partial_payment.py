@@ -14,11 +14,103 @@ class AccountPaymentInvoices(models.Model):
     reconcile_amount = fields.Monetary(string='Reconcile Amount')
     amount_total = fields.Monetary(string="Amount Total", related='invoice_id.move_id.amount_total')
     residual = fields.Monetary(string="Residual Amount", related='invoice_id.amount_residual_currency')
+    is_reconcile_amount = fields.Boolean(string='Reconcile Amount')
+    is_reconciled_en = fields.Boolean(string="Reconciled")
+
+    # @api.onchange('reconcile_amount')
+    # def reconcile_amount_lines_update(self):
+    #     total_amount = 0
+    #     pay_id = self.payment_id._origin
+    #     for rec in self.payment_id.payment_invoice_ids:
+    #         total_amount += rec.reconcile_amount
+    #     print(pay_id,total_amount,'bbbbb')
+    #     pay_id.amount = total_amount
+    #     print(pay_id.amount,'tttttttt')
+
+    def reconcile_entry(self):
+        for rec in self:
+            print('mmmmmmmmmmmmm')
+            rec.invoice_id.move_id.js_assign_outstanding_line(rec.invoice_id.id)
+
+    # @api.onchange('reconcile_amount')
+    # def reconcile_amount_lines_update(self):
+    #     total_amount = 0
+    #     if self.payment_id:
+    #         # for rec in self.payment_id.payment_invoice_ids:
+    #         #     total_amount += rec.reconcile_amount
+    #         self.payment_id.amount = sum(self.payment_id.payment_invoice_ids.mapped('reconcile_amount'))
+    #         self._origin.payment_id.write({
+    #             'amount':sum(self.payment_id.payment_invoice_ids.mapped('reconcile_amount'))
+    #         })
+    #         print("Updated amount:", self.payment_id.amount)
+
 
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
     payment_invoice_ids = fields.One2many('account.payment.invoice.line', 'payment_id', string="Customer Invoices")
+    unallocated_amount = fields.Monetary(string='Unallocated Amount')
+
+    def update_reconcile_amount(self):
+        for rec in self:
+            invoice_ids = rec.payment_invoice_ids.filtered(lambda l:l.is_reconcile_amount)
+            total_reconcile = sum(abs(line.residual) for line in invoice_ids)
+            rec.amount = total_reconcile
+            rec.amount_onchange_manual()
+
+    def update_entry(self):
+        for rec in self:
+            rec.update_to_get_vendor_invoices()
+
+    def amount_onchange_manual(self):
+        reconcile_ids = self.payment_invoice_ids.filtered(lambda l:l.is_reconcile_amount).ids
+        for rec in self.payment_invoice_ids:
+            if rec.id in reconcile_ids:
+                rec.write({
+                    'reconcile_amount':abs(rec.residual),
+                    'is_reconcile_amount':False
+                })
+            else:
+                rec.write({
+                    'reconcile_amount': 0,
+                    'is_reconcile_amount': False
+                })
+
+    def update_to_get_vendor_invoices(self):
+        if self.payment_type in ['outbound'] and self.partner_type and self.partner_id and self.currency_id:
+            self.payment_invoice_ids = [(6, 0, [])]
+            domain1 = [
+                ('partner_id', 'child_of', self.partner_id.id),
+                ('move_id.state', '=', 'posted'),
+                ('move_id.payment_state','in',('not_paid','partial')),
+                ('is_entry_reconciled', '=', False),
+                ('account_id.account_type', 'in', ['liability_payable']),
+                ('amount_residual', '!=', 0), ('credit', '!=', 0), ('company_id', '=', self.company_id.id),
+                ('currency_id', '=', self.currency_id.id)]
+
+            invoice_recs = self.env['account.move.line'].sudo().search(domain1)
+            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
+            payment_invoice_values = []
+            for invoice_rec in invoice_recs:
+                payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
+            self.payment_invoice_ids = payment_invoice_values
+        if self.payment_type in ['inbound'] and self.partner_type and self.partner_id and self.currency_id:
+            self.payment_invoice_ids = [(6, 0, [])]
+            domain1 = [
+                ('partner_id', 'child_of', self.partner_id.id),
+                ('move_id.state', '=', 'posted'),
+                ('move_id.payment_state', 'in', ['not_paid', 'partial']),
+                ('is_entry_reconciled', '=', False),
+                ('account_id.account_type', 'in', ['asset_receivable']),
+                ('amount_residual', '!=', 0), ('debit', '!=', 0), ('company_id', '=', self.company_id.id),
+                ('currency_id', '=', self.currency_id.id)]
+            invoice_recs = self.env['account.move.line'].sudo().search(domain1)
+            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
+            payment_invoice_values = []
+            for invoice_rec in invoice_recs:
+                payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
+            self.payment_invoice_ids = payment_invoice_values
+
 
     @api.onchange('payment_type', 'partner_type', 'partner_id', 'currency_id')
     def _onchange_to_get_vendor_invoices(self):
@@ -156,11 +248,13 @@ class AccountPayment(models.Model):
                         lines += line_id.invoice_id.move_id.line_ids.filtered(
                             lambda line: line.account_id == lines[0].account_id and not line.reconciled)
                         lines.reconcile()
+                        lines.is_entry_reconciled = True
                     elif payment.payment_type == 'outbound':
                         lines = payment.move_id.line_ids.filtered(lambda line: line.debit > 0 and line.account_id.account_type in ['asset_receivable','liability_payable'])
                         lines += line_id.invoice_id.move_id.line_ids.filtered(
                             lambda line: line.account_id == lines[0].account_id and not line.reconciled)
                         lines.reconcile()
+                        lines.is_entry_reconciled = True
                 else:
                     self.ensure_one()
                     # pdb.set_trace()
@@ -184,12 +278,14 @@ class AccountPayment(models.Model):
                                         if len(direct_je_line) <=1:
                                             lines += direct_je_line
                                             lines.with_context(amount=-line_id.reconcile_amount).reconcile()
+                                            lines.is_entry_reconciled = True
                                         elif len(direct_je_line) >1:
                                             my_list2 = []
                                             for i in range(len(direct_je_line)):
                                                 if line_id.id not in my_list2:
                                                     lines += line_id.invoice_id
                                                     lines.with_context(amount=-line_id.reconcile_amount).reconcile()
+                                                    lines.is_entry_reconciled = True
                                                 my_list2.append(line_id.id)
                                     my_list.append(line_id.id)
                     elif payment.payment_type == 'outbound':
@@ -211,12 +307,14 @@ class AccountPayment(models.Model):
                                     if len(direct_je_line) <=1:
                                         lines += direct_je_line
                                         lines.with_context(amount=line_id.reconcile_amount).reconcile()
+                                        lines.is_entry_reconciled = True
                                     elif len(direct_je_line) >1:
                                         my_list2 = []
                                         for i in range(len(direct_je_line)):
                                             if line_id.id not in my_list2:
                                                 lines += line_id.invoice_id
                                                 lines.with_context(amount=line_id.reconcile_amount).reconcile()
+                                                lines.is_entry_reconciled = True
                                             my_list2.append(line_id.id)
                                 my_list.append(line_id.id)
             # stop

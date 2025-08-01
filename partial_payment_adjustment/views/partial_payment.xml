@@ -8,16 +8,25 @@
             <field name="arch" type="xml">
                 <xpath expr='//sheet' position="inside">
                     <separator string="Invoices"/>
-                    <field name="payment_invoice_ids" readonly="state not in ('draft','to approve','approved')">
+                    <button name="update_reconcile_amount" type="object" string="Update Amount"/>
+                    <button name="update_entry" type="object" string="Update Entry" invisible="state not in ('posted')"/>
+                    <button name="action_post" type="object" string="Reconcile" invisible="state not in ('posted')"></button>
+                    <field name="payment_invoice_ids" nolabel="1">
                         <tree editable="bottom" create="false">
+<!--                            <field name="is_entry_reconciled" column_invisible="1"/>-->
+                            <field name="is_reconcile_amount"/>
+                            <field name="is_reconciled_en"/>
                             <field name="invoice_id" readonly="1" force_save="1"/>
                             <field name="date" readonly="1" force_save="1"/>
-                            <field name="amount_total" sum="amount_total"/>
-                            <field name="residual"/>
-                            <field name="reconcile_amount" sum="reconcile_amount"/>
+                            <field name="amount_total" sum="amount_total" readonly="is_reconciled_en"/>
+                            <field name="residual" readonly="is_reconciled_en"/>
+                            <field name="reconcile_amount" sum="reconcile_amount" readonly="is_reconciled_en"/>
                             <field name="currency_id" column_invisible="1"/>
                         </tree>
                     </field>
+                </xpath>
+                <xpath expr="//field[@name='amount']" position="replace">
+                    <field name="amount" readonly="state != 'draft'" force_save="1"/>
                 </xpath>
             </field>
         </record>

@@ -21,6 +21,9 @@ class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
     has_abnormal_deferred_dates = fields.Boolean()
+    is_entry_reconciled = fields.Boolean(string='Is Reconciled')
+
+
 
     @api.model
     def _reconcile_plan(self, reconciliation_plan):
