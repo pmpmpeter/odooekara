@@ -19,8 +19,7 @@
 								<t t-esc="o.date.strftime('%d-%b-%y') or ''" />
 							</div>
 							<div style="text-align:left;">
-								<span>
-									<strong>To:</strong>
+								<span><strong>To:</strong>
 								</span><br/>
 								<span>Branch Manager</span><br/>
 								<t t-if="o.journal_id.bank_id.name">
@@ -87,11 +86,28 @@
 							</thead>
 							<tbody>
 								<t t-set="sl_no" t-value="1" />
-								<t t-foreach="o.journal_ids" t-as="line">
+<!--								<t t-foreach="o.journal_ids" t-as="line">-->
+<!--									<tr>-->
+<!--										<td t-esc="sl_no" />-->
+<!--										<td>NEFT</td>-->
+<!--										<t t-set="slip" t-value="request.env['hr.payslip'].sudo().search([('number','=',line.payslip_ref)])"/>-->
+<!--&lt;!&ndash;										<t t-esc="slip"/>&ndash;&gt;-->
+<!--										<td t-esc="slip.employee_id.name" />-->
+<!--										<td-->
+<!--											t-esc="slip.employee_id.bank_account_id.bank_id.name if slip.employee_id.bank_account_id.bank_id.name else 'N/A'" />-->
+<!--										<td-->
+<!--											t-esc="slip.employee_id.bank_account_id.bank_id.bic if slip.employee_id.bank_account_id.bank_id.bic else 'N/A'" />-->
+<!--										<td-->
+<!--											t-esc="slip.employee_id.bank_account_id.acc_number if slip.employee_id.bank_account_id.acc_number else 'N/A'" />-->
+<!--										<td t-esc="line.amount_total" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>-->
+<!--									</tr>-->
+<!--									<t t-set="sl_no" t-value="sl_no + 1" />-->
+<!--								</t>-->
+								<t t-set="line" t-value="request.env['hr.payslip'].sudo().search([('batch_jv_ref','=',o.name)])"/>
+								<t t-foreach="line" t-as="slip">
 									<tr>
 										<td t-esc="sl_no" />
 										<td>NEFT</td>
-										<t t-set="slip" t-value="request.env['hr.payslip'].sudo().search([('number','=',line.payslip_ref)])"/>
 <!--										<t t-esc="slip"/>-->
 										<td t-esc="slip.employee_id.name" />
 										<td
@@ -100,7 +116,7 @@
 											t-esc="slip.employee_id.bank_account_id.bank_id.bic if slip.employee_id.bank_account_id.bank_id.bic else 'N/A'" />
 										<td
 											t-esc="slip.employee_id.bank_account_id.acc_number if slip.employee_id.bank_account_id.acc_number else 'N/A'" />
-										<td t-esc="line.amount_total" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+										<td t-esc="slip.move_id.amount_total" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
 									</tr>
 									<t t-set="sl_no" t-value="sl_no + 1" />
 								</t>

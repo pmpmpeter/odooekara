@@ -66,11 +66,13 @@ class AccountBatchJV(models.Model):
                 'is_lock':True
             })
 
-    @api.onchange('journal_ids')
+    @api.depends('journal_ids')
     def _compute_from_journal_ids(self):
         for rec in self:
             if rec.journal_ids:
                 rec.amount = sum(line.amount_total for line in rec.journal_ids)
+            else:
+                rec.amount = sum(line.amount_total for line in rec.consolidated_jv)
 
 
     @api.depends('journal_id')
@@ -152,10 +154,13 @@ class AccountBatchJV(models.Model):
                     if entry.state == 'posted':
                         entry.button_draft()  # Set to draft
                     entry.button_cancel()
+
                 rec.write({
                     'consolidated_jv':move,
                     'is_consolidated':True
                 })
+                for entry1 in rec.journal_ids:
+                    entry1.active = False
 
     def action_open_mail_wizard(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
@@ -222,18 +227,20 @@ class AccountBatchJV(models.Model):
 
         # Populate Data
         row = 1
-        for index, line in enumerate(self.journal_ids, start=1):
-            slip = self.env['hr.payslip'].sudo().search([('number','=',html2plaintext(line.narration))])
-            sheet.write(row, 0, index or '')
+        rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
+        c=1
+        for slip in rec:
+            row = row + 1
+            sheet.write(row, 0, c or '')
             sheet.write(row, 1, self.cheque_number or '')
-            sheet.write(row, 2, line.journal_id.bank_account_id.acc_number or '', date_format)
-            sheet.write(row, 3, line.amount_total or 0.0, amount_format)
+            sheet.write(row, 2, self.journal_id.bank_account_id.acc_number or '', date_format)
+            sheet.write(row, 3, slip.move_id.amount_total or 0.0, amount_format)
             sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
             sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
             sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
             sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
-            sheet.write(row, 8, line.towards or '')
-            row += 1
+            sheet.write(row, 8, self.towards or '')
+            c+=1
 
         sheet.set_column(0, 0, 5)
         sheet.set_column(1, 1, 15)
@@ -328,11 +335,11 @@ class AccountBatchJV(models.Model):
         row = row + 1
         salary_on_hold_total = 0
         insurance_total = 0
-        for rec in self.journal_ids:
+        # for rec in self.journal_ids:
+        #     row = row + 1
+        rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
+        for payslip in rec:
             row = row + 1
-            payslip = self.env['hr.payslip'].sudo().search([('number','=',html2plaintext(rec.narration))])
-            for r in payslip.line_ids:
-                print(r.name)
             parental_insurance = payslip.line_ids.filtered(lambda l: l.name == 'Other Recoveries/Parental insurance')
             food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
             salary_on_hold = payslip.line_ids.filtered(lambda l: l.name == 'Basic Salary')
@@ -396,6 +403,8 @@ class AccountMove(models.Model):
     cons_journal_id = fields.Many2one('account.batch.jv', ondelete='set null', copy=False,
         store=True, readonly=False)
     payslip_ref = fields.Char("Payslip No", compute='_compute_narration_clean', store=True)
+
+    payslip_link = fields.Many2many('hr.payslip',string='Payslip Link')
 
     @api.depends('narration')
     def _compute_narration_clean(self):

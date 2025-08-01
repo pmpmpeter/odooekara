@@ -66,8 +66,9 @@
                             <field name="consolidated_jv"
                                    readonly="is_lock"
                                    widget="many2many"
-                                   options="{'no_create': True}">
-                                <tree string="Consolidated JV" create="false" options="{'no_open':True,'no_create': True}">
+                                    options="{'no_open':True,'no_create': True,'no_edit': True}"
+                                    delete="0" create="0" edit="0">
+                                <tree string="Consolidated JV" create="false" edit="false" delete="0">
                                     <field name="name"/>
                                     <field name="ref"/>
                                      <field name="payslip_ref"/>
@@ -75,17 +76,19 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Batch Content" name="batch_content">
+                        <page string="Batch Content" name="batch_content" invisible="not journal_ids">
                             <field name="journal_ids"
                                    readonly="is_lock"
                                    force_save="1"
                                    widget="many2many"
-                                   options="{'no_create': True}">
-                                <tree string="Salary Journals" create="false" options="{'no_open':True,'no_create': True}">
+                                   options="{'no_open':True,'no_create': True,'no_edit': True}"
+                                   delete="0" create="0" edit="0">
+                                <tree string="Salary Journals" create="false" edit="false" delete="0">
                                     <field name="name"/>
                                     <field name="ref"/>
                                      <field name="payslip_ref"/>
                                     <field name="amount_total"/>
+                                    <field name="state"/>
                                 </tree>
                             </field>
                         </page>
@@ -140,6 +143,17 @@
                 </p>
             </field>
         </record>
+
+            <record model="ir.ui.view" id="hr_payslip_view_form_inherit4">
+        <field name="name">hr.payslip.inherit.form.inherit</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_id']" position="inside">
+                <field name="batch_jv_ref" string="Batch JV" widget="many2many_tags"/>
+            </xpath>
+        </field>
+    </record>
 
         <menuitem action="action_batch_jv_action" name="Batch Salary JV" id="menu_batch_jv" parent="account.menu_finance_entries_accounting_miscellaneous" sequence="18" groups="account.group_account_readonly"/>
 
