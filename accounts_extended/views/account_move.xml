@@ -357,7 +357,7 @@
                                        context="{
                                         'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                         'show_address': 1, 'default_is_company': True, 'show_vat': True}"
-                                       domain="[('company_id', 'in', (False, company_id)),('state','=','approve'),('is_customer','=',True)]"
+                                       domain="[('company_ids', 'in', company_id),('state','=','approve'),('is_customer','=',True)]"
                                        options="{'no_quick_create':True,'no_create': True,}"
                                        invisible="move_type not in ('out_invoice', 'out_refund','out_receipt')"
                                        readonly="state != 'draft'"/>
@@ -365,7 +365,7 @@
                                        context="{
                                         'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,
                                         'show_address': 1, 'default_is_company': True, 'show_vat': True}"
-                                       domain="[('company_id', 'in', (False, company_id)),('state','=','approve'),('is_vendor','=',True)]"
+                                       domain="[('company_ids', 'in', company_id),('state','=','approve'),('is_vendor','=',True)]"
                                        options="{'no_quick_create':True,'no_create': True,}"
                                        invisible="move_type not in ('in_invoice', 'in_refund','in_receipt')"
                                        readonly="state != 'draft'"/>
@@ -390,7 +390,7 @@
                             <field name="partner_shipping_id"
                                    groups="account.group_delivery_invoice_address"
                                    invisible="move_type not in ('out_invoice', 'out_refund', 'out_receipt')"
-                                   domain="[('state','=','approve')]"
+                                   domain="[('state','=','approve'),('company_ids', 'in', company_id)]"
                                    readonly="state != 'draft'"
                                    options="{'no_quick_create':True,'no_create': True,}"/>
                             <field name="quick_edit_total_amount" class="w-50"
