@@ -6,6 +6,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import html2plaintext
 from datetime import datetime
+from collections import defaultdict
 
 class AccountBatchJV(models.Model):
     _name = "account.batch.jv"
@@ -56,6 +57,8 @@ class AccountBatchJV(models.Model):
     is_lock = fields.Boolean(string='Locked')
     consolidated_jv = fields.One2many('account.move','cons_journal_id',string='Consolidated JV')
     is_consolidated = fields.Boolean(string='Is Consolidated')
+    company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
+
 
     def action_lock(self):
         for rec in self:
@@ -112,24 +115,38 @@ class AccountBatchJV(models.Model):
     def create_consolidated_jv(self):
         for rec in self:
             if rec.journal_ids:
-                all_lines = []
+                grouped_lines = {}
 
                 for journal_entry in rec.journal_ids:
                     for line in journal_entry.line_ids:
-                        all_lines.append((0, 0, {
-                            'account_id': line.account_id.id,
-                            'name': line.name,
-                            'debit': line.debit,
-                            'credit': line.credit,
-                            'partner_id': line.partner_id.id if line.partner_id else False,
-                            # 'analytic_account_id': line.analytic_account_id.id if line.analytic_account_id else False,
-                            'currency_id': line.currency_id.id if line.currency_id else False,
-                            'amount_currency': line.amount_currency,
-                        }))
+                        key = (
+                            line.account_id.id,
+                            line.partner_id.id if line.partner_id else None,
+                            line.currency_id.id if line.currency_id else None,
+                            line.name,
+                        )
+                        if key not in grouped_lines:
+                            grouped_lines[key] = {
+                                'account_id': line.account_id.id,
+                                'name': line.name,
+                                'debit': 0.0,
+                                'credit': 0.0,
+                                'partner_id': line.partner_id.id if line.partner_id else False,
+                                'currency_id': line.currency_id.id if line.currency_id else False,
+                                'amount_currency': 0.0,
+                            }
+
+                        grouped_lines[key]['debit'] += line.debit
+                        grouped_lines[key]['credit'] += line.credit
+                        grouped_lines[key]['amount_currency'] += line.amount_currency
+
+                all_lines = [(0, 0, line_vals) for line_vals in grouped_lines.values()]
+
+                # Create the new move
                 move = self.env['account.move'].sudo().create({
-                    'move_type':'entry',
-                    'journal_id':rec.journal_id.id,
-                    'line_ids':all_lines,
+                    'move_type': 'entry',
+                    'journal_id': rec.journal_id.id,
+                    'line_ids': all_lines,
                 })
                 for entry in rec.journal_ids:
                     if entry.state == 'posted':
@@ -258,6 +275,117 @@ class AccountBatchJV(models.Model):
             'target': 'self',
         }
 
+    def action_download_salary_jv(self):
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        sheet = workbook.add_worksheet('Salary JV')
+
+        # Formats
+        bold = workbook.add_format({'bold': True,})
+        bold1 = workbook.add_format({'bold': True,'fg_color':'#D3D3D3'})
+        input_style = workbook.add_format({'font_color': 'red'})
+        date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
+        amount_format1 = workbook.add_format({'bold': True, 'fg_color': '#D3D3D3','num_format': '#,##0.00'})
+        total_style = workbook.add_format({'num_format': '#,##0.00','align': 'right'})
+        total_style1 = workbook.add_format({'num_format': '#,##0.00','align': 'right','bold': True})
+        # Define Headers
+        # payslip_ref = html2plaintext(self.narration)
+        # payslip = self.env['hr.payslip'].sudo().search([('number', '=', str(payslip_ref))])
+        month = self.date.strftime('%B')  # Full month name: "May"
+        year = self.date.strftime('%Y')
+        total_salary_per_month = 0
+        basic_da_per_month = 0
+        table_headers = ['Account Head', 'DR', 'CR']
+        sheet.write(0, 0, self.company_id.name,bold)
+        sheet.write(2, 0, 'Employee Payroll', bold)
+        sheet.write(4, 0, 'Financial Year', bold)
+        sheet.write(4, 3, 'Month Year', bold)
+        sheet.write(4, 1, year,input_style)
+        sheet.write(4, 4, month + ' ' + year,input_style)
+        for col, header in enumerate(table_headers):
+            sheet.write(6, col, header, bold1)
+        amount_format = workbook.add_format({'num_format': '#,##0.00','align': 'right'})
+        #
+        # # Populate Data
+        row = 7
+        for index, line in enumerate(self.consolidated_jv.line_ids, start=1):
+            sheet.write(row, 0, line.account_id.name or '')
+            sheet.write(row, 1, line.debit or '0.0', amount_format)
+            sheet.write(row, 2, line.credit or '0.0', amount_format)
+            row += 1
+        row = row+1
+        sheet.write(row, 0, 'Total', bold1)
+        sheet.write(row, 1, sum(self.consolidated_jv.line_ids.mapped('debit')), amount_format1)
+        sheet.write(row, 2, sum(self.consolidated_jv.line_ids.mapped('credit')), amount_format1)
+        row = row+1
+
+        sheet.write(row, 0, 'Employee Name',bold)
+        sheet.write(row, 1, 'Employee ID',bold)
+        sheet.write(row, 2, 'Salary On Hold',bold)
+        sheet.write(row, 3, 'Parental Insurance',bold)
+        sheet.write(row, 4, 'Food Coupons', bold)
+        row = row + 1
+        salary_on_hold_total = 0
+        insurance_total = 0
+        for rec in self.journal_ids:
+            row = row + 1
+            payslip = self.env['hr.payslip'].sudo().search([('number','=',html2plaintext(rec.narration))])
+            for r in payslip.line_ids:
+                print(r.name)
+            parental_insurance = payslip.line_ids.filtered(lambda l: l.name == 'Other Recoveries/Parental insurance')
+            food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
+            salary_on_hold = payslip.line_ids.filtered(lambda l: l.name == 'Basic Salary')
+            print(parental_insurance,food_coupons,salary_on_hold,'jjjjjjjjjjjjjj')
+            sheet.write(row, 0, payslip.employee_id.name)
+            sheet.write(row, 1, payslip.employee_id.employee_number)
+            sheet.write(row, 2, salary_on_hold.total or 0.0, total_style)
+            sheet.write(row, 3, parental_insurance.total or 0.0,total_style)
+            sheet.write(row, 4, food_coupons.total or 0.0, total_style)
+            insurance_total+=parental_insurance.total
+            salary_on_hold_total+=salary_on_hold.total
+        rows = row+2
+        sheet.write(rows, 2, salary_on_hold_total,total_style)
+        sheet.write(rows, 3, insurance_total,total_style)
+        sheet.set_column(0, 0, 25)
+        sheet.set_column(1, 1, 15)
+        sheet.set_column(2, 2, 15)
+        sheet.set_column(3, 3, 20)
+        sheet.set_column(4, 4, 20)
+        sheet.set_column(5, 5, 25)
+        sheet.set_column(6, 6, 15)
+        sheet.set_column(7, 7, 30)
+        sheet.set_column(8, 8, 25)
+        sheet.set_column(9, 9, 20)
+        sheet.set_column(10, 10, 20)
+        sheet.set_column(11, 11, 25)
+        sheet.set_column(12, 12, 30)
+        sheet.set_column(13, 13, 40)
+
+        workbook.close()
+        output.seek(0)
+
+        # Encode File to Base64
+        file_data = base64.b64encode(output.read())
+        output.close()
+
+        # Create Attachment
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'type': 'binary',
+            'datas': file_data,
+            'store_fname': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': 'account.batch.jv',
+            'res_id': self.id,
+        })
+
+        # Return the attachment download URL
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }
 
 
 class AccountMove(models.Model):

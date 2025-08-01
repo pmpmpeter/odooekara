@@ -12,9 +12,7 @@ class HRPayslipInherit(models.Model):
             entry_id = []
             for rec in self:
                 ent = rec.move_id.id
-                print(ent,'ppppppppp')
                 entry_id.append(ent)
-            print(entry_id,'kkkkkkk')
             batch = self.env['account.batch.jv'].create({
                 'journal_id': self[0].journal_id.id,
                 'journal_ids':[(4, eid) for eid in entry_id]

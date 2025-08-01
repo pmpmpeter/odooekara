@@ -31,6 +31,7 @@
                         string="Send Mail"
                         type="object"
                         class="btn-primary"/>
+                    <button name="action_download_salary_jv" string="Batch Salary JV" type="object" invisible="not is_consolidated"/>
                     <field name="is_consolidated" invisible="1"/>
                     <button name="create_consolidated_jv" type="object" string="Create Consolidated JV" invisible="is_consolidated"/>
                     <button name="action_lock" string="Lock" type="object" invisible="is_lock"/>
