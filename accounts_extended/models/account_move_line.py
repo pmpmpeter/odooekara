@@ -96,6 +96,33 @@ class AccountMoveLine(models.Model):
                         budget_id = rec.move_id.crossovered_budget.crossovered_budget_line.filtered(lambda l:l.general_budget_id in budget_post)
                         rec.budget_id = [(6, 0, budget_id.ids)]
 
+    # def update_actual_aml_cur_figure_server_action(self):
+    #     record_ids = self._context.get('active_ids')
+    #     if record_ids:
+    #         month_list = []
+    #         entry_list = []
+    #         for rec in record_ids:
+    #             aml = self.env['account.move.line'].browse(rec)
+    #             move = aml.move_id
+    #             month_field = month_field_map.get(move.date.month)
+    #             if month_field not in month_list:
+    #                 if move not in entry_list:
+    #                     print(aml.budget_id, 'pppp')
+    #                     rec_id = aml.budget_id
+    #                     setattr(rec_id.crr_budget_line_id, month_field, 0)
+    #                     # print("Get attr", getattr(move.line_ids.budget_id.crr_budget_line_id, month_field))
+    #                     entry_list.append(move)
+    #             month_list.append(month_field)
+    #             move.update_budget_code_id()
+    #             if move.state in ['posted']:
+    #                 if move.budget_update == True:
+    #                     move.write({'budget_update': False})
+    #                     move.action_update_budget_cur_figure_add()
+    #                 else:
+    #                     move.action_update_budget_cur_figure_add()
+    #             if move.state not in ['posted']:
+    #                 move.action_update_budget_cur_figure_minus()
+
     def update_actual_aml_cur_figure_server_action(self):
         record_ids = self._context.get('active_ids')
         if record_ids:
@@ -109,16 +136,7 @@ class AccountMoveLine(models.Model):
                     if move not in entry_list:
                         print(aml.budget_id,'pppp')
                         rec_id = aml.budget_id
-                        setattr(rec_id.crr_budget_line_id, month_field, 0)
-                        # print("Get attr", getattr(move.line_ids.budget_id.crr_budget_line_id, month_field))
-                        entry_list.append(move)
-                month_list.append(month_field)
-                move.update_budget_code_id()
-                if move.state in ['posted']:
-                    if move.budget_update == True:
-                        move.write({'budget_update': False})
-                        move.action_update_budget_cur_figure_add()
-                    else:
-                        move.action_update_budget_cur_figure_add()
-                if move.state not in ['posted']:
-                    move.action_update_budget_cur_figure_minus()
+                        # setattr(rec_id.crr_budget_line_id, month_field, 0)
+                        balance = sum(aml.mapped('balance'))
+                        for line in aml.budget_id.crr_budget_line_id:
+                            setattr(line, month_field, getattr(line, month_field) + balance)
