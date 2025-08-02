@@ -10,23 +10,27 @@
                     <separator string="Invoices"/>
                     <button name="update_reconcile_amount" type="object" string="Update Amount"/>
                     <button name="update_entry" type="object" string="Update Entry" invisible="state not in ('posted')"/>
-                    <button name="action_post" type="object" string="Reconcile" invisible="state not in ('posted')"></button>
+                    <button name="reconcile_entry" type="object" string="Reconcile Entry"/>
                     <field name="payment_invoice_ids" nolabel="1">
                         <tree editable="bottom" create="false">
 <!--                            <field name="is_entry_reconciled" column_invisible="1"/>-->
                             <field name="is_reconcile_amount"/>
-                            <field name="is_reconciled_en"/>
+                            <field name="is_reconciled_en" column_invisible="1"/>
                             <field name="invoice_id" readonly="1" force_save="1"/>
                             <field name="date" readonly="1" force_save="1"/>
-                            <field name="amount_total" sum="amount_total" readonly="is_reconciled_en"/>
-                            <field name="residual" readonly="is_reconciled_en"/>
+                            <field name="amount_total" sum="amount_total" readonly="1"/>
+                            <field name="residual" readonly="1"/>
                             <field name="reconcile_amount" sum="reconcile_amount" readonly="is_reconciled_en"/>
                             <field name="currency_id" column_invisible="1"/>
+
                         </tree>
                     </field>
                 </xpath>
                 <xpath expr="//field[@name='amount']" position="replace">
                     <field name="amount" readonly="state != 'draft'" force_save="1"/>
+                </xpath>
+                <xpath expr="//field[@name='date']" position="before">
+                    <field name="unallocated_amount"/>
                 </xpath>
             </field>
         </record>

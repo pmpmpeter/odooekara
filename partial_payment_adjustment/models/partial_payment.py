@@ -27,10 +27,6 @@ class AccountPaymentInvoices(models.Model):
     #     pay_id.amount = total_amount
     #     print(pay_id.amount,'tttttttt')
 
-    def reconcile_entry(self):
-        for rec in self:
-            print('mmmmmmmmmmmmm')
-            rec.invoice_id.move_id.js_assign_outstanding_line(rec.invoice_id.id)
 
     # @api.onchange('reconcile_amount')
     # def reconcile_amount_lines_update(self):
@@ -49,7 +45,16 @@ class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
     payment_invoice_ids = fields.One2many('account.payment.invoice.line', 'payment_id', string="Customer Invoices")
-    unallocated_amount = fields.Monetary(string='Unallocated Amount')
+    unallocated_amount = fields.Monetary(string='Residual Amount')
+
+
+    @api.onchange('payment_invoice_ids','amount')
+    def compute_unallocated_amount(self):
+        for rec in self:
+            total = 0
+            if rec.payment_invoice_ids:
+                total = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
+                rec.unallocated_amount = rec.amount - total
 
     def update_reconcile_amount(self):
         for rec in self:
@@ -76,18 +81,40 @@ class AccountPayment(models.Model):
                     'is_reconcile_amount': False
                 })
 
+    def reconcile_entry(self):
+        for payment in self:
+            for line_id in payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
+                if not line_id.reconcile_amount:
+                    continue
+                if payment.payment_type == 'outbound':
+                    lines = payment.move_id.line_ids.filtered(
+                        lambda line: line.debit > 0 and line.account_id.account_type in ['asset_receivable',
+                                                                                         'liability_payable'])
+                    lines += line_id.invoice_id.move_id.line_ids.filtered(
+                        lambda line: line.account_id == lines[0].account_id and not line.reconciled)
+                    lines.with_context(amount=line_id.reconcile_amount).reconcile()
+                    lines.is_entry_reconciled = True
+
+                elif payment.payment_type == 'inbound':
+                    lines = payment.move_id.line_ids.filtered(
+                        lambda line: line.credit > 0 and line.account_id.account_type in ['asset_receivable',
+                                                                                          'liability_payable'])
+                    # pdb.set_trace()
+                    lines += line_id.invoice_id.move_id.line_ids.filtered(
+                        lambda line: line.account_id == lines[0].account_id and not line.reconciled)
+                    lines.with_context(amount=line_id.reconcile_amount).reconcile()
+                    lines.is_entry_reconciled = True
+
     def update_to_get_vendor_invoices(self):
         if self.payment_type in ['outbound'] and self.partner_type and self.partner_id and self.currency_id:
             self.payment_invoice_ids = [(6, 0, [])]
-            domain1 = [
+            domain1= [
                 ('partner_id', 'child_of', self.partner_id.id),
                 ('move_id.state', '=', 'posted'),
-                ('move_id.payment_state','in',('not_paid','partial')),
-                ('is_entry_reconciled', '=', False),
+                ('move_id.move_type', 'in', ['entry', 'in_invoice', 'in_refund']),
                 ('account_id.account_type', 'in', ['liability_payable']),
-                ('amount_residual', '!=', 0), ('credit', '!=', 0), ('company_id', '=', self.company_id.id),
+                ('amount_residual', '!=', 0),('credit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
-
             invoice_recs = self.env['account.move.line'].sudo().search(domain1)
             invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
             payment_invoice_values = []
@@ -96,16 +123,14 @@ class AccountPayment(models.Model):
             self.payment_invoice_ids = payment_invoice_values
         if self.payment_type in ['inbound'] and self.partner_type and self.partner_id and self.currency_id:
             self.payment_invoice_ids = [(6, 0, [])]
-            domain1 = [
+            domain1= [
                 ('partner_id', 'child_of', self.partner_id.id),
                 ('move_id.state', '=', 'posted'),
-                ('move_id.payment_state', 'in', ['not_paid', 'partial']),
-                ('is_entry_reconciled', '=', False),
+                ('move_id.move_type', 'in', ['entry', 'out_invoice', 'out_refund']),
                 ('account_id.account_type', 'in', ['asset_receivable']),
-                ('amount_residual', '!=', 0), ('debit', '!=', 0), ('company_id', '=', self.company_id.id),
+                ('amount_residual', '!=', 0),('debit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
             invoice_recs = self.env['account.move.line'].sudo().search(domain1)
-            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
             payment_invoice_values = []
             for invoice_rec in invoice_recs:
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
@@ -115,7 +140,6 @@ class AccountPayment(models.Model):
     @api.onchange('payment_type', 'partner_type', 'partner_id', 'currency_id')
     def _onchange_to_get_vendor_invoices(self):
         if self.payment_type in ['outbound'] and self.partner_type and self.partner_id and self.currency_id:
-
             self.payment_invoice_ids = [(6, 0, [])]
             domain1= [
                 ('partner_id', 'child_of', self.partner_id.id),
@@ -176,15 +200,15 @@ class AccountPayment(models.Model):
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
             self.payment_invoice_ids = payment_invoice_values
 
-    @api.onchange('payment_invoice_ids')
-    def reconcile_amount_onchange(self):
-        for rec in self:
-            total = 0
-            for pay in rec.payment_invoice_ids:
-                total += pay.reconcile_amount
-            if rec.amount < total:
-                raise UserError(
-                    _("Alert!! You are trying to allocate an amount that exceeds the payment amount."))
+    # @api.onchange('payment_invoice_ids')
+    # def reconcile_amount_onchange(self):
+    #     for rec in self:
+    #         total = 0
+    #         for pay in rec.payment_invoice_ids:
+    #             total += pay.reconcile_amount
+    #         if rec.amount < total:
+    #             raise UserError(
+    #                 _("Alert!! You are trying to allocate an amount that exceeds the payment amount."))
 
     @api.onchange('amount')
     def amount_onchange(self):
@@ -216,27 +240,15 @@ class AccountPayment(models.Model):
                 total_reconcile_line_amount = 0
                 total_payment_available = total_payment_amount_main + total_reconcile_line_amount
                 # pdb.set_trace()
-                if total_payment_available != total_reconcile_amount:
-                    raise UserError(
-                        _("The sum of the reconcile amount of listed invoices is not equal to payment amount."))
+                # if total_payment_available != total_reconcile_amount:
+                #     raise UserError(
+                #         _("The sum of the reconcile amount of listed invoices is not equal to payment amount."))
                 if not payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
                     raise UserError(
                             _("Kindly update the amount to reconcile for each transactions."))
 
             if payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount <= 0):
                 payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount <= 0).sudo().unlink()
-
-            # for line_id in payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0 and line.amount_total >= line.reconcile_amount):
-            #     # if not line_id.reconcile_amount:
-            #     #     continue
-            #     # pdb.set_trace()
-            #         # pdb.set_trace()
-            #     lines = payment.move_id.line_ids.filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
-            #     lines += line_id.invoice_id.filtered(
-            #             lambda line: line.account_id == lines[0].account_id and not line.reconciled)
-            #         # pdb.set_trace()
-            #     lines.with_context(amount=line_id.reconcile_amount).reconcile()
-            #     print("Case1111111111111111111111111111111", lines)
             for line_id in payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
                 if not line_id.reconcile_amount:
                     continue
