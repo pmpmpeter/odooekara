@@ -120,8 +120,11 @@ class AccountCURReportWizard(models.TransientModel):
                     account_journal aj ON aml.journal_id = aj.id
                 JOIN 
                     account_account aa ON aml.account_id = aa.id
+                JOIN 
+                    account_account jaa ON aj.default_account_id = jaa.id                    
                 WHERE 
                     aj.type IN ('bank', 'cash')
+                    AND jaa.account_type != 'liability_credit_card'
                     AND aml.parent_state != 'cancel' 
                     AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
                     AND aml.date BETWEEN %s AND %s
@@ -157,7 +160,7 @@ class AccountCURReportWizard(models.TransientModel):
                 from account_move_line aml
                 join account_account aa on (aa.id = aml.account_id)
                 
-                where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state != 'cancel' and aa.code NOT IN ('100203','100204','100202','100801')
+                where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state = 'posted' and aa.code NOT IN ('100203','100204','100202','100801')
             """
         # Add company_id condition if it exists
         if self.company_id:
@@ -177,7 +180,7 @@ class AccountCURReportWizard(models.TransientModel):
             FROM account_move_line aml
             JOIN account_account aa ON aa.id = aml.account_id
             WHERE aa.account_type = 'asset_cash'
-                AND aml.parent_state != 'cancel' 
+                AND aml.parent_state = 'posted' 
               AND aml.date < %s
               AND aa.code NOT IN ('100203','100204','100202','100801')
         """
@@ -225,7 +228,7 @@ class AccountCURReportWizard(models.TransientModel):
             JOIN account_account aa ON aa.id = aml.account_id
             WHERE aa.account_type = 'asset_cash'
               AND aml.date <=%s
-              AND aml.parent_state != 'cancel' 
+              AND aml.parent_state = 'posted' 
               AND aa.code NOT IN ('100203','100204','100202','100801')
         """
 
@@ -310,12 +313,14 @@ class AccountCURReportWizard(models.TransientModel):
                     account_journal aj ON aml.journal_id = aj.id
                     JOIN 
                     account_account aa ON aml.account_id = aa.id
+                    JOIN account_account jaa ON aj.default_account_id = jaa.id
 
                     WHERE aml.account_id = (
                         SELECT id FROM account_account WHERE code = %s LIMIT 1
                     )
                     AND aj.type IN ('bank', 'cash')
-                    AND aml.parent_state != 'cancel'
+                    AND jaa.account_type != 'liability_credit_card'
+                    AND aml.parent_state = 'posted'
                     AND aa.account_type NOT IN ('asset_cash') and aa.code NOT IN ('100203','100204','100202','100801')
                     AND aml.date BETWEEN %s AND %s
                     AND aml.company_id = %s
@@ -355,12 +360,14 @@ class AccountCURReportWizard(models.TransientModel):
                                 account_journal aj ON aml.journal_id = aj.id
                                 JOIN 
                                 account_account aa ON aml.account_id = aa.id
+                                JOIN account_account jaa ON aj.default_account_id = jaa.id  -- join to journal's account
 
                                 WHERE aml.account_id = (
                                     SELECT id FROM account_account WHERE code = %s LIMIT 1
                                 )
                                 AND aj.type IN ('bank', 'cash')
-                                AND aml.parent_state != 'cancel' 
+                                AND jaa.account_type != 'liability_credit_card'
+                                AND aml.parent_state = 'posted' 
                                 AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
                                 AND aml.date BETWEEN %s AND %s
                                 AND aml.company_id = %s
@@ -380,6 +387,8 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
         row_num += 2
         for account in opex_accounts:
+            print(account['account_name']['en_US'],'jjjj')
+            print( account['total_debit'],'oooooo')
             sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
             sheet.write(row_num, 1, account['account_code'], value_format1)
             sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
@@ -388,25 +397,26 @@ class AccountCURReportWizard(models.TransientModel):
             row_num += 2
             self.env.cr.execute("""
                             SELECT
-                                aml.name AS line_name,
-                                rp.name AS partner_name,
-                                SUM(aml.debit) AS line_debit
-                                FROM account_move_line aml
-                                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
-                                JOIN 
-                                account_journal aj ON aml.journal_id = aj.id
-                                JOIN 
-                                account_account aa ON aml.account_id = aa.id
-
-                                WHERE aml.account_id = (
-                                    SELECT id FROM account_account WHERE code = %s LIMIT 1
-                                )
-                                AND aj.type IN ('bank', 'cash')
-                                AND aml.parent_state != 'cancel'
-                                AND aa.account_type NOT IN ('asset_cash','liability_credit_card') and aa.code NOT IN ('100203','100204','100202','100801')
-                                AND aml.date BETWEEN %s AND %s
-                                AND aml.company_id = %s
-                                GROUP BY aml.name, rp.name
+                                        aml.name AS line_name,
+                                        rp.name AS partner_name,
+                                        SUM(aml.debit) AS line_debit
+                                    FROM account_move_line aml
+                                    LEFT JOIN res_partner rp ON aml.partner_id = rp.id
+                                    JOIN account_journal aj ON aml.journal_id = aj.id
+                                    JOIN account_account aa ON aml.account_id = aa.id
+                                    JOIN account_account jaa ON aj.default_account_id = jaa.id  -- join to journal's account
+                                    
+                                    WHERE aml.account_id = (
+                                        SELECT id FROM account_account WHERE code = %s LIMIT 1
+                                    )
+                                    AND aj.type IN ('bank', 'cash')
+                                    AND jaa.account_type != 'liability_credit_card'
+                                    AND aml.parent_state = 'posted'
+                                    AND aa.account_type NOT IN ('asset_cash','liability_credit_card')
+                                    AND aa.code NOT IN ('100203','100204','100202','100801')
+                                    AND aml.date BETWEEN %s AND %s
+                                    AND aml.company_id = %s
+                                    GROUP BY aml.name, rp.name
                         """, (account['account_code'], self.start_date, self.end_date, self.company_id.id))
             detail_records = self.env.cr.dictfetchall()
 
