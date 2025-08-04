@@ -340,9 +340,9 @@ class AccountBatchJV(models.Model):
         rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
         for payslip in rec:
             row = row + 1
-            parental_insurance = payslip.line_ids.filtered(lambda l: l.name == 'Other Recoveries/Parental insurance')
+            parental_insurance = payslip.line_ids.filtered(lambda l: l.code == 'Other_recoveries')
             food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
-            salary_on_hold = payslip.line_ids.filtered(lambda l: l.name == 'Basic Salary')
+            salary_on_hold = payslip.line_ids.filtered(lambda l: l.code == 'SOA')
             print(parental_insurance,food_coupons,salary_on_hold,'jjjjjjjjjjjjjj')
             sheet.write(row, 0, payslip.employee_id.name)
             sheet.write(row, 1, payslip.employee_id.employee_number)

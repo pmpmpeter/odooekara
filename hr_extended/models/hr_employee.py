@@ -343,7 +343,7 @@ class HrEmployeeSmartButton(models.Model):
     business_processes = fields.Char(string="Business Processes")
 
     # base fields
-    work_location_id = fields.Many2one('location.master', 'Work Location', related="applicant_id.locations_id",
+    work_location_id = fields.Many2one('location.master', 'Work Location',
                                        readonly=False,
                                        domain="[('company_id', '=', company_id)]")
 
