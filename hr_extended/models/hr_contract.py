@@ -165,8 +165,13 @@ class HrContract(models.Model):
                     record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
 
                     # Calculate Provident Fund
+                    # if record.provident_fund_applicable == 'yes':
+                    #     record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
                     if record.provident_fund_applicable == 'yes':
-                        record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
+                        if record.monthly_fixed_salary < 15000:
+                            record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                        else:
+                            record.pf_employer_per_month = round(15000 * 0.12)
                     record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                     # Calculate ESIC
@@ -234,8 +239,13 @@ class HrContract(models.Model):
                     record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
 
                     # Calculate Provident Fund
+                    # if record.provident_fund_applicable == 'yes':
+                    #     record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
                     if record.provident_fund_applicable == 'yes':
-                        record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
+                        if record.monthly_fixed_salary < 15000:
+                            record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                        else:
+                            record.pf_employer_per_month = round(15000 * 0.12)
                     record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                     # Calculate ESIC
@@ -297,8 +307,13 @@ class HrContract(models.Model):
                 record.special_allowance_per_month = round(record.special_allowance_per_annum / 12)
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
 
+                # if record.provident_fund_applicable == 'yes':
+                #     record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # ESIC Calculation
@@ -372,9 +387,13 @@ class HrContract(models.Model):
                 record.sub_total_a_per_month = round(record.sub_total_a_per_annum / 12)
 
                 # Provident Fund Calculation
+                # if record.provident_fund_applicable == 'yes':
+                #     record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
-                    print(record.basic_da_per_month,'nnnnnnnnnnnnnnnn')
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 # ESIC Calculation
@@ -494,8 +513,13 @@ class HrContract(models.Model):
                 profession_tax = 200 if (
                                                 record.sub_total_a_per_month + record.statutory_bonus_per_month + record.pf_employer_per_month) > 15000 else 0
 
+                # if record.provident_fund_applicable == 'yes':
+                #     record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
                 if record.provident_fund_applicable == 'yes':
-                    record.pf_employer_per_month = round(record.basic_da_per_month * 0.12)
+                    if record.monthly_fixed_salary < 15000:
+                        record.pf_employer_per_month = round(record.monthly_fixed_salary * 0.12)
+                    else:
+                        record.pf_employer_per_month = round(15000 * 0.12)
                 record.pf_employer_per_annum = record.pf_employer_per_month * 12
 
                 record.indicative_take_home_salary = math.ceil(
