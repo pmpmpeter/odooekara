@@ -44,6 +44,13 @@ class HolidaysRequest(models.Model):
                         "You must select a Leave Subcategory because the selected Leave Type has subcategories."
                     ))
 
+            if record.date_from:
+                leave_date = record.date_from.date()
+                today_date = fields.Date.today()
+
+                if leave_date < today_date:
+                    continue
+
             if record.leave_subtype_id and record.date_from:
                 leave_date = record.date_from.date()
                 today_date = fields.Date.today()

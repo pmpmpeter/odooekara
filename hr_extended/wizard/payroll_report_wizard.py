@@ -110,7 +110,7 @@ class PayrollReportWizard(models.TransientModel):
         sheet.set_row(3,28)
         # Headers
         headers = [
-            "Sl #", "Employee", "Empl. No.", "UAN", "Date of Joining",
+            "Sl #", "Employee","Employment Status", "Empl. No.", "UAN", "Date of Joining",
             "Last Working Day", "Location", "Annual Compensation",
             "Days Paid \nThis Month"]
         if self.report_based_on == 'batch':
@@ -285,17 +285,19 @@ class PayrollReportWizard(models.TransientModel):
         for idx, slip in enumerate(payslips, start=1):
             col = 0
             resig_date = self.env['hr.resignation'].search([('employee_id','=',slip.employee_id.id),('state','=','hr_approved')])
+            state_field = slip.employee_id._fields['state']
+            state_label = dict(state_field.selection).get(slip.employee_id.state, '')
             sheet.write(row, col, idx, char_format)  # Sl #
             sheet.write(row, col + 1, slip.employee_id.name, char_format)  # Employee
-            # sheet.write(row, col + 2, (slip.employee_id.state).capitalize(),char_format)  # Employment Status
-            sheet.write(row, col + 2, slip.employee_id.employee_number if slip.employee_id.employee_number else '', char_format)  # Employee No.
-            sheet.write(row, col + 3, slip.employee_id.uan_no if slip.employee_id.uan_no else '', char_format)  # UAN
-            sheet.write(row, col + 4, datetime.strftime((slip.employee_id.joining_date),"%d-%m-%Y") if slip.employee_id.joining_date else '' , char_format)  # Date of Joining
+            sheet.write(row, col + 2, state_label,char_format)  # Employment Status
+            sheet.write(row, col + 3, slip.employee_id.new_emp_no if slip.employee_id.new_emp_no else '', char_format)  # Employee No.
+            sheet.write(row, col + 4, slip.employee_id.uan_no if slip.employee_id.uan_no else '', char_format)  # UAN
+            sheet.write(row, col + 5, datetime.strftime((slip.employee_id.joining_date),"%d-%m-%Y") if slip.employee_id.joining_date else '' , char_format)  # Date of Joining
             # sheet.write(row, col + 6, datetime.strftime((resig_date.hr_approved_reliving_date),"%d-%m-%Y") if resig_date else '', char_format)  # Date of Resignation Acceptance
-            sheet.write(row, col + 5, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
-            sheet.write(row, col + 6, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
-            sheet.write(row, col + 7, slip.contract_id.total_ctc_annum, data_format)  # Annual Compensation
-            sheet.write(row, col + 8, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
+            sheet.write(row, col + 6, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
+            sheet.write(row, col + 7, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
+            sheet.write(row, col + 8, slip.contract_id.total_ctc_annum, data_format)  # Annual Compensation
+            sheet.write(row, col + 9, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
             sheet.write(row, col + comp_col,'', data_format) 
             row += 1
 
