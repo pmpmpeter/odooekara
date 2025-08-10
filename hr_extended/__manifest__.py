@@ -55,6 +55,7 @@
         'wizard/mail_activity_schedule_views.xml',
         'wizard/manpower_budget.xml',
         'wizard/salary_jv_wizard.xml',
+        'wizard/professional_tax_wizard.xml',
         'views/hr_config.xml',
         'views/recruitment_config.xml',
         'views/employee_indent_view.xml',

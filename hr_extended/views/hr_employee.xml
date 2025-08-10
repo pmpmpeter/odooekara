@@ -232,7 +232,7 @@
                         name="%(hr_extended.appointment_order_form_template)d" class="btn-primary" invisible="1"/>
             </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="before">
-                <field name="employee_number" invisible="1" string="Employee Number"/>
+                <field name="employee_number" invisible="0" string="Employee Number"/>
                 <field name="create_date" string="Created On"/>
                 <field name="employee" readonly="True"/>
             </xpath>
