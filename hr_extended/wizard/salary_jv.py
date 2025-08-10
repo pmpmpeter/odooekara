@@ -71,7 +71,12 @@ class SalaryReportWizard(models.TransientModel):
 
         # Title
         sheet.merge_range('A1:Z1','ENTITY - '+self.env.company.name, title_format)
-        sheet.merge_range('A2:Z2', f'Salary Entry for {datetime.now().strftime("%B %Y")}', title_format)
+        if self.report_based_on == 'batch':
+            sheet.merge_range('A2:E2','Salary Entry for Batch'+' - '+self.batch_id.name , title_format)
+        elif self.report_based_on =='date':
+            sheet.merge_range('A2:E2','Salary Entry From'+' '+datetime.strftime(self.from_date,"%d-%m-%Y")+' '+'To' +' ' +datetime.strftime(self.to_date,"%d-%m-%Y"),title_format)
+        elif elf.report_based_on == 'department':
+            sheet.merge_range('A2:Z2', f'Salary Entry for Department {self.department_id.name}', title_format)
         sheet.set_column('A:A',7)
         sheet.set_column('B:C', 20)
         sheet.set_column('D:E',10)
