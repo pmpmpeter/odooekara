@@ -6,3 +6,4 @@ from . import balance_leaves
 from . import manpower_budget
 from . import payroll_report_wizard
 from . import salary_jv
+from . import professional_tax_report
