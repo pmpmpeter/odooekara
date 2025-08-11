@@ -116,7 +116,7 @@ class PayrollReportWizard(models.TransientModel):
         # Headers
         headers = [
             "Sl #", "Employee","Employment Status", "Empl. No.", "UAN", "Date of Joining",
-            "Last Working Day", "Location", "Annual Compensation",
+            "Last Working Day", "Location", "Annual Fixed Compensation",
             "Days Paid \nThis Month"]
         if self.report_based_on == 'batch':
             payslips = self.env['hr.payslip'].search([
