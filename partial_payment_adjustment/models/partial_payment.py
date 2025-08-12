@@ -233,6 +233,17 @@ class AccountPayment(models.Model):
                     for line in rec.payment_invoice_ids:
                         line.reconcile_amount = 0
 
+    def action_draft(self):
+        super(AccountPayment, self).action_draft()
+        for payment in self:
+            if payment.payment_invoice_ids:
+                if payment.is_advance_payment:
+                    total_reconcile_amount = sum(payment.payment_invoice_ids.mapped('reconcile_amount'))
+                    payment.unallocated_amount += total_reconcile_amount
+                if not payment.is_advance_payment and payment.source_payment:
+                    total_reconcile_amount = sum(payment.payment_invoice_ids.mapped('reconcile_amount'))
+                    payment.source_payment.unallocated_amount += total_reconcile_amount
+
     def action_post(self):
         super(AccountPayment, self).action_post()
         for payment in self:
