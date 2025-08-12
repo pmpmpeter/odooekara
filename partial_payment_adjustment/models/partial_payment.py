@@ -47,6 +47,7 @@ class AccountPayment(models.Model):
     payment_invoice_ids = fields.One2many('account.payment.invoice.line', 'payment_id', string="Customer Invoices")
     unallocated_amount = fields.Monetary(string='Residual Amount')
     amount_partial_total = fields.Monetary(string='Total Amount')
+    is_advance_payment = fields.Booelan(string='IS Advance Paymnet')
 
     @api.onchange('payment_invoice_ids','amount')
     def compute_unallocated_amount(self):
@@ -54,7 +55,7 @@ class AccountPayment(models.Model):
             total = 0
             if rec.payment_invoice_ids:
                 total = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
-                rec.unallocated_amount = rec.amount - total
+                rec.unallocated_amount = rec.advance_partial_total - rec.amount
 
     def update_reconcile_amount(self):
         for rec in self:

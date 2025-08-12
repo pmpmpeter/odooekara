@@ -30,8 +30,8 @@
                     <field name="amount" readonly="state != 'draft'" force_save="1"/>
                 </xpath>
                 <xpath expr="//field[@name='date']" position="before">
-                    <field name="amount_partial_total" readonly="1"/>
-                    <field name="unallocated_amount" readonly="1"/>
+                    <field name="amount_partial_total" readonly="1" invisible="not is_advance_payment"/>
+                    <field name="unallocated_amount" readonly="1" invisible="not is_advance_payment"/>
                 </xpath>
             </field>
         </record>
