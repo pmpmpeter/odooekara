@@ -90,7 +90,7 @@ class AccountPayment(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'name': 'Reference Payments',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'res_model': 'account.payment',
             'domain': [('id', 'in', source.ids)],
         }
@@ -359,6 +359,7 @@ class AccountPayment(models.Model):
                         self.source_payment.write({
                             'unallocated_amount':total
                         })
-                        if self.source_payment.unallocated_amount <0:
-                            self.advance_payment_done = True
+                        if self.source_payment.unallocated_amount <=0:
+                            self.source_payment.advance_payment_done = True
+
             # stop
