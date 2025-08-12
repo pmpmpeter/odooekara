@@ -17,15 +17,14 @@ class AccountPaymentInvoices(models.Model):
     is_reconcile_amount = fields.Boolean(string='Reconcile Amount')
     is_reconciled_en = fields.Boolean(string="Reconciled")
 
-    # @api.onchange('reconcile_amount')
-    # def reconcile_amount_lines_update(self):
-    #     total_amount = 0
-    #     pay_id = self.payment_id._origin
-    #     for rec in self.payment_id.payment_invoice_ids:
-    #         total_amount += rec.reconcile_amount
-    #     print(pay_id,total_amount,'bbbbb')
-    #     pay_id.amount = total_amount
-    #     print(pay_id.amount,'tttttttt')
+    @api.onchange('reconcile_amount')
+    def reconcile_amount_lines_update(self):
+        total_amount = 0
+        pay_id = self.payment_id._origin
+        for rec in self.payment_id.payment_invoice_ids:
+            total_amount += rec.reconcile_amount
+        print(pay_id,total_amount,'bbbbb')
+        pay_id.amount = total_amount
 
 
     # @api.onchange('reconcile_amount')
