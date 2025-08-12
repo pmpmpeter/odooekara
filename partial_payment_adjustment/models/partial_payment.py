@@ -10,10 +10,10 @@ class AccountPaymentInvoices(models.Model):
     invoice_id = fields.Many2one('account.move.line', string='Invoice')
     date = fields.Date(string='Date', related='invoice_id.date', store=True)
     payment_id = fields.Many2one('account.payment', string='Payment')
-    currency_id = fields.Many2one(related='invoice_id.currency_id')
-    reconcile_amount = fields.Monetary(string='Reconcile Amount')
-    amount_total = fields.Monetary(string="Amount Total", related='invoice_id.move_id.amount_total')
-    residual = fields.Monetary(string="Residual Amount", related='invoice_id.amount_residual_currency')
+    currency_id = fields.Many2one(related='invoice_id.currency_id',tracking=True)
+    reconcile_amount = fields.Monetary(string='Reconcile Amount',tracking=True)
+    amount_total = fields.Monetary(string="Amount Total", related='invoice_id.move_id.amount_total',tracking=True)
+    residual = fields.Monetary(string="Residual Amount", related='invoice_id.amount_residual_currency',tracking=True)
     is_reconcile_amount = fields.Boolean(string='Reconcile Amount')
     is_reconciled_en = fields.Boolean(string="Reconciled")
 
@@ -46,16 +46,19 @@ class AccountPayment(models.Model):
 
     payment_invoice_ids = fields.One2many('account.payment.invoice.line', 'payment_id', string="Customer Invoices")
     unallocated_amount = fields.Monetary(string='Residual Amount')
-    amount_partial_total = fields.Monetary(string='Total Amount')
-    is_advance_payment = fields.Booelan(string='IS Advance Paymnet')
+    amount_partial_total = fields.Monetary(string='Advance Amount')
+    is_advance_payment = fields.Boolean(string='Is Advance Payment')
+    source_payment = fields.Many2one('account.payment',string='Source Payment')
+    advance_payment_done = fields.Boolean(string='Advance Payment Done')
 
-    @api.onchange('payment_invoice_ids','amount')
+
+    @api.onchange('payment_invoice_ids','amount','amount_partial_total')
     def compute_unallocated_amount(self):
         for rec in self:
             total = 0
             if rec.payment_invoice_ids:
                 total = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
-                rec.unallocated_amount = rec.advance_partial_total - rec.amount
+                rec.unallocated_amount = rec.amount_partial_total - rec.amount
 
     def update_reconcile_amount(self):
         for rec in self:
@@ -63,6 +66,7 @@ class AccountPayment(models.Model):
             total_reconcile = sum(abs(line.residual) for line in invoice_ids)
             rec.amount = total_reconcile
             rec.amount_onchange_manual()
+            rec.compute_unallocated_amount()
 
     def update_entry(self):
         for rec in self:
@@ -127,7 +131,7 @@ class AccountPayment(models.Model):
             domain1= [
                 ('partner_id', 'child_of', self.partner_id.id),
                 ('move_id.state', '=', 'posted'),
-                ('move_id.move_type', 'in', ['entry', 'out_invoice', 'out_refund']),
+                ('move_id.move_type', 'in', ['out_invoice', 'out_refund']),
                 ('account_id.account_type', 'in', ['asset_receivable']),
                 ('amount_residual', '!=', 0),('debit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
@@ -137,7 +141,6 @@ class AccountPayment(models.Model):
                 payment_invoice_values.append([0, 0, {'invoice_id': invoice_rec.id}])
             self.payment_invoice_ids = payment_invoice_values
 
-
     @api.onchange('payment_type', 'partner_type', 'partner_id', 'currency_id')
     def _onchange_to_get_vendor_invoices(self):
         if self.payment_type in ['outbound'] and self.partner_type and self.partner_id and self.currency_id:
@@ -145,7 +148,7 @@ class AccountPayment(models.Model):
             domain1= [
                 ('partner_id', 'child_of', self.partner_id.id),
                 ('move_id.state', '=', 'posted'),
-                ('move_id.move_type', 'in', ['entry', 'in_invoice', 'in_refund']),
+                ('move_id.move_type', 'in', ['in_invoice', 'in_refund']),
                 ('account_id.account_type', 'in', ['liability_payable']),
                 ('amount_residual', '!=', 0),('credit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
@@ -330,4 +333,12 @@ class AccountPayment(models.Model):
                                                 lines.is_entry_reconciled = True
                                             my_list2.append(line_id.id)
                                 my_list.append(line_id.id)
+            if not self.is_advance_payment:
+                    if self.source_payment:
+                        total = self.source_payment.unallocated_amount - self.amount
+                        self.source_payment.write({
+                            'unallocated_amount':total
+                        })
+                        if self.source_payment.unallocated_amount <0:
+                            self.advance_payment_done = True
             # stop
