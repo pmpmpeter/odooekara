@@ -70,8 +70,8 @@ class RequestApproval(models.TransientModel):
             for line in record.crossovered_budget_line:
                 if not line.analytic_account_id and line.user_type == 'odoo':
                     raise UserError('Kindly add a Analytic Account for a Budget Line')
-                if line.planned_amount <= 0:
-                    raise UserError('Warning !! Planned Amount Should be greater than Zero')
+                # if line.planned_amount <= 0:
+                #     raise UserError('Warning !! Planned Amount Should be greater than Zero')
 
         record_name = record.display_name or _("this object")
         model_display_name = self.env['ir.model'].sudo().search([('model', '=', model_name)], limit=1).name or _("Unknown Model")
