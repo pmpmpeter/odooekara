@@ -39,7 +39,8 @@
                 </xpath>
                 <xpath expr="//field[@name='partner_bank_id']" position="after">
                         <field name="source_payment" invisible="is_advance_payment"
-                           domain="[('is_advance_payment', '=', True),('partner_id','=',partner_id),('advance_payment_done','=',False),('state','=','posted')]"/>
+                           domain="[('is_advance_payment', '=', True),('partner_id','=',partner_id),('advance_payment_done','=',False),('state','=','posted')]"
+                            readonly="state in ('approved','posted')"/>
                 </xpath>
             </field>
         </record>
