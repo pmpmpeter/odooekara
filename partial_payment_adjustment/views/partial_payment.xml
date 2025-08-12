@@ -6,6 +6,12 @@
             <field name="model">account.payment</field>
             <field name="inherit_id" ref="account.view_account_payment_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//div[@class='oe_button_box']" position="inside">
+                    <div class="oe_button_box" name="button_box">
+                            <button name="action_payments_advances"
+                                string="Reference Payments" type="object" class="oe_stat_button" invisible="not is_advance_payment"/>
+                    </div>
+                </xpath>
                 <xpath expr='//sheet' position="inside">
                     <separator string="Invoices"/>
                     <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted')"/>

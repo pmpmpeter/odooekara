@@ -85,6 +85,16 @@ class AccountPayment(models.Model):
                     'is_reconcile_amount': False
                 })
 
+    def action_payments_advances(self):
+        source = self.env['account.payment'].sudo().search([('source_payment', '=', self.id)])
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reference Payments',
+            'view_mode': 'tree',
+            'res_model': 'account.payment',
+            'domain': [('id', 'in', source.ids)],
+        }
+
     def reconcile_entry(self):
         for payment in self:
             for line_id in payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
