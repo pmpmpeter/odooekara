@@ -130,7 +130,7 @@
             </xpath>
             <xpath expr="//button[@name='action_draft']" position="replace">
                 <button name="action_draft" string="Reset To Draft" type="object" class="btn btn-secondary"
-                        invisible="state != 'cancel' or x_has_request_approval" groups="account.group_account_invoice"
+                        invisible="not show_reset_to_draft_button" groups="accounts_extended.group_cancel_accounting_entry"
                         data-hotkey="w"/>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="after">

@@ -331,8 +331,8 @@ class AccountMoveInherit(models.Model):
                 rec.button_draft()
 
             # Ensure record is in a valid state
-            if rec.state not in ['draft', 'to approve']:
-                raise UserError(_("Only draft or to approved journal entries can be cancelled."))
+            # if rec.state not in ['draft', 'approved']:
+            #     raise UserError(_("Only draft or to approved journal entries can be cancelled."))
 
             # Update approval status
             model_name = 'account.move'
