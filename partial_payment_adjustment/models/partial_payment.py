@@ -264,9 +264,9 @@ class AccountPayment(models.Model):
                 total_reconcile_line_amount = 0
                 total_payment_available = total_payment_amount_main + total_reconcile_line_amount
                 # pdb.set_trace()
-                if total_payment_available != total_reconcile_amount:
-                    raise UserError(
-                        _("The sum of the reconcile amount of listed invoices is not equal to payment amount."))
+                # if total_payment_available != total_reconcile_amount:
+                #     raise UserError(
+                #         _("The sum of the reconcile amount of listed invoices is not equal to payment amount."))
                 if not payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
                     raise UserError(
                             _("Kindly update the amount to reconcile for each transactions."))

@@ -39,7 +39,7 @@
                     <field name="unallocated_amount" readonly="1" invisible="not is_advance_payment" force_save="1"/>
                 </xpath>
                 <xpath expr="//field[@name='payment_purchase_id']" position="after">
-                    <field name="is_advance_payment" invisible="0" readonly="state in ('approved','posted')"/>
+                    <field name="is_advance_payment" invisible="1" readonly="state in ('approved','posted')"/>
                     <field name="advance_payment_done" invisible="1"/>
                     <field name="amount_partial_total" invisible="not is_advance_payment" readonly="state in ('approved','posted')"/>
                 </xpath>
