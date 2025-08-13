@@ -346,6 +346,12 @@ class HrEmployeeSmartButton(models.Model):
     work_location_id = fields.Many2one('location.master', 'Work Location',
                                        readonly=False,
                                        domain="[('company_id', '=', company_id)]")
+    employee_status_payroll = fields.Selection([
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('onnotice', 'On-Notice'),
+        ('resigned', 'Resigned'),
+        ('na', 'NA')], string="Employee Status")
 
     @api.depends('name', 'work_email')
     def _compute_employee(self):

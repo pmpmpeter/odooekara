@@ -233,6 +233,7 @@
             </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="before">
                 <field name="employee_number" invisible="0" string="Employee Number"/>
+                <field name="employee_status_payroll"/>
                 <field name="create_date" string="Created On"/>
                 <field name="employee" readonly="True"/>
             </xpath>
