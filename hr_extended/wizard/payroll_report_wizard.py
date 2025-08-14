@@ -313,7 +313,7 @@ class PayrollReportWizard(models.TransientModel):
             )
             days_paid = total_days - lop_days
             sheet.write(row, col + 9, days_paid, data_format)
-            sheet.write(row, col + comp_col,'', data_format) 
+            # sheet.write(row, col + comp_col,'', data_format)
             row += 1
 
         workbook.close()
