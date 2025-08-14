@@ -198,11 +198,13 @@ class PayrollReportWizard(models.TransientModel):
             comp_fin_list.append(comp_list)
             for line in slip.worked_days_line_ids:
                 lv_name = ''
-                if line.work_entry_type_id.code == 'CL':
+                code = (line.work_entry_type_id.external_code or '').strip().upper()
+                #if line.work_entry_type_id.code == 'CL':
+                if code == 'CL':
                     lv_name = 'CL this month'
-                elif line.work_entry_type_id.code == 'LOP':
+                elif code == 'LOP':
                     lv_name = 'LoP this month'
-                elif line.work_entry_type_id.code == 'EL':
+                elif code == 'EL':
                     lv_name = 'EL this month' 
                 wrk_list.append({lv_name:line.number_of_days})
             wrk_fin_list.append(wrk_list)
@@ -302,7 +304,15 @@ class PayrollReportWizard(models.TransientModel):
             sheet.write(row, col + 6, datetime.strftime(resig_date.expected_revealing_date,"%d-%m-%Y") if resig_date.expected_revealing_date else '' , char_format)  # Last Working Day
             sheet.write(row, col + 7, slip.employee_id.work_location_id.name if slip.employee_id.work_location_id else '', char_format)  # Location
             sheet.write(row, col + 8, slip.contract_id.final_yearly_costs, data_format)  # Annual Compensation
-            sheet.write(row, col + 9, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
+            # sheet.write(row, col + 9, sum(slip.worked_days_line_ids.mapped('number_of_days')), data_format)  # Days Paid
+            total_days = sum(slip.worked_days_line_ids.mapped('number_of_days'))
+            lop_days = sum(
+                line.number_of_days
+                for line in slip.worked_days_line_ids
+                if (line.work_entry_type_id.external_code or '').strip().upper() == 'LOP'
+            )
+            days_paid = total_days - lop_days
+            sheet.write(row, col + 9, days_paid, data_format)
             sheet.write(row, col + comp_col,'', data_format) 
             row += 1
 
