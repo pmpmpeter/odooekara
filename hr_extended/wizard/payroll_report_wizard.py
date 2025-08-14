@@ -290,11 +290,11 @@ class PayrollReportWizard(models.TransientModel):
         for idx, slip in enumerate(payslips, start=1):
             col = 0
             resig_date = self.env['hr.resignation'].search([('employee_id','=',slip.employee_id.id),('state','=','hr_approved')])
-            state_field = slip.employee_id._fields['state']
-            state_label = dict(state_field.selection).get(slip.employee_id.state, '')
+            payroll_status_field = slip.employee_id._fields['employee_status_payroll']
+            payroll_status_label = dict(payroll_status_field.selection).get(slip.employee_id.employee_status_payroll, '')
             sheet.write(row, col, idx, char_format)  # Sl #
             sheet.write(row, col + 1, slip.employee_id.name, char_format)  # Employee
-            sheet.write(row, col + 2, state_label,char_format)  # Employment Status
+            sheet.write(row, col + 2, payroll_status_label,char_format)  # Employment Status
             sheet.write(row, col + 3, slip.employee_id.new_emp_no if slip.employee_id.new_emp_no else '', char_format)  # Employee No.
             sheet.write(row, col + 4, slip.employee_id.uan_no if slip.employee_id.uan_no else '', char_format)  # UAN
             sheet.write(row, col + 5, datetime.strftime((slip.employee_id.joining_date),"%d-%m-%Y") if slip.employee_id.joining_date else '' , char_format)  # Date of Joining

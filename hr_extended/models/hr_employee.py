@@ -351,7 +351,7 @@ class HrEmployeeSmartButton(models.Model):
         ('inactive', 'Inactive'),
         ('onnotice', 'On-Notice'),
         ('resigned', 'Resigned'),
-        ('na', 'NA')], string="Employee Status")
+        ('na', 'NA')], string="Employment Payroll Status")
 
     @api.depends('name', 'work_email')
     def _compute_employee(self):

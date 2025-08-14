@@ -8,6 +8,15 @@
             <!--<xpath expr="//button[@name='%(hr.plan_wizard_action)d']" position="attributes">
                 <attribute name="invisible">all_documents_done == False</attribute>
             </xpath>-->
+            <xpath expr="//widget[@name='web_ribbon']" position="after">
+                <widget name="web_ribbon" title="Active" invisible="employee_status_payroll != 'active' or not active"/>
+                <widget name="web_ribbon" title="Inactive" invisible="employee_status_payroll != 'inactive' or not active"/>
+                <widget name="web_ribbon" title="On-Notice" invisible="employee_status_payroll != 'onnotice' or not active"/>
+                <widget name="web_ribbon" title="Resigned" invisible="employee_status_payroll != 'resigned' or not active"/>
+            </xpath>
+            <xpath expr="//field[@name='department_id']" position="before">
+                <field name="employee_status_payroll" options="{'no_open': True, 'no_quick_create': True}"/>
+            </xpath>
             <xpath expr="//field[@name='job_id']" position="after">
                 <field name="job_level_id" options="{'no_open': True, 'no_quick_create': True}"/>
                 <field name="type"/>
@@ -233,7 +242,7 @@
             </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="before">
                 <field name="employee_number" invisible="0" string="Employee Number"/>
-                <field name="employee_status_payroll"/>
+                <!--<field name="employee_status_payroll"/>-->
                 <field name="create_date" string="Created On"/>
                 <field name="employee" readonly="True"/>
             </xpath>
