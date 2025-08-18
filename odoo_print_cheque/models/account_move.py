@@ -304,10 +304,9 @@ class AccountBatchPayment(models.Model):
         date_format = workbook.add_format({'num_format': 'yyyy-mm-dd'})
 
         # Define Headers
-        headers = ['Sr.No.', 'TRAN.ID', 'AMOUNT', 'SENDER ACCOUNT TYPE', 'SENDER ACCOUNT NO', 'SENDER NAME', 'SMS/EML',
-                   'DETAIL', 'OoR7002 (SENDER NAME)', 'BENEFICIARY IFSC'
-            , 'BENEFICIARY ACCOUNT TYPE', 'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME',
-                   'SENDER TO RECEIVER INFORMATION']
+        headers = ['Sr.No.', 'Cheque / RTGS Slip No', 'SENDER ACCOUNT NO', 'AMOUNT',
+                   'BENEFICIARY ACCOUNT NO', 'BENEFICIARY ACCOUNT NAME', 'BENEFICIARY IFSC',
+                   'BENEFICIARY LEI (If applicable)', 'Remarks']
 
         for col, header in enumerate(headers):
             sheet.write(0, col, header, bold)
@@ -318,18 +317,13 @@ class AccountBatchPayment(models.Model):
         for index, line in enumerate(self.payment_ids, start=1):
             sheet.write(row, 0, index or '')
             sheet.write(row, 1, self.cheque_number or '')
-            sheet.write(row, 2, line.amount or 0.0, amount_format)
-            sheet.write(row, 3, line.sender_account_type or '')
-            sheet.write(row, 4, line.journal_id.bank_account_id.acc_number or '', date_format)
-            sheet.write(row, 5, line.journal_id.bank_account_id.acc_holder_name or '')
-            sheet.write(row, 6, line.sms_email or '')
-            sheet.write(row, 7, line.journal_id.bank_account_id.partner_id.email or '')
-            sheet.write(row, 8, line.journal_id.bank_account_id.acc_holder_name or '')
-            sheet.write(row, 9, line.partner_bank_id.bank_id.bic or '')
-            sheet.write(row, 10, line.beneficiary_account_type or '')
-            sheet.write(row, 11, line.partner_bank_id.acc_number or '')
-            sheet.write(row, 12, line.partner_bank_id.partner_id.name or '')
-            sheet.write(row, 13, line.sender_receiver_info or '')
+            sheet.write(row, 2, line.journal_id.bank_account_id.acc_number or '', date_format)
+            sheet.write(row, 3, line.amount or 0.0, amount_format)
+            sheet.write(row, 4, line.partner_bank_id.acc_number or '')
+            sheet.write(row, 5, line.partner_bank_id.partner_id.name or '')
+            sheet.write(row, 6, line.partner_bank_id.bank_id.bic or '')
+            sheet.write(row, 7, line.partner_bank_id.bank_id.beneficiary_lei or '')
+            sheet.write(row, 8, line.comments or '')
             row += 1
 
         sheet.set_column(0, 0, 5)
