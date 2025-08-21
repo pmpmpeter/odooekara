@@ -14,6 +14,7 @@ crr_budget_line_consolidate,crr_budget_line_consolidate,model_crr_budget_line_co
 crr_share_line,crr_share_line,model_crr_share_line,base.group_user,1,1,1,1
 access_fund_management,fund_management,model_fund_management,base.group_user,1,1,1,1
 access_cash_pool_lines,cash_pool_lines,model_cash_pool_lines,base.group_user,1,1,1,1
+access_account_subgroup,account_subgroup,model_account_subgroup,base.group_user,1,1,1,1
 access_te_consolidation,access_te_consolidation,model_te_consolidation,base.group_user,1,1,1,1
 access_te_consolidation_line,access_te_consolidation_line,model_te_consolidation_line,base.group_user,1,1,1,1
 access_crr_company_share,access_crr_company_share,model_crr_company_share,base.group_user,1,1,1,1

@@ -47,6 +47,7 @@
         'views/account_payment.xml',
         'views/cash_management.xml',
         'views/fund_management.xml',
+        'views/accounts_subgroup.xml',
         'views/cash_pool.xml',
         'views/budget_department.xml',
         'views/cash_requirement_report.xml',
