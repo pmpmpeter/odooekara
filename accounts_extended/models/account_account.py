@@ -21,7 +21,7 @@ class AccountAccount(models.Model):
 
     active = fields.Boolean(string="Active",default=True, copy=False)
     is_cash_rounding = fields.Boolean(string="Disable Budget Code",copy=False)
-    subgroup = fields.Many2one('account.subgroup',string='SubGroup')
+    subgroup = fields.Many2one('account.subgroup',string='SubGroup',company_dependent = True)
 
     @api.model
     def _load_precommit_update_opening_move(self):

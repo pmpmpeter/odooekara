@@ -2,6 +2,7 @@ from odoo import fields, models, api
 import math
 from odoo.exceptions import ValidationError, UserError
 from num2words import num2words
+from lxml import etree
 
 
 class HrContract(models.Model):
@@ -96,6 +97,22 @@ class HrContract(models.Model):
     ], default='spl_grade', string="Grade", tracking=True, required=True)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        result = super().get_view(view_id=view_id, view_type=view_type, **options)
+        if view_type == 'form':
+            arch = etree.fromstring(result['arch'])
+            print(arch, 'arch\n')
+            nodes = arch.xpath("//form")
+            print(nodes, 'nodes\n')
+            if nodes:
+                print(self.env.user.name, self.env.user.has_group('hr_extended.group_view_own_contract'), 'has group\n')
+                if self.env.user.has_group('hr_extended.group_view_own_contract'):
+                    for node in nodes:
+                        node.set("edit", "false")
+            result['arch'] = etree.tostring(arch, encoding='unicode')
+        return result
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):

@@ -5,6 +5,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import *
 from datetime import datetime, timedelta, date
 from odoo.exceptions import ValidationError, UserError
+from lxml import etree
 
 
 class EmployeeIndent(models.Model):
@@ -543,6 +544,37 @@ class DocumentsDocument(models.Model):
                 ))
 
         return super(DocumentsDocument, self).action_archive()
+
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        result = super().get_view(view_id=view_id, view_type=view_type, **options)
+        if view_type == 'kanban':
+            arch = etree.fromstring(result['arch'])
+            print(arch, 'arch\n')
+            nodes = arch.xpath("//kanban")
+            print(nodes, 'nodes\n')
+            if nodes:
+                print(self.env.user.name, self.env.user.has_group('hr_extended.group_view_own_document'), 'has group\n')
+                if self.env.user.has_group('hr_extended.group_view_own_document'):
+                    for node in nodes:
+                        node.set("js_class", "")
+            result['arch'] = etree.tostring(arch, encoding='unicode')
+        return result
+
+    # def _get_view(self, view_id=None, view_type='form', **options):
+    #     print('gggggggggggggggggggggggggggggggggggg')
+    #     arch, view = super()._get_view(view_id, view_type, **options)
+    #     # inject into rendering context
+    #     print(view_type, 'view_type\n')
+    #     if view_type == 'kanban':
+    #         nodes = arch.xpath("//kanban")
+    #         print(nodes, 'node\n')
+    #         if nodes:
+    #             print(self.env.user.name, self.env.user.has_group('hr_extended.group_view_own_document'), 'has group\n')
+    #             if self.env.user.has_group('hr_extended.group_view_own_document'):
+    #                 for node in nodes:
+    #                     node.set("js_class", "")
+    #     return arch, view
 
     # def unlink(self):
     #     for document in self:
