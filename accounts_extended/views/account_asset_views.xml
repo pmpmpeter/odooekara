@@ -11,6 +11,7 @@
             </xpath>
             <xpath expr="//field[@name='currency_id']" position="after">
                 <field name="is_cash_rounding" groups="accounts_extended.group_disable_budget_code"/>
+                <field name="subgroup"/>
             </xpath>
         </field>
     </record>

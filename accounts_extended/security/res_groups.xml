@@ -60,6 +60,12 @@
             <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
         </record>
 
+        <record id="ir_rule_account_subgroup_company" model="ir.rule">
+            <field name="name">Account Subgroup: Multi Company</field>
+            <field name="model_id" ref="model_account_subgroup"/>
+            <field name="domain_force">[('company_id', 'in', company_ids + [False])]</field>
+        </record>
+
         <record id="ir_rule_te_consolidatipon_company" model="ir.rule">
             <field name="name">TE Consolidation: Multi Company</field>
             <field name="model_id" ref="model_te_consolidation"/>

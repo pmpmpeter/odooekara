@@ -14,3 +14,4 @@ from . import account_asset
 from . import budget_department
 from . import sale_order
 from . import l10n_in_withholding
+from . import account_subgroup
