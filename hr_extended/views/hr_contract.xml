@@ -127,6 +127,23 @@
                     <!--                        </group>-->
                     <!--                    </group>-->
                 </page>
+                <page string="Accounting Components" groups="hr_extended.group_view_own_accounting_comp">
+                    <group string="Accounting Components">
+                        <group>
+                            <field name="standard_deduction"/>
+                            <field name="total_ctc_annum" readonly="0" force_save="1"/>
+                            <field name="total_ctc_month" readonly="0" force_save="1"/>
+                        </group>
+                        <group>
+                             <field name="income_tax_applicable" invisible="0"/>
+                            <field name="income_tax_annual" invisible="income_tax_applicable == 'no'"/>
+                             <field name="income_tax_month" invisible="income_tax_applicable == 'no'"/>
+                        </group>
+                        <group>
+                             <field name="net_taxable_income"/>
+                        </group>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>
