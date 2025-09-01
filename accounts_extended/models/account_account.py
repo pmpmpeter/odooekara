@@ -43,3 +43,22 @@ class AccountAccount(models.Model):
         #     company._update_opening_move({account: data[account.id] for account in company_accounts})
 
         self.env.flush_all()
+
+    def write(self, vals):
+        res = super().write(vals)
+        if not self.env.context.get("skip_subgroup_sync"):
+            for rec in self:
+                if rec.subgroup:
+                    # add account to subgroup without wiping existing ones
+                    rec.subgroup.with_context(skip_subgroup_sync=True).write({
+                        'account_id': [(4, rec.id)]
+                    })
+                else:
+                    # if subgroup cleared, remove it from any subgroup M2M
+                    groups = self.env['account.subgroup'].sudo().search([('account_id', 'in', rec.id)])
+                    for grp in groups:
+                        grp.with_context(skip_subgroup_sync=True).write({
+                            'account_id': [(3, rec.id)]
+                        })
+        return res
+
