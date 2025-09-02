@@ -220,7 +220,7 @@ class RequestApproval(models.TransientModel):
                     #                 line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
                     #
                     # elif move.move_type == 'entry':
-                    for line1 in move.line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
+                    for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                         if not move.crossovered_budget:
                             raise UserError('Warning!! Kindly select a Budget.')
                         if not line1.budget_id.general_budget_id.account_ids:
