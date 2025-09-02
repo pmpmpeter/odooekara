@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo import api, fields, models,_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 from odoo.exceptions import UserError, ValidationError
 import base64
 import pdb
@@ -13,6 +13,7 @@ class DocumentRequest(models.Model):
     _name = 'document.request'
     _description = "Document Request"
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    _order = "create_date DESC"
 
     user_id = fields.Many2one('res.users', string="Requested By", tracking=True, default=lambda self: self.env.uid)
     request_date = fields.Date(string='Request Date', tracking=True, default=datetime.today())
@@ -27,6 +28,7 @@ class DocumentRequest(models.Model):
     documents_pdf_document = fields.Binary(string="Additional PDF")
     documents_pdf_filename = fields.Char(string="Additional PDF Filename")
     pdf_expiry_date = fields.Datetime(string="PDF Expiry Date")
+    document_available_till = fields.Date(string='Document Available Till')
     state = fields.Selection([
         ('draft','Draft'),
         ('to_approve','To Approve'),
@@ -39,6 +41,7 @@ class DocumentRequest(models.Model):
     purpose = fields.Text("Purpose", copy=False)
     is_watermark = fields.Boolean(string="Is Watermark",copy=False)
     watermark_content = fields.Html(string="Watermark Content", copy=False)
+    is_doc_expired = fields.Boolean(string='Is Expired')
 
 
     @api.model_create_multi
@@ -193,7 +196,8 @@ class DocumentRequest(models.Model):
                     'documents_pdf_document': documents_pdf,
                     'documents_pdf_filename': doc_name,
                 })
-
+            if not self.document_available_till:
+                raise UserError(_("kindly set the document validity period."))
             rec.write(values_to_write)
 
     # def action_approve(self):
@@ -250,14 +254,21 @@ class DocumentRequest(models.Model):
 
     @api.model
     def cron_move_to_expired_state(self):
-        """
-        Cron job to move records to 'expired' state if expiry_date < current date.
-        """
-        today = date.today()  # Get current date
-        expired_records = self.sudo().search([
-            ('pdf_expiry_date', '<', today),   # Records where expiry_date has passed
-            ('state', '!=', 'expired')     # Exclude already expired records
-        ])
 
-        for record in expired_records:
-            record.write({'state': 'expired'})  # Update state to 'expired'
+            today = date.today()  # Get current date
+            print(today, 'kkkkkkkkk')
+            expired_records = self.sudo().search([
+                ('pdf_expiry_date', '<', today),
+                ('state', '!=', 'expired')
+            ])
+
+            for record in expired_records:
+                record.write({'state': 'expired'})
+            expired_doc_records = self.sudo().search([
+                ('document_available_till', '<', today),
+                ('state', '!=', 'expired')
+            ])
+            print(expired_doc_records,'qqqqqqqqqqqq')
+            for record in expired_doc_records:
+                record.write({'state': 'expired'})
+                record.is_doc_expired = True

@@ -16,6 +16,7 @@
                         <field name="department_id" invisible="report_based_on != 'department'" required="report_based_on == 'department'"/>
                         <field name="state"/>
                         <field name="partner_ids" widget="many2many_tags" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                        <field name="employee_id" string="In-App Notifications" widget="many2many_tags" options="{'no_open': True, 'no_quick_create':True,'no_create': True}"/>
                         <field name="file_name" invisible='1'/>
                         <field name="report_file" filename="file_name" invisible="not file_name"/>
                     </group>

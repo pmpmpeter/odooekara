@@ -220,12 +220,12 @@ class RequestApproval(models.TransientModel):
                     #                 line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
                     #
                     # elif move.move_type == 'entry':
-                    for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
+                    for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                         if not move.crossovered_budget:
                             raise UserError('Warning!! Kindly select a Budget.')
                         if not line1.budget_id.general_budget_id.account_ids:
                             raise UserError(
-                                _("Budget Code is mandatory for COAs with account type Fixed Asset or Expenses.\n"
+                                _("Budget Code is mandatory.\n"
                                   "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
                         # pdb.set_trace()
                         if not line1.filtered(lambda e: e.analytic_distribution):

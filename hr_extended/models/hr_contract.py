@@ -2,6 +2,7 @@ from odoo import fields, models, api
 import math
 from odoo.exceptions import ValidationError, UserError
 from num2words import num2words
+from lxml import etree
 
 
 class HrContract(models.Model):
@@ -23,6 +24,8 @@ class HrContract(models.Model):
     pf_employee_per_month = fields.Float(string="Provident Fund (Employee's Contribution)", copy=False)
     esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)', copy=False)
+    income_tax_month = fields.Float(string='Income Tax (Monthly)', copy=False)
+    income_tax_annual = fields.Float(string='Income Tax (Annual)', copy=False)
     sub_total_b_per_annum = fields.Float(string='Sub-total Part B', copy=False)
     sub_total_b_per_month = fields.Float(string='Sub-total Part B', copy=False)
     variable_pay_per_annum = fields.Float(string='Performance Linked Variable Pay', copy=False)
@@ -35,7 +38,7 @@ class HrContract(models.Model):
     group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance', copy=False)
     health_ben_plan = fields.Float(string='Health Benefit Plan', copy=False)
     sub_total_d = fields.Float(string='Sub-total Part D', copy=False)
-    total_ctc_annum = fields.Float(string='Total Cost to Company', copy=False)
+    total_ctc_annum = fields.Float(string='Total Cost to Company(Annual)', copy=False)
     total_ctc_month = fields.Float(string='Total Cost to Company', copy=False)
     monthly_fixed_salary = fields.Float(string="Monthly Fixed Salary (excl PF & all incentive pay)", copy=False)
     stat_bonus_amount = fields.Float(string="Statutory Bonus Amount", store=True, copy=False)
@@ -61,12 +64,18 @@ class HrContract(models.Model):
     health_benefit_plan = fields.Float(string="Health Benefit Plan", store=True, copy=False)
     solis_health_benefit_beacon_plan = fields.Float(string="Solis Health Benefit Beacon Plan", store=True, copy=False)
     indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month", store=True, copy=False)
+    net_taxable_income = fields.Float(string='Net Taxable Amount')
+    standard_deduction = fields.Float(string='Standard Deduction')
     statutory_bonus_applicable = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')], string="Statutory Bonus Applicable", default='no',
         copy=False
     )
     provident_fund_applicable = fields.Selection(
         [('yes', 'Yes'), ('no', 'No')], string="Provident Fund Applicable", default='no',
+        copy=False
+    )
+    income_tax_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="Income Tax Applicable", default='no',
         copy=False
     )
     esi_applicable = fields.Selection(
@@ -96,6 +105,22 @@ class HrContract(models.Model):
     ], default='spl_grade', string="Grade", tracking=True, required=True)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+
+    @api.model
+    def get_view(self, view_id=None, view_type='form', **options):
+        result = super().get_view(view_id=view_id, view_type=view_type, **options)
+        if view_type == 'form':
+            arch = etree.fromstring(result['arch'])
+            print(arch, 'arch\n')
+            nodes = arch.xpath("//form")
+            print(nodes, 'nodes\n')
+            if nodes:
+                print(self.env.user.name, self.env.user.has_group('hr_extended.group_view_own_contract'), 'has group\n')
+                if self.env.user.has_group('hr_extended.group_view_own_contract'):
+                    for node in nodes:
+                        node.set("edit", "false")
+            result['arch'] = etree.tostring(arch, encoding='unicode')
+        return result
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
@@ -528,6 +553,49 @@ class HrContract(models.Model):
 
             else:
                 pass
+
+    @api.onchange('monthly_fixed_salary','standard_deduction','total_ctc_annum','income_tax_applicable')
+    def  _onchange_calculate_income_tax(self):
+        for record in self:
+            if record.monthly_fixed_salary:
+                total_ctc = record.total_ctc_annum
+                deduction = record.standard_deduction
+                record.net_taxable_income = total_ctc - deduction
+                record.total_ctc_month = total_ctc / 12
+                appl_amount =  400000
+                income_tax1=0
+                income_tax2=0
+                income_tax3=0
+                income_tax4=0
+                income_tax5=0
+                income_tax6=0
+
+                slab1 = appl_amount
+                slab2 = slab1
+                balance1 = record.net_taxable_income - appl_amount
+                slab3 = appl_amount - slab2
+                income_tax1 =  appl_amount * 0.05
+                balance2 = balance1 - appl_amount
+                slab4 = appl_amount - slab3
+                income_tax2 = appl_amount * 0.10
+                balance3 = balance2 - appl_amount
+                slab5 = slab4 - appl_amount
+                income_tax3 =  appl_amount * 0.15
+                balance4 = balance3 - appl_amount
+                slab6 = slab5 - appl_amount
+                income_tax4 =  appl_amount * 0.20
+                balance5 = balance4 - appl_amount
+                slab7 = slab6 - appl_amount
+                income_tax5 =  appl_amount * 0.25
+                balance6 =balance5 -  appl_amount
+                if record.income_tax_applicable == 'yes':
+                        income_tax6 =  round(balance6 * 0.30)
+                        record.income_tax_annual = income_tax1+income_tax2+income_tax3+income_tax4+income_tax5+income_tax6
+                        record.income_tax_month = record.income_tax_annual / 12
+                else:
+                    record.income_tax_annual = 0
+                    record.income_tax_month = 0
+                # print(income_tax1,income_tax2,income_tax3,income_tax4,income_tax5,income_tax6)
 
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)

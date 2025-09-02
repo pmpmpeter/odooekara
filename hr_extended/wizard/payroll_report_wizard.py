@@ -3,8 +3,8 @@ from datetime import datetime
 import base64
 from io import BytesIO
 import xlsxwriter
-from odoo.exceptions import ValidationError
 
+from odoo.exceptions import UserError, ValidationError
 
 class PayrollReportWizard(models.TransientModel):
     _name = 'payroll.report.wizard'
@@ -29,6 +29,7 @@ class PayrollReportWizard(models.TransientModel):
     report_file = fields.Binary(string="Report File", readonly=True)
     file_name = fields.Char(string="File Name", readonly=True)
     partner_ids = fields.Many2many('res.partner', string="Email To")
+    employee_id = fields.Many2many('hr.employee',string='Email To')
 
     def action_send_payroll_report_mail(self):
         template = self.env.ref('hr_extended.payroll_report_share_email_template')
@@ -55,6 +56,7 @@ class PayrollReportWizard(models.TransientModel):
             template.send_mail(record.id, force_send=True, email_values={
                 'attachment_ids': [attachment.id],
             })
+            self.send_activity_notification()
 
         return {
             'type': 'ir.actions.client',
@@ -66,6 +68,39 @@ class PayrollReportWizard(models.TransientModel):
                 'sticky': True,
             }
         }
+
+    def send_activity_notification(self):
+        # notify_type = self.env.ref("mail.mail_activity_data_todo", False)
+        # if not notify_type:
+        #     return
+        #
+        # for req in self:
+        #     summary = 'Email Notification'
+        #     # res_model: req._name
+        #     for partner in req.employee_id:
+        #         # Get all users linked to this partner
+        #         for user in partner:
+        #             # print('')
+        #             print(user, '2222222')
+        #             self.env["mail.activity"].sudo().create({
+        #                 "res_id": req.id,
+        #                 "res_model": self.env['ir.model']._get_id(req._name),
+        #                 "activity_type_id": notify_type.id,
+        #                 "summary": summary,
+        #                 "user_id": user.id,  # This must be res.users.id
+        #             })
+        users = self.employee_id
+        for rec in users:
+            if not rec.user_id:
+                raise ValidationError("In-app notifications can be sent to employees who are linked to users")
+            rec.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary="Batch Payroll Reminder: Payroll reminder",
+                note=f"Kindly Verify the Batch Payroll:{self.batch_id.name} .",
+                user_id=rec.user_id.id,
+                date_deadline=fields.Date.today()
+            )
+
 
     def action_generate_report(self):
         workbook = self._prepare_excel_workbook()

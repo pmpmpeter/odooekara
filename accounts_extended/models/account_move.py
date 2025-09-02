@@ -351,7 +351,7 @@ class AccountMoveInherit(models.Model):
 
     def budget_id_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
-            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
+            for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                 if not move.crossovered_budget:
                     raise UserError('Warning!! Kindly select a Budget.')
                 if not line1.filtered(lambda e: e.analytic_distribution):
