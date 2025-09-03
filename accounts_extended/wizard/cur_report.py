@@ -416,7 +416,6 @@ class AccountCURReportWizard(models.TransientModel):
                         if move_line.journal_id.type in ('bank','cash'):
                             for rec in move_line.line_ids:
                                 if rec.debit > 0 and rec.account_id.code not in ('100202','100203'):
-                                    print(rec.move_id.name, rec.id, 'dddddddddd')
                                     l.add((rec.move_id.name, rec.id))
                                     key = (rec.account_id.id, line.move_id.expense_type)
 
@@ -427,7 +426,9 @@ class AccountCURReportWizard(models.TransientModel):
                                     result[key]['entries'].append({
                                         'move_name':rec.move_id.name,
                                         'mov_id':rec.id,
-                                        'partner_id': rec.partner_id.name if line.partner_id else '',
+                                        'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+                                                      else rec.partner_id.name if rec.partner_id
+                                                      else rec.account_id.name,
                                         'debit': rec.debit,
                                         'date': rec.date,
                                     })
@@ -443,7 +444,9 @@ class AccountCURReportWizard(models.TransientModel):
                  result[key]['entries'].append({
                                     'move_name':rec.move_id.name,
                                     'mov_id':rec.id,
-                                    'partner_id': rec.partner_id.name if line.partner_id else '',
+                                    'partner_id':  rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+                                                      else rec.partner_id.name if rec.partner_id
+                                                      else rec.account_id.name,
                                     'debit': rec.debit,
                                     'date': rec.date,
                                 })
@@ -510,7 +513,9 @@ class AccountCURReportWizard(models.TransientModel):
                                     result[key]['entries'].append({
                                         'move_name':rec.move_id.name,
                                         'mov_id':rec.id,
-                                        'partner_id': rec.partner_id.name if line.partner_id else '',
+                                        'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+                                                      else rec.partner_id.name if rec.partner_id
+                                                      else rec.account_id.name,
                                         'credit': rec.credit,
                                         'date':rec.date,
                                     })
