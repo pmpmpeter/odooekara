@@ -38,7 +38,7 @@
                         <tree editable="bottom" create="false">
                             <field name="name" string="Bill Ref"/>
                             <field name="amount_untaxed_signed" column_invisible="1"/>
-                            <field name="amount_total_signed" string="Total"/>
+                            <field name="amount_total" string="Bill Amount"/>
                             <field name="payment_state"/>
                             <field name="payment_amount"/>
                             <field name="state" column_invisible="1"/>
@@ -48,7 +48,7 @@
                         <tree editable="bottom" create="false">
                             <field name="name" string="Invoice Ref"/>
                             <field name="amount_untaxed_signed" column_invisible="1"/>
-                            <field name="amount_total_signed" string="Total"/>
+                            <field name="amount_total" string="Invoice Amount"/>
                             <field name="payment_state"/>
                             <field name="payment_amount"/>
                             <field name="state" column_invisible="1"/>
