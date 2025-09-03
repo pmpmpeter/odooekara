@@ -4,6 +4,7 @@ import base64
 import calendar
 from io import BytesIO
 from datetime import date, timedelta, datetime
+from collections import defaultdict,Counter
 
 
 class AccountCURReportWizard(models.TransientModel):
@@ -54,7 +55,6 @@ class AccountCURReportWizard(models.TransientModel):
                 current = current.replace(month=current.month + 1)
         return months
 
-
     def _generate_excel_report(self):
         """Generate an Excel file from CRR data, including company and transaction details."""
         buffer = BytesIO()
@@ -63,7 +63,7 @@ class AccountCURReportWizard(models.TransientModel):
         title_format = workbook.add_format({'bold': True, 'font_size': 12, 'text_wrap': True})
         sheet.set_column('A:A', 40)
         sheet.set_column('B:B', 15)
-        sheet.set_column('C:Z', 15)
+        sheet.set_column('C:D', 15)
         sheet.set_row(13, 30)
         sheet.freeze_panes(1, 0)
         # sheet.protect()
@@ -72,7 +72,7 @@ class AccountCURReportWizard(models.TransientModel):
             'bg_color': '#D9E1F2',
             'font_color': '#000000',
             # 'border': 1,
-            'align': 'center',
+            'align': 'right',
         })
         header_format1 = workbook.add_format({
             'bold': True,
@@ -111,6 +111,9 @@ class AccountCURReportWizard(models.TransientModel):
             'align': 'right',
             'num_format': '#,##0',
         })
+        name_format = workbook.add_format({
+            'align': 'right',
+        })
         formatted_date = self.start_date.strftime('%d-%b-%Y')
         formatted_en_date = self.end_date.strftime('%d-%b-%Y')
         month_list = self.get_month_list(self.start_date, self.end_date)
@@ -119,67 +122,17 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(0, 2, 'Amount', header_format)
         sheet.write(0, 3, 'Amount', header_format)
         sheet.write(1, 0, 'Opening Balance as on %s' % (formatted_date), value_format)
-        # base_col = 2
-        # for idx, month in enumerate(month_list):
-        #     sheet.write(5, base_col + idx, month, header_format)
-        #     base_col += 1
-        query = """
-                             select
-                    -- aml.id AS move_line_id
-                    aml.account_id,
-                  ba.code AS account_code,
-                 ba.name AS account_name,
-                    sum(aml.debit) AS total_debit,
-                    sum(aml.credit) AS total_credit,
-                    am.expense_type As expense_type
-                from account_move_line aml 
-                join account_move am on aml.move_id = am.id
-                join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
-                WHERE 
-                    aml.company_id = %s
-                    AND aml.date BETWEEN %s AND %s
-                    AND am.active = 'True'
-                    AND am.state = 'posted'
-                group by 
-                    aml.account_id,
-                     ba.name,
-                     ba.code,
-                     am.expense_type
-                ORDER BY 
-                    ba.code,
-                    am.expense_type,
-                    ba.name;
-                    -- aml.date
-            """
-        # Add company_id condition if it exists
-        query_params = (self.company_id.id,self.start_date, self.end_date)
-        self.env.cr.execute(query, query_params)
-        records = self.env.cr.dictfetchall()
+
+        records_debit = self.get_cash_bank_utilization_debit(self.start_date, self.end_date, self.company_id)
+        records_credit = self.get_cash_bank_utilization_credit(self.start_date, self.end_date, self.company_id)
 
         opening_balance_1 = 0
-        end_balance_1 = 0
-        # query8 = """
-        #             select sum(aml.debit-aml.credit) as balance
-        #             from account_move_line aml
-        #             join account_account aa on (aa.id = aml.account_id)
-        #             where aa.account_type='asset_cash' and aml.date<%s
-        #             AND aml.company_id = %s;
-        #         """
-        # query_params8 = (self.start_date, self.company_id.id)
-
         query8 = """
                 select sum(aml.debit-aml.credit) as balance
                 from account_move_line aml
                 join account_account aa on (aa.id = aml.account_id)
-                join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
-                and aml.date<%s and 
-                aml.parent_state = 'posted'
+
+                where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state = 'posted' and aa.code NOT IN ('100203','100204','100202')
             """
         # Add company_id condition if it exists
         if self.company_id:
@@ -198,12 +151,11 @@ class AccountCURReportWizard(models.TransientModel):
                    SUM(aml.debit - aml.credit) AS balance
             FROM account_move_line aml
             JOIN account_account aa ON aa.id = aml.account_id
-            join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
+            JOIN account_journal aj ON aj.id = aml.journal_id
+            WHERE aa.account_type = 'asset_cash'
                 AND aml.parent_state = 'posted' 
               AND aml.date < %s
+              AND aa.code NOT IN ('100203','100204','100202','100801')
         """
 
         if self.company_id:
@@ -218,38 +170,37 @@ class AccountCURReportWizard(models.TransientModel):
 
         self.env.cr.execute(query9, query_params9)
         split_lines = self.env.cr.dictfetchall()
-        row_num = 2  # Starting row just below the total
-        # sheet.write(row_num, 2, "Account", header_format)
-        # sheet.write(row_num, 3, "Balance", header_format)
-        # row_num += 1
-
+        row_num = 2
         for line in split_lines:
             sheet.write(row_num, 0, line['account_name']['en_US'], value_format)
             sheet.write(row_num, 1, line['account_code'], value_format)
             sheet.write(row_num, 3, line['balance'] or 0.0, value_format)
             row_num += 1
-        row_num +=1
-        if self.groupby_month:
-            base_col = 2
-            for idx, month in enumerate(month_list):
-                start_col = base_col + (idx * 2)
-                end_col = start_col + 1
-                sheet.merge_range(row_num, start_col, row_num, end_col, month, header_format)
-            row_num += 1
+        row_num += 1
         sheet.write(row_num, 0, 'Receipts:', header_format1)
-
+        row_num += 1
+        print(row_num,'kkkkkkkkkkkkkkkk')
+        if self.groupby_month:
+            base_col = 4
+            for idx, month in enumerate(month_list):
+                print('vvvvvvvv')
+                start_col = base_col + idx
+                sheet.write(row_num,start_col, month, header_format)
+                sheet.set_column(row_num, start_col, 15)
+            row_num += 1
         end_balance1 = """SELECT aa.code AS account_code, aa.name AS account_name,
                    SUM(aml.debit - aml.credit) AS balance
             FROM account_move_line aml
             JOIN account_account aa ON aa.id = aml.account_id
-            join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
+            WHERE aa.account_type = 'asset_cash'
               AND aml.date <=%s
               AND aml.parent_state = 'posted' 
+              AND aa.code NOT IN ('100203','100204','100202','100801')
         """
+
+        # Add company_id condition if it exists
         if self.company_id:
+            # end_balance += " AND aml.company_id = %s"
             end_balance1 += " AND aml.company_id = %s"
             end_balance1 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
             end_balance_params = (self.end_date, self.company_id.id)
@@ -257,209 +208,130 @@ class AccountCURReportWizard(models.TransientModel):
         else:
             end_balance_params = (self.end_date,)
             end_balance_params1 = (self.end_date,)
+        # self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
         self.env.cr.execute(end_balance1, end_balance_params1)
         end_balance1 = self.env.cr.dictfetchall()
 
         if (end_balance1[0].get('balance') != None):
             end_balance_1 = end_balance1[0].get('balance')
-        credit_accounts = [record for record in records if record['total_credit'] > 0]
-        debit_accounts = [record for record in records if record['total_debit'] > 0]
-        row_num = 8
-        for account in debit_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
-            sheet.write(row_num, 1, account['account_code'], value_format1)
-            sheet.write(row_num, 3, account['total_debit'], value_format1) if not self.groupby_month else sheet.write(
-                row_num, 3, '', value_format)
-            row_num += 2
-            self.env.cr.execute("""
-                select
-                    aml.id AS move_line_id,
-                    aml.account_id,
-                    ba.code AS account_code,
-                    ba.name AS account_name,
-                    aml.name AS line_name,
-                    rp.name AS partner_name,
-                    aml.debit AS line_debit,
-                    aml.credit AS line_credit,
-                    aml.date AS date,
-                    aml.move_id,
-                    am.active
-                from account_move_line aml 
-                join account_move am on aml.move_id = am.id
-                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
-                join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
-                WHERE 
-                    aml.company_id = %s
-                    AND aml.date BETWEEN %s AND %s
-                    AND am.active = 'True'
-                    AND am.state = 'posted'
-                ORDER BY 
-                    ba.code,
-                    ba.name,
-                    aml.name,
-                    rp.name,
-                    aml.date;
-            """, (self.company_id.id,self.start_date, self.end_date))
-            detail_records = self.env.cr.dictfetchall()
-            # Write detailed rows below the main group
-            for detail in detail_records:
-                if detail.get('line_debit') > 0:
-                    if account['account_name']['en_US'] == detail['account_name']['en_US']:
-                        detail_month = detail['date'].strftime('%b').upper()
-                        if not self.groupby_month:
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, 3, detail.get('line_debit') or 0, value_format)
-                        if self.groupby_month and detail_month in month_list:
-                            base_month_col = 3
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + (month_index * 2)
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('line_debit') or 0, value_format)
-                        row_num += 1
+        credit_accounts = [record for record in records_credit if record['total_credit'] > 0]
+        debit_accounts = [record for record in records_debit if record['total_debit'] > 0]
+        row_num = row_num+2
+        for account in credit_accounts:
+            if not self.groupby_month:
+                sheet.write(row_num, 0, account['account_name'], value_format1)
+                sheet.write(row_num, 1, account['account_code'], value_format1)
+                sheet.write(row_num, 3, account['total_credit'], value_format1)
+                row_num += 2
+                for detail in account['entries']:
+                        if detail.get('credit'):
+                                sheet.write(row_num, 0, detail.get('partner_id'),name_format)
+                                sheet.write(row_num, 1, account['account_code'], value_format)
+                                sheet.write(row_num, 3, detail.get('credit') or 0, value_format)
+                                row_num += 1
+            else:
+                monthly_totals = defaultdict(float)
+                for detail in account['entries']:
+                    if detail.get('credit'):
+                        detail_month = detail.get('date').strftime('%b').upper()
+                        monthly_totals[detail_month] += detail.get('credit')
+                sheet.write(row_num, 0, account['account_name'], name_format)
+                sheet.write(row_num, 1, account['account_code'], value_format)
+
+                base_month_col = 4
+                for month, amount in monthly_totals.items():
+                    if month in month_list:
+                        month_index = month_list.index(month)
+                        col_number = base_month_col + month_index
+                        sheet.write(row_num, col_number, amount, value_format)
+
+                row_num += 1
         row_num += 1
         sheet.write(row_num, 0, 'Payments:', header_format1)
         row_num += 1
-        capex_accounts = [account for account in credit_accounts if account['expense_type'] == 'capex']
-        opex_accounts = [account for account in credit_accounts if account['expense_type'] == 'opex']
+        capex_accounts = [account for account in debit_accounts if account['expense_type'] == 'capex']
+        opex_accounts = [account for account in debit_accounts if account['expense_type'] == 'opex']
         sheet.write(row_num, 0, 'Vendor Payment CAPEX:', header_format1)
         row_num += 2
         for account in capex_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
-            sheet.write(row_num, 1, account['account_code'], value_format1)
-            sheet.write(row_num, 2, account['total_credit'], value_format1) if account[
-                                                                                  'total_credit'] != 0 and not self.groupby_month else sheet.write(
-                row_num, 2, '', value_format)
-            row_num += 2
-            self.env.cr.execute("""
-                            select
-                    aml.id AS move_line_id,
-                    aml.account_id,
-                    ba.code AS account_code,
-                    ba.name AS account_name,
-                    rp.name AS partner_name,
-                    aml.name AS line_name,
-                    aml.debit AS line_debit,
-                    aml.credit AS line_credit,
-                    am.expense_type As expense_type,
-                    aml.date,
-                    aml.move_id,
-                    am.active
-                from account_move_line aml 
-                join account_move am on aml.move_id = am.id
-                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
-                join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
-                WHERE 
-                    aml.company_id = %s
-                    AND aml.date BETWEEN %s AND %s
-                    AND am.active = 'True'
-                    AND am.state = 'posted'
-                ORDER BY 
-                    ba.code,
-                    ba.name,
-                    rp.name,
-                    aml.name,
-                    aml.date;
-                        """, (self.company_id.id,self.start_date, self.end_date))
-            detail_records = self.env.cr.dictfetchall()
+            if not self.groupby_month:
+                sheet.write(row_num, 0, account['account_name'], value_format1)
+                sheet.write(row_num, 1, account['account_code'], value_format1)
+                sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
+                                                                                      'total_debit'] != 0 else sheet.write(
+                    row_num, 2, '', value_format)
+                row_num += 2
+                for detail in account['entries']:
+                        if detail.get('debit'):
+                            if not self.groupby_month:
+                                sheet.write(row_num, 0, detail.get('partner_id'),name_format)
+                                sheet.write(row_num, 1, account['account_code'], value_format)
+                                sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
+                                row_num += 1
 
-            # Write detailed rows below the main group
-            for detail in detail_records:
-                if detail.get('line_credit') > 0:
-                    if account['account_name']['en_US'] == detail['account_name']['en_US']:
-                        detail_month = detail['date'].strftime('%b').upper()
-                        if not self.groupby_month:
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, 2, detail.get('line_credit') or 0, value_format)
+            else:
+                monthly_totals = defaultdict(float)
+                for detail in account['entries']:
+                    if detail.get('debit'):
+                        detail_month = detail.get('date').strftime('%b').upper()
+                        monthly_totals[detail_month] += detail.get('debit')
+                sheet.write(row_num, 0, account['account_name'], name_format)
+                sheet.write(row_num, 1, account['account_code'], value_format)
 
-                        if self.groupby_month and detail_month in month_list:
-                            base_month_col = 3
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + (month_index * 2)
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('line_credit') or 0, value_format)
-                        row_num += 1
+                base_month_col = 4
+                for month, amount in monthly_totals.items():
+                    if month in month_list:
+                        month_index = month_list.index(month)
+                        col_number = base_month_col + month_index
+                        sheet.write(row_num, col_number, amount, value_format)
 
-            row_num += 2
+                row_num += 1
         sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
         row_num += 2
+        grand_totals = defaultdict(float)
         for account in opex_accounts:
-            sheet.write(row_num, 0, account['account_name']['en_US'], value_format1)
-            sheet.write(row_num, 1, account['account_code'], value_format1)
-            sheet.write(row_num, 2, account['total_credit'], value_format1) if account[
-                                                                                  'total_credit'] != 0 and not self.groupby_month else sheet.write(
-                row_num, 2, '', value_format)
-            row_num += 2
-            self.env.cr.execute("""
-                           select
-                    aml.id AS move_line_id,
-                    aml.account_id,
-                    ba.code AS account_code,
-                    ba.name AS account_name,
-                    aml.name AS line_name,
-                    aml.debit AS line_debit,
-                    aml.credit AS line_credit,
-                    rp.name AS partner_name,
-                    am.expense_type As expense_type,
-                    aml.date,
-                    aml.move_id,
-                    am.active
-                from account_move_line aml 
-                LEFT JOIN res_partner rp ON aml.partner_id = rp.id
-                join account_move am on aml.move_id = am.id
-                join 
-                (select aa.id,aa.code, aa.name from account_account aa join account_journal aj on aj.default_account_id = aa.id
-                                where aa.account_type='asset_cash') ba 
-                            on ba.id = aml.account_id
-                WHERE 
-                    aml.company_id = %s
-                    AND aml.date BETWEEN %s AND %s
-                    AND am.active = 'True'
-                    AND am.state = 'posted'
-                ORDER BY 
-                    ba.code,
-                    ba.name,
-                    rp.name,
-                    aml.name,
-                    aml.date;
-                    
-                        """, (self.company_id.id,self.start_date, self.end_date))
-            detail_records = self.env.cr.dictfetchall()
-
-            # Write detailed rows below the main group
-            for detail in detail_records:
-                if detail.get('line_credit'):
-                    if account['account_name']['en_US'] == detail['account_name']['en_US']:
-                        detail_month = detail['date'].strftime('%b').upper()
+            if not self.groupby_month:
+                sheet.write(row_num, 0, account['account_name'], value_format1)
+                sheet.write(row_num, 1, account['account_code'], value_format1)
+                sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
+                                                                                      'total_debit'] != 0 else sheet.write(
+                    row_num, 2, '', value_format)
+                row_num += 2
+                for detail in account['entries']:
+                    if detail.get('debit'):
                         if not self.groupby_month:
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
+                            sheet.write(row_num, 0, detail.get('partner_id'), name_format)
                             sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, 2, detail.get('line_credit') or 0, value_format)
-                        if self.groupby_month and detail_month in month_list:
-                            base_month_col = 2
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + (month_index * 2)
-                            sheet.write(row_num, 0, detail.get('partner_name') or detail.get('line_name'), value_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('line_credit') or 0, value_format)
-                        row_num += 1
+                            sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
+                            row_num += 1
+
+            else:
+                monthly_totals = defaultdict(float)
+                for detail in account['entries']:
+                    if detail.get('debit'):
+                        detail_month = detail.get('date').strftime('%b').upper()
+                        monthly_totals[detail_month] += detail.get('debit')
+                sheet.write(row_num, 0, account['account_name'], name_format)
+                sheet.write(row_num, 1, account['account_code'], value_format)
+                base_month_col = 4
+                print(monthly_totals,'ggggggggggggggggggggg')
+                for month, amount in monthly_totals.items():
+                    grand_totals = 0
+                    if month in month_list:
+                        month_index = month_list.index(month)
+                        col_number = base_month_col + month_index
+                        sheet.write(row_num, col_number, amount, value_format)
+                        grand_totals += amount
+                        # print(grand_totals,'ggggggggggggg')
+                row_num += 1
         row_num += 1
         total_d = 0.0
         total_c = 0.0
-        if records:
-            for rec in records:
-                total_d = total_d + rec['total_credit']
-                total_c = total_c + rec['total_debit']
+        for rec in debit_accounts:
+            total_d = total_d + rec['total_debit']
+        for rec in credit_accounts:
+            total_c = total_c + rec['total_credit']
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Total', header_format_num)
             sheet.write(row_num, 2, total_d, header_format_num)
@@ -469,7 +341,7 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(row_num, 2, total_d, header_format_num)
         row_num += 1
         sheet.write(row_num, 0, 'Total receipts as on  %s' % (formatted_en_date), header_format_num)
-        sheet.write(row_num, 2, total_c, header_format_num)
+        sheet.write(row_num, 2, total_c , header_format_num)
         row_num += 2
         sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
         sheet.write(row_num, 3, total_c + opening_balance_1 - (total_d), header_format_num)
@@ -483,3 +355,165 @@ class AccountCURReportWizard(models.TransientModel):
         workbook.close()
         buffer.seek(0)
         return buffer.read()
+
+    def get_cash_bank_utilization_debit(self, date_from, date_to,company_id):
+        """
+        Get cash/bank utilization summary using ORM (no raw SQL).
+        """
+        # Get moves in given date range, posted, with bank_date filter
+        moves = self.env['account.move.line'].sudo().search([
+            ('move_id.state', '=', 'posted'),
+            ('move_id.move_type','=','entry'),
+            ('move_id.journal_id.type', 'in', ('bank', 'cash')),
+            ('move_id.company_id','=',company_id.id),
+        ])
+        grouped = defaultdict(list)
+        duplicates = defaultdict(list)
+        stat_line = set()
+        l = set()
+        l_grp =  defaultdict(list)
+        state_grp = defaultdict(list)
+        outstanding =[]
+        for line in moves:
+            if line.matching_number:
+                grouped[line.matching_number].append(line)
+            elif not line.matching_number and line.statement_line_id:
+                if line.move_id.journal_id.default_account_id.account_type in 'asset_cash' and line.date >= date_from and line.date <= date_to:
+                    stat_line.add((line.move_id.name, line.id))
+                    state_grp[line.move_name].append(line)
+        for name, lines in list(state_grp.items()):
+            for line in lines:
+                move_line = self.env['account.move.line'].sudo().search([('move_id','=',line.move_id.id),('debit','=',line.credit)])
+                if move_line:
+                    for rec in move_line:
+                        if not rec.matching_number:
+                            outstanding.append(rec)
+                else:
+                    move_line = self.env['account.move.line'].sudo().search(
+                        [('move_id', '=', line.move_id.id),('matching_number','=',False),('debit','!=',0)])
+                    for rec in move_line:
+                        outstanding.append(rec)
+        result = defaultdict(lambda: {
+            'account_name': '',
+            'account_code': '',
+            'expense_type': '',
+            'total_debit': 0.0,
+            'total_credit': 0.0,
+            'entries': []
+        })
+        for match_no, group_lines in grouped.items():
+            statement_line = next((l for l in group_lines if l.statement_line_id), None)
+
+            if not statement_line:
+                continue
+            if statement_line.journal_id.default_account_id.account_type == 'asset_cash':
+                stmt_date = statement_line.statement_line_id.date
+                if not (date_from <= stmt_date <= date_to):
+                    continue
+                for line in group_lines:
+                    if not line.statement_line_id:
+                        move_line = line.move_id
+                        if move_line.journal_id.type in ('bank','cash'):
+                            for rec in move_line.line_ids:
+                                if rec.debit > 0 and rec.account_id.code not in ('100202','100203'):
+                                    print(rec.move_id.name, rec.id, 'dddddddddd')
+                                    l.add((rec.move_id.name, rec.id))
+                                    key = (rec.account_id.id, line.move_id.expense_type)
+
+                                    result[key]['account_name'] = rec.account_id.name
+                                    result[key]['account_code'] = rec.account_id.code
+                                    result[key]['expense_type'] = rec.move_id.expense_type
+                                    result[key]['total_debit'] += rec.debit
+                                    result[key]['entries'].append({
+                                        'move_name':rec.move_id.name,
+                                        'mov_id':rec.id,
+                                        'partner_id': rec.partner_id.name if line.partner_id else '',
+                                        'debit': rec.debit,
+                                        'date': rec.date,
+                                    })
+
+        for rec in outstanding:
+            print(rec.move_id.name,rec.id,'gggggggggggggggggggggggggggg')
+            if rec.debit > 0 :
+                 key = (rec.account_id.id, rec.move_id.expense_type)
+                 result[key]['account_name'] = rec.account_id.name
+                 result[key]['account_code'] = rec.account_id.code
+                 result[key]['expense_type'] = rec.move_id.expense_type
+                 result[key]['total_debit'] += rec.debit
+                 result[key]['entries'].append({
+                                    'move_name':rec.move_id.name,
+                                    'mov_id':rec.id,
+                                    'partner_id': rec.partner_id.name if line.partner_id else '',
+                                    'debit': rec.debit,
+                                    'date': rec.date,
+                                })
+        return list(result.values())
+
+    def get_cash_bank_utilization_credit(self, date_from, date_to,company_id):
+        """
+        Get cash/bank utilization summary using ORM (no raw SQL).
+        """
+        # Get moves in given date range, posted, with bank_date filter
+        moves = self.env['account.move.line'].sudo().search([
+            ('move_id.state', '=', 'posted'),
+            ('move_id.move_type','=','entry'),
+            ('move_id.journal_id.type', 'in', ('bank', 'cash')),
+            ('move_id.company_id','=',company_id.id),
+        ])
+        no_match_entries = []
+        grouped = defaultdict(list)
+        duplicates = defaultdict(list)
+        stat_line = set()
+        l = set()
+        state_grp = defaultdict(list)
+        # stat_line =  defaultdict(list)
+        for line in moves:
+            if line.matching_number:
+                grouped[line.matching_number].append(line)
+            elif not line.matching_number and line.statement_line_id:
+                # lines = self.env['account.move.line'].sudo().search([('statement_line_id','=',line.statement_line_id.id),('move_id.journal_id.default_account_id.account_type','=','asset_cash'),('date','>=',date_from),('date','<=',date_to)])
+                if line.move_id.journal_id.default_account_id.account_type in 'asset_cash' and line.date >= date_from and line.date <= date_to:
+                    stat_line.add((line.move_id.name,line.id))
+        # print(grouped,'tttttttttttttt')
+        result = defaultdict(lambda: {
+            'account_name': '',
+            'account_code': '',
+            'expense_type': '',
+            'total_credit': 0.0,
+            'entries': []
+        })
+
+        for move_name, line_id in stat_line:
+            state_grp[move_name].append(line_id)
+        for match_no, group_lines in grouped.items():
+            statement_line = next((l for l in group_lines if l.statement_line_id), None)
+            # print(statement_line,'gggggggggg')
+            if not statement_line:
+                continue
+            if statement_line.journal_id.default_account_id.account_type == 'asset_cash':
+                stmt_date = statement_line.statement_line_id.date
+                if not (date_from <= stmt_date <= date_to):
+                    continue
+                # print(group_lines,'xxxxxxxxxxxxxxxx')
+                for line in group_lines:
+                    if not line.statement_line_id:
+                        move_line = line.move_id
+                        if move_line.journal_id.type in ('bank','cash'):
+                            for rec in move_line.line_ids:
+                                # print(rec.move_id.name,rec.id,'ddddddddddddddddddddd')
+                                if rec.credit > 0 and rec.account_id.code not in ('100203','100204','100801'):
+                                    key = (rec.account_id.id, line.move_id.expense_type)
+                                    result[key]['account_name'] = rec.account_id.name
+                                    result[key]['account_code'] = rec.account_id.code
+                                    result[key]['expense_type'] = rec.move_id.expense_type
+                                    result[key]['total_credit'] += rec.credit
+                                    result[key]['entries'].append({
+                                        'move_name':rec.move_id.name,
+                                        'mov_id':rec.id,
+                                        'partner_id': rec.partner_id.name if line.partner_id else '',
+                                        'credit': rec.credit,
+                                        'date':rec.date,
+                                    })
+
+        # stop
+        return list(result.values())
