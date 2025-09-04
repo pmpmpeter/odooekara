@@ -3,7 +3,6 @@
     <template id="report_balance_confirmation_pdf">
         <t t-foreach="docs" t-as="doc">
             <t t-set="data" t-value="doc.get_invoice_data()"/>
-            <t t-set="invoices" t-value="data['lines']"/>
             <t t-call="web.basic_layout">
                 <div class="page" style="font-size: 16px;">
                     <div style="width: 100%;">
@@ -80,77 +79,107 @@
                             </tr>
                         </thead>
                         <tbody style="border-top: 2px solid black;">
-                            <t t-foreach="invoices" t-as="line">
+                            <t t-set="values" t-value="data['rows']"/>
+                            <t t-foreach="values" t-as="line">
                                 <tr>
                                     <!-- Debit -->
-                                    <td style="width:10%;">
-                                        <t t-if="line['amount'] &lt; 0">
-                                            <t t-esc="line['date']"/>
+                                    <td style="width:12%;">
+                                        <t t-if="line['debit_date']">
+                                            <t t-esc="line['debit_date']"/>
                                         </t>
                                     </td>
-                                    <td style="width:30%;">
-                                        <t t-if="line['amount'] &lt; 0">
-                                            <t t-esc="line['label']"/>
+                                    <td style="width:32%;">
+                                        <t t-if="line['debit_label']">
+                                            <t t-esc="line['debit_label']"/>
                                         </t>
                                     </td>
-                                    <td class="text-right"
-                                        style="border-right: 1px solid black;text-align:right;width:10%;">
-                                        <t t-if="line['amount'] &lt; 0">
-                                            <t t-esc="(-line['amount'])" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    <td class="text-right" style="border-right: 1px solid black; text-align:right; width:8%;">
+                                        <t t-if="line['debit_amount'] &gt; 0">
+                                            <t t-esc="line['debit_amount']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
                                         </t>
                                     </td>
-
                                     <!-- Credit -->
-                                    <td style="width:15%;">
-                                        <t t-if="line['amount'] &gt;= 0">
-                                            <t t-esc="line['date']"/>
+                                    <td style="width:12%;">
+                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                            <t t-esc="line['credit_date']"/>
                                         </t>
                                     </td>
-                                    <td style="width:30%;">
-                                        <t t-if="line['amount'] &gt;= 0">
-                                            <t t-esc="line['label']"/>
+                                    <td style="width:28%;">
+                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                            <t t-esc="line['credit_label']"/>
                                         </t>
                                     </td>
-                                    <td class="text-right;" style="text-align:right;width:10%;">
-                                        <t t-if="line['amount'] &gt;= 0">
-                                            <t t-esc="line['amount']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                    <td class="text-right" style="text-align:right; width:8%;">
+                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                            <t t-esc="line['credit_amount']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
                                         </t>
                                     </td>
                                 </tr>
-
                             </t>
                         </tbody>
-
-
-                        <t t-if="invoices">
+                        <t t-if="values">
                             <tfoot>
                                 <!-- Spacer row with only right border on 3rd column -->
                                 <tr>
                                     <td></td>
                                     <td></td>
-                                    <td style="height: 150px; border-right: 1px solid black;">&#160;</td>
+                                    <td style="height: 350px; border-right: 1px solid black;">&#160;</td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
                                 </tr>
 
                                 <!-- Closing Balance Labels -->
-                                <tr>
-                                    <td></td>
+                                 <tr>
+                                    <td>
+                                    </td>
                                     <td class="text-right">
-                                        <strong>Closing Balance</strong>
                                     </td>
                                     <td class="text-right" style="border-right: 1px solid black;">
-                                        <t t-esc="data['total_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        <strong><t t-esc="data['total_debit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></strong>
                                     </td>
                                     <td></td>
                                     <td class="text-right">
                                         <strong></strong>
                                     </td>
                                     <td class="text-right">
-                                        <t t-esc="data['total_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        <strong><t t-esc="data['total_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></strong>
                                     </td>
                                 </tr>
+                                <t t-if="data['closing_balance_debit'] &gt; 0">
+                                    <tr>
+                                        <td>
+                                        </td>
+                                        <td class="text-right">
+                                            <strong>Closing Balance</strong>
+                                        </td>
+                                        <td class="text-right" style="border-right: 1px solid black;">
+                                            <strong><t t-esc="data['closing_balance_debit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></strong>
+                                        </td>
+                                        <td></td>
+                                        <td class="text-right">
+                                            <strong></strong>
+                                        </td>
+                                        <td class="text-right">
+                                        </td>
+                                    </tr>
+                                </t>
+                                 <t t-if="data['closing_balance_credit'] &gt; 0">
+                                    <tr>
+                                        <td></td>
+                                        <td class="text-right">
+                                            <strong></strong>
+                                        </td>
+                                        <td class="text-right">
+                                        </td>
+                                        <td class="text-right">
+                                            <strong>Closing Balance</strong>
+                                        </td>
+                                        <td class="text-right" style="border-right: 1px solid black;">
+                                            <strong><t t-esc="data['closing_balance_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></strong>
+                                        </td>
+                                    </tr>
+                                </t>
 
                                 <!-- Closing Amount Row -->
                                 <tr>
@@ -158,13 +187,15 @@
                                     <td style="border-top: 1px solid black; border-bottom: 1px solid black;"></td>
                                     <td class="text-right"
                                         style="border-right: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black;">
-                                        <t t-esc="data['total_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        <strong><t t-esc="data['total_credit']+ data['closing_balance_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/></strong>
                                     </td>
                                     <td style="border-top: 1px solid black; border-bottom: 1px solid black;"></td>
                                     <td style="border-top: 1px solid black; border-bottom: 1px solid black;"></td>
                                     <td class="text-right"
                                         style="border-top: 1px solid black; border-bottom: 1px solid black;">
-                                        <t t-esc="data['total_credit']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        <strong>
+                                            <t t-esc="data['total_debit'] + data['closing_balance_debit'] " t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
+                                        </strong>
                                     </td>
                                 </tr>
 

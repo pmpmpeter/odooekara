@@ -108,11 +108,11 @@ class CashRequirementReport(models.Model):
                 record.available_balance = closing_balance
                 if self.available_balance > 0:
                     if self.amount_total - self.available_balance > 0:
-                         self.total_fund_required = self.amount_total - self.available_balance
+                         self.total_fund_required = round(self.amount_total - self.available_balance)
                     else:
                          self.total_fund_required = 0
                 else:
-                    self.total_fund_required = self.amount_total
+                    self.total_fund_required = round(self.amount_total)
 
     @api.onchange('cash_requirement_lines','minimum_balance')
     def onchange_minimum_balance(self):
@@ -126,11 +126,11 @@ class CashRequirementReport(models.Model):
             self.amount_total = total + min_bal
             if self.available_balance > 0:
                 if self.amount_total - self.available_balance > 0:
-                        self.total_fund_required = self.amount_total - self.available_balance
+                    self.total_fund_required = round(self.amount_total - self.available_balance)
                 else:
                     self.total_fund_required = 0
             else:
-                self.total_fund_required = self.amount_total
+                self.total_fund_required = round(self.amount_total)
 
     # @api.onchange('minimum_balance')
     # def onchange_min_bal(self):
