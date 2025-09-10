@@ -213,7 +213,7 @@ class AccountCURReportWizard(models.TransientModel):
         self.env.cr.execute(end_balance1, end_balance_params1)
         end_balance1 = self.env.cr.dictfetchall()
 
-        if (end_balance1[0].get('balance') != None):
+        if end_balance1 and (end_balance1[0].get('balance') != None):
             end_balance_1 = end_balance1[0].get('balance')
         credit_accounts = [record for record in records_credit if record['total_credit'] > 0]
         debit_accounts = [record for record in records_debit if record['total_debit'] > 0]

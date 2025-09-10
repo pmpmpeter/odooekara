@@ -1,9 +1,8 @@
 from odoo import models, fields, api, _
-from datetime import datetime
 from odoo.exceptions import UserError, ValidationError
 import calendar
 from datetime import datetime
-
+from datetime import date,datetime
 
 class FundManagementCRR(models.Model):
     _name = "fund.management"
@@ -307,6 +306,7 @@ class TeConsolidation(models.Model):
     is_fund_management = fields.Boolean(string='Is Fund Management', default=False, copy=False)
     crr_other_share_line = fields.One2many('crr.other.share.line', 'te_consolidate_id', string='CRR Lines')
     crr_share_line_ids = fields.One2many('crr.share.line', 'te_consolidate_id', string='CRR Consolidation Lines')
+    budget_contribution_line_ids = fields.One2many('budget.contribution.te.line', 'te_id', string='Budget Contribution')
 
     @api.constrains('start_date', 'end_date', 'company_id')
     def _check_date_range_overlap(self):
@@ -355,6 +355,7 @@ class TeConsolidation(models.Model):
 
     def action_update_consolidate_crr(self):
         self.crr_consolidate_ids.unlink()
+        # self.action_monthwise_budget_contribution()
         # if not self.start_date or not self.end_date:
         #     raise UserError('kindly update Start and End date')
         # share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
@@ -1300,10 +1301,23 @@ class TeConsolidation(models.Model):
     #     self.is_consolidate_updated = True
     #     self.state = 'inprogress'
     #     return True
+    def action_open_budget_contribution(self):
+        self.action_monthwise_budget_contribution()
+        contribution_ids = self.env['budget.contribution.te.line'].search([('te_id','=',self.id)])
+        if contribution_ids:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Budget Contribution',
+                'view_mode': 'tree',
+                'res_model': 'budget.contribution.te.line',
+                'domain': [('id', 'in', contribution_ids.ids)],
+                'context': {'group_by': ['company_id']},
+            }
 
     def action_open_share_view(self):
         share_ids = self.env['crr.share.line'].sudo().search([('budget_id.date_from', '>=', self.start_date),
                                                               ('budget_id.date_to', '<=', self.end_date),
+                                                              ('entity', '=', self.company_id.id),
                                                               ('budget_id.state', 'in', ['to approve', 'done'])])
         if share_ids:
             return {
@@ -1354,6 +1368,98 @@ class TeConsolidation(models.Model):
             'domain': [('id', 'in', self.crr_consolidate_ids.ids)],
             'context': {'group_by': ['user_type', 'requested_from']},
         }
+
+    def action_monthwise_budget_contribution(self):
+        """Generate report lines based on financial year and current date"""
+        self.ensure_one()
+
+        today = fields.Date.today()
+        fy_start = date(today.year, 4, 1)
+        if today.month < 4:  # Jan-Mar belongs to previous financial year
+            fy_start = date(today.year - 1, 4, 1)
+
+
+        # Clear old lines
+        self.budget_contribution_line_ids.unlink()
+
+        vals_list = []
+
+        # Generate month list from FY start to current month
+        months = []
+        current = fy_start
+        while current <= today:
+            months.append((current.year, current.month))
+            # next month
+            if current.month == 12:
+                current = date(current.year + 1, 1, 1)
+            else:
+                current = date(current.year, current.month + 1, 1)
+        entity_ids = self.env['res.company.tax.entity'].sudo().search([('entity_id','=',self.company_id.id)])
+        for entity in entity_ids:
+            company = entity.company_id
+            budget_id = self.env['crossovered.budget'].sudo().search([('user_type','in',('odoo','non_odoo')),('company_id','=',company.id)
+                                                                  # ,('date_from','=',self.start_date),('date_to','=',self.end_date)
+                                                               ],limit=1)
+            for year, month in months:
+                month_start = date(year, month, 1)
+                month_end = date(year, month, calendar.monthrange(year, month)[1])
+
+                # Budget
+                budget_req = 0.0
+                line = budget_id.crr_share_ids.filtered(lambda l: l.entity.id == entity.entity_id.id)
+                if line:
+                    month_map = {
+                        1: "crr_share_january", 2: "crr_share_february", 3: "crr_share_march",
+                        4: "crr_share_april", 5: "crr_share_may", 6: "crr_share_june",
+                        7: "crr_share_july", 8: "crr_share_august", 9: "crr_share_september",
+                        10: "crr_share_october", 11: "crr_share_november", 12: "crr_share_december",
+                    }
+                    budget_req = getattr(line[0], month_map[month], 0.0)
+
+                # Actual contribution from account.move.line
+                actual = 0.0
+                if entity.loan_account_id:
+                    aml = self.env["account.move.line"].sudo().read_group(
+                        domain=[
+                            ("account_id", "=", entity.loan_account_id.id),
+                            ("date", ">=", month_start),
+                            ("date", "<=", month_end),
+                            ("move_id.state", "=", "posted"),
+                        ],
+                        fields=["debit:sum", "credit:sum"],
+                        groupby=[]
+                    )
+                    if aml:
+                        actual = aml[0].get("credit", 0.0)
+
+                # CRR Requirement from cash.requirement.report
+                cash_recs = self.env['cash.requirement.report'].sudo().search([
+                    ('budget_id', '=', budget_id.id),
+                    ('state', '=', 'done'),
+                    ('start_date', '>=', month_start),
+                    ('end_date', '<=', month_end),
+                ])
+                crr_req = sum(cash_recs.mapped('total_fund_required')) * (entity.share / 100.0)
+
+                diff = crr_req - actual
+                diff_percent = (diff / crr_req * 100.0) if crr_req else 0.0
+
+                vals_list.append({
+                    "te_id": self.id,
+                    "company_id": company.id,
+                    "month": f"{date(year, month, 1):%b-%y}",
+                    "budget_contribution": abs(budget_req),
+                    "budget_percent": entity.share,
+                    "crr_requirement": crr_req,
+                    "crr_percent": entity.share,
+                    "actual_contribution": actual,
+                    "actual_percent": (actual / crr_req * 100.0) if crr_req else 0.0,
+                    "diff": diff,
+                    "diff_percent": diff_percent,
+                })
+
+        if vals_list:
+            self.env["budget.contribution.te.line"].create(vals_list)
 
 
 class TeConsolidationLine(models.Model):
@@ -1533,3 +1639,22 @@ class CRRCompanyShare(models.Model):
     quarter_2_crr_budget_plan = fields.Float('Q2')
     quarter_3_crr_budget_plan = fields.Float('Q3')
     quarter_4_crr_budget_plan = fields.Float('Q4')
+
+
+
+class BudgetContributionTELine(models.Model):
+    _name = "budget.contribution.te.line"
+    _description = "Budget Contribution TE Line"
+
+    te_id = fields.Many2one("te.consolidation", ondelete="cascade")
+    company_id = fields.Many2one("res.company", string="Company")
+    month = fields.Char("Month")
+    budget_contribution = fields.Float("Budget Contribution")
+    budget_percent = fields.Float("% Budget Contribution")
+    crr_requirement = fields.Float("CRR Requirement")
+    crr_percent = fields.Float("CRR Requirement %")
+    actual_contribution = fields.Float("Actual Contribution")
+    actual_percent = fields.Float("% Actual Contribution")
+    diff = fields.Float("Diff")
+    diff_percent = fields.Float("Diff %")
+

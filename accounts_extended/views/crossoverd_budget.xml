@@ -408,45 +408,56 @@
                         <!--                        </group>-->
                     </page>
                     <page string="Share Amount" invisible="0">
+                        <button name="split_share_amount" string="Split Share Amount" type="object"
+                                class="btn-primary" invisible="approval_state =='Approved' or not show_budget_sum"/>
+
+
                         <group>
+<!--                            <group>-->
+                                <!--                                <group>-->
+                                <!--                                    &lt;!&ndash;                                    <field name="tax_entity1" readonly="approval_state =='Approved'"&ndash;&gt;-->
+                                <!--                                    <field name="tax_entity1" force_save="1"-->
+                                <!--                                           readonly="(state !='draft' and tax_entity1) or state =='done'"-->
+                                <!--                                           options="{'no_quick_create':True,'no_create': True}"/>-->
+                                <!--                                    &lt;!&ndash;                                    <field name="tax_entity2" readonly="approval_state =='Approved'"&ndash;&gt;-->
+                                <!--                                    <field name="tax_entity2" force_save="1"-->
+                                <!--                                           readonly="(state !='draft' and tax_entity2)  or state =='done'"-->
+                                <!--                                           options="{'no_quick_create':True,'no_create': True}"/>-->
+                                <!--                                </group>-->
+                                <!--                                <group>-->
+
+                                <!--                                    <field name="tax_entity_1_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>-->
+                                <!--                                    <field name="tax_entity_1_percentage" invisible="not is_share_revised"/>-->
+                                <!--                                    <field name="tax_entity_2_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>-->
+                                <!--                                    <field name="tax_entity_2_percentage" invisible="not is_share_revised"/>-->
+                                <!--                                </group>-->
+<!--                            </group>-->
                             <group>
-                                <group>
-                                    <!--                                    <field name="tax_entity1" readonly="approval_state =='Approved'"-->
-                                    <field name="tax_entity1" force_save="1"
-                                           readonly="(state !='draft' and tax_entity1) or state =='done'"
-                                           options="{'no_quick_create':True,'no_create': True}"/>
-                                    <!--                                    <field name="tax_entity2" readonly="approval_state =='Approved'"-->
-                                    <field name="tax_entity2" force_save="1"
-                                           readonly="(state !='draft' and tax_entity2)  or state =='done'"
-                                           options="{'no_quick_create':True,'no_create': True}"/>
-                                </group>
-                                <group>
+<!--                                <group>-->
                                     <field name="is_share_revised" invisible="1"/>
-                                    <field name="tax_entity_1_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>
-                                    <field name="tax_entity_1_percentage" invisible="not is_share_revised"/>
-                                    <field name="tax_entity_2_percentage" readonly="state in ('done','validated')" invisible="is_share_revised"/>
-                                    <field name="tax_entity_2_percentage" invisible="not is_share_revised"/>
-                                </group>
-                            </group>
-                            <group>
-                                <group>
                                     <field name="cash_balance_apr" readonly="approval_state =='Approved'"/>
                                     <field name="share_rev_effective_from" invisible="version == 1 or is_share_revised"
                                            readonly="approval_state =='Approved'"/>
                                     <field name="share_rev_effective_from" invisible="version == 1 or not is_share_revised"/>
-                                </group>
-                                <group>
+<!--                                </group>-->
+<!--                                <group>-->
                                     <button name="get_cash_balance" string="Get Balance" type="object"
                                             class="btn-primary" invisible="approval_state =='Approved'"/>
-                                </group>
+<!--                                </group>-->
+                                <button name="split_share_amount" string="Split Share Amount" type="object"
+                                        class="btn-primary" invisible="not is_share_revised"/>
+                            </group>
+                            <group>
+                                 <field name="tax_entity_ids" context="{'default_company_id': active_id}">
+                                        <tree editable="bottom" create="0" delete="0">
+                                            <field name="sequence" readonly="1" force_save="1" string="No"/>
+                                            <field name="entity_id" options='{"no_open": True, "no_create": True}' readonly="1" force_save="1"/>
+                                            <field name="share"/>
+                                            <field name="loan_account_id" column_invisible="1"/>
+                                        </tree>
+                                    </field>
                             </group>
                         </group>
-
-
-                        <button name="split_share_amount" string="Split Share Amount" type="object"
-                                class="btn-primary" invisible="approval_state =='Approved' or not show_budget_sum"/>
-                        <button name="split_share_amount" string="Split Share Amount" type="object"
-                                class="btn-primary" invisible="not is_share_revised"/>
                         <group string="Share Amount">
                             <!--                            <group>-->
                             <!--                                -->
@@ -457,6 +468,7 @@
                                     <field name="company_id" column_invisible="1"
                                            options='{"no_open": True, "no_create": True}'/>
                                     <field name="revision_date"/>
+                                    <field name="entity"/>
                                     <field name="tax_entity_percentage" force_save="1"/>
                                     <!--                                    <field name="id"/>-->
                                     <field name="crr_share_april" sum="Total"/>

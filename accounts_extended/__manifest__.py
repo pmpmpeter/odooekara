@@ -40,6 +40,8 @@
         'report/batch_payment_view.xml',
         'report/tax_invoice.xml',
         'report/tax_invoice_view.xml',
+        'report/ekara_print_template.xml',
+        'report/ekara_invoice_report.xml',
         'views/res_config_settings.xml',
         'views/crossoverd_budget.xml',
         'views/account_move.xml',

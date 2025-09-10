@@ -123,6 +123,11 @@
                         string="Download Salary JV"
                         type="object"
                         class="oe_highlight" invisible="1"/>
+                    <button name="action_print_invoice_template"
+                    string="Print"
+                    type="object"
+                    class="oe_highlight"
+                    invisible="move_type not in ('in_invoice','out_invoice')"/>
 
                     <!-- Set as Checked -->
                     <button name="button_set_checked" string="Set as Checked" type="object"

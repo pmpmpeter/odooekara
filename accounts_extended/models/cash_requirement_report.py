@@ -31,6 +31,9 @@ class CashRequirementReport(models.Model):
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="", copy=False)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     active = fields.Boolean(string='Active')
+    contribution_ids = fields.One2many("budget.contribution", "report_id", string="Budget Contributions")
+    ytd_contribution_ids = fields.One2many("ytd.budget.contribution", "report_id", string="Budget Contributions")
+    budget_id = fields.Many2one('crossovered.budget',string='Budget')
 
     @api.model
     def default_get(self, fields):
@@ -132,9 +135,144 @@ class CashRequirementReport(models.Model):
             else:
                 self.total_fund_required = round(self.amount_total)
 
-    # @api.onchange('minimum_balance')
-    # def onchange_min_bal(self):
-    #     print('hf')
+    def action_generate_contributions(self):
+        """Generate budget.contribution and ytd.budget.contribution lines"""
+        self.ensure_one()
+        company = self.env.company  # current company
+
+        # Clear old lines (optional to avoid duplicates)
+        self.contribution_ids.unlink()
+        self.ytd_contribution_ids.unlink()  # Assuming you have a One2many for YTD contributions
+
+        vals_list = []
+        ytd_vals_list = []
+
+        start_date, end_date = self.start_date, self.end_date
+
+        # Determine financial year start (April)
+        fy_start = date(self.start_date.year, 4, 1)
+        if self.start_date.month < 4:  # Jan-Mar belongs to previous financial year
+            fy_start = date(self.start_date.year - 1, 4, 1)
+
+        # Collect contributions for each tax entity
+        for entity_line in self.company_id.tax_entity_ids:
+            entity = entity_line.entity_id
+            share = entity_line.share
+            loan_account = entity_line.loan_account_id
+            if not entity:
+                continue
+
+            # --- Monthly contribution ---
+            budget_requirement = 0.0
+            if self.budget_id and self.start_date:
+                month_number = self.start_date.month
+                month_map = {
+                    1: "crr_share_january", 2: "crr_share_february", 3: "crr_share_march",
+                    4: "crr_share_april", 5: "crr_share_may", 6: "crr_share_june",
+                    7: "crr_share_july", 8: "crr_share_august", 9: "crr_share_september",
+                    10: "crr_share_october", 11: "crr_share_november", 12: "crr_share_december",
+                }
+                month_field = month_map.get(month_number)
+                print(self.budget_id.crr_share_ids.mapped('entity'),"1111111111",entity)
+                line = self.budget_id.crr_share_ids.filtered(lambda l: l.entity.id == entity.id)
+                if line:
+                    budget_requirement = getattr(line[0], month_field, 0.0)
+
+            actual_contribution = 0.0
+            if loan_account:
+                aml = self.env["account.move.line"].read_group(
+                    domain=[
+                        ("account_id", "=", loan_account.id),
+                        ("date", ">=", start_date),
+                        ("date", "<=", end_date),
+                        ("move_id.state", "=", "posted"),
+                    ],
+                    fields=["debit:sum", "credit:sum"],
+                    groupby=[]
+                )
+                if aml:
+                    actual_contribution = aml[0].get("credit", 0.0)
+
+            crr_requirement = (self.total_fund_required or 0.0) * (share / 100.0)
+
+            vals_list.append({
+                "report_id": self.id,
+                "tax_entity_id": entity.id,
+                "te_percentage": share,
+                "budget_requirement": abs(budget_requirement),
+                "crr_requirement": crr_requirement,
+                "actual_contribution": actual_contribution,
+            })
+
+            # --- YTD contribution ---
+            ytd_budget = 0.0
+            if self.budget_id:
+                # Sum all months from April to current month
+                month_fields = []
+                month_fields = []
+
+                # months Apr (4) → Dec (12) in same year
+                if self.start_date.month >= 4:
+                    for m in range(4, self.start_date.month + 1):
+                        month_map = {
+                            4: "crr_share_april", 5: "crr_share_may", 6: "crr_share_june",
+                            7: "crr_share_july", 8: "crr_share_august", 9: "crr_share_september",
+                            10: "crr_share_october", 11: "crr_share_november", 12: "crr_share_december",
+                        }
+                        month_fields.append(month_map[m])
+
+                # months Jan (1) → Mar (3) of next year
+                else:
+                    for m in range(4, 13):  # Apr–Dec last year
+                        month_map = {
+                            4: "crr_share_april", 5: "crr_share_may", 6: "crr_share_june",
+                            7: "crr_share_july", 8: "crr_share_august", 9: "crr_share_september",
+                            10: "crr_share_october", 11: "crr_share_november", 12: "crr_share_december",
+                        }
+                        month_fields.append(month_map[m])
+                    month_map_jan_mar = {1: "crr_share_january", 2: "crr_share_february", 3: "crr_share_march"}
+                    month_fields += [month_map_jan_mar[m] for m in range(1, self.start_date.month + 1)]
+
+                line = self.budget_id.crr_share_ids.filtered(lambda l: l.entity.id == entity.id)
+                if line:
+                    ytd_budget = sum(getattr(line[0], f, 0.0) for f in month_fields)
+
+            # YTD actual contribution
+            ytd_actual = 0.0
+            if loan_account:
+                aml = self.env["account.move.line"].read_group(
+                    domain=[
+                        ("account_id", "=", loan_account.id),
+                        ("date", ">=", fy_start),
+                        ("date", "<=", end_date),
+                        ("move_id.state", "=", "posted"),
+                    ],
+                    fields=["debit:sum", "credit:sum"],
+                    groupby=[]
+                )
+                if aml:
+                    ytd_actual = aml[0].get("credit", 0.0)
+            # Get all cash.requirement records linked to this budget, in 'done' state, and within FY start to end_date
+            cash_recs = self.env['cash.requirement.report'].search([
+                ('budget_id', '=', self.budget_id.id),
+                ('state', '=', 'done'),
+                ('start_date', '>=', fy_start),
+                ('end_date', '<=', end_date),
+            ])
+            ytd_crr = (sum(cash_recs.mapped('total_fund_required')) or 0.0) * (share / 100.0)
+            ytd_vals_list.append({
+                "report_id": self.id,
+                "tax_entity_id": entity.id,
+                "te_percentage": share,
+                "budget_requirement": abs(ytd_budget),
+                "crr_requirement": ytd_crr,
+                "actual_contribution": ytd_actual,
+            })
+
+        if vals_list:
+            self.env["budget.contribution"].create(vals_list)
+        if ytd_vals_list:
+            self.env["ytd.budget.contribution"].create(ytd_vals_list)
 
 
 class CashRequirementLines(models.Model):
@@ -155,3 +293,86 @@ class CashRequirementLines(models.Model):
     amount = fields.Float('Amount', copy=False, tracking=True)
     remarks = fields.Char('Remarks')
     company_id = fields.Many2one('res.company',string ='Company', related='cash_req_id.company_id', store=True)
+
+
+class BudgetContribution(models.Model):
+    _name = "budget.contribution"
+    _description = "Budget Vs Actual Contribution"
+
+    report_id = fields.Many2one(
+        "cash.requirement.report", string="Cash Requirement Report", ondelete="cascade"
+    )
+
+    tax_entity_id = fields.Many2one("res.company", string="Tax Entity", required=True)
+    te_percentage = fields.Float("TE %")
+    budget_requirement = fields.Float("Budget Requirement")
+    crr_requirement = fields.Float("CRR Requirement")
+    actual_contribution = fields.Float("Actual Contribution")
+    contribution_percent = fields.Float("Contribution %",compute='_compute_difference')
+
+    difference = fields.Float(
+        "Difference",
+        compute="_compute_difference",
+        store=True,
+    )
+    difference_percent = fields.Float(
+        "Difference %",
+        compute="_compute_difference",
+        store=True,
+    )
+
+    @api.depends("crr_requirement", "actual_contribution")
+    def _compute_difference(self):
+        for rec in self:
+            rec.difference = rec.crr_requirement - rec.actual_contribution
+            rec.difference_percent = (
+                (rec.difference / rec.crr_requirement * 100)
+                if rec.crr_requirement
+                else 0.0
+            )
+            rec.contribution_percent = (
+                (rec.actual_contribution / rec.crr_requirement * 100)
+                if rec.actual_contribution
+                else 0.0
+            )
+
+class YTDBudgetContribution(models.Model):
+    _name = "ytd.budget.contribution"
+    _description = "YTD Budget Vs Actual Contribution"
+
+    report_id = fields.Many2one(
+        "cash.requirement.report", string="Cash Requirement Report", ondelete="cascade"
+    )
+
+    tax_entity_id = fields.Many2one("res.company", string="Tax Entity", required=True)
+    te_percentage = fields.Float("TE %")
+    budget_requirement = fields.Float("Budget Requirement")
+    crr_requirement = fields.Float("CRR Requirement")
+    actual_contribution = fields.Float("Actual Contribution")
+    contribution_percent = fields.Float("Contribution %",compute='_compute_difference')
+
+    difference = fields.Float(
+        "Difference",
+        compute="_compute_difference",
+        store=True,
+    )
+    difference_percent = fields.Float(
+        "Difference %",
+        compute="_compute_difference",
+        store=True,
+    )
+
+    @api.depends("crr_requirement", "actual_contribution")
+    def _compute_difference(self):
+        for rec in self:
+            rec.difference = rec.crr_requirement - rec.actual_contribution
+            rec.difference_percent = (
+                (rec.difference / rec.crr_requirement * 100)
+                if rec.crr_requirement
+                else 0.0
+            )
+            rec.contribution_percent = (
+                (rec.actual_contribution / rec.crr_requirement * 100)
+                if rec.actual_contribution
+                else 0.0
+            )
