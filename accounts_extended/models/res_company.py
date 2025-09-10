@@ -26,7 +26,7 @@ class ResCompanyTaxEntity(models.Model):
     _description = "Tax Entity Master"
 
     company_id = fields.Many2one("res.company",string="Company",required=True,ondelete="cascade")
-    budget_id = fields.Many2one("crossovered.budget",string="Company",required=True,ondelete="cascade")
+    budget_id = fields.Many2one("crossovered.budget",string="Company",ondelete="cascade")
     entity_id = fields.Many2one("res.company",string="Entity",required=True)
     share = fields.Float(string="Share (%)",required=True)
     sequence = fields.Integer(string="Sequence",default=1)
