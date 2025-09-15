@@ -354,7 +354,7 @@ class AccountMoveInherit(models.Model):
             for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                 if not move.crossovered_budget:
                     raise UserError('Warning!! Kindly select a Budget.')
-                if not line1.filtered(lambda e: e.analytic_distribution):
+                if line1.budget_id and not line1.filtered(lambda e: e.analytic_distribution):
                     raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
                         line1.account_id.display_name,move.display_name))
 

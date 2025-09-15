@@ -202,38 +202,36 @@ class RequestApproval(models.TransientModel):
             for move in account_move_id.filtered(lambda l: l.move_type in  ['in_invoice']):
                 move.action_validate_no_bill()
             for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance):
-                    # Budget Code is moved to line item.
-                    # if move.move_type != 'entry':
-                    #
-                    #     for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense']):
-                    #         if not move.budget_id:
-                    #             raise UserError('Warning!! Kindly select a Budget Code.')
-                    #         if not move.budget_id.general_budget_id.account_ids:
-                    #             raise UserError(_("Alert !! Kindly map the COA to the Budgetry Position -%s.")%(
-                    #                 move.budget_id.general_budget_id.display_name))
-                    #         # pdb.set_trace()
-                    #         if not line1.filtered(lambda e: e.analytic_distribution):
-                    #             raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                    #                 line1.account_id.display_name,move.display_name))
-                    #         if not line1.filtered(lambda e: {str(move.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
-                    #             raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
-                    #                 line1.account_id.display_name,move.budget_id.analytic_account_id.display_name,move.budget_id.display_name))
-                    #
-                    # elif move.move_type == 'entry':
-                    for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
-                        if not move.crossovered_budget:
-                            raise UserError('Warning!! Kindly select a Budget.')
-                        if not line1.budget_id.general_budget_id.account_ids:
-                            raise UserError(
-                                _("Budget Code is mandatory.\n"
-                                  "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
-                        # pdb.set_trace()
-                        if not line1.filtered(lambda e: e.analytic_distribution):
-                            raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                                line1.account_id.display_name,move.display_name))
-                        if not line1.filtered(lambda e: {str(line1.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
-                            raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
-                                line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
+                    if move.move_type == 'entry':
+                        for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_receivable','asset_cash','asset_current','asset_non_current','asset_prepayments','asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
+                        # for line1 in move.line_ids.filtered(lambda l: l.account_id.is_cash_rounding == False):
+                            if not move.crossovered_budget:
+                                raise UserError('Warning!! Kindly select a Budget.')
+                            if not line1.budget_id.general_budget_id.account_ids:
+                                raise UserError(
+                                    _("Budget Code is mandatory.\n"
+                                      "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
+                            if line1.budget_id and not line1.filtered(lambda e: e.analytic_distribution):
+                                raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                                    line1.account_id.display_name,move.display_name))
+                            if line1.budget_id and not line1.filtered(lambda e: {str(line1.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                                raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                                    line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
+
+                    elif move.move_type != 'entry':
+                        for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
+                            if not move.crossovered_budget:
+                                raise UserError('Warning!! Kindly select a Budget.')
+                            if not line1.budget_id.general_budget_id.account_ids:
+                                raise UserError(
+                                    _("Budget Code is mandatory.\n"
+                                      "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
+                            if not line1.filtered(lambda e: e.analytic_distribution):
+                                raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                                    line1.account_id.display_name,move.display_name))
+                            if not line1.filtered(lambda e: {str(line1.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
+                                raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
+                                    line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
 
         # create request
         vals = {
@@ -242,6 +240,7 @@ class RequestApproval(models.TransientModel):
             "type_id": self.type_id.id,
             "description": self.description,
             "origin_ref": f"{self.origin_ref._name},{self.origin_ref.id}",
+            "company_id": self.env.company.id
         }
         request = self.env["multi.approval"].create(vals)
         request.write({'request_date': self.request_date})

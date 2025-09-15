@@ -46,3 +46,8 @@ class ResConfigSettings(models.TransientModel):
         mail_template = self.env.ref('accounts_extended.crr_reminder_email_template')
         if mail_template:
             mail_template.sudo().send_mail(user.id, force_send=True)
+
+class MultiApproval(models.Model):
+    _inherit = "multi.approval"
+
+    company_id = fields.Many2one('res.company',string="Company ID")

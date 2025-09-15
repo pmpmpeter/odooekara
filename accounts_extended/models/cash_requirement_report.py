@@ -21,7 +21,7 @@ class CashRequirementReport(models.Model):
     requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False, default=lambda self: self.env.user)
     journal_bank  =fields.Many2many('account.journal',string='Bank',copy=False)
     cash_requirement_lines = fields.One2many('cash.requirement.lines','cash_req_id',string='Lines',copy=False)
-    available_balance  =fields.Float(string='Available Amount Balance',copy=False)
+    available_balance  =fields.Float(string='Available Amount Balance',copy=False,compute='compute_available_balance')
     company_id = fields.Many2one('res.company',string ='Company', default=lambda self: self.env.company)
     minimum_balance = fields.Float(string='Minimum Balance',copy=False)
     amount_total = fields.Float(string='Amount Total', copy=False)
@@ -34,6 +34,29 @@ class CashRequirementReport(models.Model):
     contribution_ids = fields.One2many("budget.contribution", "report_id", string="Budget Contributions")
     ytd_contribution_ids = fields.One2many("ytd.budget.contribution", "report_id", string="Budget Contributions")
     budget_id = fields.Many2one('crossovered.budget',string='Budget')
+    has_statement_lines = fields.Boolean(string='Has Statement Lines')
+
+    @api.depends('journal_bank')
+    def compute_available_balance(self):
+        if self.journal_bank:
+            total_val = 0
+            for rec in self.journal_bank.ids:
+                bank_balance = 0
+                if rec:
+                    journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
+                    query_result = journal._get_journal_dashboard_bank_running_balance()
+                    self.has_statement_lines, bank_balance = query_result.get(journal.id)
+                    total_val += bank_balance
+                else:
+                    self.available_balance = 0
+            self.available_balance = total_val
+        else:
+            self.available_balance = 0
+
+    def action_print_cash_requirement(self):
+        """Return the report action to print the cash requirement report as PDF"""
+        self.ensure_one()
+        return self.env.ref('accounts_extended.report_action_cash_requirement').report_action(self)
 
     @api.model
     def default_get(self, fields):
@@ -92,30 +115,36 @@ class CashRequirementReport(models.Model):
     def button_cancel(self):
         self.state = 'cancel'
 
-    @api.onchange('journal_bank')
-    def onchange_journal_bank(self):
-        if self.journal_bank:
-            closing_balance = 0
-            for rec in self.journal_bank:
-                query = """
-                            select sum(balance) as balance FROM account_move_line aml 
-                            join account_move am on am.id=aml.move_id 
-                            where am.state='posted' and aml.account_id=%s and aml.date <= %s and aml.company_id = %s
-                            """
-                params = tuple(rec.default_account_id.ids), datetime.today().strftime('%Y-%m-%d'), self.company_id.id
-                data_get8 = self.env.cr.execute(query, params)
-                lines8 = self.env.cr.dictfetchall()
-                if (lines8[0].get('balance') != None):
-                    closing_balance += lines8[0].get('balance') or 0
-            for record in self:
-                record.available_balance = closing_balance
-                if self.available_balance > 0:
-                    if self.amount_total - self.available_balance > 0:
-                         self.total_fund_required = round(self.amount_total - self.available_balance)
-                    else:
-                         self.total_fund_required = 0
-                else:
-                    self.total_fund_required = round(self.amount_total)
+    # @api.onchange('journal_bank')
+    # def onchange_journal_bank_test(self):
+    #     if self.journal_bank:
+    #         closing_balance = 0
+    #         query_result = self.env['account.journal'].sudo()._get_journal_dashboard_bank_running_balance()
+    #         for journal in self.journal_bank:
+    #             print(journal, 'ffffffffffffff')
+    #             journal.has_statement_lines, journal.current_statement_balance = query_result.get(journal.id)
+    #
+    #         for rec in self.journal_bank:
+    #             query = """
+    #                         select sum(balance) as balance FROM account_move_line aml
+    #                         join account_move am on am.id=aml.move_id
+    #                         where am.state='posted' and aml.account_id=%s and aml.date <= %s and aml.company_id = %s
+    #                         """
+    #             params = tuple(rec.default_account_id.ids), datetime.today().strftime('%Y-%m-%d'), self.company_id.id
+    #             data_get8 = self.env.cr.execute(query, params)
+    #             lines8 = self.env.cr.dictfetchall()
+    #             if (lines8[0].get('balance') != None):
+    #                 closing_balance += lines8[0].get('balance') or 0
+    #         for record in self:
+    #             record.available_balance = closing_balance
+    #             if self.available_balance > 0:
+    #                 if self.amount_total - self.available_balance > 0:
+    #                      print(round(self.amount_total - self.available_balance))
+    #                      self.total_fund_required = round(self.amount_total - self.available_balance)
+    #                 else:
+    #                      self.total_fund_required = 0
+    #             else:
+    #                 self.total_fund_required = round(self.amount_total)
 
     @api.onchange('cash_requirement_lines','minimum_balance')
     def onchange_minimum_balance(self):
