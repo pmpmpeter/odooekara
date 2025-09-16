@@ -115,9 +115,7 @@
                        invisible="is_contra_payment or (payment_type == 'inbound' and not is_fund_requsiting)"/>
             </field>
             <xpath expr="//button[@name='action_cancel']" position="replace">
-                <button name="action_cancel" string="Cancel" type="object" 
-                    invisible="not id or state != 'draft'" data-hotkey="x" 
-                    groups="accounts_extended.group_cancel_accounting_entry"/>
+                <button name="action_cancel" string="Cancel" type="object" invisible="not id or state not in ('to approve','approved','posted')" data-hotkey="x" groups="accounts_extended.group_cancel_accounting_entry"/>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="replace">
                 <button name="action_post" string="Confirm" type="object" class="oe_highlight"

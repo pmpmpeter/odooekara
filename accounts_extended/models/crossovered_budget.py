@@ -2510,7 +2510,7 @@ class CrrBudgetLineConsolidate(models.Model):
             ])
             crr_budget_lines4 = self.env['crr.budget.line'].sudo().search([
                 ('budget_id', '=', self.budget_id.id),
-                ('budget_type', '=', 'nocif'),
+                ('budget_type', '=', 'noocif'),
                 ('is_budget_total', '=', False)
             ])
             opex_rec = self.env['crr.budget.line.consolidate'].sudo().search([('budget_id', '=', self.budget_id.id),

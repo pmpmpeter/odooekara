@@ -354,18 +354,18 @@ class AccountMoveInherit(models.Model):
             for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                 if not move.crossovered_budget:
                     raise UserError('Warning!! Kindly select a Budget.')
-                if not line1.filtered(lambda e: e.analytic_distribution):
+                if line1.budget_id and not line1.filtered(lambda e: e.analytic_distribution):
                     raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
                         line1.account_id.display_name,move.display_name))
 
 
     def budget_code_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance):
-            for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
+            for line1 in move.line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                 if not move.budget_id:
                     raise UserError('Warning!! Kindly select a Budget Code.')
                 if not move.budget_id.general_budget_id.account_ids:
-                    raise UserError(_("Budget Code is mandatory for COAs with account type Fixed Asset or Expenses.\n"
+                    raise UserError(_("Budget Code is mandatory.\n"
                                       "To proceed without a Budget Code, please enable Disable Budget Code in the respective COA."))
                 # pdb.set_trace()
                 if not line1.filtered(lambda e: e.analytic_distribution):
@@ -548,6 +548,9 @@ class AccountMoveInherit(models.Model):
                 })
                 wiz_tds.action_create_and_post_withhold()
         return res
+
+    def action_print_invoice_template(self):
+        return self.env.ref('accounts_extended.print_invoice_template1').report_action(self)
 
     def action_export_salary_jv_xlsx(self):
 

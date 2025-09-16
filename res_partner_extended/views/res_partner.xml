@@ -43,6 +43,20 @@
             </field>
         </record>
 
+        <record id="res_partner_extend_tree_inherit" model="ir.ui.view">
+            <field name="name">res.partner.inherits.tree</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+                 <xpath expr="//field[@name='company_id']" position="attributes">
+                     <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='company_id']" position="after">
+                     <field name="company_ids" widget="many2many_tags"/>
+                </xpath>
+            </field>
+        </record>
+
         <record id="res_partner_extend" model="ir.ui.view">
             <field name="name">res.partner.inherits</field>
             <field name="model">res.partner</field>
