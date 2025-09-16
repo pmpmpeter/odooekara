@@ -21,7 +21,7 @@ class CashRequirementReport(models.Model):
     requested_by = fields.Many2one('res.users',string="Requested By", attachment=True, copy=False, default=lambda self: self.env.user)
     journal_bank  =fields.Many2many('account.journal',string='Bank',copy=False)
     cash_requirement_lines = fields.One2many('cash.requirement.lines','cash_req_id',string='Lines',copy=False)
-    available_balance  =fields.Float(string='Available Amount Balance',copy=False)
+    available_balance  =fields.Float(string='Available Amount Balance',copy=False,compute='compute_available_balance')
     company_id = fields.Many2one('res.company',string ='Company', default=lambda self: self.env.company)
     minimum_balance = fields.Float(string='Minimum Balance',copy=False)
     amount_total = fields.Float(string='Amount Total', copy=False)
