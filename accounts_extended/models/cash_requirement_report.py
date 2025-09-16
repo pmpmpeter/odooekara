@@ -31,6 +31,7 @@ class CashRequirementReport(models.Model):
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="", copy=False)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
     active = fields.Boolean(string='Active')
+    has_statement_lines = fields.Boolean(string='Has Statement Lines')
 
     @api.depends('journal_bank')
     def compute_available_balance(self):
