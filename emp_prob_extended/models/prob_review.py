@@ -21,7 +21,7 @@ class ProbationReviewForm(models.Model):
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
     reporting_manager_id = fields.Many2one('hr.employee', string='Reporting Manager',
                                         tracking=True)
-    reporting_manager_designation_id = fields.Many2one('hr.job',string='Manager Designation', tracking=True)
+    reporting_manager_designation_id = fields.Many2one('hr.job',string='Manager Designation',related='employee_id.job_id', tracking=True)
     three_month_review_due = fields.Date(string='Due Date', tracking=True)
     three_month_review_completed = fields.Date(string='Completed On', tracking=True)
     six_month_review_due = fields.Date(string='Due Date', tracking=True)
@@ -177,10 +177,26 @@ class ProbationReviewForm(models.Model):
 
     def mark_review1_done(self):
         for record in self:
+            user = self.reporting_manager_id.user_id
+            self.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary="Employee Probation : Final Review",
+                note=f"Kindly review the employee probation.",
+                user_id=user.id,
+                date_deadline=fields.Date.today()
+            )
             record.state = 'review1_done'
 
     def mark_review2_done(self):
         for record in self:
+            user = self.reporting_manager_id.user_id
+            self.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary="Employee Probation : Mark as Done",
+                note=f"Kindly review the employee probation.It is still in Final Review State.Kindly mark it as done.",
+                user_id=user.id,
+                date_deadline=fields.Date.today()
+            )
             record.state = 'review2_done'
 
     def mark_done(self):

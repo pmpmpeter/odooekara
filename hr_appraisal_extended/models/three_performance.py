@@ -47,7 +47,7 @@ class ThreePerformanceReview(models.Model):
                                   domain="[('company_id', '=', company_id)]",
                                   required=True)
     job_id = fields.Many2one('hr.job', string='What is their job title:',domain="[('company_id', '=', company_id)]", required=True)
-    grade = fields.Char(string="Grade(if applicable):", required=True)
+    grade = fields.Char(string="Grade(if applicable):")
     grade_selection = fields.Selection([
         ('spl_grade', 'Spl Grade'),
         ('grade_a', 'Grade A'),

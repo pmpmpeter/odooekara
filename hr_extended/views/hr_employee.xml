@@ -309,6 +309,4 @@
     <record id="base.menu_apps" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
     </record>
-
-
 </odoo>

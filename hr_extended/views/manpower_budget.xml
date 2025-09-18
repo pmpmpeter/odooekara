@@ -37,6 +37,7 @@
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state != 'done'" class="btn-secondary"
                             groups="hr_extended.group_manpower_budget_manager,hr_extended.group_hr_recruitment_bu_head"/>
+                    <button name="schedule_activity" type="object" string="Send Notification" class="btn-secondary"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,assigned,submitted,hr_approved,done"/>
                 </header>
@@ -96,6 +97,7 @@
                 </sheet>
                 <div class="oe_chatter">
                     <field name="message_ids" widget="mail_thread"/>
+                    <field name="activity_ids"/>
                 </div>
             </form>
         </field>

@@ -1,5 +1,14 @@
 <odoo>
-
+     <record id="cus_multi_approval_type_view_form_inherit" model="ir.ui.view">
+            <field name="name">cus_multi_approval_type_view_form_inherit</field>
+            <field name="model">multi.approval.type</field>
+            <field name="inherit_id" ref="multi_level_approval_configuration.multi_approval_type_view_form_inherit" />
+            <field name="arch" type="xml">
+                <field name="model_id" position="after">
+                    <field name="department_id" readonly="is_configured or state in ('cancelled')"/>
+                </field>
+            </field>
+     </record>
     <record id='custom_hr_expense_sheet_report_inherited_form' model='ir.ui.view'>
         <field name="name">custom.hr.expense.sheet.inherited.form</field>
         <field name="model">hr.expense.sheet</field>
@@ -19,8 +28,8 @@
                     <header>
                         <button name="action_submit_sheet"
                                 string="Submit to Manager"
-                                invisible="1"
                                 type="object"
+                                invisible="x_need_approval or state != 'draft'"
                                 class="oe_highlight o_expense_sheet_submit"
                                 data-hotkey="l"/>
                         <button name="action_approve_expense_sheets"
@@ -144,6 +153,7 @@
                                        readonly="not is_editable"/>
                                 <field name="approval_document" invisible="1"/>
                                 <field name="approval_status"/>
+                                <field name="approval_level" invisible="1"/>
                             </group>
                         </group>
                         <notebook>

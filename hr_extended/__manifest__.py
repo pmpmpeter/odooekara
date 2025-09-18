@@ -29,8 +29,8 @@
         'oi_hr_holidays_attachment',
     ],
     'data': [
-        'security/ir.model.access.csv',
         'security/security.xml',
+        'security/ir.model.access.csv',
         'report/pre_emp_check_report.xml',
         'report/employee_indent_report.xml',
         'report/salary_breakup_report.xml',

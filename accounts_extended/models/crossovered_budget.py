@@ -114,7 +114,7 @@ class CrossoveredBudget(models.Model):
                 self.env['cash.management'].search([('budget_id', '=', self.id)]).cash_payment_ids.ids) or 0
             rec.share_line_count = len(rec.crr_share_ids)
             entity_ids = self.env.company.tax_entity_ids.ids
-            if entity_ids and not rec.tax_entity_ids:
+            if entity_ids:
                 rec.tax_entity_ids = [(6, 0, entity_ids)]
 
     def freeze_april_month(self):

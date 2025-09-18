@@ -253,7 +253,19 @@ class EmployeeProbation(models.Model):
                     'employee_probation_id': record.id,
                 })
                 record.review_form_id = review_form.id
-
+            if not self.parent_id.user_id:
+                raise ValidationError(
+                    _('Kindly check if the manager has a valid mail ID.')
+                )
+            else:
+                user = self.parent_id.user_id
+                self.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Employee Probation : Initial Review",
+                    note=f"Kindly review the employee probation.",
+                    user_id=user.id,
+                    date_deadline=fields.Date.today()
+                )
             if self.env.user.has_group('emp_prob_extended.group_employee_probation_manager'):
                 return {
                     'type': 'ir.actions.act_window',

@@ -44,7 +44,6 @@ class PayrollReportWizard(models.TransientModel):
             if not record.report_file:
                 raise ValidationError("Please upload the report file before sending the email.")
 
-
             attachment = self.env['ir.attachment'].create({
                 'name': record.file_name or 'report.pdf',
                 'type': 'binary',
@@ -94,7 +93,7 @@ class PayrollReportWizard(models.TransientModel):
         for rec in users:
             if not rec.user_id:
                 raise ValidationError("In-app notifications can be sent to employees who are linked to users")
-            rec.activity_schedule(
+            self.batch_id.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="Batch Payroll Reminder: Payroll reminder",
                 note=f"Kindly Verify the Batch Payroll:{self.batch_id.name} .",

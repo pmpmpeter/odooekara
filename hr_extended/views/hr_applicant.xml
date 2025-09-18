@@ -1,6 +1,43 @@
 <?xml version="1.0"?>
 <odoo>
     <data>
+
+        <!-- Wizard View -->
+        <record id="view_hr_applicant_refuse_wizard_form" model="ir.ui.view">
+            <field name="name">hr.applicant.refuse.wizard.form</field>
+            <field name="model">hr.applicant.refuse.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Refuse Offer Letter">
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                    <footer>
+                        <button string="Confirm" type="object" name="action_confirm_refuse" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+         <record id="view_hr_applicant_refuse_tree" model="ir.ui.view">
+            <field name="name">hr.applicant.refuse.tree</field>
+            <field name="model">hr.applicant.refuse</field>
+            <field name="arch" type="xml">
+                <tree string="Refuse Reason">
+                    <field name="user_id"/>
+                    <field name="reason"/>
+                    <field name="create_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action for Smart Button -->
+        <record id="action_hr_applicant_refuse_log" model="ir.actions.act_window">
+            <field name="name">Refusals</field>
+            <field name="res_model">hr.applicant.refuse</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[('applicant_id','=',active_id)]</field>
+        </record>
         <!-- HR applicant kanban view draggable and quick create stop-->
         <record model="ir.ui.view" id="hr_kanban_view_applicant_inherited">
             <field name="name">Hr Applicants kanban Inherited</field>
@@ -39,7 +76,6 @@
                 <xpath expr="//field[@name='stage_id']" position="attributes">
                     <attribute name="options">{'fold_field': 'fold'}</attribute>
                 </xpath>
-
                 <xpath expr="//div[@class='oe_button_box']" position="inside">
                     <!--                    <field name="is_pre_emp_form_clicked" invisible="1"/>-->
                     <field name="last_stage_id" invisible="1"/>
@@ -67,10 +103,18 @@
                             string="Send Document Update"
                             invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused' or
                             document_sent == 'yes'"/>
-                    <button name="action_approve_offer_letter" type="object" string="Offer Letter Approve"
+                    <button name="action_send_offer_offer_letter_for_approval" type="object" string="Send for Director Review"
                             class="btn-primary" groups="hr_recruitment.group_hr_recruitment_manager"
-                            invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused' or
-                            offer_letter_approved == 'yes'"/>
+                            invisible="stage_status not in ('document_validated','offer_accepted') or application_status == 'refused' or
+                            offer_letter_sent_director == 'yes'"/>
+                    <button name="action_approve_offer_letter" type="object" string="Approve Offer Letter"
+                            class="btn-primary" groups="hr_extended.group_hr_recruitment_director"
+                            invisible="stage_status not in ('document_validated','offer_accepted') or application_status == 'refused' or
+                            offer_letter_sent_director != 'yes' or offer_letter_approved == 'yes'"/>
+                     <button name="action_refuse_offer_letter" type="object" string="Refuse Offer Letter"
+                            class="btn-primary" groups="hr_extended.group_hr_recruitment_director"
+                            invisible="stage_status not in ('document_validated','offer_accepted') or application_status == 'refused' or
+                            offer_letter_sent_director != 'yes' or offer_letter_approved == 'yes'"/>
                     <button name="action_send_offer_letter_mail" type="object" class="oe_highlight"
                             string="Send Offer Letter"
                             invisible="document_sent == 'no' or offer_letter_approved == 'no' or application_status == 'refused' or
@@ -78,11 +122,17 @@
                     <button name="action_create_interview_assessment" type="object" class="oe_highlight"
                             string="Create Interview Assessment"
                             invisible="application_status == 'refused' or interview_assessment_letter_count > 0"/>
+                     <button name="action_approve_employee_documents" type="object" class="oe_highlight"
+                            string="Approve Documents"
+                            invisible = "stage_status not in ('shortlist') or application_status == 'refused' or document_sent == 'no'"/>
+                     <button name="action_refuse_employee_documents" type="object" class="oe_highlight"
+                            string="Refuse Documents"
+                            invisible = "stage_status not in ('shortlist') or application_status == 'refused' or document_sent == 'no'"/>
                     <button name="action_offer_accepted" string="Offer Accept" type="object"
-                            invisible="document_sent == 'no' or offer_letter_sent == 'no' or stage_status not in ('shortlist') or application_status == 'refused'"
+                            invisible="document_sent == 'no' or offer_letter_sent == 'no' or stage_status not in ('director_approval') or application_status == 'refused'"
                             class="btn-primary"/>
                     <button string="Offer Letter Report" type="action"
-                            invisible="stage_status not in ('shortlist','offer_accepted') or application_status == 'refused'"
+                            invisible="stage_status not in ('document_validated','offer_accepted','director_approval') or application_status == 'refused'"
                             name="%(hr_extended.salary_breakup_report)d" class="btn-primary"/>
                     <!--                    <button string="Offer Letter" type="action"-->
                     <!--                            name="%(hr_extended.salary_breakup_report)d" class="btn-primary"-->
@@ -115,10 +165,13 @@
                 <xpath expr="//field[@name='interviewer_ids']" position="before">
                     <field name="document_sent"
                            invisible="stage_status not in ('shortlist','offer_accepted')"/>
+                     <field name="offer_letter_sent_director"
+                           invisible="stage_status not in ('shortlist','offer_accepted')"/>
                     <field name="offer_letter_approved"
                            invisible="stage_status not in ('shortlist','offer_accepted')"/>
                     <field name="offer_letter_sent"
                            invisible="stage_status not in ('shortlist','offer_accepted')"/>
+                     <field name="refuse_count" invisible="1"/>
                 </xpath>
 
                 <xpath expr="//group[@name='recruitment_contract']" position="before">
@@ -177,6 +230,18 @@
                             invisible="interview_assessment_letter_count == 0">
                         <field name="interview_assessment_letter_count" widget="statinfo" string="Assessment Form"/>
                     </button>
+                    <button name="action_view_documents"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-file">
+                    <field string="Documents" name="document_ids" widget="statinfo"/>
+                    </button>
+                     <button type="action"
+                                class="oe_stat_button"
+                                name="%(action_hr_applicant_refuse_log)d"
+                                icon="fa-ban">
+                            <field string="Refusals" name="refuse_count" widget="statinfo"/>
+                        </button>
                 </xpath>
                 <xpath expr="//button[@name='create_employee_from_applicant']" position="after">
                     <button name="action_send_first_invitiation" type="object" class="oe_highlight"

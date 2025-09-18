@@ -1,4 +1,6 @@
 import re
+from itertools import groupby
+
 from markupsafe import Markup
 import werkzeug
 
@@ -527,6 +529,55 @@ class HrExpenseSheet(models.Model):
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
 
     reason_approved = fields.Text(string='Approval Comments')
+    approval_level = fields.Selection([
+        ("none", "None"),
+        ("level1", "1 Level"),
+        ("level2", "2 Level"),
+        ("level3", "3 Level"),
+        ("level4", "4 Level"),
+        ("level5", "5 Level"),
+        ("level6", "6 Level"),
+    ], default="none", string="Approval Level", tracking=True,store=True,compute='_compute_approval_level')
+
+    @api.depends("employee_id")
+    def _compute_approval_level(self):
+        for rec in self:
+            rec.approval_level = "none"
+            if not rec.employee_id or not rec.employee_id.department_id:
+                continue
+
+            # all approval lines linked to this department
+            approval_ids = self.env["multi.approval.type.line"].search([
+                ("type_id.department_id", "=", rec.employee_id.department_id.id)
+            ])
+
+            if not approval_ids:
+                continue
+            employee_user = rec.employee_id.user_id
+            # find parent type_ids that have current employee
+            parent_with_emp = approval_ids.filtered(
+                lambda l: l.user_id == employee_user
+            ).mapped("type_id")
+
+            # keep only parents NOT containing employee
+            filtered_parents = approval_ids.filtered(
+                lambda l: l.type_id not in parent_with_emp
+            )
+
+            if filtered_parents:
+                # group by parent type_id
+                grouped = {}
+                for line in filtered_parents:
+                    grouped.setdefault(line.type_id, []).append(line)
+
+                # pick parent with max children
+                max_parent, max_lines = max(grouped.items(), key=lambda x: len(x[1]))
+                max_len = len(max_parent.line_ids)
+                # map length → level
+                if max_len >= 6:
+                    rec.approval_level = "level6"
+                else:
+                    rec.approval_level = f"level{max_len}"
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):
@@ -669,3 +720,11 @@ class HrExpenseSheet(models.Model):
             'date': self.accounting_date or max(self.expense_line_ids.filtered(lambda exp: exp.date).mapped('date'), default=fields.Date.context_today(self)),
             'expense_sheet_id': self.id,
         }
+
+class MultiApprovalType(models.Model):
+    _inherit = "multi.approval.type"
+
+
+    department_id = fields.Many2one('hr.department',string='Department')
+
+

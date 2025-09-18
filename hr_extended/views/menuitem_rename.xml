@@ -167,11 +167,20 @@
             web_icon="hr_holidays,static/description/icon.png"
             groups="base.group_user"/>
 
+    <record id="hr_leave_action_dynamic_server" model="ir.actions.server">
+            <field name="name">Leaves: Self + Subordinates</field>
+            <field name="model_id" ref="hr_holidays.model_hr_leave"/>
+            <field name="state">code</field>
+            <field name="code">
+        action = model.get_dynamic_leave_action()
+            </field>
+     </record>
+
     <menuitem
             id="hr_holidays.menu_open_department_leave_approve"
             name="Leaves"
             parent="hr_holidays.menu_hr_holidays_management"
-            action="hr_holidays.hr_leave_action_action_approve_department"
+            action="hr_extended.hr_leave_action_dynamic_server"
             sequence="1"/>
 
     <menuitem
@@ -204,7 +213,7 @@
             name="Payroll Input Sheet"
             parent="hr_work_entry_contract_enterprise.menu_hr_payroll_root"
             sequence="70"
-            groups="hr_payroll.group_hr_payroll_user"/>
+            groups="hr_payroll.group_hr_payroll_user,group_hr_payslip_readonly"/>
 
     <menuitem
             id="hr_payroll.menu_hr_payroll_employee_payslips"
@@ -212,7 +221,7 @@
             parent="hr_payroll.menu_hr_payroll_payslips"
             sequence="60"
             action="hr_payroll.action_view_hr_payslip_month_form"
-            groups="hr_payroll.group_hr_payroll_user"/>
+            groups="hr_payroll.group_hr_payroll_user,group_hr_payslip_readonly"/>
 
     <record id="hr_payroll.hr_payslip_action_view_to_pay" model="ir.actions.act_window">
         <field name="name">Payroll Input Sheet to Pay</field>
