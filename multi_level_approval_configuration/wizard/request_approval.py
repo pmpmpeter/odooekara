@@ -201,7 +201,7 @@ class RequestApproval(models.TransientModel):
             account_move_id = self.env['account.move'].sudo().browse(self.origin_ref.id)
             for move in account_move_id.filtered(lambda l: l.move_type in  ['in_invoice']):
                 move.action_validate_no_bill()
-            for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance):
+            for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance and not l.statement_line_id):
                     if move.move_type == 'entry':
                         for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_receivable','asset_cash','asset_current','asset_non_current','asset_prepayments','asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
                         # for line1 in move.line_ids.filtered(lambda l: l.account_id.is_cash_rounding == False):
