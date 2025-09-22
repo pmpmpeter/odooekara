@@ -14,6 +14,16 @@
                                 <strong>
                                     <t t-esc="doc.vendor_id.name"/>
                                 </strong>
+                                    <br/>
+                                    <t t-esc="doc.vendor_id.street"/>
+                                    <br/>
+                                    <t t-esc="doc.company_id.city"/>
+                                    -
+                                    <t t-esc="doc.company_id.zip"/>
+                                    <br/>
+                                    Email:
+                                    <t t-esc="doc.company_id.email"/>
+
                             </p>
                         </div>
 

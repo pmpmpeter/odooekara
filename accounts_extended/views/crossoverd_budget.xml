@@ -21,6 +21,7 @@
                 <xpath expr="//group/group[2]//field[@name='company_id']" position="before">
                     <field name="version" force_save="1"/>
                     <field name="fy_crr_budget_total"/>
+                    <field name="fy_cur_budget_total"/>
                     <field name="revision_date" invisible="version == 1" readonly="1" force_save="1"/>
                 </xpath>
                 <xpath expr="//field[@name='user_id']" position="after">

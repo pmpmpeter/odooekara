@@ -15,6 +15,7 @@ class CrossoveredBudget(models.Model):
                                               copy=False)
     revision_date = fields.Datetime(string='Last Revised Date')
     fy_crr_budget_total = fields.Float("Total CRR", tracking=1, readonly=True)
+    fy_cur_budget_total = fields.Float("Total Utilization", tracking=1, readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('revision', 'To Revision'),
@@ -1141,6 +1142,7 @@ class CrossoveredBudget(models.Model):
         for record in self:
             for line in self.cash_payment_ids.filtered(lambda c: c.is_budget_surples_sum_line):
                 record.write({'fy_crr_budget_total': line.crr_budget_total})
+                record.write({'fy_cur_budget_total': line.cur_budget_total})
 
     def update_cash_outflow_inflow_calculation(self):
         self._check_budget_position_configuration()
