@@ -30,14 +30,29 @@ class AccountAccount(models.Model):
                 raise UserError(_("Opening Balance for %s is already posted.")
                     %line.company_id.name)
 
-        accounts_per_company = defaultdict(lambda: self.env['account.account'])
-        for account in accounts:
-            accounts_per_company[account.company_id] |= account
-
-        # for company, company_accounts in accounts_per_company.items():
-        #     company._update_opening_move({account: data[account.id] for account in company_accounts})
-
-        self.env.flush_all()
+    # @api.model
+    # def _load_precommit_update_opening_move(self):
+    #     """ precommit callback to recompute the opening move according the opening balances that changed.
+    #     This is particularly useful when importing a csv containing the 'opening_balance' column.
+    #     In that case, we don't want to use the inverse method set on field since it will be
+    #     called for each account separately. That would be quite costly in terms of performances.
+    #     Instead, the opening balances are collected and this method is called once at the end
+    #     to update the opening move accordingly.
+    #     """
+    #     data = self._cr.precommit.data.pop('import_account_opening_balance', {})
+    #     accounts = self.browse(data.keys())
+    #     accounts_per_company = defaultdict(lambda: self.env['account.account'])
+    #     for account in accounts:
+    #         accounts_per_company[account.company_id] |= account
+    #     for company, company_accounts in accounts_per_company.items():
+    #         if self.opening_debit == 0 and self.opening_credit ==0:
+    #             continue
+    #         if company_accounts.company_id.account_opening_move_id.journal_id.is_opening_balance:
+    #         # if company_accounts.company_id.account_opening_move_id.state in ['draft']:
+    #             # pdb.set_trace()
+    #             if self in company_accounts.company_id.account_opening_move_id.line_ids.mapped('account_id'):
+    #                 company._update_opening_move({account: data[account.id] for account in company_accounts})
+    #     self.env.flush_all()
 
     def write(self, vals):
         res = super().write(vals)
