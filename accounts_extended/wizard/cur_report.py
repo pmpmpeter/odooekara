@@ -133,6 +133,7 @@ class AccountCURReportWizard(models.TransientModel):
 
         records_debit = self.get_cash_bank_utilization_debit(self.start_date, self.end_date, self.company_id)
         records_credit = self.get_cash_bank_utilization_credit(self.start_date, self.end_date, self.company_id)
+        record_credit_card = self.credit_card_expenses(self.start_date, self.end_date, self.company_id)
         year = date.today().year
         year_suffix = str(year)[-2:]
         if self.groupby_month:
@@ -324,6 +325,7 @@ class AccountCURReportWizard(models.TransientModel):
             end_balance_1 = end_balance1[0].get('balance')
         credit_accounts = [record for record in records_credit if record['total_credit'] > 0]
         debit_accounts = [record for record in records_debit if record['total_debit'] > 0]
+        credit_card_accounts = [record for record in record_credit_card if record['total_debit'] > 0]
         row_num = row_num+2
         for account in credit_accounts:
             if not self.groupby_month:
@@ -331,12 +333,25 @@ class AccountCURReportWizard(models.TransientModel):
                 sheet.write(row_num, 1, account['account_code'], value_format1)
                 sheet.write(row_num, 2, account['total_credit'], value_format1)
                 row_num += 2
+                partner_totals = {}
                 for detail in account['entries']:
-                        if detail.get('credit'):
-                                sheet.write(row_num, 0, detail.get('partner_id'),name_format)
-                                sheet.write(row_num, 1, account['account_code'], value_format)
-                                sheet.write(row_num, 2, detail.get('credit') or 0, value_format)
-                                row_num += 1
+                    partner_id = detail.get('partner_id')
+                    credit = detail.get('credit') or 0
+                    if partner_id:
+                        partner_totals[partner_id] = partner_totals.get(partner_id, 0) + credit
+
+                # Write aggregated values
+                for partner_id, total_credit in partner_totals.items():
+                    sheet.write(row_num, 0, partner_id, name_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, total_credit, value_format)
+                    row_num += 1
+                # for detail in account['entries']:
+                #         if detail.get('credit'):
+                #                 sheet.write(row_num, 0, detail.get('partner_id'),name_format)
+                #                 sheet.write(row_num, 1, account['account_code'], value_format)
+                #                 sheet.write(row_num, 2, detail.get('credit') or 0, value_format)
+                #                 row_num += 1
             else:
                 monthly_totals = defaultdict(float)
                 for detail in account['entries']:
@@ -422,21 +437,37 @@ class AccountCURReportWizard(models.TransientModel):
                                                                                       'total_debit'] != 0 else sheet.write(
                     row_num, 2, '', value_format)
                 row_num += 2
+                partner_totals = {}
                 for detail in account['entries']:
-                        if detail.get('debit'):
-                            if not self.groupby_month:
-                                sheet.write(row_num, 0, detail.get('partner_id'),name_format)
-                                sheet.write(row_num, 1, account['account_code'], value_format)
-                                sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
-                                row_num += 1
-
+                    partner_id = detail.get('partner_id')
+                    debit = detail.get('debit') or 0
+                    if partner_id:
+                        partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
+                for partner_id, total_debit in partner_totals.items():
+                    sheet.write(row_num, 0, partner_id, name_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, total_debit, value_format)
+                    row_num += 1
+                # for detail in account['entries']:
+                #         if detail.get('debit'):
+                #             if not self.groupby_month:
+                #                 sheet.write(row_num, 0, detail.get('partner_id'),name_format)
+                #                 sheet.write(row_num, 1, account['account_code'], value_format)
+                #                 sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
+                #                 row_num += 1
             else:
+                # Monthly totals for header row
                 monthly_totals = defaultdict(float)
                 for detail in account['entries']:
                     if detail.get('debit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
-
+                        detail_month = (
+                            detail.get('statement_date').strftime('%b').upper()
+                            if detail.get('statement_date')
+                            else detail.get('date').strftime('%b').upper()
+                        )
                         monthly_totals[detail_month] += detail.get('debit')
+
+                # Write account header
                 sheet.write(row_num, 0, account['account_name'], value_format1)
                 sheet.write(row_num, 1, account['account_code'], value_format1)
 
@@ -446,26 +477,33 @@ class AccountCURReportWizard(models.TransientModel):
                     col_number = base_month_col + month_index
                     amount = monthly_totals.get(month, 0.0)
                     sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
+
                 sheet.write(row_num, 2, '', value_format1)
                 sheet.write(row_num, 3, '', value_format1)
 
-                for month, amount in monthly_totals.items():
-                    if month in month_list:
-                        month_index = month_list.index(month)
-                        col_number = base_month_col + month_index
-                        sheet.write(row_num, col_number, amount, value_format1)
                 row_num += 2
+
+                # Consolidate by partner + month
+                partner_month_totals = defaultdict(lambda: defaultdict(float))
                 for detail in account['entries']:
                     if detail.get('debit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
-                        if detail_month in month_list:
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + month_index
-                            sheet.write(row_num, 0, detail.get('partner_id'), name_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('debit') or 0, value_format)
-                            row_num += 1
+                        detail_month = (
+                            detail.get('statement_date').strftime('%b').upper()
+                            if detail.get('statement_date')
+                            else detail.get('date').strftime('%b').upper()
+                        )
+                        partner_id = detail.get('partner_id')
+                        partner_month_totals[partner_id][detail_month] += detail.get('debit')
+                for partner_id, month_data in sorted(partner_month_totals.items()):
+                    sheet.write(row_num, 0, partner_id, name_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
 
+                    for month, amount in month_data.items():
+                        if month in month_list:
+                            month_index = month_list.index(month)
+                            col_number = base_month_col + month_index
+                            sheet.write(row_num, col_number, amount, value_format)
+                    row_num += 1
                 row_num += 1
         sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
         row_num += 2
@@ -478,64 +516,163 @@ class AccountCURReportWizard(models.TransientModel):
                                                                                       'total_debit'] != 0 else sheet.write(
                     row_num, 2, '', value_format)
                 row_num += 2
+                partner_totals = {}
                 for detail in account['entries']:
-                    if detail.get('debit'):
-                        if not self.groupby_month:
-                            sheet.write(row_num, 0, detail.get('partner_id'), name_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
-                            row_num += 1
-
+                    partner_id = detail.get('partner_id')
+                    debit = detail.get('debit') or 0
+                    if partner_id:
+                        partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
+                for partner_id, total_debit in partner_totals.items():
+                    sheet.write(row_num, 0, partner_id, name_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, total_debit, value_format)
+                    row_num += 1
             else:
-                monthly_totals = defaultdict(float)
-                for detail in account['entries']:
-                    if detail.get('debit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
-                        monthly_totals[detail_month] += detail.get('debit')
+                    # -----------------------------
+                    # Case 2: Group by month
+                    # -----------------------------
+                    # Monthly totals for account header
+                    monthly_totals = defaultdict(float)
+                    for detail in account['entries']:
+                        if detail.get('debit'):
+                            detail_month = (
+                                detail.get('statement_date').strftime('%b').upper()
+                                if detail.get('statement_date')
+                                else detail.get('date').strftime('%b').upper()
+                            )
+                            monthly_totals[detail_month] += detail.get('debit')
 
-                # Write account header info
-                sheet.write(row_num, 0, account['account_name'], value_format1)
-                sheet.write(row_num, 1, account['account_code'], value_format1)
+                    # Write account header
+                    sheet.write(row_num, 0, account['account_name'], value_format1)
+                    sheet.write(row_num, 1, account['account_code'], value_format1)
 
-                base_month_col = 2
-                for month in month_list:
-                    month_index = month_list.index(month)
-                    col_number = base_month_col + month_index
-                    amount = monthly_totals.get(month, 0.0)
-                    sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
-                sheet.write(row_num, 2, '', value_format1)
-                sheet.write(row_num, 3, '', value_format1)
-                for month, amount in monthly_totals.items():
-                    if month in month_list:
+                    base_month_col = 2
+                    for month in month_list:
                         month_index = month_list.index(month)
                         col_number = base_month_col + month_index
-                        sheet.write(row_num, col_number, amount, value_format1)
+                        amount = monthly_totals.get(month, 0.0)
+                        sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
 
+                    row_num += 2
+
+                    # Consolidate by partner + month
+                    partner_month_totals = defaultdict(lambda: defaultdict(float))
+                    for detail in account['entries']:
+                        if detail.get('debit'):
+                            detail_month = (
+                                detail.get('statement_date').strftime('%b').upper()
+                                if detail.get('statement_date')
+                                else detail.get('date').strftime('%b').upper()
+                            )
+                            partner_id = detail.get('partner_id')
+                            partner_month_totals[partner_id][detail_month] += detail.get('debit')
+
+                    # Write one row per partner with all months filled
+                    for partner_id, month_data in sorted(partner_month_totals.items()):
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
+
+                        for month in month_list:
+                            col_number = base_month_col + month_list.index(month)
+                            amount = month_data.get(month, 0.0)
+                            sheet.write(row_num, col_number, amount if amount != 0 else '', value_format)
+
+                        row_num += 1
+
+                    row_num += 1
+        row_num += 2
+        sheet.write(row_num, 0, 'Credit Card Expenses', header_format1)
+        row_num += 2
+        for account in credit_card_accounts:
+            if not self.groupby_month:
+                sheet.write(row_num, 0, account['account_name'], value_format1)
+                sheet.write(row_num, 1, account['account_code'], value_format1)
+                sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
+                                                                                      'total_debit'] != 0 else sheet.write(
+                    row_num, 2, '', value_format)
                 row_num += 2
+                partner_totals = {}
                 for detail in account['entries']:
-                    if detail.get('debit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
-                        if detail_month in month_list:
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + month_index
-                            sheet.write(row_num, 0, detail.get('partner_id'), name_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('debit') or 0, value_format)
-                            row_num += 1
+                    partner_id = detail.get('partner_id')
+                    debit = detail.get('debit') or 0
+                    if partner_id:
+                        partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
+                for partner_id, total_debit in partner_totals.items():
+                    sheet.write(row_num, 0, partner_id, name_format)
+                    sheet.write(row_num, 1, account['account_code'], value_format)
+                    sheet.write(row_num, 2, total_debit, value_format)
+                    row_num += 1
+            else:
+                    monthly_totals = defaultdict(float)
+                    for detail in account['entries']:
+                        if detail.get('debit'):
+                            detail_month = (
+                                detail.get('statement_date').strftime('%b').upper()
+                                if detail.get('statement_date')
+                                else detail.get('date').strftime('%b').upper()
+                            )
+                            monthly_totals[detail_month] += detail.get('debit')
+                    print(monthly_totals, 'ggggggggggggggggggg')
+                    # Write account header
+                    sheet.write(row_num, 0, account['account_name'], value_format1)
+                    sheet.write(row_num, 1, account['account_code'], value_format1)
 
-                row_num += 1
+                    base_month_col = 2
+                    for month in month_list:
+                        month_index = month_list.index(month)
+                        col_number = base_month_col + month_index
+                        amount = monthly_totals.get(month, 0.0)
+                        sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
+                        print(amount,'month-------------------------')
+                    # sheet.write(row_num, 2, '', value_format1)
+                    # sheet.write(row_num, 3, '', value_format1)
+
+                    row_num += 2
+
+                    # Consolidate by partner + month
+                    partner_month_totals = defaultdict(lambda: defaultdict(float))
+                    for detail in account['entries']:
+                        if detail.get('debit'):
+                            detail_month = (
+                                detail.get('statement_date').strftime('%b').upper()
+                                if detail.get('statement_date')
+                                else detail.get('date').strftime('%b').upper()
+                            )
+                            partner_id = detail.get('partner_id')
+                            partner_month_totals[partner_id][detail_month] += detail.get('debit')
+                    for partner_id, month_data in sorted(partner_month_totals.items()):
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
+
+                        for month, amount in month_data.items():
+                            if month in month_list:
+                                month_index = month_list.index(month)
+                                col_number = base_month_col + month_index
+                                sheet.write(row_num, col_number, amount, value_format)
+                        row_num += 1
+                    row_num += 1
         row_num += 1
         total_d = 0.0
+        total_credit_entry = 0.0
         for rec in debit_accounts:
             total_d = total_d + rec['total_debit']
+        for rec in credit_card_accounts:
+            total_credit_entry = total_credit_entry + rec['total_debit']
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Payments', header_format_num)
-            sheet.write(row_num, 2, total_d, header_format_num)
+            sheet.write(row_num, 2, total_d+total_credit_entry, header_format_num)
             row_num += 1
         else:
             row_num += 1
             monthly_receipts = defaultdict(float)
             for rec in debit_accounts:
+                for detail in rec['entries']:
+                    if detail.get('debit'):
+                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get(
+                            'statement_date') else detail.get('date').strftime('%b').upper()
+                        if detail_month in month_list:
+                            monthly_receipts[detail_month] += detail.get('debit')
+            for rec in credit_card_accounts:
                 for detail in rec['entries']:
                     if detail.get('debit'):
                         detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get(
@@ -551,15 +688,15 @@ class AccountCURReportWizard(models.TransientModel):
                 sheet.write(row_num, col_number, amount if amount != 0 else '', header_format_num)
             row_num += 1
         sheet.write(row_num, 0, 'Total Cash Outflow', header_format_num)
-        sheet.write(row_num, 2, total_d, header_format_num)
+        sheet.write(row_num, 2, total_d+total_credit_entry, header_format_num)
         row_num += 2
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
-            sheet.write(row_num, 2, total_c + opening_balance_1 - (total_d), header_format_num)
+            sheet.write(row_num, 2, total_c + opening_balance_1 - (total_d+total_credit_entry), header_format_num)
             row_num += 2
         else:
             sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
-            sheet.write(row_num, 2, total_c + next(iter(opening_balances.values())) - (total_d), header_format_num)
+            sheet.write(row_num, 2, total_c + next(iter(opening_balances.values())) - (total_d+total_credit_entry), header_format_num)
             row_num += 2
 
         for line in end_balance1:
@@ -572,13 +709,68 @@ class AccountCURReportWizard(models.TransientModel):
         return buffer.read()
 
     def get_cash_bank_utilization_debit(self, date_from, date_to,company_id):
-        """
-        Get cash/bank utilization summary using ORM (no raw SQL).
-        """
-        # Get moves in given date range, posted, with bank_date filter
+
+        result = defaultdict(lambda: {
+            'account_name': '',
+            'account_code': '',
+            'expense_type': '',
+            'total_debit': 0.0,
+            'total_credit': 0.0,
+            'entries': []
+        })
+        #internal transfer entry
+        pay_rec = self.env['account.payment'].sudo().search([
+            ('state', '=', 'posted'),
+            ('is_internal_transfer','=', True),
+            ('company_id', '=', company_id.id),
+            ('move_id.state', '=', 'posted'),
+            ('payment_type','=','outbound'),
+            ('journal_id.is_credit_card_bank','!=',True)])
+        groups_by_match = defaultdict(set)
+        seen_matches = set()
+
+        for rec1 in pay_rec:
+            for rec in rec1.move_id.line_ids:
+                reconciled_lines = rec._all_reconciled_lines().filtered(
+                    lambda l: l.matched_debit_ids or l.matched_credit_ids
+                )
+                for line in reconciled_lines:
+                    if line.matching_number and line.matching_number not in seen_matches:
+                        # store all lines of this matching_number once
+                        groups_by_match[line.matching_number].update(
+                            reconciled_lines.ids
+                        )
+                        seen_matches.add(line.matching_number)
+        groups_by_match = {k: list(v) for k, v in groups_by_match.items()}
+
+        for match_no, ids in groups_by_match.items():
+            groups_with_statement = []
+            move_lines = self.env['account.move.line'].browse(ids)
+            if any(l.statement_line_id and date_from <= l.date <= date_to for l in move_lines):
+                groups_with_statement.append(ids)
+                for g in groups_with_statement:
+                    r1 =  self.env['account.move.line'].browse(g)
+                    for r in r1:
+                        if not r.statement_line_id:
+                            r = r.move_id.payment_id.paired_internal_transfer_payment_id.move_id.line_ids.filtered(lambda l:l.debit>0)
+                            if r:
+                                key = (r.account_id.id, r.move_id.expense_type)
+                                result[key]['account_name'] = 'Internal Bank Transfer'
+                                result[key]['account_code'] = r.account_id.code
+                                result[key]['expense_type'] = r.move_id.expense_type
+                                result[key]['total_debit'] += r.debit
+                                result[key]['entries'].append({
+                                    'move_name': r.move_id.name,
+                                    'mov_id': r.id,
+                                    'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+                                    else r.partner_id.name if r.partner_id
+                                    else r.account_id.name,
+                                    'debit': r.debit,
+                                    'date': r.date,
+                                })
+
         moves = self.env['account.move.line'].sudo().search([
             ('move_id.state', '=', 'posted'),
-            ('move_id.move_type','=','entry'),
             ('move_id.journal_id.type', 'in', ('bank', 'cash')),
             ('move_id.company_id','=',company_id.id),
         ])
@@ -593,7 +785,7 @@ class AccountCURReportWizard(models.TransientModel):
             if line.matching_number:
                 grouped[line.matching_number].append(line)
             elif not line.matching_number and line.statement_line_id:
-                if line.move_id.journal_id.default_account_id.account_type in 'asset_cash' and line.date >= date_from and line.date <= date_to:
+                if line.move_id.journal_id.type in ('bank','cash') and line.date >= date_from and line.date <= date_to:
                     stat_line.add((line.move_id.name, line.id))
                     state_grp[line.move_name].append(line)
         for name, lines in list(state_grp.items()):
@@ -608,56 +800,49 @@ class AccountCURReportWizard(models.TransientModel):
                         [('move_id', '=', line.move_id.id),('matching_number','=',False),('debit','!=',0)])
                     for rec in move_line:
                         outstanding.append(rec)
-                        print(rec.move_id.name)
-        result = defaultdict(lambda: {
-            'account_name': '',
-            'account_code': '',
-            'expense_type': '',
-            'total_debit': 0.0,
-            'total_credit': 0.0,
-            'entries': []
-        })
+
+
         for match_no, group_lines in grouped.items():
             statement_line = next((l for l in group_lines if l.statement_line_id), None)
 
             if not statement_line:
                 continue
-            if statement_line.journal_id.default_account_id.account_type == 'asset_cash':
+            if statement_line.journal_id.type in ('bank','cash'):
                 stmt_date = statement_line.statement_line_id.date
                 if not (date_from <= stmt_date <= date_to):
                     continue
                 for line in group_lines:
+
                     if not line.statement_line_id:
                         move_line = line.move_id
                         if move_line.journal_id.type in ('bank','cash'):
                             for rec in move_line.line_ids:
-                                if rec.debit > 0 and rec.account_id.code not in ('100202','100203'):
-                                    l.add((rec.move_id.name, rec.id))
-                                    key = (rec.account_id.id, line.move_id.expense_type)
+                                if rec.debit > 0 and rec.account_id.code not in ('100202','100203','100204'):
+                                    if not rec.move_id.payment_id.is_credit_payment and not rec.move_id.payment_id.is_internal_transfer and not rec.move_id.is_payment_approval:
+                                        l.add((rec.move_id.name, rec.id))
+                                        key = (rec.account_id.id, line.move_id.expense_type)
 
-                                    result[key]['account_name'] = rec.account_id.name
-                                    result[key]['account_code'] = rec.account_id.code
-                                    result[key]['expense_type'] = rec.move_id.expense_type
-                                    result[key]['total_debit'] += rec.debit
-                                    result[key]['entries'].append({
-                                        'move_name':rec.move_id.name,
-                                        'mov_id':rec.id,
-                                        'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
-                                                      else rec.partner_id.name if rec.partner_id
-                                                      else rec.account_id.name,
-                                        'debit': rec.debit,
-                                        'date': rec.date,
-                                        'statement_date': stmt_date
-                                    })
+                                        result[key]['account_name'] = rec.account_id.name
+                                        result[key]['account_code'] = rec.account_id.code
+                                        result[key]['expense_type'] = rec.move_id.expense_type
+                                        result[key]['total_debit'] += rec.debit
+                                        result[key]['entries'].append({
+                                            'move_name':rec.move_id.name,
+                                            'mov_id':rec.id,
+                                            'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+                                                          else rec.partner_id.name if rec.partner_id
+                                                          else rec.account_id.name,
+                                            'debit': rec.debit,
+                                            'date': rec.date,
+                                            'statement_date': stmt_date
+                                        })
                                 elif rec.debit > 0 and rec.account_id.code in ('100203') and not rec.move_id.payment_id:
                                     skip_entry = False
                                     if rec.matching_number:
                                         matching_lines = self.env['account.move.line'].sudo().search([
                                             ('matching_number', '=', rec.matching_number)
                                         ])
-                                        # if matching_lines.account_id.group_id.code_prefix_start != '30602':
                                         for m in matching_lines.move_id:
-                                            print(m.name,m.id,'vvvvvvvvvvvvv')
                                             if not m.statement_line_id:
                                                 for lines in m.line_ids:
                                                     if lines.credit > 0 and lines.account_id.account_type != 'asset_cash':
@@ -683,22 +868,25 @@ class AccountCURReportWizard(models.TransientModel):
                                             'date': rec.date,
                                             'statement_date': stmt_date
                                         })
-        for rec in outstanding:
-            if rec.debit > 0 and rec.account_id.account_type != 'asset_cash':
-                 key = (rec.account_id.id, rec.move_id.expense_type)
-                 result[key]['account_name'] = rec.account_id.name
-                 result[key]['account_code'] = rec.account_id.code
-                 result[key]['expense_type'] = rec.move_id.expense_type
-                 result[key]['total_debit'] += rec.debit
-                 result[key]['entries'].append({
-                                    'move_name':rec.move_id.name,
-                                    'mov_id':rec.id,
-                                    'partner_id':  rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
-                                                      else rec.partner_id.name if rec.partner_id
-                                                      else rec.account_id.name,
-                                    'debit': rec.debit,
-                                    'date': rec.date,
-                                })
+        #outstanding entries
+        # for rec in outstanding:
+        #     if rec.debit > 0 and rec.account_id.account_type != 'asset_cash' and rec.move_id.has_reconciled_entries:
+        #          print(rec.move_id.name,'zzzzzzzzzzzzzzzz')
+        #          key = (rec.account_id.id, rec.move_id.expense_type)
+        #          result[key]['account_name'] = rec.account_id.name
+        #          result[key]['account_code'] = rec.account_id.code
+        #          result[key]['expense_type'] = rec.move_id.expense_type
+        #          result[key]['total_debit'] += rec.debit
+        #          result[key]['entries'].append({
+        #                             'move_name':rec.move_id.name,
+        #                             'mov_id':rec.id,
+        #                             'partner_id':  rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+        #                                               else rec.partner_id.name if rec.partner_id
+        #                                               else rec.account_id.name,
+        #                             'debit': rec.debit,
+        #                             'date': rec.date,
+        #                         })
+
         mis = self.env['account.move.line'].sudo().search([
             ('move_id.state', '=', 'posted'),
             ('move_id.move_type','=','entry'),
@@ -739,32 +927,33 @@ class AccountCURReportWizard(models.TransientModel):
                                     'debit': r.debit,
                                     'date': r.date,
                                 })
-        fd_entry = self.env['account.move.line'].sudo().search([
-            ('move_id.state', '=', 'posted'),
-            ('move_id.move_type', '=', 'entry'),
-            ('move_id.journal_id.type', 'in', ('bank','cash')),
-            ('move_id.company_id', '=', company_id.id)])
-        for rec in fd_entry.move_id:
-            if (date_from <= rec.date <= date_to):
-                if not rec.has_reconciled_entries:
-                    for r in rec.line_ids:
-                        if not r.matching_number and r.account_id.group_id.code_prefix_start == '30602':
-                            if r.debit > 0:
-                                print(r.move_id.name, r.id,r.debit, 'sssssssssssss')
-                                key = (r.account_id.id, r.move_id.expense_type)
-                                result[key]['account_name'] = r.account_id.name
-                                result[key]['account_code'] = r.account_id.code
-                                result[key]['expense_type'] = r.move_id.expense_type
-                                result[key]['total_debit'] += r.debit
-                                result[key]['entries'].append({
-                                    'move_name': r.move_id.name,
-                                    'mov_id': r.id,
-                                    'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
-                                    else r.partner_id.name if r.partner_id
-                                    else r.account_id.name,
-                                    'debit': r.debit,
-                                    'date': r.date,
-                                })
+
+        #FD Entries
+        # fd_entry = self.env['account.move.line'].sudo().search([
+        #     ('move_id.state', '=', 'posted'),
+        #     ('move_id.move_type', '=', 'entry'),
+        #     ('move_id.journal_id.type', 'in', ('bank','cash')),
+        #     ('move_id.company_id', '=', company_id.id)])
+        # for rec in fd_entry.move_id:
+        #     if (date_from <= rec.date <= date_to):
+        #         if not rec.has_reconciled_entries:
+        #             for r in rec.line_ids:
+        #                 if not r.matching_number and r.account_id.group_id.code_prefix_start == '30602':
+        #                     if r.debit > 0:
+        #                         key = (r.account_id.id, r.move_id.expense_type)
+        #                         result[key]['account_name'] = r.account_id.name
+        #                         result[key]['account_code'] = r.account_id.code
+        #                         result[key]['expense_type'] = r.move_id.expense_type
+        #                         result[key]['total_debit'] += r.debit
+        #                         result[key]['entries'].append({
+        #                             'move_name': r.move_id.name,
+        #                             'mov_id': r.id,
+        #                             'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+        #                             else r.partner_id.name if r.partner_id
+        #                             else r.account_id.name,
+        #                             'debit': r.debit,
+        #                             'date': r.date,
+        #                         })
         return list(result.values())
 
     def get_cash_bank_utilization_credit(self, date_from, date_to,company_id):
@@ -778,14 +967,12 @@ class AccountCURReportWizard(models.TransientModel):
             ('move_id.journal_id.type', 'in', ('bank', 'cash')),
             ('move_id.company_id','=',company_id.id),
         ])
-        no_match_entries = []
         grouped = defaultdict(list)
         duplicates = defaultdict(list)
         stat_line = set()
         l = set()
         state_grp = defaultdict(list)
         outstanding = []
-        # stat_line =  defaultdict(list)
         for line in moves:
             if line.matching_number:
                 grouped[line.matching_number].append(line)
@@ -827,22 +1014,24 @@ class AccountCURReportWizard(models.TransientModel):
                         if move_line.journal_id.type in ('bank','cash'):
                             for rec in move_line.line_ids:
                                 if rec.credit > 0 and rec.account_id.code not in ('100203','100204','100801'):
-                                    l.add((rec.move_id.name, rec.id))
-                                    key = (rec.account_id.id, line.move_id.expense_type)
-                                    result[key]['account_name'] = rec.account_id.name
-                                    result[key]['account_code'] = rec.account_id.code
-                                    result[key]['expense_type'] = rec.move_id.expense_type
-                                    result[key]['total_credit'] += rec.credit
-                                    result[key]['entries'].append({
-                                        'move_name':rec.move_id.name,
-                                        'mov_id':rec.id,
-                                        'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
-                                                      else rec.partner_id.name if rec.partner_id
-                                                      else rec.account_id.name,
-                                        'credit': rec.credit,
-                                        'date':rec.date,
-                                        'statement_date':stmt_date
-                                    })
+                                    if not rec.move_id.payment_id.is_internal_transfer and rec.account_id.account_type not in ('asset_cash'):
+                                        l.add((rec.move_id.name, rec.id))
+                                        key = (rec.account_id.id, line.move_id.expense_type)
+                                        result[key]['account_name'] = rec.account_id.name
+                                        result[key]['account_code'] = rec.account_id.code
+                                        result[key]['expense_type'] = rec.move_id.expense_type
+                                        result[key]['total_credit'] += rec.credit
+                                        result[key]['entries'].append({
+                                            'move_name':rec.move_id.name,
+                                            'mov_id':rec.id,
+                                            'partner_id': rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+                                                          else rec.partner_id.name if rec.partner_id
+                                                          else rec.account_id.name,
+                                            'credit': rec.credit,
+                                            'date':rec.date,
+                                            'statement_date':stmt_date
+                                        })
+
                                 elif rec.credit > 0 and rec.account_id.code in (
                                 '100204') and not rec.move_id.payment_id:
                                     skip_entry = False
@@ -850,17 +1039,13 @@ class AccountCURReportWizard(models.TransientModel):
                                         matching_lines = self.env['account.move.line'].sudo().search([
                                             ('matching_number', '=', rec.matching_number)
                                         ])
-                                        # if matching_lines.account_id.group_id.code_prefix_start != '30602':
                                         for m in matching_lines.move_id:
-                                            # print(m.id,m.name, 'mmmmmmmmm')
                                             if not m.statement_line_id:
                                                 for lines in m.line_ids:
                                                     if lines.debit > 0 and lines.account_id.account_type != 'asset_cash':
                                                         skip_entry = True
                                         if skip_entry:
                                             continue
-
-                                        # print(rec.move_id.name, rec.id, rec.credit, 'llllllllllllllllllll')
                                         l.add((rec.move_id.name, rec.id))
                                         key = (rec.account_id.id, line.move_id.expense_type)
                                         result[key]['account_name'] = rec.account_id.name
@@ -880,85 +1065,44 @@ class AccountCURReportWizard(models.TransientModel):
                                             'date': rec.date,
                                             'statement_date': stmt_date
                                         })
+        #Outstanding Entry
+        # for rec in outstanding:
+        #     if rec.credit > 0 and rec.account_id.account_type != 'asset_cash' and rec.move_id.has_reconciled_entries:
+        #          key = (rec.account_id.id, rec.move_id.expense_type)
+        #          result[key]['account_name'] = rec.account_id.name
+        #          result[key]['account_code'] = rec.account_id.code
+        #          result[key]['expense_type'] = rec.move_id.expense_type
+        #          result[key]['total_credit'] += rec.credit
+        #          result[key]['entries'].append({
+        #                             'move_name':rec.move_id.name,
+        #                             'mov_id':rec.id,
+        #                             'partner_id':  rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
+        #                                               else rec.partner_id.name if rec.partner_id
+        #                                               else rec.account_id.name,
+        #                             'credit': rec.credit,
+        #                             'date': rec.date,
+        #                         })
 
-        for rec in outstanding:
-            if rec.credit > 0 and rec.account_id.account_type != 'asset_cash':
-                 key = (rec.account_id.id, rec.move_id.expense_type)
-                 result[key]['account_name'] = rec.account_id.name
-                 result[key]['account_code'] = rec.account_id.code
-                 result[key]['expense_type'] = rec.move_id.expense_type
-                 result[key]['total_credit'] += rec.credit
-                 result[key]['entries'].append({
-                                    'move_name':rec.move_id.name,
-                                    'mov_id':rec.id,
-                                    'partner_id':  rec.move_id.journal_id.name if rec.move_id.payment_id and rec.move_id.payment_id.is_internal_transfer
-                                                      else rec.partner_id.name if rec.partner_id
-                                                      else rec.account_id.name,
-                                    'credit': rec.credit,
-                                    'date': rec.date,
-                                })
-        mis = self.env['account.move.line'].sudo().search([
-            ('move_id.state', '=', 'posted'),
-            ('move_id.move_type', '=', 'entry'),
-            ('move_id.journal_id.type', '=', 'general'),
-            ('move_id.company_id', '=', company_id.id),
-        ])
-        grouped = defaultdict(list)
-        for line in mis:
-            if line.matching_number:
-                same_group = self.env['account.move.line'].sudo().search([
-                    ('matching_number', '=', line.matching_number)
-                ])
-                grouped[line.matching_number].extend(same_group)
-        filtered_groups = {
-            match_no: lines
-            for match_no, lines in grouped.items()
-            if any(l.statement_line_id for l in lines)
-        }
-        # stop
-        for match, recs in list(filtered_groups.items()):
-            for rec in recs:
-                if not rec.statement_line_id and rec.matching_number:
-                    if (date_from <= rec.date <= date_to):
-                        move = rec.move_id
-                        for r in move.line_ids:
-                            if r.credit > 0:
-                                if r.account_id.code not in ['100204']:
-                                    key = (r.account_id.id, r.move_id.expense_type)
-                                    result[key]['account_name'] = r.account_id.name
-                                    result[key]['account_code'] = r.account_id.code
-                                    result[key]['expense_type'] = r.move_id.expense_type
-                                    result[key]['total_credit'] += r.credit
-                                    result[key]['entries'].append({
-                                        'move_name': r.move_id.name,
-                                        'mov_id': r.id,
-                                        'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
-                                        else r.partner_id.name if r.partner_id
-                                        else r.account_id.name,
-                                        'credit': r.credit,
-                                        'date': r.date,
-                                    })
-        # stop
-        # lines = []
+        #Miscellaneous Entry
+        # mis = self.env['account.move.line'].sudo().search([
+        #     ('move_id.state', '=', 'posted'),
+        #     ('move_id.move_type', '=', 'entry'),
+        #     ('move_id.journal_id.type', '=', 'general'),
+        #     ('move_id.company_id', '=', company_id.id),
+        # ])
         # grouped = defaultdict(list)
-        # internal_transfer = (self.env['account.payment'].sudo().
-        #                      search([('is_internal_transfer','=',True),('payment_type','=','inbound')]))
-        # print(internal_transfer,'hhhhhhhhhhhhhhhhh')
-        # for l in internal_transfer.move_id:
-        #     lines.append(l)
-        # for line1 in lines:
-        #     for line in line1.line_ids:
-        #         if line.matching_number:
-        #             same_group = self.env['account.move.line'].sudo().search([
-        #                 ('matching_number', '=', line.matching_number)
-        #             ])
-        #             grouped[line.matching_number].extend(same_group)
+        # for line in mis:
+        #     if line.matching_number:
+        #         same_group = self.env['account.move.line'].sudo().search([
+        #             ('matching_number', '=', line.matching_number)
+        #         ])
+        #         grouped[line.matching_number].extend(same_group)
         # filtered_groups = {
         #     match_no: lines
         #     for match_no, lines in grouped.items()
         #     if any(l.statement_line_id for l in lines)
         # }
-        # print(filtered_groups,'zzzzzzzzzzzzzzzzzz')
+        # # stop
         # for match, recs in list(filtered_groups.items()):
         #     for rec in recs:
         #         if not rec.statement_line_id and rec.matching_number:
@@ -981,4 +1125,92 @@ class AccountCURReportWizard(models.TransientModel):
         #                                 'credit': r.credit,
         #                                 'date': r.date,
         #                             })
+        pay_rec = self.env['account.payment'].sudo().search([
+            ('state', '=', 'posted'),
+            ('is_internal_transfer','=', True),
+            ('company_id', '=', company_id.id),
+            ('move_id.state', '=', 'posted'),
+            ('payment_type', '=', 'outbound'),
+            ('journal_id.is_credit_card_bank', '!=', True)
+        ])
+        groups_by_match = defaultdict(set)
+        seen_matches = set()
+        for rec1 in pay_rec:
+            for rec in rec1.move_id.line_ids:
+                reconciled_lines = rec._all_reconciled_lines().filtered(
+                    lambda l: l.matched_debit_ids or l.matched_credit_ids
+                )
+                for line in reconciled_lines:
+                    if line.matching_number and line.matching_number not in seen_matches:
+                        groups_by_match[line.matching_number].update(
+                            reconciled_lines.ids
+                        )
+                        seen_matches.add(line.matching_number)
+        groups_by_match = {k: list(v) for k, v in groups_by_match.items()}
+
+        for match_no, ids in groups_by_match.items():
+            groups_with_statement = []
+            move_lines = self.env['account.move.line'].browse(ids)
+            if any(l.statement_line_id and date_from <= l.date <= date_to for l in move_lines):
+                groups_with_statement.append(ids)
+                for g in groups_with_statement:
+                    r1 =  self.env['account.move.line'].browse(g)
+                    for r in r1:
+                        if not r.statement_line_id and r.credit > 0:
+                                    key = (r.account_id.id, r.move_id.expense_type)
+                                    result[key]['account_name'] = 'Internal Bank Transfer'
+                                    result[key]['account_code'] = r.account_id.code
+                                    result[key]['expense_type'] = r.move_id.expense_type
+                                    result[key]['total_credit'] += r.credit
+                                    result[key]['entries'].append({
+                                        'move_name': r.move_id.name,
+                                        'mov_id': r.id,
+                                        'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+                                        else r.partner_id.name if r.partner_id
+                                        else r.account_id.name,
+                                        'credit': r.credit,
+                                        'date': r.date,
+                                    })
+        return list(result.values())
+
+    def credit_card_expenses(self, date_from, date_to,company_id):
+
+        result = defaultdict(lambda: {
+            'account_name': '',
+            'account_code': '',
+            'expense_type': '',
+            'total_debit': 0.0,
+            'entries': []
+        })
+
+        #credit card expenses
+
+        credit_card_expense = self.env['account.move.line'].sudo().search([
+            ('move_id.state', '=', 'posted'),
+            ('move_id.journal_id.type', 'in', ('bank', 'cash')),
+            ('move_id.company_id', '=', company_id.id),
+            ('move_id.is_payment_approval','=',True),
+        ])
+        for rec in credit_card_expense:
+            if rec.matching_number:
+                move_line = self.env['account.move.line'].sudo().search([('matching_number', '=', rec.matching_number), ('id', '!=', rec.id)])
+                for move_line1 in move_line:
+                    if (date_from <= move_line1.date <= date_to) and move_line1.statement_line_id:
+                        for r in rec.move_id.line_ids:
+                            if r.debit > 0:
+                                key = (r.account_id.id, r.move_id.expense_type)
+                                result[key]['account_name'] = r.account_id.name
+                                result[key]['account_code'] = r.account_id.code
+                                result[key]['expense_type'] = r.move_id.expense_type
+                                result[key]['total_debit'] += r.debit
+                                result[key]['entries'].append({
+                                    'move_name': r.move_id.name,
+                                    'mov_id': r.id,
+                                    'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+                                    else r.partner_id.name if r.partner_id
+                                    else r.account_id.name,
+                                    'debit': r.debit,
+                                    'date': r.date,
+                                    'statement_date': move_line.statement_line_id.date
+                                })
         return list(result.values())
