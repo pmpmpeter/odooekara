@@ -72,54 +72,39 @@ class AccountCURReportWizard(models.TransientModel):
             'bold': True,
             'bg_color': '#D9E1F2',
             'font_color': '#000000',
-            # 'border': 1,
+            'border': 1,
             'align': 'right',
-        })
+            'font_size': 10})
         header_format1 = workbook.add_format({
             'bold': True,
             'font_color': '#000000',
-            # 'border': 1,
+            'border': 1,
             'align': 'right',
-        })
+            'font_size': 10})
         header_format_num = workbook.add_format({
             'bold': True,
             'font_color': '#000000',
             'num_format': '#,##0.00',
-            # 'border': 1,
+            'border': 1,
             'align': 'right',
-        })
-        total_format1 = workbook.add_format({
-            'bold': True,
-            'font_color': '#000000',
-            # 'border': 1,
-            'align': 'right',
-            'num_format': '#,##0',
-        })
+            'font_size': 10})
         value_format = workbook.add_format(
             {'num_format': '#,##0.00',
-             # 'border': 1,
-             'align': 'right'})  # Float format and border
+             'border': 1,
+             'align': 'right',
+             'font_size': 9})  # Float format and border
         value_format1 = workbook.add_format(
             {'num_format': '#,##0.00',
-             # 'border': 1,
+             'border': 1,
              'align': 'right',
-             'bg_color': '#FFFF00', })
-        value_format2 = workbook.add_format(
-            {'num_format': '#,##0.00',
-             # 'border': 1,
-             'align': 'right',
-             'bold': True,})
-
-        total_format = workbook.add_format({
-            'bold': True,
-            'bg_color': '#D9E1F2',
-            # 'border': 1,
-            'align': 'right',
-            'num_format': '#,##0',
-        })
+             'bg_color': '#FFFF00',
+             'font_size': 10})
         name_format = workbook.add_format({
             'align': 'right',
+            'border': 1,
+            'font_size': 9
         })
+        border_fmt = workbook.add_format({'border': 1})
         formatted_date = self.start_date.strftime('%d-%b-%Y')
         formatted_en_date = self.end_date.strftime('%d-%b-%Y')
         month_list = self.get_month_list(self.start_date, self.end_date)
@@ -127,13 +112,15 @@ class AccountCURReportWizard(models.TransientModel):
         sheet.write(1, 1, 'GL Code', header_format)
         sheet.write(1, 2, 'Amount', header_format)
         if not self.groupby_month:
-            sheet.write(2, 0, 'Opening Balance as on %s' % (formatted_date), value_format)
+            sheet.write(2, 0, 'Opening Balance as on %s' % (formatted_date), header_format_num)
+            sheet.write(2, 1, '', header_format_num)
         else:
             sheet.write(2, 0, 'Opening Balance', value_format)
+            sheet.write(2, 1, '', header_format_num)
 
         records_debit = self.get_cash_bank_utilization_debit(self.start_date, self.end_date, self.company_id)
         records_credit = self.get_cash_bank_utilization_credit(self.start_date, self.end_date, self.company_id)
-        record_credit_card = self.credit_card_expenses(self.start_date, self.end_date, self.company_id)
+        # record_credit_card = self.credit_card_expenses(self.start_date, self.end_date, self.company_id)
         year = date.today().year
         year_suffix = str(year)[-2:]
         if self.groupby_month:
@@ -190,7 +177,7 @@ class AccountCURReportWizard(models.TransientModel):
 
                 self.env.cr.execute(query9, query_params9)
                 split_lines = self.env.cr.dictfetchall()
-                row_num = 4
+                row_num = 3
                 for line in split_lines:
                     sheet.write(row_num, 0, line['account_name']['en_US'], value_format)
                     sheet.write(row_num, 1, line['account_code'], value_format)
@@ -198,6 +185,7 @@ class AccountCURReportWizard(models.TransientModel):
                     row_num += 1
                 row_num += 1
         else:
+            row_num = 2
             opening_balances = {}  # store results per month
             opb_list = []
             for idx, month in enumerate(month_list):
@@ -256,7 +244,7 @@ class AccountCURReportWizard(models.TransientModel):
                     self.env.cr.execute(query91, query_params91)
                     accounts = self.env.cr.dictfetchall()
 
-                    row_num = 4
+                    row_num = row_num+1
                     base_col = 2
 
                     for acc in accounts:
@@ -290,12 +278,11 @@ class AccountCURReportWizard(models.TransientModel):
                             sheet.write(row_num, 1, acc['account_code'], value_format)
 
                             for idx, balance in enumerate(monthly_balances):
-                                if balance != 0.0:  # optional: skip writing zeros in sheet
-                                    col_number = base_col + idx
-                                    sheet.write(row_num, col_number, balance, value_format)
-
+                                col_number = base_col + idx
+                                # Always write balance, if it's 0 write 0
+                                sheet.write(row_num, col_number, balance if balance else 0, value_format)
                             row_num += 1
-
+            row_num += 1
         end_balance1 = """SELECT aa.code AS account_code, aa.name AS account_name,
                    SUM(aml.debit - aml.credit) AS balance
             FROM account_move_line aml
@@ -325,41 +312,56 @@ class AccountCURReportWizard(models.TransientModel):
             end_balance_1 = end_balance1[0].get('balance')
         credit_accounts = [record for record in records_credit if record['total_credit'] > 0]
         debit_accounts = [record for record in records_debit if record['total_debit'] > 0]
-        credit_card_accounts = [record for record in record_credit_card if record['total_debit'] > 0]
-        row_num = row_num+2
+        # credit_card_accounts = [record for record in record_credit_card if record['total_debit'] > 0]
+        row_num = row_num
         for account in credit_accounts:
             if not self.groupby_month:
                 sheet.write(row_num, 0, account['account_name'], value_format1)
                 sheet.write(row_num, 1, account['account_code'], value_format1)
                 sheet.write(row_num, 2, account['total_credit'], value_format1)
-                row_num += 2
+                row_num +=1
                 partner_totals = {}
                 for detail in account['entries']:
                     partner_id = detail.get('partner_id')
                     credit = detail.get('credit') or 0
                     if partner_id:
                         partner_totals[partner_id] = partner_totals.get(partner_id, 0) + credit
-
-                # Write aggregated values
-                for partner_id, total_credit in partner_totals.items():
-                    sheet.write(row_num, 0, partner_id, name_format)
-                    sheet.write(row_num, 1, account['account_code'], value_format)
-                    sheet.write(row_num, 2, total_credit, value_format)
-                    row_num += 1
-                # for detail in account['entries']:
-                #         if detail.get('credit'):
-                #                 sheet.write(row_num, 0, detail.get('partner_id'),name_format)
-                #                 sheet.write(row_num, 1, account['account_code'], value_format)
-                #                 sheet.write(row_num, 2, detail.get('credit') or 0, value_format)
-                #                 row_num += 1
+                if account['account_name'] != "Internal Bank Transfer":
+                    if len(partner_totals) > 1:
+                        # row_num += 1
+                        for partner_id, total_credit in partner_totals.items():
+                            sheet.write(row_num, 0, partner_id, name_format)
+                            sheet.write(row_num, 1, account['account_code'], value_format)
+                            sheet.write(row_num, 2, total_credit, value_format)
+                            row_num += 1
+                            sheet.write(row_num, 0, '', header_format_num)
+                            sheet.write(row_num, 1, '', header_format_num)
+                            sheet.write(row_num, 2, '', header_format_num)
+                else:
+                    merged_totals = {}
+                    for partner_id, total_credit in partner_totals.items():
+                        merged_totals[partner_id] = merged_totals.get(partner_id, 0) + total_credit
+                    for partner_id, total_credit in merged_totals.items():
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
+                        sheet.write(row_num, 2, total_credit, value_format)
+                        row_num += 1
+                    sheet.write(row_num, 0, '', header_format_num)
+                    sheet.write(row_num, 1, '', header_format_num)
+                    sheet.write(row_num, 2, '', header_format_num)
             else:
+                # Monthly totals for header row
                 monthly_totals = defaultdict(float)
                 for detail in account['entries']:
                     if detail.get('credit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
+                        detail_month = (
+                            detail.get('statement_date').strftime('%b').upper()
+                            if detail.get('statement_date')
+                            else detail.get('date').strftime('%b').upper()
+                        )
                         monthly_totals[detail_month] += detail.get('credit')
 
-                # Write account header info
+                # Write account header
                 sheet.write(row_num, 0, account['account_name'], value_format1)
                 sheet.write(row_num, 1, account['account_code'], value_format1)
 
@@ -369,6 +371,7 @@ class AccountCURReportWizard(models.TransientModel):
                     col_number = base_month_col + month_index
                     amount = monthly_totals.get(month, 0.0)
                     sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
+
                 sheet.write(row_num, 2, '', value_format1)
                 sheet.write(row_num, 3, '', value_format1)
                 for month, amount in monthly_totals.items():
@@ -376,29 +379,67 @@ class AccountCURReportWizard(models.TransientModel):
                         month_index = month_list.index(month)
                         col_number = base_month_col + month_index
                         sheet.write(row_num, col_number, amount, value_format1)
-
-                row_num += 2
-                col_n = 0
+                row_num += 1
+                sheet.write(row_num, 0, '', header_format_num)
+                sheet.write(row_num, 1, '', header_format_num)
+                sheet.write(row_num, 2, '', header_format_num)
+                # row_num +=1
+                partner_month_totals = defaultdict(lambda: defaultdict(float))
                 for detail in account['entries']:
                     if detail.get('credit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get('statement_date') else detail.get('date').strftime('%b').upper()
-                        if detail_month in month_list:
-                            month_index = month_list.index(detail_month)
-                            col_number = base_month_col + month_index
-                            sheet.write(row_num, 0, detail.get('partner_id'), name_format)
-                            sheet.write(row_num, 1, account['account_code'], value_format)
-                            sheet.write(row_num, col_number, detail.get('credit') or 0, value_format)
-                            row_num += 1
-        row_num += 1
+                        detail_month = (
+                            detail.get('statement_date').strftime('%b').upper()
+                            if detail.get('statement_date')
+                            else detail.get('date').strftime('%b').upper()
+                        )
+                        partner_id = detail.get('partner_id')
+                        partner_month_totals[partner_id][detail_month] += detail.get('credit')
+                if account['account_name'] != "Internal Bank Transfer":
+                        if len(partner_month_totals) > 1:
+                            # row_num += 1
+                            for partner_id, month_data in sorted(partner_month_totals.items()):
+                                sheet.write(row_num, 0, partner_id, name_format)
+                                sheet.write(row_num, 1, account['account_code'], value_format)
+
+                                for month in month_list:
+                                    col_number = base_month_col + month_list.index(month)
+                                    amount = month_data.get(month, 0.0)
+                                    sheet.write(row_num, col_number, amount if amount != 0 else '', value_format)
+                                row_num += 1
+                else:
+                            combined_totals = defaultdict(lambda: defaultdict(float))
+                            for partner_id, month_data in partner_month_totals.items():
+                                for month, value in month_data.items():
+                                    combined_totals[partner_id][month] += value
+
+                            for partner_id, month_data in sorted(combined_totals.items()):
+                                sheet.write(row_num, 0, partner_id, name_format)
+                                sheet.write(row_num, 1, account['account_code'], value_format)
+
+                                for month in month_list:
+                                    col_number = base_month_col + month_list.index(month)
+                                    amount = month_data.get(month, 0.0)
+                                    sheet.write(row_num, col_number, amount if amount != 0 else '', value_format)
+
+                                row_num += 1
+                    # row_num += 1
         total_c = 0.0
         for rec in credit_accounts:
             total_c = total_c + rec['total_credit']
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Receipts', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
             sheet.write(row_num, 2, total_c, header_format_num)
             row_num += 1
+            sheet.write(row_num, 0, '', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, '', header_format_num)
+
         else:
             row_num += 1
+            sheet.write(row_num, 0, '', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, '', header_format_num)
             monthly_receipts = defaultdict(float)
             for rec in credit_accounts:
                 for detail in rec['entries']:
@@ -417,18 +458,32 @@ class AccountCURReportWizard(models.TransientModel):
             row_num += 1
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Total Cash Inflow', header_format_num)
+            sheet.write(row_num, 1,'',header_format_num)
             sheet.write(row_num, 2, total_c+opening_balance_1, header_format_num)
-            row_num += 2
+            row_num += 1
+            sheet.write(row_num, 0, '', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, '', header_format_num)
+            row_num += 1
         else:
             sheet.write(row_num, 0, 'Total Cash Inflow', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
             sheet.write(row_num, 2, total_c + next(iter(opening_balances.values())), header_format_num)
-            row_num += 2
-        sheet.write(row_num, 0, 'Payments:', header_format1)
-        row_num += 1
+            row_num += 1
+            sheet.write(row_num, 0, '', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, '', header_format_num)
+            row_num += 1
+        # sheet.write(row_num, 0, 'Payments:', header_format1)
+        # row_num += 1
         capex_accounts = [account for account in debit_accounts if account['expense_type'] == 'capex']
         opex_accounts = [account for account in debit_accounts if account['expense_type'] == 'opex']
-        sheet.write(row_num, 0, 'Vendor Payment CAPEX:', header_format1)
-        row_num += 2
+        sheet.write(row_num, 0, 'CAPEX:', header_format1)
+        row_num += 1
+        sheet.write(row_num, 0, '', header_format_num)
+        sheet.write(row_num, 1, '', header_format_num)
+        sheet.write(row_num, 2, '', header_format_num)
+        row_num +=1
         for account in capex_accounts:
             if not self.groupby_month:
                 sheet.write(row_num, 0, account['account_name'], value_format1)
@@ -436,25 +491,27 @@ class AccountCURReportWizard(models.TransientModel):
                 sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
                                                                                       'total_debit'] != 0 else sheet.write(
                     row_num, 2, '', value_format)
-                row_num += 2
+                # row_num += 1
+                # sheet.write(row_num, 0, '', header_format_num)
+                # sheet.write(row_num, 1, '', header_format_num)
+                # sheet.write(row_num, 2, '', header_format_num)
+                row_num += 1
                 partner_totals = {}
                 for detail in account['entries']:
                     partner_id = detail.get('partner_id')
                     debit = detail.get('debit') or 0
                     if partner_id:
                         partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
-                for partner_id, total_debit in partner_totals.items():
-                    sheet.write(row_num, 0, partner_id, name_format)
-                    sheet.write(row_num, 1, account['account_code'], value_format)
-                    sheet.write(row_num, 2, total_debit, value_format)
-                    row_num += 1
-                # for detail in account['entries']:
-                #         if detail.get('debit'):
-                #             if not self.groupby_month:
-                #                 sheet.write(row_num, 0, detail.get('partner_id'),name_format)
-                #                 sheet.write(row_num, 1, account['account_code'], value_format)
-                #                 sheet.write(row_num, 2, detail.get('debit') or 0, value_format)
-                #                 row_num += 1
+                if len(partner_totals) > 1:
+                    # row_num += 1
+                    for partner_id, total_debit in partner_totals.items():
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
+                        sheet.write(row_num, 2, total_debit, value_format)
+                        row_num += 1
+                        sheet.write(row_num, 0, '', header_format_num)
+                        sheet.write(row_num, 1, '', header_format_num)
+                        sheet.write(row_num, 2, '', header_format_num)
             else:
                 # Monthly totals for header row
                 monthly_totals = defaultdict(float)
@@ -480,10 +537,11 @@ class AccountCURReportWizard(models.TransientModel):
 
                 sheet.write(row_num, 2, '', value_format1)
                 sheet.write(row_num, 3, '', value_format1)
-
-                row_num += 2
-
-                # Consolidate by partner + month
+                # row_num += 1
+                # sheet.write(row_num, 0, '', header_format_num)
+                # sheet.write(row_num, 1, '', header_format_num)
+                # sheet.write(row_num, 2, '', header_format_num)
+                # row_num += 1
                 partner_month_totals = defaultdict(lambda: defaultdict(float))
                 for detail in account['entries']:
                     if detail.get('debit'):
@@ -494,44 +552,70 @@ class AccountCURReportWizard(models.TransientModel):
                         )
                         partner_id = detail.get('partner_id')
                         partner_month_totals[partner_id][detail_month] += detail.get('debit')
-                for partner_id, month_data in sorted(partner_month_totals.items()):
-                    sheet.write(row_num, 0, partner_id, name_format)
-                    sheet.write(row_num, 1, account['account_code'], value_format)
+                if len(partner_month_totals) > 1:
+                    # row_num += 1
+                    for partner_id, month_data in sorted(partner_month_totals.items()):
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
 
-                    for month, amount in month_data.items():
-                        if month in month_list:
-                            month_index = month_list.index(month)
-                            col_number = base_month_col + month_index
-                            sheet.write(row_num, col_number, amount, value_format)
-                    row_num += 1
-                row_num += 1
-        sheet.write(row_num, 0, 'Vendor Payment OPEX:', header_format1)
-        row_num += 2
+                        for month, amount in month_data.items():
+                            if month in month_list:
+                                month_index = month_list.index(month)
+                                col_number = base_month_col + month_index
+                                sheet.write(row_num, col_number, amount, value_format)
+                        row_num += 1
+                    # row_num += 1
+        sheet.write(row_num, 0, 'OPEX:', header_format1)
+        sheet.write(row_num, 1, '', header_format_num)
+        sheet.write(row_num, 2, '', header_format_num)
+        row_num += 1
+        sheet.write(row_num, 0, '', header_format_num)
+        sheet.write(row_num, 1, '', header_format_num)
+        sheet.write(row_num, 2, '', header_format_num)
+        row_num +=1
         grand_totals = defaultdict(float)
         for account in opex_accounts:
             if not self.groupby_month:
                 sheet.write(row_num, 0, account['account_name'], value_format1)
                 sheet.write(row_num, 1, account['account_code'], value_format1)
                 sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
-                                                                                      'total_debit'] != 0 else sheet.write(
-                    row_num, 2, '', value_format)
-                row_num += 2
+                                        'total_debit'] != 0 else sheet.write(row_num, 2, '', value_format)
+                # row_num +=1
+                # sheet.write(row_num, 0, '', header_format_num)
+                # sheet.write(row_num, 1, '', header_format_num)
+                # sheet.write(row_num, 2, '', header_format_num)
+                row_num +=1
                 partner_totals = {}
                 for detail in account['entries']:
                     partner_id = detail.get('partner_id')
                     debit = detail.get('debit') or 0
                     if partner_id:
                         partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
-                for partner_id, total_debit in partner_totals.items():
-                    sheet.write(row_num, 0, partner_id, name_format)
-                    sheet.write(row_num, 1, account['account_code'], value_format)
-                    sheet.write(row_num, 2, total_debit, value_format)
-                    row_num += 1
+                if account['account_name'] != 'Internal Bank Transfer':
+                    if len(partner_totals) > 1:
+                        # row_num += 1
+                        for partner_id, total_debit in partner_totals.items():
+                            sheet.write(row_num, 0, partner_id, name_format)
+                            sheet.write(row_num, 1, account['account_code'], value_format)
+                            sheet.write(row_num, 2, total_debit, value_format)
+                            row_num += 1
+                            sheet.write(row_num, 0, '', header_format_num)
+                            sheet.write(row_num, 1, '', header_format_num)
+                            sheet.write(row_num, 2, '', header_format_num)
+                        # row_num += 1
+                else:
+                    merged_totals = {}
+                    for partner_id, total_debit in partner_totals.items():
+                        merged_totals[partner_id] = merged_totals.get(partner_id, 0) + total_debit
+                    for partner_id, total_debit in merged_totals.items():
+                        sheet.write(row_num, 0, partner_id, name_format)
+                        sheet.write(row_num, 1, account['account_code'], value_format)
+                        sheet.write(row_num, 2, total_debit, value_format)
+                        row_num += 1
+                    sheet.write(row_num, 0, '', header_format_num)
+                    sheet.write(row_num, 1, '', header_format_num)
+                    sheet.write(row_num, 2, '', header_format_num)
             else:
-                    # -----------------------------
-                    # Case 2: Group by month
-                    # -----------------------------
-                    # Monthly totals for account header
                     monthly_totals = defaultdict(float)
                     for detail in account['entries']:
                         if detail.get('debit'):
@@ -545,17 +629,18 @@ class AccountCURReportWizard(models.TransientModel):
                     # Write account header
                     sheet.write(row_num, 0, account['account_name'], value_format1)
                     sheet.write(row_num, 1, account['account_code'], value_format1)
-
                     base_month_col = 2
                     for month in month_list:
                         month_index = month_list.index(month)
                         col_number = base_month_col + month_index
                         amount = monthly_totals.get(month, 0.0)
                         sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
+                    row_num += 1
+                    sheet.write(row_num, 0, '', header_format_num)
+                    sheet.write(row_num, 1, '', header_format_num)
+                    sheet.write(row_num, 2, '', header_format_num)
 
-                    row_num += 2
 
-                    # Consolidate by partner + month
                     partner_month_totals = defaultdict(lambda: defaultdict(float))
                     for detail in account['entries']:
                         if detail.get('debit'):
@@ -568,102 +653,103 @@ class AccountCURReportWizard(models.TransientModel):
                             partner_month_totals[partner_id][detail_month] += detail.get('debit')
 
                     # Write one row per partner with all months filled
-                    for partner_id, month_data in sorted(partner_month_totals.items()):
-                        sheet.write(row_num, 0, partner_id, name_format)
-                        sheet.write(row_num, 1, account['account_code'], value_format)
+                    if len(partner_month_totals) > 1:
+                        # row_num += 1
+                        for partner_id, month_data in sorted(partner_month_totals.items()):
+                            sheet.write(row_num, 0, partner_id, name_format)
+                            sheet.write(row_num, 1, account['account_code'], value_format)
 
-                        for month in month_list:
-                            col_number = base_month_col + month_list.index(month)
-                            amount = month_data.get(month, 0.0)
-                            sheet.write(row_num, col_number, amount if amount != 0 else '', value_format)
-
-                        row_num += 1
-
-                    row_num += 1
-        row_num += 2
-        sheet.write(row_num, 0, 'Credit Card Expenses', header_format1)
-        row_num += 2
-        for account in credit_card_accounts:
-            if not self.groupby_month:
-                sheet.write(row_num, 0, account['account_name'], value_format1)
-                sheet.write(row_num, 1, account['account_code'], value_format1)
-                sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
-                                                                                      'total_debit'] != 0 else sheet.write(
-                    row_num, 2, '', value_format)
-                row_num += 2
-                partner_totals = {}
-                for detail in account['entries']:
-                    partner_id = detail.get('partner_id')
-                    debit = detail.get('debit') or 0
-                    if partner_id:
-                        partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
-                for partner_id, total_debit in partner_totals.items():
-                    sheet.write(row_num, 0, partner_id, name_format)
-                    sheet.write(row_num, 1, account['account_code'], value_format)
-                    sheet.write(row_num, 2, total_debit, value_format)
-                    row_num += 1
-            else:
-                    monthly_totals = defaultdict(float)
-                    for detail in account['entries']:
-                        if detail.get('debit'):
-                            detail_month = (
-                                detail.get('statement_date').strftime('%b').upper()
-                                if detail.get('statement_date')
-                                else detail.get('date').strftime('%b').upper()
-                            )
-                            monthly_totals[detail_month] += detail.get('debit')
-                    print(monthly_totals, 'ggggggggggggggggggg')
-                    # Write account header
-                    sheet.write(row_num, 0, account['account_name'], value_format1)
-                    sheet.write(row_num, 1, account['account_code'], value_format1)
-
-                    base_month_col = 2
-                    for month in month_list:
-                        month_index = month_list.index(month)
-                        col_number = base_month_col + month_index
-                        amount = monthly_totals.get(month, 0.0)
-                        sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
-                        print(amount,'month-------------------------')
-                    # sheet.write(row_num, 2, '', value_format1)
-                    # sheet.write(row_num, 3, '', value_format1)
-
-                    row_num += 2
-
-                    # Consolidate by partner + month
-                    partner_month_totals = defaultdict(lambda: defaultdict(float))
-                    for detail in account['entries']:
-                        if detail.get('debit'):
-                            detail_month = (
-                                detail.get('statement_date').strftime('%b').upper()
-                                if detail.get('statement_date')
-                                else detail.get('date').strftime('%b').upper()
-                            )
-                            partner_id = detail.get('partner_id')
-                            partner_month_totals[partner_id][detail_month] += detail.get('debit')
-                    for partner_id, month_data in sorted(partner_month_totals.items()):
-                        sheet.write(row_num, 0, partner_id, name_format)
-                        sheet.write(row_num, 1, account['account_code'], value_format)
-
-                        for month, amount in month_data.items():
-                            if month in month_list:
-                                month_index = month_list.index(month)
-                                col_number = base_month_col + month_index
-                                sheet.write(row_num, col_number, amount, value_format)
-                        row_num += 1
-                    row_num += 1
-        row_num += 1
+                            for month in month_list:
+                                col_number = base_month_col + month_list.index(month)
+                                amount = month_data.get(month, 0.0)
+                                sheet.write(row_num, col_number, amount if amount != 0 else '', value_format)
+                            row_num += 1
+                    # row_num += 1
+        # row_num += 1
+        # sheet.write(row_num, 0, 'Credit Card Expenses', header_format1)
+        # row_num += 2
+        # for account in credit_card_accounts:
+        #     if not self.groupby_month:
+        #         sheet.write(row_num, 0, account['account_name'], value_format1)
+        #         sheet.write(row_num, 1, account['account_code'], value_format1)
+        #         sheet.write(row_num, 2, account['total_debit'], value_format1) if account[
+        #                                                                               'total_debit'] != 0 else sheet.write(
+        #             row_num, 2, '', value_format)
+        #         row_num += 2
+        #         partner_totals = {}
+        #         for detail in account['entries']:
+        #             partner_id = detail.get('partner_id')
+        #             debit = detail.get('debit') or 0
+        #             if partner_id:
+        #                 partner_totals[partner_id] = partner_totals.get(partner_id, 0) + debit
+        #         for partner_id, total_debit in partner_totals.items():
+        #             sheet.write(row_num, 0, partner_id, name_format)
+        #             sheet.write(row_num, 1, account['account_code'], value_format)
+        #             sheet.write(row_num, 2, total_debit, value_format)
+        #             row_num += 1
+        #     else:
+        #             monthly_totals = defaultdict(float)
+        #             for detail in account['entries']:
+        #                 if detail.get('debit'):
+        #                     detail_month = (
+        #                         detail.get('statement_date').strftime('%b').upper()
+        #                         if detail.get('statement_date')
+        #                         else detail.get('date').strftime('%b').upper()
+        #                     )
+        #                     monthly_totals[detail_month] += detail.get('debit')
+        #             print(monthly_totals, 'ggggggggggggggggggg')
+        #             # Write account header
+        #             sheet.write(row_num, 0, account['account_name'], value_format1)
+        #             sheet.write(row_num, 1, account['account_code'], value_format1)
+        #
+        #             base_month_col = 2
+        #             for month in month_list:
+        #                 month_index = month_list.index(month)
+        #                 col_number = base_month_col + month_index
+        #                 amount = monthly_totals.get(month, 0.0)
+        #                 sheet.write(row_num, col_number, amount if amount != 0 else '', value_format1)
+        #                 print(amount,'month-------------------------')
+        #             # sheet.write(row_num, 2, '', value_format1)
+        #             # sheet.write(row_num, 3, '', value_format1)
+        #
+        #             row_num += 2
+        #
+        #             # Consolidate by partner + month
+        #             partner_month_totals = defaultdict(lambda: defaultdict(float))
+        #             for detail in account['entries']:
+        #                 if detail.get('debit'):
+        #                     detail_month = (
+        #                         detail.get('statement_date').strftime('%b').upper()
+        #                         if detail.get('statement_date')
+        #                         else detail.get('date').strftime('%b').upper()
+        #                     )
+        #                     partner_id = detail.get('partner_id')
+        #                     partner_month_totals[partner_id][detail_month] += detail.get('debit')
+        #             for partner_id, month_data in sorted(partner_month_totals.items()):
+        #                 sheet.write(row_num, 0, partner_id, name_format)
+        #                 sheet.write(row_num, 1, account['account_code'], value_format)
+        #
+        #                 for month, amount in month_data.items():
+        #                     if month in month_list:
+        #                         month_index = month_list.index(month)
+        #                         col_number = base_month_col + month_index
+        #                         sheet.write(row_num, col_number, amount, value_format)
+        #                 row_num += 1
+        #             row_num += 1
+        # row_num += 1
         total_d = 0.0
         total_credit_entry = 0.0
         for rec in debit_accounts:
             total_d = total_d + rec['total_debit']
-        for rec in credit_card_accounts:
-            total_credit_entry = total_credit_entry + rec['total_debit']
+        # for rec in credit_card_accounts:
+        #     total_credit_entry = total_credit_entry + rec['total_debit']
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Payments', header_format_num)
+            sheet.write(row_num, 1, '', header_format_num)
             sheet.write(row_num, 2, total_d+total_credit_entry, header_format_num)
             row_num += 1
         else:
-            row_num += 1
+            sheet.write(row_num, 0, 'Payments', header_format_num)
             monthly_receipts = defaultdict(float)
             for rec in debit_accounts:
                 for detail in rec['entries']:
@@ -672,14 +758,13 @@ class AccountCURReportWizard(models.TransientModel):
                             'statement_date') else detail.get('date').strftime('%b').upper()
                         if detail_month in month_list:
                             monthly_receipts[detail_month] += detail.get('debit')
-            for rec in credit_card_accounts:
-                for detail in rec['entries']:
-                    if detail.get('debit'):
-                        detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get(
-                            'statement_date') else detail.get('date').strftime('%b').upper()
-                        if detail_month in month_list:
-                            monthly_receipts[detail_month] += detail.get('debit')
-            sheet.write(row_num, 0, 'Payments', header_format_num)
+            # for rec in credit_card_accounts:
+            #     for detail in rec['entries']:
+            #         if detail.get('debit'):
+            #             detail_month = detail.get('statement_date').strftime('%b').upper() if detail.get(
+            #                 'statement_date') else detail.get('date').strftime('%b').upper()
+            #             if detail_month in month_list:
+            #                 monthly_receipts[detail_month] += detail.get('debit')
             base_month_col = 2
             for month in month_list:
                 month_index = month_list.index(month)
@@ -688,23 +773,28 @@ class AccountCURReportWizard(models.TransientModel):
                 sheet.write(row_num, col_number, amount if amount != 0 else '', header_format_num)
             row_num += 1
         sheet.write(row_num, 0, 'Total Cash Outflow', header_format_num)
-        sheet.write(row_num, 2, total_d+total_credit_entry, header_format_num)
-        row_num += 2
+        sheet.write(row_num, 2, total_d, header_format_num)
+        row_num += 1
         if not self.groupby_month:
             sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
-            sheet.write(row_num, 2, total_c + opening_balance_1 - (total_d+total_credit_entry), header_format_num)
-            row_num += 2
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, total_c + opening_balance_1 - (total_d), header_format_num)
+            row_num += 1
         else:
             sheet.write(row_num, 0, 'Balance as per book as on %s' % (formatted_en_date), header_format_num)
-            sheet.write(row_num, 2, total_c + next(iter(opening_balances.values())) - (total_d+total_credit_entry), header_format_num)
-            row_num += 2
+            sheet.write(row_num, 1, '', header_format_num)
+            sheet.write(row_num, 2, total_c + next(iter(opening_balances.values())) - (total_d), header_format_num)
+            row_num += 1
 
         for line in end_balance1:
             sheet.write(row_num, 0, line['account_name']['en_US'], value_format)
             sheet.write(row_num, 1, line['account_code'], value_format)
             sheet.write(row_num, 2, line['balance'] or 0.0, value_format)
             row_num += 1
+        # sheet.add_table(0, 0, 99, 2)
         workbook.close()
+
+
         buffer.seek(0)
         return buffer.read()
 
@@ -724,7 +814,7 @@ class AccountCURReportWizard(models.TransientModel):
             ('is_internal_transfer','=', True),
             ('company_id', '=', company_id.id),
             ('move_id.state', '=', 'posted'),
-            ('payment_type','=','outbound'),
+            ('payment_type','=','inbound'),
             ('journal_id.is_credit_card_bank','!=',True)])
         groups_by_match = defaultdict(set)
         seen_matches = set()
@@ -818,7 +908,7 @@ class AccountCURReportWizard(models.TransientModel):
                         if move_line.journal_id.type in ('bank','cash'):
                             for rec in move_line.line_ids:
                                 if rec.debit > 0 and rec.account_id.code not in ('100202','100203','100204'):
-                                    if not rec.move_id.payment_id.is_credit_payment and not rec.move_id.payment_id.is_internal_transfer and not rec.move_id.is_payment_approval:
+                                    if not rec.move_id.payment_id.is_credit_payment and not rec.move_id.payment_id.is_internal_transfer and not rec.move_id.is_payment_approval and not rec.move_id.journal_id.is_credit_card_bank:
                                         l.add((rec.move_id.name, rec.id))
                                         key = (rec.account_id.id, line.move_id.expense_type)
 
@@ -928,6 +1018,36 @@ class AccountCURReportWizard(models.TransientModel):
                                     'date': r.date,
                                 })
 
+        #Credit Card Expense
+        # credit_card_expense = self.env['account.move.line'].sudo().search([
+        #     ('move_id.state', '=', 'posted'),
+        #     ('move_id.journal_id.type', 'in', ('bank', 'cash')),
+        #     ('move_id.company_id', '=', company_id.id),
+        #     ('move_id.is_payment_approval', '=', True),
+        # ])
+        # for rec in credit_card_expense:
+        #     if rec.matching_number:
+        #         move_line = self.env['account.move.line'].sudo().search(
+        #             [('matching_number', '=', rec.matching_number), ('id', '!=', rec.id)])
+        #         for move_line1 in move_line:
+        #             if (date_from <= move_line1.date <= date_to) and move_line1.statement_line_id:
+        #                 for r in rec.move_id.line_ids:
+        #                     if r.debit > 0:
+        #                         key = (r.account_id.id, r.move_id.expense_type)
+        #                         result[key]['account_name'] = r.account_id.name
+        #                         result[key]['account_code'] = r.account_id.code
+        #                         result[key]['expense_type'] = r.move_id.expense_type
+        #                         result[key]['total_debit'] += r.debit
+        #                         result[key]['entries'].append({
+        #                             'move_name': r.move_id.name,
+        #                             'mov_id': r.id,
+        #                             'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+        #                             else r.partner_id.name if r.partner_id
+        #                             else r.account_id.name,
+        #                             'debit': r.debit,
+        #                             'date': r.date,
+        #                             'statement_date': move_line.statement_line_id.date
+        #                         })
         #FD Entries
         # fd_entry = self.env['account.move.line'].sudo().search([
         #     ('move_id.state', '=', 'posted'),
