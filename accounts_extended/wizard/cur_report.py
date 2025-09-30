@@ -836,13 +836,45 @@ class AccountCURReportWizard(models.TransientModel):
         for match_no, ids in groups_by_match.items():
             groups_with_statement = []
             move_lines = self.env['account.move.line'].browse(ids)
+            # if any(l.statement_line_id and date_from <= l.date <= date_to for l in move_lines):
+            #     groups_with_statement.append(ids)
+            #     print(groups_with_statement,'kkkkkkkkkkkkkkkkkkkkkkkk')
+            #     for g in groups_with_statement:
+            #         r1 =  self.env['account.move.line'].browse(g)
+            #         for r in r1:
+            #             if not r.statement_line_id:
+            #                 r = r.move_id.payment_id.paired_internal_transfer_payment_id.move_id.line_ids.filtered(lambda l:l.debit>0)
+            #                 if r:
+            #                     key = (r.account_id.id, r.move_id.expense_type)
+            #                     result[key]['account_name'] = 'Internal Bank Transfer'
+            #                     result[key]['account_code'] = r.account_id.code
+            #                     result[key]['expense_type'] = r.move_id.expense_type
+            #                     result[key]['total_debit'] += r.debit
+            #                     result[key]['entries'].append({
+            #                         'move_name': r.move_id.name,
+            #                         'mov_id': r.id,
+            #                         'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+            #                         else r.partner_id.name if r.partner_id
+            #                         else r.account_id.name,
+            #                         'debit': r.debit,
+            #                         'date': r.date,
+            #                     })
             if any(l.statement_line_id and date_from <= l.date <= date_to for l in move_lines):
                 groups_with_statement.append(ids)
+                print(groups_with_statement, 'kkkkkkkkkkkkkkkkkkkkkkkk')
+
                 for g in groups_with_statement:
-                    r1 =  self.env['account.move.line'].browse(g)
+                    r1 = self.env['account.move.line'].browse(g)
+
+                    # ✅ Only process groups that contain Liquidity Transfer (100801)
+                    if not any(line.account_id.code == '100801' for line in r1):
+                        continue  # skip this group entirely
+
                     for r in r1:
                         if not r.statement_line_id:
-                            r = r.move_id.payment_id.paired_internal_transfer_payment_id.move_id.line_ids.filtered(lambda l:l.debit>0)
+                            r = r.move_id.payment_id.paired_internal_transfer_payment_id.move_id.line_ids.filtered(
+                                lambda l: l.debit > 0
+                            )
                             if r:
                                 key = (r.account_id.id, r.move_id.expense_type)
                                 result[key]['account_name'] = 'Internal Bank Transfer'
@@ -852,13 +884,15 @@ class AccountCURReportWizard(models.TransientModel):
                                 result[key]['entries'].append({
                                     'move_name': r.move_id.name,
                                     'mov_id': r.id,
-                                    'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
-                                    else r.partner_id.name if r.partner_id
-                                    else r.account_id.name,
+                                    'partner_id': (
+                                        r.move_id.journal_id.name
+                                        if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+                                        else r.partner_id.name if r.partner_id
+                                        else r.account_id.name
+                                    ),
                                     'debit': r.debit,
                                     'date': r.date,
                                 })
-
         moves = self.env['account.move.line'].sudo().search([
             ('move_id.state', '=', 'posted'),
             ('move_id.journal_id.type', 'in', ('bank', 'cash')),
@@ -977,46 +1011,49 @@ class AccountCURReportWizard(models.TransientModel):
         #                             'date': rec.date,
         #                         })
 
-        mis = self.env['account.move.line'].sudo().search([
-            ('move_id.state', '=', 'posted'),
-            ('move_id.move_type','=','entry'),
-            ('move_id.journal_id.type', '=','general'),
-            ('move_id.company_id','=',company_id.id),
-        ])
-        grouped = defaultdict(list)
-        for line in mis:
-            if line.matching_number:
-                same_group = self.env['account.move.line'].sudo().search([
-                    ('matching_number', '=', line.matching_number)
-                ])
-                grouped[line.matching_number].extend(same_group)
-        filtered_groups = {
-            match_no: lines
-            for match_no, lines in grouped.items()
-            if any(l.statement_line_id for l in lines)
-        }
-        # stop
-        for match,recs in list(filtered_groups.items()):
-            for rec in recs:
-                if not rec.statement_line_id and rec.matching_number:
-                    if (date_from <= rec.date <= date_to):
-                        move = rec.move_id
-                        for r in move.line_ids:
-                            if r.debit > 0:
-                                key = (r.account_id.id, r.move_id.expense_type)
-                                result[key]['account_name'] = r.account_id.name
-                                result[key]['account_code'] = r.account_id.code
-                                result[key]['expense_type'] = r.move_id.expense_type
-                                result[key]['total_debit'] += r.debit
-                                result[key]['entries'].append({
-                                    'move_name': r.move_id.name,
-                                    'mov_id': r.id,
-                                    'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
-                                    else r.partner_id.name if r.partner_id
-                                    else r.account_id.name,
-                                    'debit': r.debit,
-                                    'date': r.date,
-                                })
+        #Misc entries
+
+        # mis = self.env['account.move.line'].sudo().search([
+        #     ('move_id.state', '=', 'posted'),
+        #     ('move_id.move_type','=','entry'),
+        #     ('move_id.journal_id.type', '=','general'),
+        #     ('move_id.company_id','=',company_id.id),
+        # ])
+        # grouped = defaultdict(list)
+        # for line in mis:
+        #     if line.matching_number:
+        #         same_group = self.env['account.move.line'].sudo().search([
+        #             ('matching_number', '=', line.matching_number)
+        #         ])
+        #         grouped[line.matching_number].extend(same_group)
+        # filtered_groups = {
+        #     match_no: lines
+        #     for match_no, lines in grouped.items()
+        #     if any(l.statement_line_id for l in lines)
+        # }
+        # # stop
+        # for match,recs in list(filtered_groups.items()):
+        #     for rec in recs:
+        #         if not rec.statement_line_id and rec.matching_number:
+        #             if (date_from <= rec.date <= date_to):
+        #                 move = rec.move_id
+        #                 for r in move.line_ids:
+        #                     if r.debit > 0:
+        #                         print(r.debit,'kkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
+        #                         key = (r.account_id.id, r.move_id.expense_type)
+        #                         result[key]['account_name'] = r.account_id.name
+        #                         result[key]['account_code'] = r.account_id.code
+        #                         result[key]['expense_type'] = r.move_id.expense_type
+        #                         result[key]['total_debit'] += r.debit
+        #                         result[key]['entries'].append({
+        #                             'move_name': r.move_id.name,
+        #                             'mov_id': r.id,
+        #                             'partner_id': r.move_id.journal_id.name if r.move_id.payment_id and r.move_id.payment_id.is_internal_transfer
+        #                             else r.partner_id.name if r.partner_id
+        #                             else r.account_id.name,
+        #                             'debit': r.debit,
+        #                             'date': r.date,
+        #                         })
 
         #Credit Card Expense
         # credit_card_expense = self.env['account.move.line'].sudo().search([
