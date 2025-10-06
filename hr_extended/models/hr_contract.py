@@ -22,10 +22,17 @@ class HrContract(models.Model):
     pf_employer_per_month = fields.Float(string="Provident Fund (Employer's Contribution)", copy=False)
     pf_employee_per_annum = fields.Float(string="Provident Fund (Employee's Contribution)", copy=False)
     pf_employee_per_month = fields.Float(string="Provident Fund (Employee's Contribution)", copy=False)
+    nps_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="NPS Applicable", default='no',
+        copy=False
+    )
+    nps_cal_perc = fields.Float(string='NPS Percentage')
+    nps_employer_per_month = fields.Float(string="NPS(Employer's Contribution)", copy=False)
+    nps_employer_per_annum = fields.Float(string="NPS(Employer's Contribution)", copy=False)
     esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution)', copy=False)
     esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)', copy=False)
-    income_tax_month = fields.Float(string='Income Tax (Monthly)', copy=False)
-    income_tax_annual = fields.Float(string='Income Tax (Annual)', copy=False)
+    income_tax_month = fields.Float(string='Income Tax', copy=False)
+    income_tax_annual = fields.Float(string='Income Tax', copy=False)
     sub_total_b_per_annum = fields.Float(string='Sub-total Part B', copy=False)
     sub_total_b_per_month = fields.Float(string='Sub-total Part B', copy=False)
     variable_pay_per_annum = fields.Float(string='Performance Linked Variable Pay', copy=False)
@@ -38,8 +45,9 @@ class HrContract(models.Model):
     group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance', copy=False)
     health_ben_plan = fields.Float(string='Health Benefit Plan', copy=False)
     sub_total_d = fields.Float(string='Sub-total Part D', copy=False)
-    total_ctc_annum = fields.Float(string='Total Cost to Company(Annual)', copy=False)
-    total_ctc_month = fields.Float(string='Total Cost to Company', copy=False)
+    total_ctc_annum = fields.Float(string='Total Cost to Company',compute='compute_total_ctc_annum', copy=False)
+    total_ctc_annum_exc = fields.Float(string='Total Cost to Company(excl PF & NPS)',copy=False)
+    total_ctc_month = fields.Float(string='Total Cost to Company',compute='compute_total_ctc_annum', copy=False)
     monthly_fixed_salary = fields.Float(string="Monthly Fixed Salary (excl PF & all incentive pay)", copy=False)
     stat_bonus_amount = fields.Float(string="Statutory Bonus Amount", store=True, copy=False)
     provident_fund = fields.Float(string="Provident Fund", store=True, copy=False)
@@ -105,7 +113,13 @@ class HrContract(models.Model):
     ], default='spl_grade', string="Grade", tracking=True, required=True)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
-
+    tax_slab_1 = fields.Float(string='- to 4,00,000')
+    tax_slab_2 = fields.Float(string='4,00,001 to 8,00,000')
+    tax_slab_3 = fields.Float(string='8,00,001 to 12,00,000')
+    tax_slab_4 = fields.Float(string='12,00,001 to 16,00,000')
+    tax_slab_5 = fields.Float(string='16,00,001 to 20,00,000')
+    tax_slab_6 = fields.Float(string='20,00,001 to 24,00,000')
+    tax_slab_7 = fields.Float(string='24,00,001 to -')
     @api.model
     def get_view(self, view_id=None, view_type='form', **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
@@ -121,6 +135,43 @@ class HrContract(models.Model):
                         node.set("edit", "false")
             result['arch'] = etree.tostring(arch, encoding='unicode')
         return result
+
+
+
+    @api.onchange('nps_cal_perc','nps_applicable')
+    def nps_calculation(self):
+        for rec in self:
+            if rec.nps_applicable == 'yes':
+                if rec.nps_cal_perc >0:
+                    rec.nps_employer_per_month = rec.basic_da_per_month *(rec.nps_cal_perc/100)
+                    rec.nps_employer_per_annum = rec.basic_da_per_annum * (rec.nps_cal_perc / 100)
+                    rec.total_ctc_annum_exc = rec.total_ctc_annum - (
+                                rec.pf_employer_per_annum + rec.nps_employer_per_annum)
+                    rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
+                else:
+                    rec.nps_employer_per_month = 0
+                    rec.nps_employer_per_annum = 0
+                    rec.total_ctc_annum_exc = rec.total_ctc_annum - (
+                            rec.pf_employer_per_annum + rec.nps_employer_per_annum)
+                    rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
+            else:
+                print('nnnnnnnnnnnnnnnn')
+                rec.nps_employer_per_month = 0
+                rec.nps_employer_per_annum = 0
+                rec.total_ctc_annum_exc = rec.total_ctc_annum - (
+                        rec.pf_employer_per_annum + rec.nps_employer_per_annum)
+                rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
+
+
+    @api.depends('final_yearly_costs')
+    def compute_total_ctc_annum(self):
+        for rec in self:
+            if rec.final_yearly_costs:
+                rec.total_ctc_annum = rec.final_yearly_costs
+                rec.total_ctc_month = rec.total_ctc_annum / 12
+            else:
+                rec.total_ctc_annum = 0
+                rec.total_ctc_month = 0
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
@@ -560,8 +611,11 @@ class HrContract(models.Model):
             if record.monthly_fixed_salary:
                 total_ctc = record.total_ctc_annum
                 deduction = record.standard_deduction
-                record.net_taxable_income = total_ctc - deduction
-                record.total_ctc_month = total_ctc / 12
+                record.total_ctc_annum_exc = total_ctc - (
+                        record.pf_employer_per_annum + record.nps_employer_per_annum)
+                record.net_taxable_income = record.total_ctc_annum_exc - deduction if deduction > 0 else record.total_ctc_annum_exc
+
+            if record.income_tax_applicable == 'yes':
                 appl_amount =  400000
                 income_tax1=0
                 income_tax2=0
@@ -574,28 +628,28 @@ class HrContract(models.Model):
                 slab2 = slab1
                 balance1 = record.net_taxable_income - appl_amount
                 slab3 = appl_amount - slab2
-                income_tax1 =  appl_amount * 0.05
+                record.tax_slab_1 =  appl_amount * 0.05
                 balance2 = balance1 - appl_amount
                 slab4 = appl_amount - slab3
-                income_tax2 = appl_amount * 0.10
+                record.tax_slab_2 = appl_amount * 0.10
                 balance3 = balance2 - appl_amount
                 slab5 = slab4 - appl_amount
-                income_tax3 =  appl_amount * 0.15
+                record.tax_slab_3 =  appl_amount * 0.15
                 balance4 = balance3 - appl_amount
                 slab6 = slab5 - appl_amount
-                income_tax4 =  appl_amount * 0.20
+                record.tax_slab_4 =  appl_amount * 0.20
                 balance5 = balance4 - appl_amount
                 slab7 = slab6 - appl_amount
-                income_tax5 =  appl_amount * 0.25
+                record.tax_slab_5 =  appl_amount * 0.25
                 balance6 =balance5 -  appl_amount
-                if record.income_tax_applicable == 'yes':
-                        income_tax6 =  round(balance6 * 0.30)
-                        record.income_tax_annual = income_tax1+income_tax2+income_tax3+income_tax4+income_tax5+income_tax6
-                        record.income_tax_month = record.income_tax_annual / 12
-                else:
+
+                record.tax_slab_6 =  round(balance6 * 0.30)
+                record.income_tax_annual = record.tax_slab_1+record.tax_slab_2+record.tax_slab_3+record.tax_slab_4+record.tax_slab_5+record.tax_slab_6
+                record.income_tax_month = record.income_tax_annual / 12
+                record.tax_slab_7 = record.income_tax_annual
+            else:
                     record.income_tax_annual = 0
                     record.income_tax_month = 0
-                # print(income_tax1,income_tax2,income_tax3,income_tax4,income_tax5,income_tax6)
 
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)
