@@ -136,6 +136,8 @@
                             <field name="provident_fund_applicable"/>
                             <field name="nps_applicable"/>
                             <field name="nps_cal_perc" invisible="nps_applicable == 'no'"/>
+                            <field name="cess_applicable"/>
+                            <field name="cess_percentage" invisible="cess_applicable == 'no'"/>
                         </group>
                         <group string="Tax Slab">
                             <field name="tax_slab_1" readonly="1" force_save="1" invisible="income_tax_applicable == 'no'"/>

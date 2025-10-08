@@ -39,6 +39,13 @@ class HrContract(models.Model):
     variable_pay_per_month = fields.Float(string='Performance Linked Variable Pay', copy=False)
     sub_total_c_per_annum = fields.Float(string='Sub-total Part C', copy=False)
     sub_total_c_per_month = fields.Float(string='Sub-total Part C', copy=False)
+    cess_applicable =  fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')], string="CESS Applicable", default='yes',
+        copy=False
+    )
+    cess_percentage = fields.Float(string="CESS Percentage",default='4')
+    cess_month = fields.Float(string='CESS',copy=False,compute="compute_cess_cal")
+    cess_annum = fields.Float(string='CESS', copy=False,compute="compute_cess_cal")
     total_salary_per_annum = fields.Float(string='Total Salary', copy=False)
     total_salary_per_month = fields.Float(string='Total Salary', copy=False)
     medical_insurances = fields.Float(string='Medical Insurance', copy=False)
@@ -136,7 +143,28 @@ class HrContract(models.Model):
             result['arch'] = etree.tostring(arch, encoding='unicode')
         return result
 
-
+    @api.depends("cess_applicable","cess_percentage")
+    def compute_cess_cal(self):
+        for rec in self:
+            if rec.cess_applicable == 'yes':
+                if rec.cess_percentage >0:
+                    # rec.cess_month = rec.basic_da_per_month *(rec.cess_percentage/100)
+                    # rec.cess_annum = rec.basic_da_per_annum *(rec.cess_percentage/100)
+                    a1 = round(rec.income_tax_month)
+                    if rec.net_taxable_income > 5000000:
+                        tax = round(rec.income_tax_month * 0.10)
+                    else:
+                        tax = 0
+                    tax_inc_sur = a1 + tax
+                    a2 = round(tax_inc_sur * (rec.cess_percentage/100))
+                    rec.cess_month = a2
+                    rec.cess_annum = a2*12
+                else:
+                    rec.cess_month = 0
+                    rec.cess_annum = 0
+            else:
+                rec.cess_month = 0
+                rec.cess_annum = 0
 
     @api.onchange('nps_cal_perc','nps_applicable')
     def nps_calculation(self):
@@ -614,42 +642,100 @@ class HrContract(models.Model):
                 record.total_ctc_annum_exc = total_ctc - (
                         record.pf_employer_per_annum + record.nps_employer_per_annum)
                 record.net_taxable_income = record.total_ctc_annum_exc - deduction if deduction > 0 else record.total_ctc_annum_exc
-
+            balance1 = 0
+            balance2 = 0
+            balance3 = 0
+            balance4 = 0
+            balance5 = 0
+            balance6 = 0
+            balance7 = 0
+            appl_amount1 = 400000
+            appl_amount2 = 0
+            appl_amount3 = 0
+            appl_amount4 = 0
+            appl_amount5 = 0
+            appl_amount6 = 0
+            appl_amount7 = 0
             if record.income_tax_applicable == 'yes':
-                appl_amount =  400000
-                income_tax1=0
-                income_tax2=0
-                income_tax3=0
-                income_tax4=0
-                income_tax5=0
-                income_tax6=0
+                if appl_amount1 < record.net_taxable_income:
+                    if appl_amount1 > 0:
+                        balance1 = record.net_taxable_income - appl_amount1
+                        record.tax_slab_1 = 0
+                        appl_amount2 = appl_amount1*2
+                        record.tax_slab_2 = 0
+                        record.tax_slab_3 = 0
+                        record.tax_slab_4 = 0
+                        record.tax_slab_5 = 0
+                        record.tax_slab_6 = 0
+                        record.tax_slab_7 = 0
+                        if appl_amount2 <= record.net_taxable_income:
+                            if appl_amount2 > 0:
+                                balance2 = balance1 - appl_amount1
+                                record.tax_slab_2 = appl_amount1 * 0.05
+                                appl_amount3 = appl_amount1 * 3
+                                record.tax_slab_3 = 0
+                                record.tax_slab_4 = 0
+                                record.tax_slab_5 = 0
+                                record.tax_slab_6 = 0
+                                record.tax_slab_7 = 0
+                                if appl_amount3 <= record.net_taxable_income:
+                                    if appl_amount3 > 0:
+                                        balance3 = balance2 - appl_amount1
+                                        record.tax_slab_3 = appl_amount1 * 0.10
+                                        appl_amount4 = appl_amount1 * 4
+                                        record.tax_slab_4 = 0
+                                        record.tax_slab_5 = 0
+                                        record.tax_slab_6 = 0
+                                        record.tax_slab_7 = 0
+                                        if appl_amount4 <= record.net_taxable_income:
+                                            if appl_amount4 > 0:
+                                                balance4 = balance3 - appl_amount1
+                                                record.tax_slab_4 = appl_amount1 * 0.15
+                                                appl_amount5 = appl_amount1 * 5
+                                                record.tax_slab_5 = 0
+                                                record.tax_slab_6 = 0
+                                                record.tax_slab_7 = 0
+                                                if appl_amount5 <= record.net_taxable_income:
 
-                slab1 = appl_amount
-                slab2 = slab1
-                balance1 = record.net_taxable_income - appl_amount
-                slab3 = appl_amount - slab2
-                record.tax_slab_1 =  appl_amount * 0.05
-                balance2 = balance1 - appl_amount
-                slab4 = appl_amount - slab3
-                record.tax_slab_2 = appl_amount * 0.10
-                balance3 = balance2 - appl_amount
-                slab5 = slab4 - appl_amount
-                record.tax_slab_3 =  appl_amount * 0.15
-                balance4 = balance3 - appl_amount
-                slab6 = slab5 - appl_amount
-                record.tax_slab_4 =  appl_amount * 0.20
-                balance5 = balance4 - appl_amount
-                slab7 = slab6 - appl_amount
-                record.tax_slab_5 =  appl_amount * 0.25
-                balance6 =balance5 -  appl_amount
+                                                    if appl_amount5 > 0:
+                                                        balance5 = balance4 - appl_amount1
+                                                        record.tax_slab_5 = appl_amount1 * 0.20
+                                                        appl_amount6 = appl_amount1 * 6
+                                                        record.tax_slab_6 = 0
+                                                        record.tax_slab_7 = 0
+                                                        if appl_amount6 <= record.net_taxable_income:
+                                                            if appl_amount6 > 0:
+                                                                balance6 = balance5 - appl_amount1
+                                                                record.tax_slab_6 = appl_amount1 * 0.25
+                                                                appl_amount7 += appl_amount1 * 7
+                                                                record.tax_slab_7 = 0
+                                                                if appl_amount7 <= record.net_taxable_income:
+                                                                    if appl_amount7 > 0:
+                                                                        record.tax_slab_7 = balance6 * 0.30
+                                                                else:
+                                                                    record.tax_slab_7 = balance6 * 0.30
+                                                                    break
+                                                        else:
+                                                            record.tax_slab_6 = balance5 * 0.25
+                                                            break
+                                                else:
+                                                    record.tax_slab_5 = balance4 * 0.20
+                                                    break
+                                        else:
+                                            record.tax_slab_4 = balance3 * 0.15
+                                            break
+                                else:
+                                    record.tax_slab_3 = balance2 * 0.10
+                                    break
+                        else:
+                            break
 
-                record.tax_slab_6 =  round(balance6 * 0.30)
-                record.income_tax_annual = record.tax_slab_1+record.tax_slab_2+record.tax_slab_3+record.tax_slab_4+record.tax_slab_5+record.tax_slab_6
-                record.income_tax_month = record.income_tax_annual / 12
-                record.tax_slab_7 = record.income_tax_annual
-            else:
-                    record.income_tax_annual = 0
-                    record.income_tax_month = 0
+
+                    else:
+                        record.income_tax_annual = 0
+                        record.income_tax_month = 0
+            record.income_tax_annual = record.tax_slab_1 + record.tax_slab_2 + record.tax_slab_3 + record.tax_slab_4 + record.tax_slab_5 + record.tax_slab_6 + record.tax_slab_7
+            record.income_tax_month = record.income_tax_annual / 12
 
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)

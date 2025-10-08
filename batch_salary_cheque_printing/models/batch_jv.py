@@ -58,7 +58,7 @@ class AccountBatchJV(models.Model):
     consolidated_jv = fields.One2many('account.move','cons_journal_id',string='Consolidated JV')
     is_consolidated = fields.Boolean(string='Is Consolidated')
     company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
-
+    hr_payslip_run_id = fields.Many2one('hr.payslip.run', string='HR Payslip')
 
     def action_lock(self):
         for rec in self:
