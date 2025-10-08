@@ -968,6 +968,8 @@
                                     <field name="trans_id" options="{'no_open':True,'no_create': True}"/>
                                     <field name="sender_account_type" options="{'no_open':True,'no_create': True}"/>
                                     <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}"/>
+                                    <field name="partner_id" options="{'no_open':True,'no_create': True}"/>
+                                    <field name="partner_bank_id" options="{'no_open':True,'no_create': True}"/>
                                     <field name="sender_receiver_info"/>
                                     <field name="sms_email"/>
                                 </group>

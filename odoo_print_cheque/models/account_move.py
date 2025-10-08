@@ -58,6 +58,8 @@ class AccountMove(models.Model):
         string="Cheque Amount",
         store=True,
     )
+    partner_id = fields.Many2one('res.partner',string='Beneficiary Name')
+    partner_bank_id = fields.Many2one('res.partner.bank', string='Beneficiary Account Name')
 
     @api.depends('payment_method_line_id', 'cheque_format_id', 'line_ids.debit', 'line_ids.credit','check_amount_in_num')
     def _compute_check_amount_in_words_move(self):

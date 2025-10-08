@@ -80,7 +80,8 @@
                             <t t-esc="o.check_amount_in_words"/> Only
                         </td>
                     </tr>
-                    <tr>
+                    <t t-if="not o.is_internal_transfer">
+                        <tr>
                         <td style="font-weight: bold;">Beneficiary Account Number:</td>
                         <td style="border: 1px solid #000; padding: 2px;">
                             <t t-esc="o.partner_bank_id.acc_number"/>
@@ -89,24 +90,53 @@
                         <td style="border: 1px solid #000; padding: 2px;">
                             <t t-esc="o.partner_bank_id.acc_number"/>
                         </td>
-                    </tr>
+                        </tr>
+                    </t>
+                    <t t-else="">
+                        <tr>
+                        <td style="font-weight: bold;">Beneficiary Account Number:</td>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.destination_journal_id.bank_account_id.acc_number"/>
+                        </td>
+                        <td style="font-weight: bold;">Confirm Beneficiary Account Number:</td>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                             <t t-esc="o.destination_journal_id.bank_account_id.acc_number"/>
+                        </td>
+                        </tr>
+                    </t>
+
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Name:</td>
                         <td colspan="3" style="border: 1px solid #000; padding: 2px;">
                             <t t-esc="o.partner_id.name"/>
                         </td>
                     </tr>
-                    <tr>
-                        <td style="font-weight: bold;">Beneficiary Bank Name:</td>
-                        <td style="border: 1px solid #000; padding: 2px;line-height: 8px; height: 8px;">
-                            <t t-esc="o.partner_bank_id.bank_id.name"/>
-                        </td>
-                        <td style="font-weight: bold;">Beneficiary Branch IFSC Code:</td>
-                        <td style="border: 1px solid #000; padding: 2px;">
-                            <t t-esc="o.partner_bank_id.bank_id.ifsc_code"/>
-                        </td>
-                    </tr>
-                    <tr>
+                    <t t-if="not o.is_internal_transfer">
+                        <tr>
+                            <td style="font-weight: bold;">Beneficiary Bank Name:</td>
+                            <td style="border: 1px solid #000; padding: 2px;line-height: 8px; height: 8px;">
+                                <t t-esc="o.partner_bank_id.bank_id.name"/>
+                            </td>
+                            <td style="font-weight: bold;">Beneficiary Branch IFSC Code:</td>
+                            <td style="border: 1px solid #000; padding: 2px;">
+                                <t t-esc="o.partner_bank_id.bank_id.ifsc_code"/>
+                            </td>
+                        </tr>
+                    </t>
+                    <t t-else="">
+                        <tr>
+                            <td style="font-weight: bold;">Beneficiary Bank Name:</td>
+                            <td style="border: 1px solid #000; padding: 2px;line-height: 8px; height: 8px;">
+                                <t t-esc="o.destination_journal_id.bank_account_id.bank_id.name"/>
+                            </td>
+                            <td style="font-weight: bold;">Beneficiary Branch IFSC Code:</td>
+                            <td style="border: 1px solid #000; padding: 2px;">
+                                <t t-esc="o.destination_journal_id.bank_account_id.bank_id.ifsc_code"/>
+                            </td>
+                        </tr>
+                    </t>
+                    <t t-if="not o.is_internal_transfer">
+                         <tr>
                         <td style="font-weight: bold;">Beneficiary Branch:</td>
                         <td style="border: 1px solid #000; padding: 2px;">
                             <t t-esc="o.partner_bank_id.bank_id.bank_branch"/>
@@ -116,6 +146,19 @@
                             <t t-esc="o.partner_bank_id.bank_id.city"/>
                         </td>
                     </tr>
+                    </t>
+                   <t t-else="">
+                        <tr>
+                        <td style="font-weight: bold;">Beneficiary Branch:</td>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.destination_journal_id.bank_account_id.bank_id.bank_branch"/>
+                        </td>
+                        <td style="font-weight: bold;">City:</td>
+                        <td style="border: 1px solid #000; padding: 2px;">
+                            <t t-esc="o.destination_journal_id.bank_account_id.bank_id.city"/>
+                        </td>
+                    </tr>
+                   </t>
                 </table>
                 <p style="font-weight: bold; margin: 5px 0;">I have read and understood the terms and conditions mentioned overleaf:</p>
                 <hr style="margin: 5px 0; border-bottom: 1px solid #000;"/>
@@ -132,7 +175,7 @@
             <div style="font-size:14px;width: 100%; border: 1px solid #000;">
                 <table style=" font-size:14px;width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="padding: 4px; width: 20%; font-weight: bold;">Bank Name :</td>
+                        <td style="padding: 4px; width: 20%; font-weight: bold;">Client Name :</td>
                         <td colspan="3" style="padding: 4px; width: 30%;"><t t-esc="o.partner_id.name"/></td>
                         <!--<td style="padding: 4px;"/>-->
                         <!--<td style="padding: 4px;"/>-->

@@ -132,7 +132,7 @@
             <div style="font-size:14px;width: 100%; border: 1px solid #000;">
                 <table style=" font-size:14px;width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="padding: 4px; width: 20%; font-weight: bold;">Bank Name :</td>
+                        <td style="padding: 4px; width: 20%; font-weight: bold;">Client Name :</td>
                         <td colspan="3" style="padding: 4px; width: 30%;"><t t-esc="o.partner_id.name"/></td>
                         <!--<td style="padding: 4px;"/>-->
                         <!--<td style="padding: 4px;"/>-->
