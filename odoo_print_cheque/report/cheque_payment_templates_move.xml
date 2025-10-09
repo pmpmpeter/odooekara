@@ -26,9 +26,28 @@
                         <t t-esc="o.date.strftime('%d%m%Y')"/>
                     </div>
                     <!--Partner Name format-->
-                    <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">
-                        <t t-esc="o.partner_id.name"/>
-                    </div>
+                        <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">
+                            <!--<t t-esc="o.partner_id.name"/>-->
+                            <t t-if="o.partner_id">
+                                <t t-if="o.journal_id.bank_account_id.bank_id == o.partner_bank_id.bank_id">
+                                     <t t-esc="o.partner_id.name"/>
+                                </t>
+                                <t t-else="">
+                                    <span>Y/s For NEFT/RTGS </span><t t-esc="o.partner_id.name"/>
+                                </t>
+                        </t>
+                        </div>
+<!--                    <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">-->
+<!--                        <t t-if="o.partner_id">-->
+<!--                            <t t-if="o.journal_id.bank_account_id.bank_id == o.partner_bank_id.bank_id">-->
+<!--                                 <t t-esc="o.partner_id.name"/>-->
+<!--                            </t>-->
+<!--                            <t t-else="">-->
+<!--                                <span>Y/s RTGS</span><t t-esc="o.partner_id.name"/>-->
+<!--                            </t>-->
+<!--                        </t>-->
+
+<!--                    </div>-->
                     <!-- Amount in words format-->
                     <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.amount_word_lm}}px; margin-top:{{o.cheque_format_id.amount_word_tm}}px; letter-spacing: {{o.cheque_format_id.amount_word_ls}}em;">
                         <t t-esc="o.check_amount_in_words"/> Only
