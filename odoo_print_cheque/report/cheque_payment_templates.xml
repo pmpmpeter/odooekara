@@ -31,19 +31,8 @@
                         <!--                    </div>-->
                         <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">
                             <!--<t t-esc="o.partner_id.name"/>-->
-                            <t t-if="not o.is_internal_transfer">
-                                <t t-if="o.partner_id">
-                                    <t t-if="o.journal_id.bank_account_id.bank_id == o.partner_bank_id.bank_id">
-                                        <t t-esc="o.partner_id.name"/>
-                                    </t>
-                                    <t t-else="">
-                                        <span>Y/s For NEFT/RTGS</span>
-                                        <t t-esc="o.partner_id.name"/>
-                                    </t>
-                                </t>
-                            </t>
-                            <t t-else="">
-                                <t t-if="o.journal_id.bank_account_id.bank_id == o.destination_journal_id.bank_id">
+                            <t t-if="o.partner_id">
+                                <t t-if="not o.rtgs_addition">
                                     <t t-esc="o.partner_id.name"/>
                                 </t>
                                 <t t-else="">
@@ -51,6 +40,7 @@
                                     <t t-esc="o.partner_id.name"/>
                                 </t>
                             </t>
+
 
                         </div>
                         <!-- Amount in words format-->

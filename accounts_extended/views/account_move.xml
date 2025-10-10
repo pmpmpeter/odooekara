@@ -963,6 +963,7 @@
                                     <field name="authorised_date"/>
                                     <field name="comments"/>
                                     <field name="towards"/>
+                                    <field name="rtgs_addition"/>
                                 </group>
                                 <group>
                                     <field name="trans_id" options="{'no_open':True,'no_create': True}"/>

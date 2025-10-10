@@ -90,6 +90,7 @@
                                 <field name="authorised_date" readonly="is_cheque_details_freeze"/>
                                 <field name="comments" readonly="is_cheque_details_freeze"/>
                                 <field name="towards" readonly="is_cheque_details_freeze"/>
+                                <field name="rtgs_addition"/>
                             </group>
                             <group>
                                 <field name="trans_id" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
