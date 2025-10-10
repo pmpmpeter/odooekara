@@ -214,7 +214,7 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <span>
-                                            <t t-esc="sum(l.total for l in earnings) * 12" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                            <t t-esc="sum(l.total for l in earnings) * ytd" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
@@ -227,7 +227,7 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <span>
-                                            <t t-esc="sum(l.total for l in deductions) * 12" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                            <t t-esc="sum(l.total for l in deductions) * ytd" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                         </span>
                                     </td>
                                 </tr>
