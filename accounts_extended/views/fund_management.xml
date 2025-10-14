@@ -213,6 +213,8 @@
                                     string="Consolidation CRR" type="object" class="oe_stat_button"/>
                             <button name="action_open_share_view" invisible="is_consolidate_updated != True"
                                     string="View Share" type="object" class="oe_stat_button"/>
+                             <button name="action_open_budget_contribution" invisible="is_consolidate_updated != True"
+                                    string="Budget Contribution" type="object" class="oe_stat_button"/>
 
                         </div>
                         <div class="oe_title">
@@ -310,7 +312,6 @@
                                         <field name="febuary_crr_budget_plan" readonly="1"/>
                                         <field name="march_crr_budget_plan" readonly="1"/>
                                         <field name="quarter_4_crr_budget_plan" readonly="1"/>
-
                                     </tree>
                                 </field>
                             </page>
@@ -380,5 +381,32 @@
                   parent="account.menu_finance_entries"
                   action="action_te_consolidation"
                   sequence="99"/>
+
+        <record id="view_budget_contribution_report_line" model="ir.ui.view">
+            <field name="name">budget.contribution.te.line.form</field>
+            <field name="model">budget.contribution.te.line</field>
+            <field name="arch" type="xml">
+                <tree string="Budget Contribution Report" create="0" edit="0" delete="0" expand="1">
+                    <field name="company_id" />
+                    <field name="month" />
+                    <field name="budget_contribution"/>
+                    <field name="budget_percent"/>
+                    <field name="crr_requirement"/>
+                    <field name="crr_percent"/>
+                    <field name="actual_contribution"/>
+                    <field name="actual_percent"/>
+                    <field name="diff"/>
+                    <field name="diff_percent"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_budget_contribution_report" model="ir.actions.act_window">
+            <field name="name">Budget Contribution Report</field>
+            <field name="res_model">budget.contribution.te.line</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
     </data>
 </odoo>

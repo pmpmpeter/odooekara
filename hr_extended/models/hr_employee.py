@@ -3,6 +3,47 @@ from odoo.exceptions import *
 from odoo.exceptions import ValidationError, UserError
 
 
+class HrLeave(models.Model):
+    _inherit = "hr.leave"
+
+    @api.model
+    def get_dynamic_leave_action(self):
+        """Return action with dynamic domain: self + all subordinates recursively"""
+        action = self.env.ref("hr_holidays.hr_leave_action_action_approve_department").sudo().read()[0]
+        user = self.env.user
+
+        default_domain = [
+            '|',
+            ('employee_id.company_id', 'in', self.env.context.get('allowed_company_ids', [])),
+            '&', ('multi_employee', '=', True),
+            ('state', 'in', ['draft', 'confirm', 'validate1']),
+            ('employee_ids.company_id', 'in', self.env.context.get('allowed_company_ids', [])),
+        ]
+
+        # Admin → see everything (keep default domain)
+        if user.has_group("base.group_system"):
+            action["domain"] = default_domain
+        else:
+            employee = user.employee_id
+            if employee:
+                emp_ids = self._get_all_subordinates(employee)
+                emp_ids.append(employee.id)
+                action["domain"] = [("employee_id", "in", emp_ids)]
+            else:
+                # no linked employee → show nothing
+                action["domain"] = [("id", "=", 0)]
+
+        return action
+
+    def _get_all_subordinates(self, employee):
+        """Recursively fetch all child employees and return IDs only"""
+        all_children = []
+        for child in employee.child_ids:
+            all_children.append(child.id)
+            all_children.extend(self._get_all_subordinates(child))
+        return all_children
+
+
 class EmployeeInsurance(models.Model):
     _name = 'employee.insurance'
     _description = 'Employee Insurance Details'

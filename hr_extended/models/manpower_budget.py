@@ -264,15 +264,15 @@ class ManpowerBudget(models.Model):
         selected_records = self.browse(active_ids)
         if selected_records:
             for manpower in selected_records:
-                sheet.write(row, 0,manpower.tax_entity_id.name)
-                sheet.write(row, 1,manpower.category_id.name)
-                sheet.write(row, 2,manpower.manpower_request_type)
-                sheet.write(row, 3,manpower.business_unit_id.name)
-                sheet.write(row, 4,manpower.department_id.name)
-                sheet.write(row, 5,manpower.job_id.name)
-                sheet.write(row, 6,manpower.job_level_id.name)
-                sheet.write(row, 7,manpower.justification)
-                sheet.write(row, 8,manpower.ctc_annual)
+                sheet.write(row, 0,manpower.tax_entity_id.name if manpower.tax_entity_id.name else '')
+                sheet.write(row, 1,manpower.category_id.name if manpower.category_id.name else '')
+                sheet.write(row, 2,manpower.manpower_request_type if manpower.manpower_request_type else '')
+                sheet.write(row, 3,manpower.business_unit_id.name if manpower.business_unit_id.name else '')
+                sheet.write(row, 4,manpower.department_id.name if manpower.department_id.name else '')
+                sheet.write(row, 5,manpower.job_id.name if manpower.job_id.name else '')
+                sheet.write(row, 6,manpower.job_level_id.name if manpower.job_level_id.name else '')
+                sheet.write(row, 7,manpower.justification if manpower.justification else '')
+                sheet.write(row, 8,manpower.ctc_annual if manpower.ctc_annual else '')
                 col = 9
                 for line in manpower.employee_monthly_ids:
                     sheet.write(row,col, line.employee_count)
@@ -440,6 +440,18 @@ class ManpowerBudget(models.Model):
             'mimetype': 'application/vnd.ms-excel',
         })
         email_to = manpower.director_id.email
+        user = manpower.director_id
+        if not email_to:
+                raise ValidationError("In-app notifications can be sent to users with mail ID")
+        else:
+            record = self.browse(active_ids)
+            record.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary="Manpower Budget Reminder: Manpower Budget reminder",
+                note=f"Kindly Verify the Manpower Budget.",
+                user_id=user.id,
+                date_deadline=fields.Date.today()
+            )
         if not email_to:
             raise UserError("Director's email address is not configured!")
 
@@ -476,6 +488,27 @@ class ManpowerBudget(models.Model):
                 'sticky': False,
             },
         }
+    def schedule_activity(self):
+        print(self,'hhhhhhhhhhhh')
+        email_to = self.director_id.email
+        user = self.director_id
+        self.activity_schedule(
+            activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+            summary="Manpower Budget Reminder: Manpower Budget reminder",
+            note=f"Kindly Verify the Manpower Budget.",
+            user_id=user.id,
+            date_deadline=fields.Date.today()
+        )
+    # def _schedule_activity(self):
+    #     user = self.director_id
+    #     print('jjjjjjjjjjjjjgggggggggggggggg')
+    #     self.activity_schedule(
+    #         activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+    #         summary="Manpower Budget Reminder",
+    #         note=f"Kindly Verify the Manpower Budget: {self.name}.",
+    #         user_id=user.id,
+    #         date_deadline=fields.Date.today()
+    #     )
 
     def get_financial_year(self,current_date):
         current_year = current_date.year

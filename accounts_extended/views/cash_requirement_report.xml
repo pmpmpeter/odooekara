@@ -10,7 +10,11 @@
                     <button name="button_done" type="object" string="Done" invisible="1"/>
                     <button name="reset_to_draft" type="object" string="Reset Draft" invisible="1"/>
                     <button name="button_cancel" type="object" string="Cancel" invisible="1"/>
-
+<!--                    <button name="print_crr_pdf" type="object" string="Print" invisible="state not in ('done')"/>-->
+                    <button name="action_print_cash_requirement"
+                    string="Print PDF"
+                    type="object"
+                    class="btn-secondary" invisible="state not in ('done')"/>
                 </header>
                 <sheet>
                         <div class="oe_title" width="100">
@@ -33,6 +37,7 @@
                                 <field name="requested_by" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"/>
                                 <field name="journal_bank" options="{'no_quick_create':True,'no_create': True}" readonly="state in 'done'"  domain="[('type', '=', 'bank'),('company_id','=',company_id)]" widget="many2many_tags"/>
                                 <field name="available_balance" readonly="1" force_save="1" />
+                                <field name="budget_id" required="1" />
                             </group>
                         </group>
                         <notebook>
@@ -47,11 +52,58 @@
                                         <field name="remarks"/>
                                     </tree>
                                 </field>
-                                <group>
-                                    <field name="minimum_balance" readonly="state in 'done'"/>
-                                    <field name="amount_total" readonly="1" force_save="1"/>
-                                    <field name="total_fund_required" readonly="1" force_save="1"/>
+                                <group >
+                                    <group style="width:25%; float:left; margin-right:10px;">
+                                        <field name="minimum_balance" readonly="state in 'done'"/>
+                                        <field name="amount_total" readonly="1" force_save="1"/>
+                                        <field name="total_fund_required" readonly="1" force_save="1"/>
+                                    </group>
+                                      <group style="width:70%; float:left;">
+                                        <field name="contribution_ids" string=" " >
+                                            <tree editable="bottom" create="0" edit="0" delete="0">
+                                                <field name="tax_entity_id" width="320px" string="Entity"/>
+                                                <field name="te_percentage" width="60px"/>
+                                                <field name="budget_requirement" sum="sum"/>
+                                                <field name="crr_requirement" sum="sum"/>
+                                                <field name="actual_contribution" sum="sum"/>
+                                                <field name="contribution_percent" string="%" sum="sum"/>
+                                                <field name="difference" readonly="1" sum="sum"/>
+                                                <field name="difference_percent" string="%" readonly="1" />
+                                            </tree>
+                                        </field>
+                                    </group>
                                 </group>
+                            </page>
+                             <page string="Budget Contributions">
+                                 <button name="action_generate_contributions"
+                                    type="object"
+                                    string="Generate Contributions"
+                                    class="btn-primary"/>
+                                <field name="contribution_ids" >
+                                    <tree editable="bottom" create="0" edit="0" delete="0">
+                                        <field name="tax_entity_id" width="320px"/>
+                                        <field name="te_percentage" width="60px"/>
+                                        <field name="budget_requirement" sum="sum"/>
+                                        <field name="crr_requirement" sum="sum"/>
+                                        <field name="actual_contribution" sum="sum"/>
+                                        <field name="contribution_percent" sum="sum"/>
+                                        <field name="difference" readonly="1" sum="sum"/>
+                                        <field name="difference_percent" readonly="1" />
+                                    </tree>
+                                </field>
+                                  <field name="ytd_contribution_ids" >
+                                    <tree editable="bottom" create="0" edit="0" delete="0">
+                                        <field name="tax_entity_id" no_label="1" string="YTD-TE Level"/>
+                                        <field name="te_percentage" />
+                                        <field name="budget_requirement"  sum="sum"/>
+                                        <field name="crr_requirement"  sum="sum"/>
+                                        <field name="actual_contribution"  sum="sum"/>
+                                        <field name="contribution_percent"  sum="sum"/>
+                                        <field name="difference" readonly="1"  sum="sum"/>
+                                        <field name="difference_percent" readonly="1" />
+                                    </tree>
+                                </field>
+
                             </page>
                             <page string="Revision Remarks" invisible='not revision_reason'>
                                 <field name='revision_reason' force_save='1' readonly="1"/>

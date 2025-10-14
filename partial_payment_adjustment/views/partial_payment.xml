@@ -14,6 +14,7 @@
                 </xpath>
                 <xpath expr='//sheet' position="inside">
                     <separator string="Invoices"/>
+                    <field name="payment_compute" invisible="1"/>
                     <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted')"/>
 <!--                    <button name="update_entry" type="object" string="Update Entry" invisible="state not in ('posted')"/>-->
 <!--                    <button name="reconcile_entry" type="object" string="Reconcile Entry"/>-->
@@ -29,6 +30,28 @@
                             <field name="reconcile_amount" sum="reconcile_amount" readonly="is_reconciled_en"/>
                             <field name="currency_id" column_invisible="1"/>
 
+
+                        </tree>
+                    </field>
+                   <separator string="Reconciled Entry"/>
+                     <field name="reconciled_bill_ids" nolabel="1" readonly="1" invisible="payment_type == 'inbound'">
+                        <tree editable="bottom" create="false">
+                            <field name="name" string="Bill Ref"/>
+                            <field name="amount_untaxed_signed" column_invisible="1"/>
+                            <field name="amount_total" string="Bill Amount"/>
+                            <field name="payment_state"/>
+                            <field name="payment_amount"/>
+                            <field name="state" column_invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="reconciled_invoice_ids" nolabel="1" readonly="1" invisible="payment_type == 'outbound'">
+                        <tree editable="bottom" create="false">
+                            <field name="name" string="Invoice Ref"/>
+                            <field name="amount_untaxed_signed" column_invisible="1"/>
+                            <field name="amount_total" string="Invoice Amount"/>
+                            <field name="payment_state"/>
+                            <field name="payment_amount"/>
+                            <field name="state" column_invisible="1"/>
                         </tree>
                     </field>
                 </xpath>

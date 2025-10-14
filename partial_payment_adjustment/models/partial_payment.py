@@ -49,7 +49,37 @@ class AccountPayment(models.Model):
     is_advance_payment = fields.Boolean(string='Is Advance Payment')
     source_payment = fields.Many2one('account.payment',string='Source Payment')
     advance_payment_done = fields.Boolean(string='Advance Payment Done')
+    payment_compute = fields.Float(compute = 'compute_bill_payment_amount',string='Compute')
 
+    # @api.depends('reconciled_bill_ids')
+    def compute_bill_payment_amount(self):
+            self.payment_compute = 0
+            if self.reconciled_bill_ids:
+                for move in self.reconciled_bill_ids:
+                    total_payment = 0
+                    if move.state == "posted" and move.is_invoice(include_receipts=True):
+                        reconciled_partials = move.sudo()._get_all_reconciled_invoice_partials()
+                        for reconciled_partial in reconciled_partials:
+                            counterpart_line = reconciled_partial["aml"]
+                            payment_id = counterpart_line.payment_id.id
+
+                            # add amount only if payment not already counted
+                            if payment_id == self.id:
+                                total_payment += reconciled_partial["amount"]
+                        move.payment_amount = total_payment
+            elif self.reconciled_invoice_ids:
+                for move in self.reconciled_invoice_ids:
+                    total_payment = 0
+                    if move.state == "posted" and move.is_invoice(include_receipts=True):
+                        reconciled_partials = move.sudo()._get_all_reconciled_invoice_partials()
+                        for reconciled_partial in reconciled_partials:
+                            counterpart_line = reconciled_partial["aml"]
+                            payment_id = counterpart_line.payment_id.id
+
+                            # add amount only if payment not already counted
+                            if payment_id == self.id:
+                                total_payment += reconciled_partial["amount"]
+                        move.payment_amount = total_payment
 
     @api.onchange('payment_invoice_ids','amount','amount_partial_total')
     def compute_unallocated_amount(self):
@@ -363,3 +393,9 @@ class AccountPayment(models.Model):
                             self.source_payment.advance_payment_done = True
 
             # stop
+
+    # def action_cancel(self):
+    #     for rec in self:
+    #         res = super().action_cancel()
+    #         if rec.unallocated_amount:
+

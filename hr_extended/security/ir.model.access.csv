@@ -41,4 +41,9 @@ access_hr_payslip,access_hr_payslip_user,hr_payroll.model_hr_payslip,base.group_
 access_hr_payslip_worked_days,access_hr_payslip_worked_days_user,hr_payroll.model_hr_payslip_worked_days,base.group_user,1,0,0,0
 access_hr_payslip_input,access_hr_payslip_input_user,hr_payroll.model_hr_payslip_input,base.group_user,1,0,0,0
 access_hr_payslip_line,access_hr_payslip_line,hr_payroll.model_hr_payslip_line,base.group_user,1,0,0,0
+access_hr_payslip_readonly,hr.payslip.readonly,hr_payroll.model_hr_payslip,group_hr_payslip_readonly,1,0,0,0
+access_hr_applicant_document,access_hr_applicant_document,model_hr_applicant_document,base.group_user,1,1,1,1
+access_hr_applicant_refuse_wizard,access_hr_applicant_refuse_wizard,model_hr_applicant_refuse_wizard,base.group_user,1,1,1,1
+access_hr_applicant_refuse,access_hr_applicant_refuse,model_hr_applicant_refuse,base.group_user,1,1,1,1
+
 

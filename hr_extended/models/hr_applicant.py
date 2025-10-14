@@ -17,6 +17,8 @@ class RecruitmentStage(models.Model):
             ('first_level', 'First Level Interview'),
             ('second_interview', 'Second Interview'),
             ('shortlist', 'Shortlist'),
+            ('document_validated', 'Document Validated'),
+            ('director_approval', 'Director Approved'),
             ('offer_accepted', 'Offer Accepted'),
             ('hold', 'Hold')
         ],
@@ -76,6 +78,11 @@ class Job_Applicant(models.Model):
         ('yes', 'Yes'),
         ('no', 'No'),
     ], string="Offer Letter Approval", default='no', copy=False, readonly=True)
+    offer_letter_sent_director = fields.Selection([
+        ('yes', 'Yes'),
+        ('no', 'No'),
+    ], string="Offer Letter Sent", default='no', copy=False, readonly=True)
+
     offer_letter_sent = fields.Selection([
         ('yes', 'Yes'),
         ('no', 'No'),
@@ -196,6 +203,43 @@ class Job_Applicant(models.Model):
                                        compute='_compute_interviewer_ids',
                                        string='Interviewers', index=True, tracking=True, store=True, readonly=False,
                                        domain="[('share', '=', False), ('company_ids', 'in', company_id)]")
+    document_ids = fields.One2many("hr.applicant.document", "applicant_id", string="Documents")
+    refuse_count = fields.Integer(string="Refusal Count")
+
+
+
+
+    def action_send_offer_offer_letter_for_approval(self):
+        for record in self:
+            record.offer_letter_sent_director = "yes"
+
+    def action_refuse_employee_documents(self):
+        self.document_sent='no'
+        return True
+
+    def action_approve_employee_documents(self):
+        next_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'document_validated')], limit=1)
+        if not next_stage:
+            raise UserError("The 'Document Validated' stage is not configured. Please create it in Recruitment Stages.")
+        self.stage_id = next_stage.id
+
+    def action_view_documents(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Applicant Documents",
+            "res_model": "hr.applicant.document",
+            "view_mode": "tree,form",
+            "domain": [("applicant_id", "=", self.id)],
+            "context": {"default_applicant_id": self.id},
+        }
+
+    def get_document_upload_link(self):
+        """Generate public link (no login needed)"""
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        link =  f"{base_url}/applicant/upload/{self.id}"
+        raise ValidationError(link)
+        return link
+        # return f"{base_url}/applicant/upload/{self.id}"
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
@@ -726,6 +770,7 @@ class Job_Applicant(models.Model):
         return next_stage.name if next_stage else "No Next Stage Defined"
 
     def action_send_first_invitiation(self):
+        # self.get_document_upload_link()
         if not self.interviewer_ids:
             raise ValidationError("The 'Interviewer' field is required to create an Invitation.")
         if not self.job_id:
@@ -787,6 +832,7 @@ class Job_Applicant(models.Model):
 
     def get_document_update_interview_subject(self):
         """Fetch the active subject from document.update.interview.status."""
+        # self.get_document_upload_link()
         document_update = self.env['document.update.interview.status'].search([('active', '=', True)], limit=1)
         if not document_update:
             raise UserError(_("No active interview update subject found."))
@@ -810,17 +856,37 @@ class Job_Applicant(models.Model):
                 template.send_mail(applicant.id, force_send=True)
                 applicant.write({'document_sent': 'yes'})
 
+    def action_send_offer_offer_letter_for_approval(self):
+        for record in self:
+            record.offer_letter_sent_director = "yes"
+
     def action_approve_offer_letter(self):
         for record in self:
             record.offer_letter_approved = "yes"
+            next_stage = self.env['hr.recruitment.stage'].search([('stage', '=', 'director_approval')], limit=1)
+            if not next_stage:
+                raise UserError(
+                    "The 'Director Approved' stage is not configured. Please create it in Recruitment Stages.")
+            record.stage_id = next_stage.id
 
+
+    def action_refuse_offer_letter(self):
+        """Open wizard to capture refusal reason"""
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "hr.applicant.refuse.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_applicant_id": self.id},
+        }
+# surya
     def action_send_offer_letter_mail(self):
         for applicant in self.filtered(lambda s: not s.stage_id.stage):
             raise UserError(_("Alert !! Configure %s stage properly.") % (applicant.stage_id.display_name))
-        for applicant in self.filtered(lambda s: s.stage_id.stage not in ['shortlist']):
+        for applicant in self.filtered(lambda s: s.stage_id.stage not in ['director_approval']):
             raise UserError(
                 _("Alert !! You cannot send document update at %s stage") % (applicant.stage_id.display_name))
-        for applicant in self.filtered(lambda s: s.stage_id.stage in ['shortlist']):
+        for applicant in self.filtered(lambda s: s.stage_id.stage in ['director_approval']):
             template = self.env.ref('hr_extended.offer_letter_mail')
             if not template:
                 raise UserError(_("Alert !! Offer Letter template not found."))
@@ -1107,3 +1173,46 @@ class Job_Applicant(models.Model):
 #     pre_form = self.env['preemp.check'].create(vals)
 #     self.write({'is_pre_emp_form_clicked': True})
 #     return pre_form
+class HrApplicantDocument(models.Model):
+    _name = "hr.applicant.document"
+    _description = "Applicant Documents"
+
+    applicant_id = fields.Many2one("hr.applicant", string="Applicant", required=True, ondelete="cascade")
+    name = fields.Char(string="Document Name", required=True)
+    file = fields.Binary(string="File", required=True)
+    filename = fields.Char(string="Filename")
+
+
+class HrApplicantRefuse(models.Model):
+    _name = "hr.applicant.refuse"
+    _description = "Offer Letter Refusal Log"
+    _order = "create_date desc"
+
+    applicant_id = fields.Many2one("hr.applicant", string="Applicant", required=True, ondelete="cascade")
+    user_id = fields.Many2one("res.users", string="Refused By", default=lambda self: self.env.user, readonly=True)
+    reason = fields.Text(string="Reason", required=True)
+
+class HrApplicantRefuseWizard(models.TransientModel):
+    _name = "hr.applicant.refuse.wizard"
+    _description = "Refuse Offer Letter Wizard"
+
+    applicant_id = fields.Many2one("hr.applicant", string="Applicant")
+    reason = fields.Text(string="Reason", required=True)
+
+    def action_confirm_refuse(self):
+        applicant = self.applicant_id
+        director_group = self.env.ref("hr_extended.group_hr_recruitment_director")  # Replace with your module/group XML ID
+
+        # Check refusal count
+        if applicant.refuse_count >= 3 and not self.env.user.has_group(director_group.xml_id):
+            raise UserError(_("Offer Letter has already been refused 3 times. Only Director can override."))
+
+        # Create refusal log
+        self.env["hr.applicant.refuse"].create({
+            "applicant_id": applicant.id,
+            "reason": self.reason,
+            "user_id": self.env.user.id,
+        })
+
+        # Update status
+        applicant.write({"offer_letter_approved": "no",'offer_letter_sent_director':'no','refuse_count':+1})

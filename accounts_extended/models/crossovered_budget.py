@@ -15,6 +15,7 @@ class CrossoveredBudget(models.Model):
                                               copy=False)
     revision_date = fields.Datetime(string='Last Revised Date')
     fy_crr_budget_total = fields.Float("Total CRR", tracking=1, readonly=True)
+    fy_cur_budget_total = fields.Float("Total Utilization", tracking=1, readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('revision', 'To Revision'),
@@ -94,6 +95,11 @@ class CrossoveredBudget(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique (name)', "Budget name already exists!"),
     ]
+    tax_entity_ids = fields.One2many(
+        "res.company.tax.entity",
+        "budget_id",
+        string="Tax Entities",
+    )
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -108,6 +114,9 @@ class CrossoveredBudget(models.Model):
             rec.crr_line_count = len(
                 self.env['cash.management'].search([('budget_id', '=', self.id)]).cash_payment_ids.ids) or 0
             rec.share_line_count = len(rec.crr_share_ids)
+            entity_ids = self.env.company.tax_entity_ids.ids
+            if entity_ids:
+                rec.tax_entity_ids = [(6, 0, entity_ids)]
 
     def freeze_april_month(self):
         self.freez_april_month = True
@@ -484,20 +493,28 @@ class CrossoveredBudget(models.Model):
                 actual_surplus = self.crr_consolidate.search(
                     [('budget_name', '=', 'Actual Surplus/ Deficit'), ('budget_id', '=', self.id)])
                 if actual_surplus:
-                    if rec.entity == self.tax_entity1:
-                        share = self.tax_entity_1_percentage
+                    for entity in self.company_id.tax_entity_ids:
+                        share = entity.share
                         rec.write({
                             'crr_share_april': share / 100 * (actual_surplus.april_crr_budget_plan),
                             'crr_share_may': share / 100 * (actual_surplus.may_crr_budget_plan),
                             'crr_share_june': share / 100 * (actual_surplus.june_crr_budget_plan),
                         })
-                    elif rec.entity == self.tax_entity2:
-                        share = self.tax_entity_2_percentage
-                        rec.write({
-                            'crr_share_april': share / 100 * (actual_surplus.april_crr_budget_plan),
-                            'crr_share_may': share / 100 * (actual_surplus.may_crr_budget_plan),
-                            'crr_share_june': share / 100 * (actual_surplus.june_crr_budget_plan),
-                        })
+
+                    # if rec.entity == self.tax_entity1:
+                    #     share = self.tax_entity_1_percentage
+                    #     rec.write({
+                    #         'crr_share_april': share / 100 * (actual_surplus.april_crr_budget_plan),
+                    #         'crr_share_may': share / 100 * (actual_surplus.may_crr_budget_plan),
+                    #         'crr_share_june': share / 100 * (actual_surplus.june_crr_budget_plan),
+                    #     })
+                    # elif rec.entity == self.tax_entity2:
+                    #     share = self.tax_entity_2_percentage
+                    #     rec.write({
+                    #         'crr_share_april': share / 100 * (actual_surplus.april_crr_budget_plan),
+                    #         'crr_share_may': share / 100 * (actual_surplus.may_crr_budget_plan),
+                    #         'crr_share_june': share / 100 * (actual_surplus.june_crr_budget_plan),
+                    #     })
                 else:
                     surplus = self.crr_consolidate.search(
                         [('budget_name', '=', 'Surplus/ Deficit'), ('budget_id', '=', self.id)])
@@ -538,6 +555,9 @@ class CrossoveredBudget(models.Model):
         entity2 = self.env.company.tax_entity2.id
         share1 = self.env.company.share1
         share2 = self.env.company.share2
+        entity_ids = self.env.company.tax_entity_ids.ids
+        if entity_ids:
+            defaults['tax_entity_ids'] = [(6, 0, entity_ids)]
 
         if entity1 and entity2:
             defaults['tax_entity1'] = entity1
@@ -996,7 +1016,8 @@ class CrossoveredBudget(models.Model):
         self.is_budget_consolidate = True
 
     def _get_share_vals(self, entity, surplus_line):
-        share = self.tax_entity_1_percentage if entity == self.tax_entity1 else self.tax_entity_2_percentage
+        # share = self.tax_entity_1_percentage if entity == self.tax_entity1 else self.tax_entity_2_percentage
+        share = entity.share
         share_factor = share / 100
         month_vals = {
             'crr_share_april': share_factor * (surplus_line.april_crr_budget_plan),
@@ -1030,7 +1051,7 @@ class CrossoveredBudget(models.Model):
                                })
 
         share_vals = {
-            'entity': entity.id,
+            'entity': entity.entity_id.id,
             'version': self.version,
             'tax_entity_percentage': share,
             'company_id': self.company_id.id,
@@ -1042,12 +1063,12 @@ class CrossoveredBudget(models.Model):
 
     def split_share_amount(self):
         self.update_cash_balance_apr()
-        if not self.tax_entity1 and not self.tax_entity2:
+        if not self.company_id.tax_entity_ids:
             raise ValidationError('Kindly Fill any one Tax Entity Details.')
-        if self.tax_entity_1_percentage and not self.tax_entity1:
-            raise ValidationError('Kindly Add Tax Entity 1 User')
-        if self.tax_entity_2_percentage and not self.tax_entity2:
-            raise ValidationError('Kindly Add Tax Entity 2 User')
+        # if self.tax_entity_1_percentage and not self.tax_entity1:
+        #     raise ValidationError('Kindly Add Tax Entity 1 User')
+        # if self.tax_entity_2_percentage and not self.tax_entity2:
+        #     raise ValidationError('Kindly Add Tax Entity 2 User')
         if self.version > 1 and not self.share_rev_effective_from:
             raise ValidationError('Please specify the month from which the Share Revision should be effective.')
         total = self.tax_entity_1_percentage + self.tax_entity_2_percentage
@@ -1065,16 +1086,23 @@ class CrossoveredBudget(models.Model):
                 lambda rec: rec.is_budget_surples_sum_line) if not actual_surplus else actual_surplus
             # surplus = self.crr_consolidate.filtered(lambda rec: rec.is_budget_surples_sum_line)
         surplus._compute_to_get_quarter_values()
+        self.crr_share_ids.unlink()
         share_line = self.crr_share_ids
         if not share_line:
-            for entity in (self.tax_entity1 + self.tax_entity2):
+            for entity in self.company_id.tax_entity_ids:
                 share_vals = self._get_share_vals(entity, surplus)
                 self.env['crr.share.line'].sudo().create(share_vals)
         else:
-            for line in share_line:
-                entity = line.entity
-                share_vals = self._get_share_vals(entity, surplus)
-                line.sudo().write(share_vals)
+            for entity in self.company_id.tax_entity_ids:
+                for line in share_line:
+                    if entity.id in share_line.entity.ids:
+                        if entity.id == line.entity:
+                            share_vals = self._get_share_vals(line.entity, surplus)
+                            line.sudo().write(share_vals)
+                    else:
+                        share_vals = self._get_share_vals(entity, surplus)
+                        self.env['crr.share.line'].sudo().create(share_vals)
+
         self.is_share_revised = False
 
     def action_consolidate_crr_lines(self):
@@ -1114,6 +1142,7 @@ class CrossoveredBudget(models.Model):
         for record in self:
             for line in self.cash_payment_ids.filtered(lambda c: c.is_budget_surples_sum_line):
                 record.write({'fy_crr_budget_total': line.crr_budget_total})
+                record.write({'fy_cur_budget_total': line.cur_budget_total})
 
     def update_cash_outflow_inflow_calculation(self):
         self._check_budget_position_configuration()
@@ -2520,7 +2549,7 @@ class CrrBudgetLineConsolidate(models.Model):
             ocif_rec = self.env['crr.budget.line.consolidate'].sudo().search([('budget_id', '=', self.budget_id.id),
                                                                               ('budget_type', '=', 'ocif')])
             nocif_rec = self.env['crr.budget.line.consolidate'].sudo().search([('budget_id', '=', self.budget_id.id),
-                                                                               ('budget_type', '=', 'nocif')])
+                                                                               ('budget_type', '=', 'noocif')])
 
             if opex_rec:
                 for field, mapped_field in field_mapping.items():

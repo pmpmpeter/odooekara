@@ -14,6 +14,16 @@
                                 <strong>
                                     <t t-esc="doc.vendor_id.name"/>
                                 </strong>
+                                    <br/>
+                                    <t t-esc="doc.vendor_id.street"/>
+                                    <br/>
+                                    <t t-esc="doc.company_id.city"/>
+                                    -
+                                    <t t-esc="doc.company_id.zip"/>
+                                    <br/>
+                                    Email:
+                                    <t t-esc="doc.company_id.email"/>
+
                             </p>
                         </div>
 
@@ -100,17 +110,17 @@
                                     </td>
                                     <!-- Credit -->
                                     <td style="width:12%;">
-                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                        <t t-if="line['credit_date']">
                                             <t t-esc="line['credit_date']"/>
                                         </t>
                                     </td>
                                     <td style="width:28%;">
-                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                        <t t-if="line['credit_label']">
                                             <t t-esc="line['credit_label']"/>
                                         </t>
                                     </td>
                                     <td class="text-right" style="text-align:right; width:8%;">
-                                        <t t-if="line['credit_amount'] &gt;= 0">
+                                        <t t-if="line['credit_amount'] &gt; 0">
                                             <t t-esc="line['credit_amount']" t-options='{"widget": "monetary", "display_currency": doc.company_id.currency_id}'/>
                                         </t>
                                     </td>

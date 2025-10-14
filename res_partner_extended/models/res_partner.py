@@ -39,7 +39,7 @@ class ResPartner(models.Model):
     review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
     has_to_review = fields.Boolean(string='Has to Review')
     is_nonodoo_company = fields.Boolean(string='IS Company')
-    company_ids = fields.Many2many('res.company', 'contact_company_rel', string="Companies")
+    company_ids = fields.Many2many('res.company', 'contact_company_rel', string="Companies",tracking=True)
 
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (

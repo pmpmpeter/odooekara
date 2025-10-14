@@ -1,5 +1,7 @@
 from odoo import models, fields
 from odoo.tools.misc import formatLang
+from collections import defaultdict
+
 
 class GeneratePdfReport(models.TransientModel):
     _name = 'generate.pdf.report'
@@ -50,9 +52,46 @@ class GeneratePdfReport(models.TransientModel):
             ('partner_id', '=', self.vendor_id.id),
             ('invoice_date', '>=', self.from_date),
             ('invoice_date', '<=', self.to_date),
-            ('state', '=', 'posted'),
             ('state', '=', 'posted')
-        ],order='id')
+        ], order='invoice_date')
+
+        # Fetch payments
+        payments = self.env['account.payment'].search([
+            ('partner_id', '=', self.vendor_id.id),
+            ('date', '>=', self.from_date),
+            ('date', '<=', self.to_date),
+            ('state', '=', 'posted')
+        ], order='date')
+
+        # Combine into one list
+        combined = [
+                       {
+                           'date': inv.invoice_date,
+                           'type': 'invoice',
+                           'amount': inv.amount_total,
+                           'record': inv,
+                       }
+                       for inv in account_moves
+                   ] + [
+                       {
+                           'date': pay.date,
+                           'type': 'payment',
+                           'amount': pay.amount,
+                           'record': pay,
+                       }
+                       for pay in payments
+                   ]
+
+        # Sort by date
+        combined.sort(key=lambda x: x['date'])
+
+        # Group by month
+        grouped = defaultdict(list)
+        for entry in combined:
+            month_key = entry['date'].strftime("%Y-%m")  # example: "2025-09"
+            grouped[month_key].append(entry)
+
+
         result = []
         pay_result = []
         payment_ids = []
@@ -60,37 +99,68 @@ class GeneratePdfReport(models.TransientModel):
         total_debit = 0.0
 
         # payment_ids = self.env['account.payment'].search([('reconciled_bill_ids','in',account_moves.ids)],order='id')
-
-        for move in account_moves:
-            payment = self.get_paymenet_id(move)
-            if payment and payment[0]['payment_ids'] not in payment_ids:
-                pay = self.env['account.payment'].browse(payment[0]['payment_ids'])
-                payment_ids.append(pay.id)
-                debit_date = pay.date.strftime('%d-%b-%y') if pay.date else ''
-                debit_label = pay.journal_id.display_name
-                debit_amount = pay.amount
-                total_debit += pay.amount
-                for line in move.invoice_line_ids:
+        for month, records in grouped.items():
+            print(f"\nMonth: {month}")
+            for rec in records:
+                print(f"  {rec['date']} | {rec['type']} | {rec['record']}")
+                if rec['type'] == 'payment':
+                    pay = rec['record']
+                    debit_date = pay.date.strftime('%d-%b-%y') if pay.date else ''
+                    debit_label = pay.journal_id.display_name
+                    debit_amount = pay.amount
+                    total_debit += pay.amount
                     result.append({
                         'debit_date': debit_date,
                         'debit_label': debit_label,
                         'debit_amount': debit_amount,
-                        'credit_date': move.invoice_date.strftime('%d-%b-%y') if move.invoice_date else '',
-                        'credit_label': line.account_id.display_name,
-                        'credit_amount': move.amount_total,
+                        'credit_date':'',
+                        'credit_label': '',
+                        'credit_amount': 0,
                     })
-            else:
-                for line in move.invoice_line_ids:
-                    result.append({
-                        'debit_date': '',
-                        'debit_label': '',
-                        'debit_amount': 0,
-                        'credit_date': move.invoice_date.strftime('%d-%b-%y') if move.invoice_date else '',
-                        'credit_label': line.account_id.display_name,
-                        'credit_amount': move.amount_total,
-                    })
+                elif rec['type'] == 'invoice':
+                    invoice = rec['record']
+                    for line in invoice.invoice_line_ids:
+                        result.append({
+                            'debit_date': '',
+                            'debit_label': '',
+                            'debit_amount': 0,
+                            'credit_date': invoice.invoice_date.strftime('%d-%b-%y') if invoice.invoice_date else '',
+                            'credit_label': line.account_id.display_name,
+                            'credit_amount': invoice.amount_total,
+                        })
 
-            total_credit += move.amount_total
+                    total_credit += invoice.amount_total
+
+        # for move in account_moves:
+        #     payment = self.get_paymenet_id(move)
+        #     if payment and payment[0]['payment_ids'] not in payment_ids:
+        #         pay = self.env['account.payment'].browse(payment[0]['payment_ids'])
+        #         payment_ids.append(pay.id)
+        #         debit_date = pay.date.strftime('%d-%b-%y') if pay.date else ''
+        #         debit_label = pay.journal_id.display_name
+        #         debit_amount = pay.amount
+        #         total_debit += pay.amount
+        #         for line in move.invoice_line_ids:
+        #             result.append({
+        #                 'debit_date': debit_date,
+        #                 'debit_label': debit_label,
+        #                 'debit_amount': debit_amount,
+        #                 'credit_date': move.invoice_date.strftime('%d-%b-%y') if move.invoice_date else '',
+        #                 'credit_label': line.account_id.display_name,
+        #                 'credit_amount': move.amount_total,
+        #             })
+        #     else:
+        #         for line in move.invoice_line_ids:
+        #             result.append({
+        #                 'debit_date': '',
+        #                 'debit_label': '',
+        #                 'debit_amount': 0,
+        #                 'credit_date': move.invoice_date.strftime('%d-%b-%y') if move.invoice_date else '',
+        #                 'credit_label': line.account_id.display_name,
+        #                 'credit_amount': move.amount_total,
+        #             })
+        #
+        #     total_credit += move.amount_total
         return {
             'rows': result,
             'total_credit': total_credit,

@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <record id="view_res_company_form_inherit_tax_entity" model="ir.ui.view">
+            <field name="name">res.company.form.tax.entity</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <page name="branches" position="after">
+                    <page string="Tax Entities">
+                        <field name="tax_entity_ids" context="{'default_company_id': active_id}">
+                            <tree editable="bottom">
+                                <field name="sequence"/>
+                                <field name="entity_id"/>
+                                <field name="share"/>
+                                <field name="loan_account_id"/>
+                            </tree>
+                        </field>
+                    </page>
+                </page>
+            </field>
+        </record>
+
         <record id="res_config_settings_view_form_inherit" model="ir.ui.view">
             <field name="name">res.config.settings.view.form.inherit.account</field>
             <field name="model">res.config.settings</field>

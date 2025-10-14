@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <odoo noupdate="0">
+    <template id="applicant_document_upload_template" name="Applicant Document Upload">
+    <t t-call="website.layout">
+        <div class="container mt-5">
+            <h2>Upload Documents for <t t-esc="applicant.partner_name or applicant.partner_id.name"/></h2>
+            <form action="/applicant/upload/submit" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="applicant_id" t-att-value="applicant.id"/>
+                <div class="form-group">
+                    <label>Select Documents</label>
+                    <input type="file" name="documents" multiple="multiple" class="form-control"/>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Upload</button>
+            </form>
+        </div>
+    </t>
+</template>
+
     <!--Email template -->
 
     <!--Pre-Employment Reference form notification-->

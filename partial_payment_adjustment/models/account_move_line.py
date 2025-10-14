@@ -17,6 +17,11 @@ from odoo.addons.account.models.account_move import MAX_HASH_VERSION
 _logger = logging.getLogger(__name__)
 import pdb
 
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    payment_amount = fields.Float(string='Payment Amount')
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
