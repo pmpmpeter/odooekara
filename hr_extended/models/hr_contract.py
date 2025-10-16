@@ -127,6 +127,22 @@ class HrContract(models.Model):
     tax_slab_5 = fields.Float(string='16,00,001 to 20,00,000')
     tax_slab_6 = fields.Float(string='20,00,001 to 24,00,000')
     tax_slab_7 = fields.Float(string='24,00,001 to -')
+    is_pf_contribution = fields.Boolean(string='PF Contribution')
+    employee_pf_contribution = fields.Float(string='Employee Contribution')
+    is_parental_insurance = fields.Boolean(string='Parental Insurance')
+    insurance_amount = fields.Float(string='Insurance Amount')
+    applicable_from = fields.Selection(
+        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
+                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
+                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
+                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
+        string="Month From")
+    applicable_to = fields.Selection(
+        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
+                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
+                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
+                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
+        string="Month To")
     @api.model
     def get_view(self, view_id=None, view_type='form', **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
@@ -183,7 +199,6 @@ class HrContract(models.Model):
                             rec.pf_employer_per_annum + rec.nps_employer_per_annum)
                     rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
             else:
-                print('nnnnnnnnnnnnnnnn')
                 rec.nps_employer_per_month = 0
                 rec.nps_employer_per_annum = 0
                 rec.total_ctc_annum_exc = rec.total_ctc_annum - (
@@ -197,6 +212,8 @@ class HrContract(models.Model):
             if rec.final_yearly_costs:
                 rec.total_ctc_annum = rec.final_yearly_costs
                 rec.total_ctc_month = rec.total_ctc_annum / 12
+                rec._onchange_calculate_income_tax()
+                rec.compute_cess_cal()
             else:
                 rec.total_ctc_annum = 0
                 rec.total_ctc_month = 0
@@ -656,7 +673,7 @@ class HrContract(models.Model):
             appl_amount5 = 0
             appl_amount6 = 0
             appl_amount7 = 0
-            if record.income_tax_applicable == 'yes':
+            if record.income_tax_applicable == 'yes' and record.net_taxable_income > 1200000:
                 if appl_amount1 < record.net_taxable_income:
                     if appl_amount1 > 0:
                         balance1 = record.net_taxable_income - appl_amount1
@@ -734,9 +751,19 @@ class HrContract(models.Model):
                     else:
                         record.income_tax_annual = 0
                         record.income_tax_month = 0
-            record.income_tax_annual = record.tax_slab_1 + record.tax_slab_2 + record.tax_slab_3 + record.tax_slab_4 + record.tax_slab_5 + record.tax_slab_6 + record.tax_slab_7
-            record.income_tax_month = record.income_tax_annual / 12
+            else:
 
+                record.income_tax_annual = 0
+                record.income_tax_month = 0
+                record.tax_slab_1 = 0
+                record.tax_slab_2 = 0
+                record.tax_slab_3 = 0
+                record.tax_slab_4 = 0
+                record.tax_slab_5 = 0
+                record.tax_slab_6 = 0
+                record.tax_slab_7 = 0
+        record.income_tax_annual = record.tax_slab_1 + record.tax_slab_2 + record.tax_slab_3 + record.tax_slab_4 + record.tax_slab_5 + record.tax_slab_6 + record.tax_slab_7
+        record.income_tax_month = record.income_tax_annual / 12
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)
     special_allowance = fields.Float(string="Special Allowance (PA)", store=True, copy=False)

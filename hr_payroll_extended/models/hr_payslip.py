@@ -23,7 +23,34 @@ class HrPayslip(models.Model):
                 ('date_from', '>=', fiscal_start),
                 ('date_to','<=',date_to)
             ])
-
+            income_total = 0
+            earnings_ytd = 0
+            recoveries = 0
+            for pay in payslips:
+                if pay:
+                    for income_totals in pay.line_ids:
+                        if income_totals.salary_rule_id.code == 'INC-T':
+                            income_total += income_totals.total
+                        if income_totals.salary_rule_id.code == 'Other_earnings_through_payroll':
+                            earnings_ytd += income_totals.total
+                        if income_totals.salary_rule_id.code == 'Other_recoveries':
+                            recoveries += income_totals.total
+            # april_payslips = payslips.filtered(
+            #     lambda p: p.date_from.month == 4 or p.date_to.month == 4
+            # )
+            # earnings_ytd = 0
+            # if self.date_from.month != 4:
+            #     for pay in april_payslips:
+            #         if pay:
+            #             for ear_ytd in pay.line_ids:
+            #                 if ear_ytd.salary_rule_id.code == 'Other_earnings_through_payroll':
+            #                     earnings_ytd += ear_ytd.total
+            #     print(earnings_ytd, 'wwwwwwwwwww')
             months = {(p.date_from.year, p.date_from.month) for p in payslips}
-            return int(len(months))
+            return {
+                'month_total': int(len(months)),
+                'income_total': income_total,
+                'ytd_april':earnings_ytd,
+                'recoveries':recoveries
+            }
 
