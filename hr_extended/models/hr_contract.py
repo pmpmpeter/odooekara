@@ -131,18 +131,8 @@ class HrContract(models.Model):
     employee_pf_contribution = fields.Float(string='Employee Contribution')
     is_parental_insurance = fields.Boolean(string='Parental Insurance')
     insurance_amount = fields.Float(string='Insurance Amount')
-    applicable_from = fields.Selection(
-        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
-                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
-                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
-                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
-        string="Month From")
-    applicable_to = fields.Selection(
-        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
-                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
-                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
-                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
-        string="Month To")
+    applicable_from = fields.Date(string="Month From")
+    applicable_to =  fields.Date(string="Month To")
     @api.model
     def get_view(self, view_id=None, view_type='form', **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
@@ -210,8 +200,8 @@ class HrContract(models.Model):
     def compute_total_ctc_annum(self):
         for rec in self:
             if rec.final_yearly_costs:
-                rec.total_ctc_annum = rec.final_yearly_costs
-                rec.total_ctc_month = rec.total_ctc_annum / 12
+                rec.total_ctc_annum = round(rec.final_yearly_costs)
+                rec.total_ctc_month = round(rec.total_ctc_annum / 12)
                 rec._onchange_calculate_income_tax()
                 rec.compute_cess_cal()
             else:
@@ -339,7 +329,6 @@ class HrContract(models.Model):
                         record.sub_total_a_per_month + record.statutory_bonus_per_month - record.pf_employer_per_month - round(
                             record.esic_employer_per_month / 0.0325 * 0.0075) - profession_tax)
                 else:
-                    print('22222222222222')
                     record.basic_da_per_annum = max(round((record.monthly_fixed_salary * 12 * 0.4) / 12000) * 12000,salary_structure.annual_salary)
                     record.basic_da_per_month = round(record.basic_da_per_annum / 12)
 
@@ -763,7 +752,7 @@ class HrContract(models.Model):
                 record.tax_slab_6 = 0
                 record.tax_slab_7 = 0
         record.income_tax_annual = record.tax_slab_1 + record.tax_slab_2 + record.tax_slab_3 + record.tax_slab_4 + record.tax_slab_5 + record.tax_slab_6 + record.tax_slab_7
-        record.income_tax_month = record.income_tax_annual / 12
+        record.income_tax_month = round(record.income_tax_annual / 12)
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)
     special_allowance = fields.Float(string="Special Allowance (PA)", store=True, copy=False)

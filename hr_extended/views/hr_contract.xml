@@ -130,7 +130,7 @@
                 <page string="Accounting Components" groups="hr_extended.group_view_own_accounting_comp">
                     <group string="Accounting Components">
 
-                        <group string="Basic Components">
+                         <group string="Basic Components">
                             <field name="standard_deduction"/>
                             <field name="income_tax_applicable" invisible="0"/>
                             <field name="provident_fund_applicable"/>
@@ -142,10 +142,11 @@
                             <field name="employee_pf_contribution" invisible="not is_pf_contribution"/>
                             <field name="is_parental_insurance"/>
                             <field name="insurance_amount" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
-                            <!--<group invisible="not is_parental_insurance">-->
+                            <label for="applicable_from"/>
+                            <div class="o_row">
                                 <field name="applicable_from" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
                                 <field name="applicable_to" nolabel="1" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
-                            <!--</group>-->
+                            </div>
 
                         </group>
                         <group string="Tax Slab">
