@@ -142,10 +142,10 @@
                             <field name="employee_pf_contribution" invisible="not is_pf_contribution"/>
                             <field name="is_parental_insurance"/>
                             <field name="insurance_amount" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
-                            <label for="applicable_from"/>
+                            <label for="applicable_from_date"/>
                             <div class="o_row">
-                                <field name="applicable_from" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
-                                <field name="applicable_to" nolabel="1" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
+                                <field name="applicable_from_date" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
+                                <field name="applicable_to_date" nolabel="1" invisible="not is_parental_insurance" required="is_parental_insurance == True"/>
                             </div>
 
                         </group>

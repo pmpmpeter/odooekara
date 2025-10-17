@@ -131,8 +131,20 @@ class HrContract(models.Model):
     employee_pf_contribution = fields.Float(string='Employee Contribution')
     is_parental_insurance = fields.Boolean(string='Parental Insurance')
     insurance_amount = fields.Float(string='Insurance Amount')
-    applicable_from = fields.Date(string="Month From")
-    applicable_to =  fields.Date(string="Month To")
+    applicable_from = fields.Selection(
+        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
+                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
+                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
+                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
+        string="Month From")
+    applicable_to = fields.Selection(
+        selection=[('01', 'January'), ('02', 'February'), ('03', 'March'),
+                   ('04', 'April'), ('05', 'May'), ('06', 'June'),
+                   ('07', 'July'), ('08', 'August'), ('09', 'September'),
+                   ('10', 'October'), ('11', 'November'), ('12', 'December')],
+        string="Month To")
+    applicable_from_date = fields.Date(string="Month From")
+    applicable_to_date = fields.Date(string="Month To")
     @api.model
     def get_view(self, view_id=None, view_type='form', **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
