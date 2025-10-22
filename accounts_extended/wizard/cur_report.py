@@ -134,41 +134,48 @@ class AccountCURReportWizard(models.TransientModel):
             row_num += 1
         if not self.groupby_month:
             opening_balance_1 = 0
-            query8 = """
-                    select sum(aml.debit-aml.credit) as balance
-                    from account_move_line aml
-                    join account_account aa on (aa.id = aml.account_id)
-    
-                    where aa.account_type='asset_cash' and aml.date<%s and aml.parent_state = 'posted' and aa.code NOT IN ('100203','100204','100202')
-                """
+            query8 =  """
+                        SELECT
+                        am.journal_id AS journal_id,
+                        aj.name->>'en_US' AS account_name,
+                        aj.code AS account_code,
+                        SUM(absl.amount) AS balance
+                    FROM account_bank_statement_line absl
+                    JOIN account_move am ON am.id = absl.move_id
+                    JOIN account_journal aj ON aj.id = am.journal_id
+                    JOIN account_account aa ON aa.id = aj.default_account_id
+                    WHERE am.date < %s
+                    AND aa.account_type = 'asset_cash'"""
             # Add company_id condition if it exists
             if self.company_id:
-                query8 += " AND aml.company_id = %s"
+                query8 += " AND am.company_id = %s"
+                query8 += " GROUP BY aj.code,am.journal_id, aj.name ORDER BY aj.code"
                 query_params8 = (self.start_date, self.company_id.id)
             else:
                 query_params8 = (self.start_date,)
             self.env.cr.execute(query8, query_params8)
             lines8 = self.env.cr.dictfetchall()
             if not self.groupby_month:
-                if (lines8[0].get('balance') != None):
+                if lines8 and lines8[0].get('balance') != None:
                     opening_balance_1 = lines8[0].get('balance')
                     sheet.write(2, 2, opening_balance_1, value_format)
                 query9 = """
-                                    SELECT aa.code AS account_code, aa.name AS account_name,
-                                           SUM(aml.debit - aml.credit) AS balance
-                                    FROM account_move_line aml
-                                    JOIN account_account aa ON aa.id = aml.account_id
-                                    JOIN account_journal aj ON aj.id = aml.journal_id
-                                    WHERE aa.account_type = 'asset_cash'
-                                        AND aml.parent_state = 'posted' 
-                                      AND aml.date < %s
-                                      AND aa.code NOT IN ('100203','100204','100202','100801')
-                                """
+                        SELECT
+                        am.journal_id AS journal_id,
+                        aj.name->>'en_US' AS account_name,
+                        aa.code AS account_code,
+                        SUM(absl.amount) AS balance
+                    FROM account_bank_statement_line absl
+                    JOIN account_move am ON am.id = absl.move_id
+                    JOIN account_journal aj ON aj.id = am.journal_id
+                    JOIN account_account aa ON aa.id = aj.default_account_id
+                    WHERE am.date < %s
+                    AND aa.account_type = 'asset_cash'"""
 
                 if self.company_id:
-                    query9 += " AND aml.company_id = %s"
+                    query9 += " AND am.company_id = %s"
 
-                query9 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+                query9 += " GROUP BY aa.code,am.journal_id, aj.name ORDER BY aa.code"
 
                 if self.company_id:
                     query_params9 = (self.start_date, self.company_id.id)
@@ -179,131 +186,239 @@ class AccountCURReportWizard(models.TransientModel):
                 split_lines = self.env.cr.dictfetchall()
                 row_num = 3
                 for line in split_lines:
-                    sheet.write(row_num, 0, line['account_name']['en_US'], value_format)
+                    sheet.write(row_num, 0, line['account_name'], value_format)
                     sheet.write(row_num, 1, line['account_code'], value_format)
                     sheet.write(row_num, 2, line['balance'] or 0.0, value_format)
                     row_num += 1
                 row_num += 1
+
+            #opening balance
+            print("opening balance-------------------------------------")
+            first_tx_query = """
+                             SELECT
+                                am.journal_id AS journal_id,
+                                aj.name->>'en_US' AS account_name,
+                                aa.code AS account_code,
+                                am.date AS first_date,
+                                absl.amount AS balance
+                            FROM account_bank_statement_line absl
+                            JOIN account_move am ON am.id = absl.move_id
+                            JOIN account_journal aj ON aj.id = am.journal_id
+                            JOIN account_account aa ON aa.id = aj.default_account_id
+                            WHERE aa.account_type = 'asset_cash'"""
+            if self.company_id:
+                first_tx_query += " AND am.company_id = %s"
+                first_tx_query += " GROUP BY aa.code,am.journal_id, aj.name,am.date,absl.amount ORDER BY am.date ASC LIMIT 1"
+                self.env.cr.execute(first_tx_query, (self.company_id.id,))
+            else:
+                self.env.cr.execute(first_tx_query)
+            first_tx = self.env.cr.dictfetchone()
+            first_date = first_tx['first_date']
+            if first_tx and first_tx.get('first_date') and self.start_date <= first_date <= self.end_date:
+                first_month = first_date.strftime('%b').upper()
+                first_balance_query = """
+                    SELECT
+                        am.journal_id AS journal_id,
+                        aj.name->>'en_US' AS account_name,
+                        aa.code AS account_code,
+                        SUM(absl.amount) AS balance
+                    FROM account_bank_statement_line absl
+                    JOIN account_move am ON am.id = absl.move_id
+                    JOIN account_journal aj ON aj.id = am.journal_id
+                    JOIN account_account aa ON aa.id = aj.default_account_id
+                    WHERE aa.account_type = 'asset_cash'
+                      AND DATE_TRUNC('month', am.date) = DATE_TRUNC('month', %s)
+                """
+                if self.company_id:
+                    first_balance_query += " AND am.company_id = %s"
+
+                first_balance_query += " GROUP BY am.journal_id, aa.code,am.date, aj.name ORDER BY am.date ASC LIMIT 1"
+                if self.company_id:
+                    self.env.cr.execute(first_balance_query, (first_date, self.company_id.id))
+                else:
+                    self.env.cr.execute(first_balance_query, (first_date,))
+                first_month_lines = self.env.cr.dictfetchall()
+                opening_balance_1 = first_tx.get('balance')
+                sheet.write(2, 2, opening_balance_1, value_format)
+                row_num = 4
+                for line in first_month_lines:
+                    sheet.write(row_num, 0, line['account_name'], value_format)  # Account Name
+                    sheet.write(row_num, 1, line['account_code'], value_format)  # Account Code
+                    sheet.write(row_num, 2, line['balance'] or 0.0, value_format)  # Balance
+                    row_num += 1
         else:
             row_num = 2
-            opening_balances = {}  # store results per month
+            opening_balances = {}
             opb_list = []
             for idx, month in enumerate(month_list):
-                # compute the 1st day of the month
                 month_start = (self.start_date.replace(day=1) + relativedelta(months=idx))
-
                 query81 = """
-                    SELECT SUM(aml.debit - aml.credit) AS balance
-                    FROM account_move_line aml
-                    JOIN account_account aa ON aa.id = aml.account_id
-                    WHERE aa.account_type = 'asset_cash'
-                      AND aml.date < %s
-                      AND aml.parent_state = 'posted'
-                      AND aa.code NOT IN ('100203','100204','100202')
+                    SELECT
+                        am.journal_id AS journal_id,
+                        aj.name->>'en_US' AS account_name,
+                        aa.code AS account_code,
+                        SUM(absl.amount) AS balance
+                    FROM account_bank_statement_line absl
+                    JOIN account_move am ON am.id = absl.move_id
+                    JOIN account_journal aj ON aj.id = am.journal_id
+                    JOIN account_account aa ON aa.id = aj.default_account_id
+                    WHERE am.date < %s
+                    AND aa.account_type = 'asset_cash'
                 """
-
-                query_params8 = (month_start,)
                 if self.company_id:
-                    query81 += " AND aml.company_id = %s"
+                    query81 += " AND am.company_id = %s"
+                query81 += " GROUP BY am.journal_id,aa.code, aj.name ORDER BY aa.code"
+
+                if self.company_id:
                     query_params81 = (month_start, self.company_id.id)
+                else:
+                    query_params81 = (month_start,)
 
                 self.env.cr.execute(query81, query_params81)
-                res = self.env.cr.fetchone()
-                balance = res[0] or 0.0
+                res = self.env.cr.dictfetchall()
+                balance = sum(r.get('balance', 0.0) or 0.0 for r in res) if res else 0.0
                 opening_balances[month] = balance
                 if balance != 0:
                     col_number = 2 + idx
                     sheet.write(2, col_number, balance, value_format)
-            self.env.cr.execute(query81, query_params81)
-            lines8 = self.env.cr.dictfetchall()
-            if (lines8[0].get('balance') != None):
-                    opening_balance_1 = lines8[0].get('balance')
-                    query91 = """
-                        SELECT aa.code AS account_code, 
-                               aa.name->>'en_US' AS account_name,
-                               SUM(aml.debit - aml.credit) AS balance
-                        FROM account_move_line aml
-                        JOIN account_account aa ON aa.id = aml.account_id
-                        JOIN account_journal aj ON aj.id = aml.journal_id
-                        WHERE aa.account_type = 'asset_cash'
-                          AND aml.parent_state = 'posted'
-                          AND aml.date < %s
-                          AND aa.code NOT IN ('100203','100204','100202','100801')
-                    """
 
-                    if self.company_id:
-                        query91 += " AND aml.company_id = %s"
+            if res and res[0].get('balance') is not None:
+                query91 = """
+                    SELECT
+                        am.journal_id AS journal_id,
+                        aj.name->>'en_US' AS account_name,
+                        aa.code AS account_code,
+                        SUM(absl.amount) AS balance
+                    FROM account_bank_statement_line absl
+                    JOIN account_move am ON am.id = absl.move_id
+                    JOIN account_journal aj ON aj.id = am.journal_id
+                    JOIN account_account aa ON aa.id = aj.default_account_id
+                    WHERE am.date < %s
+                    AND aa.account_type = 'asset_cash'
+                """
+                if self.company_id:
+                    query91 += " AND am.company_id = %s"
+                query91 += " GROUP BY am.journal_id,aa.code, aj.name ORDER BY aa.code"
 
-                    query91 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+                if self.company_id:
+                    query_params91 = (self.end_date, self.company_id.id)
+                else:
+                    query_params91 = (self.end_date,)
 
-                    if self.company_id:
-                        query_params91 = (self.end_date, self.company_id.id)
-                    else:
-                        query_params91 = (self.end_date,)
+                self.env.cr.execute(query91, query_params91)
+                accounts = self.env.cr.dictfetchall()
+                row_num = row_num + 1
+                base_col = 2
+                account_row_map = {}
+                for acc in accounts:
+                    monthly_balances = []
+                    for idx, month in enumerate(month_list):
+                        month_start = (self.start_date.replace(day=1) + relativedelta(months=idx))
+                        if self.company_id:
+                            self.env.cr.execute(query91, (month_start, self.company_id.id))
+                        else:
+                            self.env.cr.execute(query91, (month_start,))
+                        res = self.env.cr.dictfetchall()
 
-                    self.env.cr.execute(query91, query_params91)
-                    accounts = self.env.cr.dictfetchall()
+                        balance = 0.0
+                        for r in res:
+                            if r['account_code'] == acc['account_code']:
+                                balance = r['balance']
+                                break
+                        monthly_balances.append(balance)
 
-                    row_num = row_num+1
-                    base_col = 2
+                    if any(b != 0.0 for b in monthly_balances):
+                        sheet.write(row_num, 0, acc['account_name'], value_format)
+                        sheet.write(row_num, 1, acc['account_code'], value_format)
+                        account_row_map[acc['account_code']] = row_num  # ✅ store row for this account
+                        for idx, balance in enumerate(monthly_balances):
+                            col_number = base_col + idx
+                            sheet.write(row_num, col_number, balance if balance else 0, value_format)
+                        row_num += 1
+            month_col_map = {
+                'JAN': 11, 'FEB': 12, 'MAR': 13, 'APR': 2, 'MAY': 3, 'JUN': 4,
+                'JUL': 5, 'AUG': 6, 'SEP': 7, 'OCT': 8, 'NOV': 9, 'DEC': 10
+            }
 
-                    for acc in accounts:
-                        monthly_balances = []  # store balances for each month
+            first_tx_query = """
+                SELECT
+                    am.id AS move_id,
+                    am.journal_id AS journal_id,
+                    aj.name->>'en_US' AS account_name,
+                    aa.code AS account_code,
+                    am.date AS first_date,
+                    absl.amount AS balance
+                FROM account_bank_statement_line absl
+                JOIN account_move am ON am.id = absl.move_id
+                JOIN account_journal aj ON aj.id = am.journal_id
+                JOIN account_account aa ON aa.id = aj.default_account_id
+                WHERE aa.account_type = 'asset_cash'
+            """
+            if self.company_id:
+                first_tx_query += " AND am.company_id = %s"
+                first_tx_query += " GROUP BY aa.code,am.journal_id,am.id, aj.name,am.date,absl.amount ORDER BY am.date ASC LIMIT 1"
+                self.env.cr.execute(first_tx_query, (self.company_id.id,))
+            else:
+                self.env.cr.execute(first_tx_query)
 
-                        for idx, month in enumerate(month_list):
-                            month_start = datetime.strptime(month, "%b").replace(year=self.start_date.year, day=1)
-                            if idx > 0:
-                                # safer way to move month forward
-                                month_start = (self.start_date.replace(day=1) + relativedelta(months=idx))
+            first_tx = self.env.cr.dictfetchone()
+            if first_tx and first_tx.get('first_date'):
+                first_date = first_tx['first_date']
+                if self.start_date <= first_date <= self.end_date:
+                    first_month = first_date.strftime('%b').upper()
+                    if first_month in month_col_map:
+                        col = month_col_map[first_month]
 
-                            # compute opening up to this month
-                            if self.company_id:
-                                self.env.cr.execute(query91, (month_start, self.company_id.id))
-                            else:
-                                self.env.cr.execute(query91, (month_start,))
-                            res = self.env.cr.dictfetchall()
-
-                            # find this account in result
-                            balance = 0.0
-                            for r in res:
-                                if r['account_code'] == acc['account_code']:
-                                    balance = r['balance']
-                                    break
-
-                            monthly_balances.append(balance)
-
-                        # ✅ Only write row if at least one balance is non-zero
-                        if any(b != 0.0 for b in monthly_balances):
-                            sheet.write(row_num, 0, acc['account_name'], value_format)
-                            sheet.write(row_num, 1, acc['account_code'], value_format)
-
-                            for idx, balance in enumerate(monthly_balances):
-                                col_number = base_col + idx
-                                # Always write balance, if it's 0 write 0
-                                sheet.write(row_num, col_number, balance if balance else 0, value_format)
-                            row_num += 1
+                        first_balance_query = """
+                            SELECT
+                                am.journal_id AS journal_id,
+                                aj.name->>'en_US' AS account_name,
+                                aa.code AS account_code,
+                                SUM(absl.amount) AS balance
+                            FROM account_bank_statement_line absl
+                            JOIN account_move am ON am.id = absl.move_id
+                            JOIN account_journal aj ON aj.id = am.journal_id
+                            JOIN account_account aa ON aa.id = aj.default_account_id
+                            WHERE aa.account_type = 'asset_cash' AND am.id = %s
+                            GROUP BY am.journal_id, aa.code, aj.name
+                            ORDER BY aa.code
+                        """
+                        self.env.cr.execute(first_balance_query, (first_tx['move_id'],))
+                        first_month_lines = self.env.cr.dictfetchall()
+                        opening_balance_1 = first_tx.get('balance')
+                        if first_date:
+                            first_month = first_date.strftime('%b').upper()
+                            for idx, month in enumerate(month_list):
+                                if first_month in month:
+                                    opening_balances[month] = opening_balance_1 # Adjust offset to your month column
+                                    sheet.write(2, 2, opening_balance_1, value_format)
+                        for line in first_month_lines:
+                            acc_code = line['account_code']
+                            balance = line['balance'] or 0.0
+                            if acc_code in account_row_map:
+                                row_idx = account_row_map[acc_code]
+                                sheet.write(row_idx, col, balance, value_format)
             row_num += 1
-        end_balance1 = """SELECT aa.code AS account_code, aa.name AS account_name,
-                   SUM(aml.debit - aml.credit) AS balance
-            FROM account_move_line aml
-            JOIN account_account aa ON aa.id = aml.account_id
-            WHERE aa.account_type = 'asset_cash'
-              AND aml.date <=%s
-              AND aml.parent_state = 'posted' 
-              AND aa.code NOT IN ('100203','100204','100202','100801')
-        """
-
-        # Add company_id condition if it exists
+        end_balance1 = """SELECT
+                    am.journal_id AS journal_id,
+                    aj.name->>'en_US' AS account_name,
+                    aa.code AS account_code,
+                    SUM(absl.amount) AS balance
+                FROM account_bank_statement_line absl
+                JOIN account_move am ON am.id = absl.move_id
+                JOIN account_journal aj ON aj.id = am.journal_id
+                JOIN account_account aa ON aa.id = aj.default_account_id
+                WHERE am.date <= %s
+                AND aa.account_type = 'asset_cash'
+            """
         if self.company_id:
-            # end_balance += " AND aml.company_id = %s"
-            end_balance1 += " AND aml.company_id = %s"
-            end_balance1 += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+            end_balance1 += " AND am.company_id = %s"
+            end_balance1 += " GROUP BY am.journal_id,aa.code, aj.name ORDER BY aa.code"
             end_balance_params = (self.end_date, self.company_id.id)
             end_balance_params1 = (self.end_date, self.company_id.id)
         else:
             end_balance_params = (self.end_date,)
             end_balance_params1 = (self.end_date,)
-        # self.env.cr.execute(end_balance, end_balance_params)
         end_balance = self.env.cr.dictfetchall()
         self.env.cr.execute(end_balance1, end_balance_params1)
         end_balance1 = self.env.cr.dictfetchall()
@@ -608,6 +723,7 @@ class AccountCURReportWizard(models.TransientModel):
                         # row_num += 1
         if not capex_accounts:
             sheet.write(row_num, 0, 'CAPEX:', header_format1)
+            base_month_col = 2
             for month in month_list:
                 col_number = base_month_col + month_list.index(month)
                 sheet.write(row_num, col_number, '', header_format_num)
@@ -826,24 +942,29 @@ class AccountCURReportWizard(models.TransientModel):
             sheet.write(row_num, 2, total_c + opening_balance_1 - (total_d), header_format_num)
             row_num += 1
             for line in end_balance1:
-                sheet.write(row_num, 0, line['account_name']['en_US'], value_format)
+                sheet.write(row_num, 0, line['account_name'], value_format)
                 sheet.write(row_num, 1, line['account_code'], value_format)
                 sheet.write(row_num, 2, line['balance'] or 0.0, value_format)
                 row_num += 1
         else:
-            end_balance_query =  """SELECT aa.code AS account_code, aa.name->>'en_US' AS account_name,
-                               SUM(aml.debit - aml.credit) AS balance
-                        FROM account_move_line aml
-                        JOIN account_account aa ON aa.id = aml.account_id
-                        WHERE aa.account_type = 'asset_cash'
-                          AND aml.date <=%s
-                          AND aml.parent_state = 'posted'
-                          AND aa.code NOT IN ('100203','100204','100202','100801')
-                    """
+            end_balance_query = """
+                SELECT
+                    am.journal_id AS journal_id,
+                    aj.name->>'en_US' AS account_name,
+                    aa.code AS account_code,
+                    SUM(absl.amount) AS balance
+                FROM account_bank_statement_line absl
+                JOIN account_move am ON am.id = absl.move_id
+                JOIN account_journal aj ON aj.id = am.journal_id
+                JOIN account_account aa ON aa.id = aj.default_account_id
+                WHERE am.date <= %s
+                AND aa.account_type = 'asset_cash'
+            """
             if self.company_id:
-                end_balance_query += " AND aml.company_id = %s"
+                end_balance_query += " AND am.company_id = %s"
 
-            end_balance_query += " GROUP BY aa.code, aa.name ORDER BY aa.code"
+            end_balance_query += " GROUP BY am.journal_id,aj.name,aa.code"
+
             if self.company_id:
                 query_params = (self.end_date, self.company_id.id)
             else:
@@ -851,7 +972,6 @@ class AccountCURReportWizard(models.TransientModel):
 
             self.env.cr.execute(end_balance_query, query_params)
             accounts = self.env.cr.dictfetchall()
-
             row_num += 1
             base_col = 2
             sheet.write(row_num, 0, "Balance as per book", header_format_num)
