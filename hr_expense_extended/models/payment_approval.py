@@ -618,6 +618,18 @@ class HrExpenseSheet(models.Model):
                             'subject':'Expense Approved - %s'%(rec.name)})
             template.send_mail(self.id, force_send=True)
             rec.activity_update()
+            group = self.env.ref('hr_expense_extended.group_post_journal_expense')
+            users = group.users
+            for rec1 in users:
+                # if not rec1.user_id:
+                #     raise ValidationError("In-app notifications can be sent to employees who are linked to users")
+                self.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Post Journal Reminder: Post Journal reminder",
+                    note=f"Expenses has been approved.Kindly Post the journal for below expenses:{self.name} .",
+                    user_id=rec1.id,
+                    date_deadline=fields.Date.today()
+                )
 
     def action_reject(self):
         if self.account_move_ids:  # Todo: in 17.3+, edit it to allow draft entries
