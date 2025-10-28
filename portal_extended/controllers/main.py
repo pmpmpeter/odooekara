@@ -306,7 +306,7 @@ class CustomPortalInherit(CustomerPortal):
         email_subject = "Profile Updation - " + str(partner.name)
         email_body = """
                 <p>Dear {name},</p>
-                <p>Updated profile informations.Kindly verify the updated details.</p>
+                <p>Your profile details has been updated.Kindly verify the updated details.</p>
                 <p>Thank you!</p>
             """.format(name='Team')
         mail = request.env['mail.mail'].sudo().create({
@@ -318,17 +318,17 @@ class CustomPortalInherit(CustomerPortal):
         if mail:
             mail.send()
 
-        group = request.env.ref('account.group_account_invoice').sudo()
-        users = group.sudo().users
-        for user in users:
-            request.env['mail.activity'].sudo().create({
-                'res_model_id': request.env['ir.model']._get_id('res.partner'),
-                'res_id': partner.id,
-                'activity_type_id': request.env.ref('mail.mail_activity_data_todo').id,
-                'summary': 'Profile Updated',
-                'note': f'Profile for {partner.name} has been updated.',
-                'user_id': user.id,
-            })
+        # group = request.env.ref('account.group_account_invoice').sudo()
+        # users = group.sudo().users
+        # for user in users:
+        #     request.env['mail.activity'].sudo().create({
+        #         'res_model_id': request.env['ir.model']._get_id('res.partner'),
+        #         'res_id': partner.id,
+        #         'activity_type_id': request.env.ref('mail.mail_activity_data_todo').id,
+        #         'summary': 'Profile Updated',
+        #         'note': f'Profile for {partner.name} has been updated.',
+        #         'user_id': user.id,
+        #     })
 
         response = request.render("portal.portal_my_details", values)
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'

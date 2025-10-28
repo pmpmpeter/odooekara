@@ -700,6 +700,22 @@ class HrExpenseSheet(models.Model):
 
     def _prepare_bills_vals(self):
         self.ensure_one()
+        print(self.expense_line_ids.message_main_attachment_id,'llllllllllllll')
+        attachments = []
+        for line in self.expense_line_ids:
+            line_attachments = self.env['ir.attachment'].search([
+                ('res_model', '=', line._name),
+                ('res_id', '=', line.id),
+            ])
+            for attachment in line_attachments:
+                attachments.append(
+                    Command.create(attachment.copy_data({
+                        'res_model': 'account.move',
+                        'res_id': False,
+                        'raw': attachment.raw,
+                    })[0])
+                )
+        # stop
         return {
             **self._prepare_move_vals(),
             'invoice_date': self.accounting_date or fields.Date.context_today(self),
@@ -710,10 +726,7 @@ class HrExpenseSheet(models.Model):
             'currency_id': self.currency_id.id,
             'line_ids': [Command.create(expense._prepare_move_lines_vals()) for expense in self.expense_line_ids],
             'partner_bank_id': self.employee_id.sudo().bank_account_id.id,
-            'attachment_ids': [
-                Command.create(attachment.copy_data({'res_model': 'account.move', 'res_id': False, 'raw': attachment.raw})[0])
-                for attachment in self.expense_line_ids.message_main_attachment_id
-            ],
+            'attachment_ids':attachments,
             'expense_invoice_no': self[0].invoice_no,
             'expense_type': self[0].type,
             'expense_invoice_type_id': self[0].invoice_type_id.id,
