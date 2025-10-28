@@ -316,44 +316,81 @@ class AccountBatchJV(models.Model):
         #
         # # Populate Data
         row = 7
-        for index, line in enumerate(self.consolidated_jv.line_ids, start=1):
-            sheet.write(row, 0, line.account_id.name or '')
-            sheet.write(row, 1, line.debit or '0.0', amount_format)
-            sheet.write(row, 2, line.credit or '0.0', amount_format)
+        batch = self.hr_payslip_run_id.slip_ids
+
+        # Dictionary to consolidate total amounts by salary rule
+        consolidated_lines = {}
+
+        for payslip in batch:
+            valid_lines = payslip.line_ids.filtered(lambda l: l.salary_rule_id.appears_on_batch_report)
+            for line in valid_lines:
+                rule = line.salary_rule_id
+                rule_id = rule.id
+                if rule_id not in consolidated_lines:
+                    consolidated_lines[rule_id] = {
+                        'name': rule.name,
+                        'code': rule.code,
+                        'debit': 0.0,
+                        'credit': 0.0,
+                    }
+                if rule.account_credit:
+                    consolidated_lines[rule_id]['credit'] += line.total
+                elif rule.account_debit:
+                    consolidated_lines[rule_id]['debit'] += line.total
+        result = list(consolidated_lines.values())
+        for index, (rule_id, line) in enumerate(consolidated_lines.items(), start=1):
+            sheet.write(row, 0, line.get('name') or '')
+            sheet.write(row, 1, line.get('debit', '-'), amount_format)
+            sheet.write(row, 2, line.get('credit', '-'), amount_format)
             row += 1
+        debit = 0
+        credit = 0
+        for r in self.consolidated_jv.line_ids:
+            if r.name == 'Adjustment Entry':
+                if r.debit:
+                    debit = r.debit
+                    sheet.write(row, 0, r.account_id.name or '-')
+                    sheet.write(row, 1,r.debit,amount_format)
+                elif r.credit:
+                    credit = r.credit
+                    sheet.write(row, 0, r.account_id.name or '-')
+                    sheet.write(row, 2,r.credit,amount_format)
+
         row = row+1
+        total_debit = sum(line.get('debit','-') for line in consolidated_lines.values())
+        total_credit = sum(line.get('credit', '-') for line in consolidated_lines.values())
+
         sheet.write(row, 0, 'Total', bold1)
-        sheet.write(row, 1, sum(self.consolidated_jv.line_ids.mapped('debit')), amount_format1)
-        sheet.write(row, 2, sum(self.consolidated_jv.line_ids.mapped('credit')), amount_format1)
+        sheet.write(row, 1, total_debit+debit, amount_format1)
+        sheet.write(row, 2, total_credit+credit, amount_format1)
         row = row+1
 
-        sheet.write(row, 0, 'Employee Name',bold)
-        sheet.write(row, 1, 'Employee ID',bold)
-        sheet.write(row, 2, 'Salary On Hold',bold)
-        sheet.write(row, 3, 'Parental Insurance',bold)
-        sheet.write(row, 4, 'Food Coupons', bold)
-        row = row + 1
-        salary_on_hold_total = 0
-        insurance_total = 0
-        # for rec in self.journal_ids:
+        # sheet.write(row, 0, 'Employee Name',bold)
+        # sheet.write(row, 1, 'Employee ID',bold)
+        # sheet.write(row, 2, 'Salary On Hold',bold)
+        # sheet.write(row, 3, 'Parental Insurance',bold)
+        # sheet.write(row, 4, 'Food Coupons', bold)
+        # row = row + 1
+        # salary_on_hold_total = 0
+        # insurance_total = 0
+        # # for rec in self.journal_ids:
+        # #     row = row + 1
+        # rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
+        # for payslip in rec:
         #     row = row + 1
-        rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
-        for payslip in rec:
-            row = row + 1
-            parental_insurance = payslip.line_ids.filtered(lambda l: l.code == 'Other_recoveries')
-            food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
-            salary_on_hold = payslip.line_ids.filtered(lambda l: l.code == 'SOA')
-            print(parental_insurance,food_coupons,salary_on_hold,'jjjjjjjjjjjjjj')
-            sheet.write(row, 0, payslip.employee_id.name)
-            sheet.write(row, 1, payslip.employee_id.employee_number)
-            sheet.write(row, 2, salary_on_hold.total or 0.0, total_style)
-            sheet.write(row, 3, parental_insurance.total or 0.0,total_style)
-            sheet.write(row, 4, food_coupons.total or 0.0, total_style)
-            insurance_total+=parental_insurance.total
-            salary_on_hold_total+=salary_on_hold.total
-        rows = row+2
-        sheet.write(rows, 2, salary_on_hold_total,total_style)
-        sheet.write(rows, 3, insurance_total,total_style)
+        #     parental_insurance = payslip.line_ids.filtered(lambda l: l.code == 'Other_recoveries')
+        #     food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
+        #     salary_on_hold = payslip.line_ids.filtered(lambda l: l.code == 'SOA')
+        #     sheet.write(row, 0, payslip.employee_id.name)
+        #     sheet.write(row, 1, payslip.employee_id.employee_number)
+        #     sheet.write(row, 2, salary_on_hold.total or 0.0, total_style)
+        #     sheet.write(row, 3, parental_insurance.total or 0.0,total_style)
+        #     sheet.write(row, 4, food_coupons.total or 0.0, total_style)
+        #     insurance_total+=parental_insurance.total
+        #     salary_on_hold_total+=salary_on_hold.total
+        # rows = row+2
+        # sheet.write(rows, 2, salary_on_hold_total,total_style)
+        # sheet.write(rows, 3, insurance_total,total_style)
         sheet.set_column(0, 0, 25)
         sheet.set_column(1, 1, 15)
         sheet.set_column(2, 2, 15)

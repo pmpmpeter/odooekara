@@ -63,7 +63,7 @@
 								<t t-esc="'{:,.2f}'.format(abs(o.amount))"></t>
 								through vide
 								<br></br>
-								check no.
+								cheque no.
 								<t t-out="o.name"></t>
 								dated:
 								<t t-out="o.date.strftime('%d-%b-%y')"></t>

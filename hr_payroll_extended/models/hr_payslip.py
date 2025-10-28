@@ -54,3 +54,8 @@ class HrPayslip(models.Model):
                 'recoveries':recoveries
             }
 
+class HRSalaryRule(models.Model):
+    _inherit = 'hr.salary.rule'
+
+    appears_on_batch_report = fields.Boolean(string='Appears on Batch JV')
+

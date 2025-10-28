@@ -61,9 +61,10 @@
                                     <t t-esc="o.payslip_run_id.name"/>
                                 </h4>
                             </t>
-                           <t t-else="">
+                            <t t-else="">
                                 <h4>SALARY SLIP FOR THE MONTH OF
-                                    <t t-esc="o.date_from.strftime('%b').upper()"/>
+                                    <t t-esc="o.date_from.strftime('%B').upper()"/>
+                                    <t t-esc="o.date_from.strftime('%Y').upper()"/>
                                 </h4>
                            </t>
                         </div>
@@ -224,7 +225,7 @@
                                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
                                             </t>
-                                            <t t-if="deductions[i].code == 'Other_recoveries'">
+                                            <t t-elif="deductions[i].code == 'Other_recoveries'">
                                                 <span>
                                                     <t t-esc="recoveries"
                                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
