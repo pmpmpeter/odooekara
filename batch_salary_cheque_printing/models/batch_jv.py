@@ -2,7 +2,7 @@
 import base64
 import io
 import xlsxwriter
-from odoo import models, fields, api, _
+from odoo import models, fields, api,Command, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import html2plaintext
 from datetime import datetime
@@ -143,12 +143,12 @@ class AccountBatchJV(models.Model):
                         grouped_lines[key]['amount_currency'] += line.amount_currency
 
                 all_lines = [(0, 0, line_vals) for line_vals in grouped_lines.values()]
-
-                # Create the new move
+                attachments = []
                 move = self.env['account.move'].sudo().create({
                     'move_type': 'entry',
                     'journal_id': rec.journal_id.id,
                     'line_ids': all_lines,
+
                 })
                 for entry in rec.journal_ids:
                     if entry.state == 'posted':
@@ -161,6 +161,24 @@ class AccountBatchJV(models.Model):
                 })
                 for entry1 in rec.journal_ids:
                     entry1.active = False
+                self.action_download_salary_jv()
+                for line in self:
+                    line_attachments = self.env['ir.attachment'].search([
+                        ('res_model', '=', line._name),
+                        ('res_id', '=', line.id),
+                    ])
+                    for attachment in line_attachments:
+                        attachments.append(
+                            Command.create(attachment.copy_data({
+                                'res_model': 'account.move',
+                                'res_id': False,
+                                'raw': attachment.raw,
+                            })[0])
+                        )
+                move.update({
+                    'attachment_ids': attachments,
+                })
+
 
     def action_open_mail_wizard(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
