@@ -179,6 +179,28 @@ class AccountBatchJV(models.Model):
                     'attachment_ids': attachments,
                 })
 
+    def bank_advice_values(self):
+        for rec in self:
+            if rec.hr_payslip_run_id:
+                payslips = self.env['hr.payslip'].search([
+                    ('payslip_run_id', '=', self.hr_payslip_run_id.id)
+                ])
+                employee_payslip_dict = {}
+                bank = ''
+                for slip in payslips:
+                    employee_name = slip.employee_id.name
+                    comp = 0
+                    ded = 0
+                    for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Basic' and x.appears_on_payslip):
+                        comp += r.total
+                    for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Deduction' and x.appears_on_payslip):
+                        ded += r.total
+                    employee_payslip_dict[employee_name] = comp-ded
+                    bank = self.company_id.partner_id.bank_ids[:1]
+                return {
+                    'employee_payslip_dict': employee_payslip_dict,
+                    'bank': bank,
+                }
 
     def action_open_mail_wizard(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
