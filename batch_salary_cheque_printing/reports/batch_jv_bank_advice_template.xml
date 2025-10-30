@@ -114,7 +114,7 @@
 										<td t-esc="slip.employee_id.name"/>
 										<td t-esc="slip.employee_id.bank_account_id.acc_number if slip.employee_id.bank_account_id.acc_number else 'N/A'"/>
                                         <td t-esc="slip.employee_id.bank_account_id.bank_id.name if slip.employee_id.bank_account_id.bank_id.name else 'N/A'"/>
-                                        <td t-esc="slip.employee_id.bank_account_id.bank_id.bic if slip.employee_id.bank_account_id.bank_id.bic else 'N/A'"/>
+                                        <td t-esc="slip.employee_id.bank_account_id.bank_id.ifsc_code if slip.employee_id.bank_account_id.bank_id.ifsc_code else 'N/A'"/>
                                         <td t-esc="slip.employee_id.bank_account_id.bank_id.bank_branch if slip.employee_id.bank_account_id.bank_id.bank_branch else 'N/A'"/>
                                         <t t-set="amount" t-value="test.get(slip.employee_id.name, 0.0) or 0.0"/>
                                         <td t-esc="amount" style="text-align:right;" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>

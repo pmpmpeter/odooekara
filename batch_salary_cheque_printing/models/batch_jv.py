@@ -59,7 +59,7 @@ class AccountBatchJV(models.Model):
     is_consolidated = fields.Boolean(string='Is Consolidated')
     company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
     hr_payslip_run_id = fields.Many2one('hr.payslip.run', string='HR Payslip')
-
+    remarks = fields.Char(string='Remarks')
     def action_lock(self):
         for rec in self:
             rec.write({
@@ -269,18 +269,40 @@ class AccountBatchJV(models.Model):
         row = 1
         rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
         c=1
+        # company_bank = self.company_id.partner_id.bank_ids[:1]
+        # employee_salary = self.bank_advice_values()
+        # print(employee_salary,'pppppppppppppppppppppp')
+        # for slip in rec:
+        #     row = row + 1
+        #     sheet.write(row, 0, c or '')
+        #     sheet.write(row, 1, self.cheque_number or '')
+        #     sheet.write(row, 2, company_bank.acc_number or '', date_format)
+        #     sheet.write(row, 3, slip.move_id.amount_total or 0.0, amount_format)
+        #     sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
+        #     sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
+        #     sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
+        #     sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
+        #     sheet.write(row, 8, self.remarks or '')
+        #     c+=1
+        employee_salary = self.bank_advice_values()
+        employee_dict = employee_salary.get('employee_payslip_dict', {})
+        company_bank = employee_salary.get('bank')[:1]  # just in case it’s a recordset
+
         for slip in rec:
-            row = row + 1
+            row += 1
+            emp_name = slip.employee_id.name
+            emp_amount = employee_dict.get(emp_name, 0.0)  # get amount if name matches, else 0
+
             sheet.write(row, 0, c or '')
             sheet.write(row, 1, self.cheque_number or '')
-            sheet.write(row, 2, self.journal_id.bank_account_id.acc_number or '', date_format)
-            sheet.write(row, 3, slip.move_id.amount_total or 0.0, amount_format)
+            sheet.write(row, 2, company_bank.acc_number or '', date_format)
+            sheet.write(row, 3, emp_amount, amount_format)  # 👈 replaced here
             sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
-            sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
+            sheet.write(row, 5, slip.employee_id.bank_account_id.acc_holder_name or '')
             sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
             sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
-            sheet.write(row, 8, self.towards or '')
-            c+=1
+            sheet.write(row, 8, self.remarks or '')
+            c += 1
 
         sheet.set_column(0, 0, 5)
         sheet.set_column(1, 1, 15)
