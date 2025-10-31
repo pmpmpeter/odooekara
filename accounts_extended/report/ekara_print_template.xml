@@ -402,7 +402,7 @@
                         </table>
                                     </td>
                                 </tr>
-                                <t t-if="o.company_id.partner_id.bank_ids[0].bank_id.name">
+                                <t t-if="o.company_id.partner_id.bank_ids">
                                     <tr>
                                         <td colspan="4" style="padding-left:1px;padding-bottom:0px;padding-top:2px;">
                                             <u>

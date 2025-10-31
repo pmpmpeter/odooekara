@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from datetime import datetime, date
+import calendar
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
@@ -9,7 +10,7 @@ class HrPayslip(models.Model):
 
     def compute_ytd_value(self,emp):
             self.ensure_one()
-            fiscal_year = self.env['account.fiscal.year'].search([
+            fiscal_year = self.env['account.fiscal.year'].sudo().search([
                 ('company_id', '=', self.company_id.id),
                 ('date_from', '<=', self.date_from),
                 ('date_to', '>=', self.date_from)
@@ -18,7 +19,7 @@ class HrPayslip(models.Model):
                 return 0
             fiscal_start = fiscal_year.date_from
             date_to = self.date_to
-            payslips = self.env['hr.payslip'].search([
+            payslips = self.env['hr.payslip'].sudo().search([
                 ('employee_id', '=', emp.id),
                 ('date_from', '>=', fiscal_start),
                 ('date_to','<=',date_to)
@@ -35,23 +36,18 @@ class HrPayslip(models.Model):
                             earnings_ytd += income_totals.total
                         if income_totals.salary_rule_id.code == 'Other_recoveries':
                             recoveries += income_totals.total
-            # april_payslips = payslips.filtered(
-            #     lambda p: p.date_from.month == 4 or p.date_to.month == 4
-            # )
-            # earnings_ytd = 0
-            # if self.date_from.month != 4:
-            #     for pay in april_payslips:
-            #         if pay:
-            #             for ear_ytd in pay.line_ids:
-            #                 if ear_ytd.salary_rule_id.code == 'Other_earnings_through_payroll':
-            #                     earnings_ytd += ear_ytd.total
-            #     print(earnings_ytd, 'wwwwwwwwwww')
             months = {(p.date_from.year, p.date_from.month) for p in payslips}
+            date = self.date_from
+            year = date.year
+            month = date.month
+            days_in_month = calendar.monthrange(year, month)[1]
+            print(days_in_month,'kkkkkkkkkkkkvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
             return {
                 'month_total': int(len(months)),
                 'income_total': income_total,
                 'ytd_april':earnings_ytd,
-                'recoveries':recoveries
+                'recoveries':recoveries,
+                'days_in_month':days_in_month,
             }
 
 class HRSalaryRule(models.Model):

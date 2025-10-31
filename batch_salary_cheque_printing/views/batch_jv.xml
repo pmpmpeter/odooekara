@@ -157,6 +157,6 @@
         </field>
     </record>
 
-        <menuitem action="action_batch_jv_action" name="Batch Salary JV" id="menu_batch_jv" parent="account.menu_finance_entries_accounting_miscellaneous" sequence="18" groups="account.group_account_readonly"/>
+        <menuitem action="action_batch_jv_action" name="Batch Salary JV" id="menu_batch_jv" parent="hr_payroll.menu_hr_payroll_payslips" sequence="18" groups="account.group_account_readonly"/>
 
 </odoo>
