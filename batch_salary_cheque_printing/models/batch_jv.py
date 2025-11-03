@@ -23,7 +23,7 @@ class AccountBatchJV(models.Model):
     ], store=True, compute='_compute_state', default='draft', tracking=True)
     journal_id = fields.Many2one(
         'account.journal',
-        string='Bank',
+        string='Journal',
         check_company=True,
         domain=[('type', '=', 'bank')],
         tracking=True,
@@ -60,6 +60,22 @@ class AccountBatchJV(models.Model):
     company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
     hr_payslip_run_id = fields.Many2one('hr.payslip.run', string='HR Payslip')
     remarks = fields.Char(string='Remarks')
+    salary_payable_amount = fields.Float(string='Salary Amount',compute='compute_salary_payable_amount')
+    bank_id = fields.Many2one('res.partner.bank',string='Bank Account')
+    company_partner = fields.Many2one('res.partner',string='partner',related='company_id.partner_id')
+
+    @api.depends('consolidated_jv')
+    def compute_salary_payable_amount(self):
+        for rec in self:
+            if rec.consolidated_jv:
+                # print(rec.consolidated_jv.filtered(lambda l:l.line_ids.account_id.name == 'Salary Payable').amount)
+                amount = rec.consolidated_jv.line_ids.filtered(lambda l:l.account_id.name == 'Salary Payable')
+                if amount:
+                    rec.salary_payable_amount = amount.credit if amount.credit else amount.debit
+                else:
+                    rec.salary_payable_amount = 0
+            else:
+                rec.salary_payable_amount = 0
 
     def action_print_batch_salary_cheque(self):
         return self.env.ref('batch_salary_cheque_printing.print_cheque_jv_batch').report_action(self)
@@ -87,7 +103,7 @@ class AccountBatchJV(models.Model):
     @api.depends('amount', 'currency_id')
     def _compute_amount_total_words(self):
         for rec in self:
-            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.amount)).replace(',', '')
+            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.salary_payable_amount)).replace(',', '')
 
     @api.model_create_multi
     def create(self, vals_list):

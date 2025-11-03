@@ -38,7 +38,7 @@
                         <t t-if="print_currency">
                             <t t-esc="o.currency_id"/>
                         </t>
-                        **<t t-esc="'{:,.2f}'.format(abs(o.amount))"/>
+                        **<t t-esc="'{:,.2f}'.format(abs(o.salary_payable_amount))"/>
                     </div>
                 </div>
                 <!--</t>-->
@@ -51,14 +51,14 @@
                 <table style="font-size:14px;width: 100%;border-collapse: collapse;">
                     <tr>
                         <td style="padding: 4px; width: 20%;">Bank Name:</td>
-                        <td colspan="4" style="padding: 4px; width: 80%;"> <t t-esc="o.journal_id.bank_id.name"/> - <t t-esc="o.journal_id.bank_account_id.acc_number"/> </td>
+                        <td colspan="4" style="padding: 4px; width: 80%;"> <t t-esc="o.bank_id.bank_id.name"/> - <t t-esc="o.bank_id.acc_number"/> </td>
                         <!--<td style="width:35%;"/>-->
                         <!--<td style="padding: 4px;text-align: right;">NO:</td>-->
                         <!--<td style="padding: 4px;"><t t-esc="o.name"/></td>-->
                     </tr>
                     <tr>
                         <td style="padding: 4px;">Debit A/c No :</td>
-                        <td style="padding: 4px; width: 20%;"><t t-esc="o.journal_id.bank_account_id.acc_number"/></td>
+                        <td style="padding: 4px; width: 20%;"><t t-esc="o.bank_id   .acc_number"/></td>
                         <td colspan="3" style="padding: 4px;font-weight: bold;text-align:left;">BANK PAYMENT VOUCHER</td>
 
                     </tr>
@@ -78,7 +78,7 @@
                     </tr>
                     <tr>
                         <td style="padding: 6px;">Amount Rs.:</td>
-                        <td colspan="4" style="padding: 6px;"><t t-esc="'{:,.2f}'.format(abs(o.amount))"/></td>
+                        <td colspan="4" style="padding: 6px;"><t t-esc="'{:,.2f}'.format(abs(o.salary_payable_amount))"/></td>
 
                     </tr>
                     <tr/>
