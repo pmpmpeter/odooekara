@@ -26,6 +26,11 @@
                         string="Print Bank Advice"
                         type="object"
                         class="btn-primary"/>
+                    <button name="action_print_batch_salary_cheque"
+                            string="Print Cheque"
+                            class="btn-primary"
+                            type="object"
+                            icon="fa-print"/>
                     <field name="id" invisible="1"/>
                     <button name="action_open_mail_wizard"
                         string="Send Mail"

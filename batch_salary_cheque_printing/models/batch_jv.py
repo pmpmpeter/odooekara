@@ -60,6 +60,10 @@ class AccountBatchJV(models.Model):
     company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
     hr_payslip_run_id = fields.Many2one('hr.payslip.run', string='HR Payslip')
     remarks = fields.Char(string='Remarks')
+
+    def action_print_batch_salary_cheque(self):
+        return self.env.ref('batch_salary_cheque_printing.print_cheque_jv_batch').report_action(self)
+
     def action_lock(self):
         for rec in self:
             rec.write({
