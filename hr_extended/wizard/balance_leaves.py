@@ -445,8 +445,7 @@ class BalanceLeavesReportWizard(models.TransientModel):
 
         # Fetch Employees Based on Company
         employees = self.env['hr.employee'].search([
-            ('company_id', '=', self.company_id.id),
-            ('state', '=', 'employment')  # Only include employees in 'Employment' state
+            ('company_id', '=', self.company_id.id)
         ])
         row_idx += 1
         sl_no = 1
@@ -473,7 +472,7 @@ class BalanceLeavesReportWizard(models.TransientModel):
                     ('state', '=', 'validate'),
                     ('date_to', '>', self.date_from)
                 ])
-                total_allocation = sum(allocation.mapped('number_of_days')) if allocation else 0
+                total_allocation = round(sum(allocation.mapped('number_of_days')),2) if allocation else 0
 
                 # Fetch Taken Leaves
                 taken_leaves = self.env['hr.leave'].search([
@@ -483,7 +482,7 @@ class BalanceLeavesReportWizard(models.TransientModel):
                     ('date_from', '>=', self.date_from),
                     ('date_to', '<=', self.date_to),
                 ])
-                total_taken = sum(taken_leaves.mapped('number_of_days')) if taken_leaves else 0
+                total_taken = round(sum(taken_leaves.mapped('number_of_days')),2) if taken_leaves else 0
 
                 # Calculate Balance
                 total_balance = total_allocation - total_taken
