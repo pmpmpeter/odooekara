@@ -152,7 +152,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="line_ids" t-value="o.line_ids or []"/>
+                                <t t-set="line_ids" t-value="o.sudo().line_ids.sudo() or []"/>
                                 <t t-set="earnings" t-value="[l for l in line_ids if l.category_id.code != 'DED' and l.salary_rule_id.appears_on_payroll_report]"/>
                                 <t t-set="deductions" t-value="[l for l in line_ids if l.category_id.code == 'DED' and l.salary_rule_id.appears_on_payroll_report]"/>
 

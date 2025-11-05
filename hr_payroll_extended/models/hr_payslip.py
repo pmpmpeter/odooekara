@@ -41,7 +41,6 @@ class HrPayslip(models.Model):
             year = date.year
             month = date.month
             days_in_month = calendar.monthrange(year, month)[1]
-            print(days_in_month,'kkkkkkkkkkkkvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
             return {
                 'month_total': int(len(months)),
                 'income_total': income_total,
