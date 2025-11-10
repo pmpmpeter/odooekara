@@ -8,8 +8,8 @@
     """,
     'depends': ['base', 'hr'],
     'data': [
-        'security/ir.model.access.csv',
         'security/security.xml',
+        'security/ir.model.access.csv',
         'data/sequence.xml',
         # 'data/emp_prob_mail_template.xml',
         'data/probation_confirmation_letter.xml',
