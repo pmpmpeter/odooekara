@@ -286,7 +286,7 @@
               parent="probation_menu_root"
               name="Employee Probation Review Form"
               action="probation_review_form_action"
-              groups="emp_prob_extended.group_employee_probation_manager"
+              groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
               sequence="8"
     />
 </odoo>
