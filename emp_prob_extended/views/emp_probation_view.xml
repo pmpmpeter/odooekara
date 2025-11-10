@@ -52,18 +52,18 @@
                             type="object"
                             class="oe_highlight"
                             invisible="state in ['draft','in_progress','confirm','cancel']"
-                            groups="emp_prob_extended.group_employee_probation_manager"/>
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"/>
                     <button name="action_send_probation_confirmation_mail"
                             string="Send Mail"
                             type="object"
                             class="oe_highlight"
                             invisible="state not in ['confirm']"
-                            groups="emp_prob_extended.group_employee_probation_manager"/>
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"/>
                     <button name="employee_probation_cancel"
                             string="Cancel"
                             type="object"
                             invisible="state in ['draft','cancel']"
-                            groups="emp_prob_extended.group_employee_probation_manager"/>
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"/>
                     <!--                    <button name="print_employee_probation" string="Print" type="object"-->
                     <!--                            class="oe_highlight"-->
                     <!--                            invisible="state in ['draft','review','cancel']"/>-->
@@ -82,7 +82,7 @@
                                 class="oe_stat_button"
                                 icon="fa-file-text-o"
                                 invisible="review_form_count == 0"
-                                groups="emp_prob_extended.group_employee_probation_manager">
+                                groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor">
                             <field name="review_form_count" widget="statinfo" string="Review Form"/>
                         </button>
                     </div>

@@ -14,14 +14,14 @@ class ProbationReviewForm(models.Model):
     employee_probation_id = fields.Many2one('employee.probation', string='Employee Probation')
 
     employee_id = fields.Many2one('hr.employee',string='Employee Name', required=True, tracking=True)
-    job_title_id = fields.Many2one('hr.job', string='Job Title', tracking=True)
+    job_title_id = fields.Many2one('hr.job', string='Job Title', tracking=True,related='employee_id.job_id')
     company_id = fields.Many2one('res.company', 'Company', default=lambda self: self.env.company, domain=lambda self: [('id', '=', (self.env.company.id))])
     grade = fields.Char(string='Grade', tracking=True)
     department_id = fields.Many2one('hr.department', string='Department / Section', tracking=True)
     date_of_joining = fields.Date(string='Date of Joining', tracking=True)
     reporting_manager_id = fields.Many2one('hr.employee', string='Reporting Manager',
                                         tracking=True)
-    reporting_manager_designation_id = fields.Many2one('hr.job',string='Manager Designation',related='employee_id.job_id', tracking=True)
+    reporting_manager_designation_id = fields.Many2one('hr.job',string='Manager Designation',related='reporting_manager_id.job_id', tracking=True)
     three_month_review_due = fields.Date(string='Due Date', tracking=True)
     three_month_review_completed = fields.Date(string='Completed On', tracking=True)
     six_month_review_due = fields.Date(string='Due Date', tracking=True)
