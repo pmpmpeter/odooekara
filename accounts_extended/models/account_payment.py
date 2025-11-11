@@ -3,6 +3,14 @@ from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWar
 from datetime import timedelta
 import pdb
 
+class AccountReimbursementLine(models.Model):
+    _name = 'payment.other.charges.lines'
+    _description = 'Payment Other Charges'
+
+    payment_id = fields.Many2one('account.payment', string="Payment Reference", readonly=True)
+    account_id = fields.Many2one('account.account', string="Account")
+    other_charge = fields.Float('Amount')
+
 class AccountPayment(models.Model):
     _inherit = "account.payment"
 
@@ -26,6 +34,128 @@ class AccountPayment(models.Model):
     recurring_days = fields.Integer(string='Recurring Days', default="1", copy=False)
     recurring_until_date = fields.Date(string='Recurring Until Date', copy=False)
     is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed')
+    other_charges_lines = fields.One2many('payment.other.charges.lines', 'payment_id', string="Other Charges", copy=True)
+
+
+    @api.model
+    def _get_trigger_fields_to_synchronize(self):
+        return (
+            'date', 'amount', 'payment_type', 'partner_type', 'payment_reference', 'is_internal_transfer',
+            'currency_id', 'partner_id', 'destination_account_id', 'partner_bank_id', 'journal_id', 'other_charges_lines'
+        )
+
+    def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None):
+        self.ensure_one()
+
+        # Call super with same signature so parent logic can use inputs if needed
+        res = super(AccountPayment, self)._prepare_move_line_default_vals(
+            write_off_line_vals=write_off_line_vals, force_balance=force_balance
+        )
+
+        if not self.other_charges_lines:
+            return res
+
+        if not self.outstanding_account_id:
+            raise UserError(_(
+                "You can't create a new payment without an outstanding payments/receipts account set "
+                "either on the %s payment method in the %s journal."
+            ) % (self.payment_method_line_id.name, self.journal_id.display_name))
+
+        write_off_line_vals_list = write_off_line_vals or []
+        write_off_amount_currency = sum(x.get('amount_currency', 0.0) for x in write_off_line_vals_list)
+        write_off_balance = sum(x.get('balance', 0.0) for x in write_off_line_vals_list)
+
+        if self.payment_type == 'inbound':
+            liquidity_amount_currency = self.amount
+        elif self.payment_type == 'outbound':
+            liquidity_amount_currency = -self.amount
+        else:
+            liquidity_amount_currency = 0.0
+
+        if not write_off_line_vals and force_balance is not None:
+            sign = 1 if liquidity_amount_currency > 0 else -1
+            liquidity_balance = sign * abs(force_balance)
+        else:
+            liquidity_balance = liquidity_amount_currency
+
+        counterpart_balance = -liquidity_balance
+        counterpart_amount_currency = -liquidity_amount_currency
+
+        liquidity_line_name = ''.join(x[1] for x in self._get_liquidity_aml_display_name_list())
+        counterpart_line_name = ''.join(x[1] for x in self._get_counterpart_aml_display_name_list())
+
+        line_vals_list = []
+        other_charges_list = []
+
+        for line in self.other_charges_lines.filtered(lambda l: l.account_id and l.payment_id.state == 'draft'):
+            # skip zero amounts
+            if not line.other_charge:
+                continue
+
+            # Determine amount sign based on payment_type
+            if self.payment_type == 'inbound':
+                other_amount_1 = line.other_charge
+            elif self.payment_type == 'outbound':
+                other_amount_1 = -line.other_charge
+            else:
+                other_amount_1 = 0.0
+
+            # Compute balance for this other-charge line (preserve original force_balance behaviour)
+            if not write_off_line_vals and force_balance is not None:
+                sign = 1 if other_amount_1 > 0 else -1
+                other_balance_1 = sign * abs(force_balance)
+            else:
+                other_balance_1 = other_amount_1
+
+            # decrease counterpart by this other charge
+            # counterpart_amount_currency -= other_amount_1
+            # counterpart_balance -= other_balance_1
+
+            liquidity_amount_currency -= other_amount_1
+            liquidity_balance -= other_balance_1
+
+            other_charges_vals = {
+                'name': liquidity_line_name,
+                'date_maturity': self.date,
+                'amount_currency': other_amount_1,
+                'debit': other_balance_1 if other_balance_1 > 0.0 else 0.0,
+                'credit': -other_balance_1 if other_balance_1 < 0.0 else 0.0,
+                'partner_id': self.partner_id.id,
+                'account_id': line.account_id.id,
+                'other_charges_payment_line': True,
+            }
+            other_charges_list.append(other_charges_vals)
+
+        # Liquidity line (always included)
+        liquidity_vals = {
+            'name': liquidity_line_name,
+            'date_maturity': self.date,
+            'amount_currency': liquidity_amount_currency,
+            'debit': liquidity_balance if liquidity_balance > 0.0 else 0.0,
+            'credit': -liquidity_balance if liquidity_balance < 0.0 else 0.0,
+            'partner_id': self.partner_id.id,
+            'account_id': self.outstanding_account_id.id,
+        }
+        line_vals_list.append(liquidity_vals)
+
+        # Receivable / Payable line (adjusted by other charges)
+        ar_ap_vals = {
+            'name': counterpart_line_name,
+            'date_maturity': self.date,
+            'amount_currency': counterpart_amount_currency,
+            'debit': counterpart_balance if counterpart_balance > 0.0 else 0.0,
+            'credit': -counterpart_balance if counterpart_balance < 0.0 else 0.0,
+            'partner_id': self.partner_id.id,
+            'account_id': self.destination_account_id.id,
+        }
+        line_vals_list.append(ar_ap_vals)
+
+        # Attach other charge lines (if any)
+        if other_charges_list:
+            line_vals_list.extend(other_charges_list)
+
+        return line_vals_list
+
 
     # def action_update_account_payment_outstanding_payment(self):
     #     ###Update Outstanding Payments

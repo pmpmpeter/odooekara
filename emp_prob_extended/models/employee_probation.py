@@ -14,6 +14,7 @@ class Employee(models.Model):
                                               string='Employee Probation ID', copy=False)
     employee_probation_count = fields.Integer("Employee Probation Count",
                                               compute='_compute_employee_probation', default=0, copy=False)
+    hr_id = fields.Many2one('hr.employee',string='HR')
 
     def _compute_employee_probation(self):
         for record in self:
@@ -88,6 +89,9 @@ class EmployeeProbation(models.Model):
     number_of_months = fields.Integer(string='Number of Months', default=6, store=True, copy=False)
     number_of_days = fields.Integer(string='Number of Days', default=15, store=True, copy=False)
     review_form_id = fields.Many2one('prob.review.form', string="Probation Review Form", copy=False)
+    hr_id = fields.Many2one('hr.employee',string='HR',related='employee_id.hr_id')
+    manager_user = fields.Many2one('res.users',string='Manager user',related='employee_id.parent_id.user_id')
+    hr_user = fields.Many2one('res.users',string='Manager user',related='employee_id.hr_id.user_id')
 
     @api.onchange('employee_id')
     def _check_employee_probation(self):

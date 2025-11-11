@@ -166,6 +166,22 @@
             <field name="journal_id" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </field>
+            <xpath expr="//sheet" position="inside">
+                <notebook invisible='is_internal_transfer'>
+                    <page id="other_charges"
+                          name="other_charges"
+                          string="Other Charges"
+                          invisible="is_internal_transfer">
+                        <field name="other_charges_lines" widget="section_and_note_one2many" readonly="state != 'draft'">
+                                <tree editable="bottom" create="1" string="Other Charges">
+                                    <field name="account_id" force_save='1' required='1' 
+                                        options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="other_charge" force_save='1'/>
+                                </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
         </field>
     </record>
 
