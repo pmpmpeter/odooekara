@@ -300,6 +300,16 @@ class AccountMoveInherit(models.Model):
     def action_approve_payment(self):
         for rec in self:
             rec.write({'state': 'approved'})
+            group = self.env.ref('hr_expense_extended.group_post_journal_expense')
+            users = group.users
+            for rec1 in users:
+                self.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Post Journal Reminder: Post Journal reminder",
+                    note=f"Journal has been approved.Kindly Post the journal:{self.name}.",
+                    user_id=rec1.id,
+                    date_deadline=fields.Date.today()
+                )
 
     # def button_cancel(self):
     #     for rec in self:
