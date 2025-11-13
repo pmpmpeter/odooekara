@@ -30,12 +30,13 @@
                             <!--<t t-esc="o.partner_id.name"/>-->
                             <t t-if="o.partner_id">
                                 <t t-if="not o.rtgs_addition">
-                                     <t t-esc="o.partner_id.name"/>
+                                    <t t-esc="o.partner_bank_id.acc_holder_name"/>
                                 </t>
                                 <t t-else="">
-                                    <span>Y/s For NEFT/RTGS </span><t t-esc="o.partner_id.name"/>
+                                    <span>Y/s For NEFT/RTGS</span>
+                                    <t t-esc="o.partner_bank_id.acc_holder_name"/>
                                 </t>
-                        </t>
+                            </t>
                         </div>
 <!--                    <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">-->
 <!--                        <t t-if="o.partner_id">-->
@@ -112,7 +113,7 @@
                     <tr>
                         <td style="font-weight: bold;">Beneficiary Name:</td>
                         <td style="border: 1px solid #000; padding: 2px;" colspan="3">
-                            <t t-esc="o.partner_id.name"/>
+                            <t t-esc="o.partner_bank_id.acc_holder_name"/>
                         </td>
                     </tr>
                     <tr>

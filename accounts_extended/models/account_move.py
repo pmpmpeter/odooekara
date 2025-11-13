@@ -297,6 +297,10 @@ class AccountMoveInherit(models.Model):
                 record.approval_state = 'To Submit for Approval'
                 record.x_has_request_approval = False
 
+    def action_approve_payment(self):
+        for rec in self:
+            rec.write({'state': 'approved'})
+
     # def button_cancel(self):
     #     for rec in self:
     #         rec.action_update_budget_cur_figure_minus()

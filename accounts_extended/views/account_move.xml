@@ -66,7 +66,7 @@
                     <button name="action_post" string="Confirm" class="oe_highlight" type="object"
                             groups="account.group_account_invoice" data-hotkey="q"
                             context="{'validate_analytic': True}"
-                            invisible="hide_post_button or move_type in ('entry','out_invoice','in_invoice') or display_inactive_currency_warning"/>
+                            invisible="state not in ('approved')"/>
                     <!-- Send (only invoices) -->
                     <button name="action_invoice_sent"
                             type="object"
@@ -938,44 +938,44 @@
                             <!-- Internal note -->
                             <field name="narration" placeholder="Add an internal note..." nolabel="1" height="50"/>
                         </page>
-                        <page name="cheque_details" string="Cheque Details" invisible="move_type not in 'entry' or not is_bank_entry">
-                            <group>
+                            <page name="cheque_details" string="Cheque Details" invisible="move_type not in 'entry' or not is_bank_entry">
                                 <group>
-                                    <field name="is_bank_entry" invisible="1"/>
-                                    <field name="check_amount_in_num" invisible="move_type not in ['entry']"/>
-                                    <field name="check_amount_in_words" invisible="1"/>
-                                    <field name="payment_type"
-                                           invisible="move_type not in ['entry'] or not is_bank_entry"
-                                           readonly="state != 'draft'"/>
-                                    <field name="cheque_format_id" invisible="not is_bank_entry or payment_type != 'outbound'"
-                                           options="{'no_open':True,'no_create': True}"/>
-                                    <field name="is_cheque_cleared" invisible="not is_bank_entry or payment_type != 'outbound'"/>
-                                    <field name="cheque_cleared_date" invisible="not is_bank_entry or not is_cheque_cleared"/>
+                                    <group>
+                                        <field name="is_bank_entry" invisible="1"/>
+                                        <field name="check_amount_in_num" invisible="move_type not in ['entry']"/>
+                                        <field name="check_amount_in_words" invisible="1"/>
+                                        <field name="payment_type"
+                                               invisible="move_type not in ['entry'] or not is_bank_entry"
+                                               readonly="state != 'draft'"/>
+                                        <field name="cheque_format_id" invisible="not is_bank_entry or payment_type != 'outbound'"
+                                               options="{'no_open':True,'no_create': True}"/>
+                                        <field name="is_cheque_cleared" invisible="not is_bank_entry or payment_type != 'outbound'"/>
+                                        <field name="cheque_cleared_date" invisible="not is_bank_entry or not is_cheque_cleared"/>
+                                    </group>
+                                    <group>
+                                        <field name="sr_no"/>
+                                        <field name="cheque_number"/>
+                                        <field name="assigned_by" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="managed_by" options="{'no_open':True,'no_create': True}"/>
+                                    </group>
+                                    <group>
+                                        <field name="authorised_by" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="authorised_date"/>
+                                        <field name="comments"/>
+                                        <field name="towards"/>
+                                        <field name="rtgs_addition"/>
+                                    </group>
+                                    <group>
+                                        <field name="trans_id" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="sender_account_type" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="partner_id" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="partner_bank_id" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="sender_receiver_info"/>
+                                        <field name="sms_email"/>
+                                    </group>
                                 </group>
-                                <group>
-                                    <field name="sr_no"/>
-                                    <field name="cheque_number"/>
-                                    <field name="assigned_by" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="managed_by" options="{'no_open':True,'no_create': True}"/>
-                                </group>
-                                <group>
-                                    <field name="authorised_by" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="authorised_date"/>
-                                    <field name="comments"/>
-                                    <field name="towards"/>
-                                    <field name="rtgs_addition"/>
-                                </group>
-                                <group>
-                                    <field name="trans_id" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="sender_account_type" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="partner_id" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="partner_bank_id" options="{'no_open':True,'no_create': True}"/>
-                                    <field name="sender_receiver_info"/>
-                                    <field name="sms_email"/>
-                                </group>
-                            </group>
-                        </page>
+                            </page>
                     </notebook>
                 </sheet>
                 <!-- Attachment preview -->
