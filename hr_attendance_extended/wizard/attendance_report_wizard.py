@@ -74,7 +74,9 @@ class AttendanceReportWizard(models.TransientModel):
     def generate_pdf_report(self):
         attendance_rec=[]
         emp_rec=[]
-        employee = self.env['hr.employee'].sudo().search([('state','=','employment')])
+        employee = self.env['hr.employee'].sudo().search([])
+        print(employee,'bbbbbbbbbbbbbbbbbbbbbbbb')
+
         for rec in employee:
             emp_rec.append(rec.id)
         for rec in employee:
@@ -110,7 +112,6 @@ class AttendanceReportWizard(models.TransientModel):
             'month_end':month_end,
             'comp_id':self.company_id.id
         }
-
         if self.report_type == 'form_f':
             return self.env.ref('hr_attendance_extended.form_f_report').report_action(self,data=data)
         elif self.report_type == 'form_h':

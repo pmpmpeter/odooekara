@@ -48,7 +48,7 @@
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">DOJ</td>
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Employee Name</td>
                             <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Father's Name</td>
-                            <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Address</td>
+<!--                            <td rowspan="3" style="text-align: center; vertical-align: middle; padding: 10px;">Address</td>-->
                             <td colspan="11" style="text-align: center; vertical-align: middle; padding: 10px;">PART I EARNED LEAVE</td>
                             <td colspan="4" style="text-align: center; vertical-align: middle; padding: 10px;">PART II Sick Leave
                             </td>
@@ -82,7 +82,7 @@
                         <t t-set="count" t-value="1"/>
                         <t t-set="start_datetime" t-value="start_date + ' 00:00:00'"/>
                         <t t-set="end_datetime" t-value="end_date + ' 23:59:59'"/>
-                       <t t-set="employee" t-value="request.env['hr.employee'].sudo().search([('state','=','employment')])"/>
+                       <t t-set="employee" t-value="request.env['hr.employee'].sudo().search([])"/>
                         <t t-set="current_year" t-value="context_timestamp(datetime.datetime.now()).strftime('%Y')"/>
                         <t t-foreach="employee" t-as="emp">
                              <t t-set="overall_leaves" t-value="0.0"/>
@@ -143,9 +143,9 @@
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                  <t t-esc="emp.father_name"/>
                             </td>
-                            <td style="text-align: center;  padding: 10px;height: 70px;">
+<!--                            <td style="text-align: center;  padding: 10px;height: 70px;">-->
 
-                            </td>
+<!--                            </td>-->
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                 <t t-esc="start_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
                             </td>
@@ -153,13 +153,13 @@
                                  <t t-esc="end_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="days"/>
+                                 <t t-esc="round(days,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="leaves_earned"/>
+                                <t t-esc="round(leaves_earned,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="overall_leaves"/>
+                                 <t t-esc="round(overall_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                 <t t-foreach="taken_leaves" t-as="rec">
@@ -180,7 +180,7 @@
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                  <t t-foreach="taken_leaves" t-as="rec">
-                                    <t t-esc="rec.number_of_days_display"/>
+                                    <t t-esc="round(rec.number_of_days_display,2)"/>
                                      <br/>
                                      <br/>
                                      <br/>
@@ -189,7 +189,7 @@
                                 </t>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="overall_leaves-total_taken_leaves"/>
+                                 <t t-esc="round(overall_leaves-total_taken_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
 
@@ -198,13 +198,13 @@
 
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                              <t t-esc="total_allocated_sick_leaves"/>
+                              <t t-esc="round(total_allocated_sick_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="timeoff_taken"/>
+                                <t t-esc="round(timeoff_taken,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                               <t t-esc="total_allocated_sick_leaves - timeoff_taken"/>
+                               <t t-esc="round(total_allocated_sick_leaves - timeoff_taken,2)"/>
                             </td>
                         </tr>
                             <t t-set="count" t-value="count+1"/>

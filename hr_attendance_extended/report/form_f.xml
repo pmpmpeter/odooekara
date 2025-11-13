@@ -6,7 +6,7 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">hr_attendance_extended.print_form_f</field>
         <field name="report_file">hr_attendance_extended.print_form_f</field>
-        <field name="print_report_name">'Form F'</field>
+        <field name="print_report_name">Form F</field>
         <field name="binding_model_id" ref="hr_attendance.model_hr_attendance"/>
         <field name="binding_type">report</field>
     </record>
@@ -85,7 +85,7 @@
 
                         <t t-set="start_datetime" t-value="start_date + ' 00:00:00'"/>
                         <t t-set="end_datetime" t-value="end_date + ' 23:59:59'"/>
-                        <t t-set="employee" t-value="request.env['hr.employee'].sudo().search([('state','=','employment')])"/>
+                        <t t-set="employee" t-value="request.env['hr.employee'].sudo().search([])"/>
                         <t t-set="current_year" t-value="context_timestamp(datetime.datetime.now()).strftime('%Y')"/>
                         <t t-foreach="employee" t-as="emp">
                             <t t-set="overall_leaves" t-value="0.0"/>
@@ -156,13 +156,13 @@
                                  <t t-esc="end_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MM-yyyy&quot;}"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="days"/>
+                                <t t-esc="round(days,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="leaves_earned"/>
+                                <t t-esc="round(leaves_earned,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="overall_leaves"/>
+                                 <t t-esc="round(overall_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                 <t t-foreach="taken_leaves" t-as="rec">
@@ -183,7 +183,7 @@
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
                                  <t t-foreach="taken_leaves" t-as="rec">
-                                    <t t-esc="rec.number_of_days_display"/>
+                                    <t t-esc="round(rec.number_of_days_display,2)"/>
                                      <br/>
                                      <br/>
                                      <br/>
@@ -192,7 +192,7 @@
                                 </t>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="overall_leaves-total_taken_leaves"/>
+                                 <t t-esc="round(overall_leaves-total_taken_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;"/>
                             <td style="text-align: center;  padding: 10px;height: 70px;"/>
@@ -200,13 +200,13 @@
                                 <t t-esc="current_year"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="total_allocated_sick_leaves"/>
+                                <t t-esc="round(total_allocated_sick_leaves,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                 <t t-esc="timeoff_taken"/>
+                                 <t t-esc="round(timeoff_taken,2)"/>
                             </td>
                             <td style="text-align: center;  padding: 10px;height: 70px;">
-                                <t t-esc="total_allocated_sick_leaves - timeoff_taken"/>
+                                <t t-esc="round(total_allocated_sick_leaves - timeoff_taken,2)"/>
                             </td>
                             </tr>
                             <t t-set="count" t-value="count+1"/>
