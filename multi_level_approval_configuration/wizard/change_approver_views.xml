@@ -8,6 +8,7 @@
                 <group>
                     <field
                         name="new_pic_id" options="{'no_quick_create':True,'no_create': True,}"
+                        domain="[('share', '=', False)]"
                         context="{'has_deputy_groups': group_ids}"
                     />
                     <field name="reason" />

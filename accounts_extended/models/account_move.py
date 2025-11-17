@@ -566,6 +566,9 @@ class AccountMoveInherit(models.Model):
     def action_print_invoice_template(self):
         return self.env.ref('accounts_extended.print_invoice_template1').report_action(self)
 
+    def action_print_jv_cheque(self):
+        return self.env.ref('odoo_print_cheque.print_cheque_payment_account_move').report_action(self)
+
     def action_export_salary_jv_xlsx(self):
 
         output = io.BytesIO()

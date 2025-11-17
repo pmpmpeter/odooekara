@@ -171,9 +171,36 @@ class AccountPayment(models.Model):
     #                 print("Case1222222222222222222222222222222222222222")
     #             line.write({'account_id': coa_id.id})
 
+
+
+    def print_cheque_format(self):
+        return self.env.ref('odoo_print_cheque.print_cheque_payment').report_action(self)
+
     def action_freeze_cheque_details(self):
         for rec in self:
             rec.is_cheque_details_freeze = True
+
+    def send_vendor_mail(self):
+        form_view = self.env.ref('mail.email_compose_message_wizard_form')
+
+        ctx = {
+            'default_model': 'account.payment',
+            'default_res_ids': self.ids,
+            'default_template_id': self.env.ref('account.mail_template_data_payment_receipt').id,
+            'default_attachment_ids': [],
+            'force_email': True,
+        }
+
+        return {
+            'name': _('Send By Mail'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'views': [(form_view.id, 'form')],
+            'target': 'new',
+            'context': ctx
+        }
+        return self.env.ref('account.account_send_payment_receipt_by_email_action')
 
     def action_create_recurring_payments(self):
         for rec in self:

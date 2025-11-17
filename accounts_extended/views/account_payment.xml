@@ -137,7 +137,9 @@
                 <field name="is_cheque_details_freeze" invisible="1"/>
                  <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
                          invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting) or is_utr_updated or not utr_number"/>
+                <button name="print_cheque_format" type="object" string="Print Cheque" invisible="show_partner_bank_account or payment_type != 'outbound' or state in ('draft','to approve','cancel')"/>
                 <button name="action_freeze_cheque_details" string="Update Cheque Details" type="object" class="oe_highlight" invisible="state != 'posted' or is_cheque_details_freeze or show_partner_bank_account or payment_type != 'outbound'"/>
+                <button name="send_vendor_mail" string="Send By Mail" type="object" class="oe_highlight" invisible="state != 'posted'"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="attributes">

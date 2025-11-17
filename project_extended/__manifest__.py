@@ -18,6 +18,7 @@
         'hr_extended',
     ],
     'data': [
+        'security/project_security.xml',
         'views/project_project_views.xml',
         'data/mail_template_data.xml',
         'data/project_cron.xml',
