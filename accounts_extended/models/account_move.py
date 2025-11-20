@@ -130,6 +130,36 @@ class AccountMoveInherit(models.Model):
     journal_type = fields.Selection(related='journal_id.type')
     active = fields.Boolean(string="Active",default=True, copy=False)
 
+    def _get_move_display_name(self, show_ref=False):
+        ''' Helper to get the display name of an invoice depending of its type.
+        :param show_ref:    A flag indicating of the display name must include or not the journal entry reference.
+        :return:            A string representing the invoice.
+        '''
+        self.ensure_one()
+        name = ''
+        if self.state == 'draft':
+            name += {
+                'out_invoice': _('Draft Invoice'),
+                'out_refund': _('Draft Credit Note'),
+                'in_invoice': _('Draft Bill'),
+                'in_refund': _('Draft Debit Note'),
+                'out_receipt': _('Draft Sales Receipt'),
+                'in_receipt': _('Draft Purchase Receipt'),
+                'entry': _('Draft Entry'),
+            }[self.move_type]
+            name += ' '
+        if not self.name or self.name == '/':
+            if self.id:
+                name += '(* %s)' % str(self.id)
+        else:
+            name += self.name
+            if self.env.context.get('input_full_display_name'):
+                if self.partner_id:
+                    name += f', {self.partner_id.name}'
+                if self.date:
+                    name += f', {format_date(self.env, self.date)}'
+        return name + (f" ({shorten(self.ref, width=50)})" if show_ref and self.ref else '')
+
     def toggle_active(self):
         # Prevent archiving if the state is not 'cancelled'
         for record in self:
@@ -366,11 +396,12 @@ class AccountMoveInherit(models.Model):
     def budget_id_selection_validation(self):
         for move in self.filtered(lambda l: not l.journal_id.is_opening_balance and not l.statement_line_id):
             for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
-                if not move.crossovered_budget:
-                    raise UserError('Warning!! Kindly select a Budget.')
-                if line1.budget_id and not line1.filtered(lambda e: e.analytic_distribution):
-                    raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
-                        line1.account_id.display_name,move.display_name))
+                if not move.company_id.disable_budget_company:
+                    if not move.crossovered_budget:
+                        raise UserError('Warning!! Kindly select a Budget.')
+                    if line1.budget_id and not line1.filtered(lambda e: e.analytic_distribution):
+                        raise UserError(_("Alert !! Analytic Account not Mapped to %s for Entry -%s")%(
+                            line1.account_id.display_name,move.display_name))
 
 
     def budget_code_selection_validation(self):
@@ -699,6 +730,5 @@ class AccountTax(models.Model):
         ]
         if _("Untaxed Amount") in result['groups_by_subtotal']:
             result['groups_by_subtotal'][_("Taxable Amount")] = result['groups_by_subtotal'].pop(_("Untaxed Amount"))
-
         return result
 

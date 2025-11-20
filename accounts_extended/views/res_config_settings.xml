@@ -18,6 +18,9 @@
                         </field>
                     </page>
                 </page>
+                <xpath expr="//field[@name='tds_limit']" position='after'>
+                    <field name="disable_budget_company"/>
+                </xpath>
             </field>
         </record>
 

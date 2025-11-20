@@ -202,7 +202,9 @@ class RequestApproval(models.TransientModel):
             for move in account_move_id.filtered(lambda l: l.move_type in  ['in_invoice']):
                 move.action_validate_no_bill()
             for move in account_move_id.filtered(lambda l: not l.journal_id.is_opening_balance and not l.statement_line_id):
-                    if move.move_type == 'entry':
+                    # print(move.company_id.disable_budget_company,'pppppppppppppppppppp')
+                    # stop
+                    if move.move_type == 'entry' and not move.company_id.disable_budget_company:
                         for line1 in move.line_ids.filtered(lambda l: l.account_id.account_type in ['asset_receivable','asset_cash','asset_current','asset_non_current','asset_prepayments','asset_fixed', 'expense'] and l.account_id.is_cash_rounding == False):
                         # for line1 in move.line_ids.filtered(lambda l: l.account_id.is_cash_rounding == False):
                             if not move.crossovered_budget:
@@ -218,7 +220,7 @@ class RequestApproval(models.TransientModel):
                                 raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
                                     line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
 
-                    elif move.move_type != 'entry':
+                    elif move.move_type != 'entry' and not move.company_id.disable_budget_company:
                         for line1 in move.invoice_line_ids.filtered(lambda l:l.account_id.is_cash_rounding == False):
                             if not move.crossovered_budget:
                                 raise UserError('Warning!! Kindly select a Budget.')

@@ -146,6 +146,8 @@
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
             </xpath>
             <xpath expr="//label[@for='amount']" position="before">
+                <field name="other_charge_applicable" readonly="state != 'draft'"/>
+                <field name="payment_base_amount" readonly="state != 'draft'" invisible="not other_charge_applicable"/>
                 <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id)]"
                        readonly="state != 'draft'" invisible="payment_type != 'outbound'"/>
             </xpath>
@@ -176,9 +178,15 @@
                           invisible="is_internal_transfer">
                         <field name="other_charges_lines" widget="section_and_note_one2many" readonly="state != 'draft'">
                                 <tree editable="bottom" create="1" string="Other Charges">
-                                    <field name="account_id" force_save='1' required='1' 
+                                    <field name="tax_id" 
+                                        options="{'no_open': True, 'no_quick_create':True,'no_create': True,}" 
+                                        domain="[('company_id', '=', company_id)]"/>
+                                    <field name="company_id" column_invisible='1'
                                         options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                    <field name="other_charge" force_save='1'/>
+                                    <field name="account_id" readonly="1" force_save="1"
+                                        options="{'no_open': True, 'no_quick_create':True,'no_create': True,}" 
+                                        domain="[('company_id', '=', company_id)]"/>
+                                    <field name="other_charge" force_save='1' readonly='0'/>
                                 </tree>
                         </field>
                     </page>

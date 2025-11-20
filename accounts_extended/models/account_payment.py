@@ -2,14 +2,38 @@ from odoo import api, fields, models, _, Command
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 from datetime import timedelta
 import pdb
+import logging
+_logger = logging.getLogger(__name__)
 
 class AccountReimbursementLine(models.Model):
     _name = 'payment.other.charges.lines'
     _description = 'Payment Other Charges'
 
     payment_id = fields.Many2one('account.payment', string="Payment Reference", readonly=True)
-    account_id = fields.Many2one('account.account', string="Account")
-    other_charge = fields.Float('Amount')
+    company_id = fields.Many2one('res.company', string="Company", readonly=True, related='payment_id.company_id')
+    account_id = fields.Many2one('account.account', string="Account", company_dependent=True)
+    tax_id = fields.Many2one('account.tax',string='Tax')
+    tag_ids = fields.Many2many('account.account.tag',string='Tax Grids')
+    other_charge = fields.Float('Amount', compute='_compute_other_charge_tax_id', store=True)
+
+    @api.onchange('tax_id')
+    @api.depends('tax_id', 'payment_id.other_charges_lines','payment_id.amount', 'payment_id.payment_base_amount')
+    def _compute_other_charge_tax_id(self):
+        if self.tax_id:
+            if self.tax_id.amount_type == 'percent':
+                self.other_charge = self.payment_id.payment_base_amount*(self.tax_id.amount/100)
+                tax_repartition_line = self.tax_id.invoice_repartition_line_ids.filtered(
+                    lambda l: l.account_id and not l.repartition_type == 'base'
+                )[:1]
+                if tax_repartition_line:
+                    self.account_id = tax_repartition_line.account_id
+                else:
+                    self.account_id = False
+            else:
+                self.account_id = False
+                self.other_charge = 0.0
+            other_lines = self.payment_id.other_charges_lines.filtered(lambda r: r.other_charge != 0)
+            self.payment_id.amount = self.payment_id.payment_base_amount + float(sum(other_lines.mapped('other_charge')) or 0)
 
 class AccountPayment(models.Model):
     _inherit = "account.payment"
@@ -34,20 +58,36 @@ class AccountPayment(models.Model):
     recurring_days = fields.Integer(string='Recurring Days', default="1", copy=False)
     recurring_until_date = fields.Date(string='Recurring Until Date', copy=False)
     is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed')
+    other_charge_applicable = fields.Boolean(string='Other Charges Applicable?')
+    payment_base_amount = fields.Float(string="Base Amount")
     other_charges_lines = fields.One2many('payment.other.charges.lines', 'payment_id', string="Other Charges", copy=True)
 
+    # @api.model
+    # def _get_trigger_fields_to_synchronize(self):
+    #     return (
+    #         'date', 'amount', 'payment_type', 'partner_type', 'payment_reference', 'is_internal_transfer',
+    #         'currency_id', 'partner_id', 'destination_account_id', 'partner_bank_id', 'journal_id', 'other_charges_lines',
+    #         'payment_base_amount','other_charge_applicable'
+    #     )
 
-    @api.model
-    def _get_trigger_fields_to_synchronize(self):
-        return (
-            'date', 'amount', 'payment_type', 'partner_type', 'payment_reference', 'is_internal_transfer',
-            'currency_id', 'partner_id', 'destination_account_id', 'partner_bank_id', 'journal_id', 'other_charges_lines'
-        )
+    # @api.onchange('other_charges_lines')
+    # def _onchange_other_charges_lines(self):
+    #     if self.move_id and self.move_id.state == 'draft':
+    #         self.move_id.line_ids.filtered(lambda l: l.other_charges_payment_line).unlink()
+
+    @api.onchange('payment_base_amount')
+    @api.depends('other_charges_lines.other_charge','payment_base_amount')
+    def _update_payment_amount_base(self):
+        for line in self.filtered(lambda l: l.payment_base_amount>0 and l.other_charge_applicable):
+            other_lines = self.payment_id.other_charges_lines.filtered(lambda r: r.other_charge != 0)
+            line.amount = line.payment_base_amount + float(sum(other_lines.mapped('other_charge')) or 0)
 
     def _prepare_move_line_default_vals(self, write_off_line_vals=None, force_balance=None):
         self.ensure_one()
-
         # Call super with same signature so parent logic can use inputs if needed
+        if not self.other_charges_lines:
+            print("fffffffffffffffffffffffffff777777777777777777777777777777777777777")
+            self.move_id.line_ids.filtered(lambda l: l.other_charges_payment_line).unlink()
         res = super(AccountPayment, self)._prepare_move_line_default_vals(
             write_off_line_vals=write_off_line_vals, force_balance=force_balance
         )
@@ -65,10 +105,12 @@ class AccountPayment(models.Model):
         write_off_amount_currency = sum(x.get('amount_currency', 0.0) for x in write_off_line_vals_list)
         write_off_balance = sum(x.get('balance', 0.0) for x in write_off_line_vals_list)
 
+        payment_base_amount = self.payment_base_amount if self.other_charge_applicable else self.amount
+        # payment_base_amount = self.amount
         if self.payment_type == 'inbound':
-            liquidity_amount_currency = self.amount
+            liquidity_amount_currency = payment_base_amount
         elif self.payment_type == 'outbound':
-            liquidity_amount_currency = -self.amount
+            liquidity_amount_currency = -payment_base_amount
         else:
             liquidity_amount_currency = 0.0
 
@@ -111,18 +153,22 @@ class AccountPayment(models.Model):
             # counterpart_amount_currency -= other_amount_1
             # counterpart_balance -= other_balance_1
 
-            liquidity_amount_currency -= other_amount_1
-            liquidity_balance -= other_balance_1
-
+            liquidity_amount_currency -= -other_amount_1
+            liquidity_balance -= -other_balance_1
+            # Tax Grid Updation
+            tax_tags = line.tax_id.invoice_repartition_line_ids.filtered(
+                lambda l: l.tag_ids
+            ).mapped('tag_ids.id')
             other_charges_vals = {
                 'name': liquidity_line_name,
                 'date_maturity': self.date,
-                'amount_currency': other_amount_1,
-                'debit': other_balance_1 if other_balance_1 > 0.0 else 0.0,
-                'credit': -other_balance_1 if other_balance_1 < 0.0 else 0.0,
+                'amount_currency': -other_amount_1,
+                'debit': -other_balance_1 if other_balance_1 < 0.0 else 0.0,
+                'credit': other_balance_1 if other_balance_1 > 0.0 else 0.0,
                 'partner_id': self.partner_id.id,
                 'account_id': line.account_id.id,
                 'other_charges_payment_line': True,
+                'tax_tag_ids': [(6, 0, tax_tags)]
             }
             other_charges_list.append(other_charges_vals)
 
@@ -149,12 +195,143 @@ class AccountPayment(models.Model):
             'account_id': self.destination_account_id.id,
         }
         line_vals_list.append(ar_ap_vals)
-
+        # pdb.set_trace()
         # Attach other charge lines (if any)
         if other_charges_list:
             line_vals_list.extend(other_charges_list)
-
+        _logger.info("Printing the lines vals list", line_vals_list)
         return line_vals_list
+
+    @api.model
+    def _get_trigger_fields_to_synchronize(self):
+        return (
+            'date', 'amount', 'payment_type', 'partner_type', 'payment_reference', 'is_internal_transfer',
+            'partner_id', 'partner_bank_id', 'journal_id','analytic_account_id', 'other_charges_lines',
+            'payment_base_amount','other_charge_applicable'
+        )
+
+    def _synchronize_to_moves(self, changed_fields):
+        ''' Update the account.move regarding the modified account.payment.
+        :param changed_fields: A list containing all modified fields on account.payment.
+        '''
+        if self._context.get('skip_account_move_synchronization'):
+            return
+
+        if not any(field_name in changed_fields for field_name in self._get_trigger_fields_to_synchronize()):
+            return
+        self.move_id.line_ids.unlink()
+
+        for pay in self.with_context(skip_account_move_synchronization=True):
+            liquidity_lines, counterpart_lines, writeoff_lines = pay._seek_for_lines()
+
+            # Make sure to preserve the write-off amount.
+            # This allows to create a new payment with custom 'line_ids'.
+
+            write_off_line_vals = []
+            if liquidity_lines and counterpart_lines and writeoff_lines:
+                write_off_line_vals.append({
+                    'name': writeoff_lines[0].name,
+                    'account_id': writeoff_lines[0].account_id.id,
+                    'partner_id': writeoff_lines[0].partner_id.id,
+                    'amount_currency': sum(writeoff_lines.mapped('amount_currency')),
+                    'balance': sum(writeoff_lines.mapped('balance')),
+                })
+
+            line_vals_list = pay._prepare_move_line_default_vals(write_off_line_vals=write_off_line_vals)
+            # pdb.set_trace()
+
+            line_ids_commands = [
+                Command.update(liquidity_lines.id, line_vals_list[0]) if liquidity_lines else Command.create(
+                    line_vals_list[0]),
+                Command.update(counterpart_lines.id, line_vals_list[1]) if counterpart_lines else Command.create(
+                    line_vals_list[1])
+            ]
+
+            for line in writeoff_lines:
+                line_ids_commands.append((2, line.id))
+
+            for extra_line_vals in line_vals_list[2:]:
+                line_ids_commands.append((0, 0, extra_line_vals))
+
+            pay.move_id \
+                .with_context(skip_invoice_sync=True) \
+                .write({
+                'partner_id': pay.partner_id.id,
+                'partner_bank_id': pay.partner_bank_id.id,
+                'line_ids': line_ids_commands,
+            })
+
+    def _synchronize_from_moves(self, changed_fields):
+        ''' Update the account.payment regarding its related account.move.
+        Also, check both models are still consistent.
+        :param changed_fields: A set containing all modified fields on account.move.
+        '''
+        if self._context.get('skip_account_move_synchronization'):
+            return
+
+        for pay in self.with_context(skip_account_move_synchronization=True):
+
+            # After the migration to 14.0, the journal entry could be shared between the account.payment and the
+            # account.bank.statement.line. In that case, the synchronization will only be made with the statement line.
+            if pay.move_id.statement_line_id:
+                continue
+
+            move = pay.move_id
+            move_vals_to_write = {}
+            payment_vals_to_write = {}
+
+            if 'journal_id' in changed_fields:
+                if pay.journal_id.type not in ('bank', 'cash'):
+                    raise UserError(_("A payment must always belongs to a bank or cash journal."))
+
+            if 'line_ids' in changed_fields:
+                all_lines = move.line_ids
+                liquidity_lines, counterpart_lines, writeoff_lines = pay._seek_for_lines()
+
+                if len(liquidity_lines) != 1:
+                    raise UserError(_(
+                        "Journal Entry %s is not valid. In order to proceed, the journal items must "
+                        "include one and only one outstanding payments/receipts account.",
+                        move.display_name,
+                    ))
+
+                # if any(line.currency_id != all_lines[0].currency_id for line in all_lines):
+                #     raise UserError(_(
+                #         "Journal Entry %s is not valid. In order to proceed, the journal items must "
+                #         "share the same currency.",
+                #         move.display_name,
+                #     ))
+
+                if any(line.partner_id != all_lines[0].partner_id for line in all_lines):
+                    raise UserError(_(
+                        "Journal Entry %s is not valid. In order to proceed, the journal items must "
+                        "share the same partner.",
+                        move.display_name,
+                    ))
+
+                if counterpart_lines.account_id.account_type == 'asset_receivable':
+                    partner_type = 'customer'
+                else:
+                    partner_type = 'supplier'
+
+                liquidity_amount = liquidity_lines.amount_currency
+
+                move_vals_to_write.update({
+                    'partner_id': liquidity_lines.partner_id.id,
+                })
+                payment_vals_to_write.update({
+                    'amount': abs(liquidity_amount),
+                    'partner_type': partner_type,
+                    'destination_account_id': counterpart_lines.account_id.id,
+                    'partner_id': liquidity_lines.partner_id.id,
+                })
+                if liquidity_amount > 0.0:
+                    payment_vals_to_write.update({'payment_type': 'inbound'})
+                elif liquidity_amount < 0.0:
+                    payment_vals_to_write.update({'payment_type': 'outbound'})
+
+            move.write(move._cleanup_write_orm_values(move, move_vals_to_write))
+            pay.write(move._cleanup_write_orm_values(pay, payment_vals_to_write))
 
 
     # def action_update_account_payment_outstanding_payment(self):
@@ -186,7 +363,7 @@ class AccountPayment(models.Model):
         ctx = {
             'default_model': 'account.payment',
             'default_res_ids': self.ids,
-            'default_template_id': self.env.ref('account.mail_template_data_payment_receipt').id,
+            'default_template_id': self.env.ref('accounts_extended.mail_template_data_payment_receipt_1').id,
             'default_attachment_ids': [],
             'force_email': True,
         }

@@ -6,7 +6,7 @@
     </record>
 
     <record id="group_post_journal_expense" model="res.groups">
-        <field name="name">Expense Post Journal Notify</field>
+        <field name="name">Post Journal Notify</field>
     </record>
 
 </odoo>

@@ -735,7 +735,6 @@ VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s)
             raise UserError(err) from err
         except Exception as exc:
             _logger.debug("Approval Failed: ", str(exc))
-            # print("Case11111111111111111111",exc)
             raise UserError(
                 _(
                     """

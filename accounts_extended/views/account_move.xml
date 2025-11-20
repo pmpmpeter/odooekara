@@ -1117,7 +1117,7 @@
     </record>
 
     <record id="account.action_move_in_refund_type" model="ir.actions.act_window">
-        <field name="name">Vendor Debit Notes</field>
+        <field name="name">Debit Notes</field>
         <field name="res_model">account.move</field>
         <field name="view_mode">tree,kanban,form,activity</field>
         <field name="view_id" ref="account.view_in_invoice_refund_tree"/>
@@ -1126,7 +1126,7 @@
         <field name="context">{'default_move_type': 'in_refund', 'default_approval_status': 'submit'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a vendor debit note
+                Create a debit note
             </p>
             <p>
                 Note that the easiest way to create a vendor debit note is to do it directly from the vendor bill.
@@ -1165,7 +1165,7 @@
             parent="accounts_extended.menu_credit_payment"
             sequence="4"/>
     <menuitem id="account.menu_action_move_in_refund_type" action="account.action_move_in_refund_type"
-              name="Vendor Debit Notes" parent="account.menu_finance_payables" sequence="2"/>
+              name="Debit Notes" parent="account.menu_finance_payables" sequence="2"/>
 
     <record id="account_move_form_extend_inherit1" model="ir.ui.view">
         <field name="name">account.move.inherit</field>
