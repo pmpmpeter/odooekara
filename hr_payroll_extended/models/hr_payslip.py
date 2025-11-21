@@ -37,6 +37,24 @@ class HrPayslip(models.Model):
                         if income_totals.salary_rule_id.code == 'Other_recoveries':
                             recoveries += income_totals.total
             months = {(p.date_from.year, p.date_from.month) for p in payslips}
+            recoveries_of_advance = 0
+            if self.contract_id.recovery_of_advances:
+                if self.contract_id.recovery_from_date:
+                    date_from = self.date_from
+                    recovery_from = self.contract_id.recovery_from_date
+                    # Calculate month difference
+                    month_diff = (date_from.year - recovery_from.year) * 12 + (date_from.month - recovery_from.month)+1
+                    # If in same month, count as 1
+                    count_months = month_diff
+                    recoveries_of_advance = (
+                            sum(
+                                line.total
+                                for line in self.line_ids
+                                if line.salary_rule_id.code == 'Recovery_of_advances'
+                            ) * count_months
+                    ) if count_months > 0 else 0
+                else:
+                    recoveries_of_advance = 0
             date = self.date_from
             year = date.year
             month = date.month
@@ -46,6 +64,7 @@ class HrPayslip(models.Model):
                 'income_total': income_total,
                 'ytd_april':earnings_ytd,
                 'recoveries':recoveries,
+                'recoveries_of_advance':recoveries_of_advance,
                 'days_in_month':days_in_month,
             }
 

@@ -197,6 +197,7 @@ class SelfRating(models.Model):
                                                 copy=False)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+    revised_increment_per = fields.Float(string='Revised Increment %')
 
     @api.model
     def default_get(self, fields):

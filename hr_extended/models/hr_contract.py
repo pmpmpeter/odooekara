@@ -3,6 +3,7 @@ import math
 from odoo.exceptions import ValidationError, UserError
 from num2words import num2words
 from lxml import etree
+from dateutil.relativedelta import relativedelta
 
 
 class HrContract(models.Model):
@@ -27,6 +28,7 @@ class HrContract(models.Model):
         copy=False
     )
     nps_cal_perc = fields.Float(string='NPS Percentage')
+    nps_applicable_from = fields.Date(string='NPS Applicable From')
     nps_employer_per_month = fields.Float(string="NPS(Employer's Contribution)", copy=False)
     nps_employer_per_annum = fields.Float(string="NPS(Employer's Contribution)", copy=False)
     esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution)', copy=False)
@@ -145,6 +147,40 @@ class HrContract(models.Model):
         string="Month To")
     applicable_from_date = fields.Date(string="Month From")
     applicable_to_date = fields.Date(string="Month To")
+    recovery_of_advances = fields.Boolean(string="Recovery of Advances")
+    recovery_of_advances_amount = fields.Float(string="Recovery of Advances Amount")
+    recovery_from_date = fields.Date(string="From Date")
+    recovery_to_date = fields.Date(string="To Date")
+
+    def get_advance_recovery_amount_for_month(self, slip_date):
+        """
+        slip_date: date object of the payslip month (e.g. slip.date_from)
+        """
+
+        self.ensure_one()
+
+        if not self.recovery_of_advances:
+            return 0
+
+        start = self.recovery_from_date
+        end = self.recovery_to_date
+
+        # If today is before start or after end, no deduction
+        if not (start <= slip_date <= end):
+            return 0
+
+        total_amount = self.recovery_of_advances_amount
+
+        # Calculate number of months
+        diff = relativedelta(end, start)
+        total_months = diff.years * 12 + diff.months + 1  # inclusive
+
+        if total_months <= 0:
+            return 0
+
+        emi = total_amount / total_months
+        return round(emi, 2)
+
     @api.model
     def get_view(self, view_id=None, view_type='form', **options):
         result = super().get_view(view_id=view_id, view_type=view_type, **options)
@@ -184,29 +220,26 @@ class HrContract(models.Model):
                 rec.cess_month = 0
                 rec.cess_annum = 0
 
-    @api.onchange('nps_cal_perc','nps_applicable')
-    def nps_calculation(self):
-        for rec in self:
-            if rec.nps_applicable == 'yes':
-                if rec.nps_cal_perc >0:
-                    rec.nps_employer_per_month = rec.basic_da_per_month *(rec.nps_cal_perc/100)
-                    rec.nps_employer_per_annum = rec.basic_da_per_annum * (rec.nps_cal_perc / 100)
-                    rec.total_ctc_annum_exc = rec.total_ctc_annum - (
-                                rec.pf_employer_per_annum + rec.nps_employer_per_annum)
-                    rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
-                else:
-                    rec.nps_employer_per_month = 0
-                    rec.nps_employer_per_annum = 0
-                    rec.total_ctc_annum_exc = rec.total_ctc_annum - (
-                            rec.pf_employer_per_annum + rec.nps_employer_per_annum)
-                    rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
-            else:
-                rec.nps_employer_per_month = 0
-                rec.nps_employer_per_annum = 0
-                rec.total_ctc_annum_exc = rec.total_ctc_annum - (
-                        rec.pf_employer_per_annum + rec.nps_employer_per_annum)
-                rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
 
+    @api.onchange('nps_cal_perc', 'nps_applicable', 'nps_applicable_from')
+    def _onchange_nps_calculation(self):
+        for rec in self:
+            rec.nps_employer_per_month = 0
+            rec.nps_employer_per_annum = 0
+
+            if rec.nps_applicable == 'yes' and rec.nps_cal_perc > 0:
+                # Only apply NPS calculation if today's date is >= applicable date
+                today = fields.Date.today()
+
+                if rec.nps_applicable_from and rec.nps_applicable_from <= today:
+                    rec.nps_employer_per_month = rec.basic_da_per_month * (rec.nps_cal_perc / 100)
+                    rec.nps_employer_per_annum = rec.basic_da_per_annum * (rec.nps_cal_perc / 100)
+
+            # Recompute totals
+            rec.total_ctc_annum_exc = rec.total_ctc_annum - (
+                    rec.pf_employer_per_annum + rec.nps_employer_per_annum
+            )
+            rec.net_taxable_income = (rec.total_ctc_annum_exc + rec.variable_pay_per_annum)- rec.standard_deduction
 
     @api.depends('final_yearly_costs')
     def compute_total_ctc_annum(self):
@@ -228,6 +261,14 @@ class HrContract(models.Model):
                 record.total_ctc_in_words = num2words(total_ctc_integer, lang='en_IN').title()
             else:
                 record.total_ctc_in_words = 'None'
+
+    @api.onchange('variable_pay_per_annum')
+    def _onchange_variable_pay_per_annum(self):
+        for rec in self:
+            if rec.variable_pay_per_annum>0:
+                rec.net_taxable_income = (rec.total_ctc_annum_exc + rec.variable_pay_per_annum)- rec.standard_deduction
+            else:
+                rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
 
     @api.onchange('location_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
                   'esi_applicable', 'grade',
@@ -659,7 +700,7 @@ class HrContract(models.Model):
                 deduction = record.standard_deduction
                 record.total_ctc_annum_exc = total_ctc - (
                         record.pf_employer_per_annum + record.nps_employer_per_annum)
-                record.net_taxable_income = record.total_ctc_annum_exc - deduction if deduction > 0 else record.total_ctc_annum_exc
+                record.net_taxable_income = (record.total_ctc_annum_exc + record.variable_pay_per_annum) - deduction if deduction > 0 else record.total_ctc_annum_exc
             balance1 = 0
             balance2 = 0
             balance3 = 0

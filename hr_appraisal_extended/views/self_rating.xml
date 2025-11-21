@@ -244,6 +244,11 @@
                                         <field name="recommended_increment" style="max-width: 50px"/>
                                         <span>%</span>
                                     </div>
+                                     <label for="revised_increment_per"/>
+                                    <div class="o_row" name="revised_increment_per">
+                                        <field name="revised_increment_per" style="max-width: 50px"/>
+                                        <span>%</span>
+                                    </div>
                                     <label for="recommended_pbvp_payout"/>
                                     <div class="o_row" name="recommended_pbvp_payout">
                                         <field name="recommended_pbvp_payout" style="max-width: 50px" readonly="1"

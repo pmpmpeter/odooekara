@@ -177,6 +177,7 @@
                                         <t t-set="ytd" t-value="vals['month_total']"/>
                                         <t t-set="income_total" t-value="vals['income_total']"/>
                                         <t t-set="ytd_april" t-value="vals['ytd_april']"/>
+                                        <t t-set="recoveries_of_advance" t-value="vals['recoveries_of_advance']"/>
                                         <t t-set="recoveries" t-value="vals['recoveries']"/>
                                         <td style="text-align: right;">
                                             <t t-if="i &lt; len(earnings)">
@@ -225,6 +226,12 @@
                                             <t t-elif="deductions[i].code == 'Other_recoveries'">
                                                 <span>
                                                     <t t-esc="recoveries"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                </span>
+                                            </t>
+                                            <t t-elif="deductions[i].code == 'Recovery_of_advances'">
+                                                <span>
+                                                    <t t-esc="recoveries_of_advance"
                                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
                                             </t>
