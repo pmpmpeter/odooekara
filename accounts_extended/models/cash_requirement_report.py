@@ -39,21 +39,22 @@ class CashRequirementReport(models.Model):
 
     @api.depends('journal_bank','bank_balance_date')
     def compute_available_balance(self):
-        if self.journal_bank:
-            total_val = 0
-            till_date = self.bank_balance_date
-            for rec in self.journal_bank.ids:
-                bank_balance = 0
-                if rec:
-                    journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
-                    query_result = journal._get_journal_dashboard_bank_running_balance_dated(till_date)
-                    self.has_statement_lines, bank_balance = query_result.get(journal.id)
-                    total_val += bank_balance
-                else:
-                    self.available_balance = 0
-            self.available_balance = total_val
-        else:
-            self.available_balance = 0
+        for rec1 in self:
+            if rec1.journal_bank:
+                total_val = 0
+                till_date = rec1.bank_balance_date
+                for rec in rec1.journal_bank.ids:
+                    bank_balance = 0
+                    if rec:
+                        journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
+                        query_result = journal._get_journal_dashboard_bank_running_balance_dated(till_date)
+                        rec1.has_statement_lines, bank_balance = query_result.get(journal.id)
+                        total_val += bank_balance
+                    else:
+                        rec1.available_balance = 0
+                rec1.available_balance = total_val
+            else:
+                rec1.available_balance = 0
 
     def action_print_cash_requirement(self):
         """Return the report action to print the cash requirement report as PDF"""
