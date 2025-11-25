@@ -35,16 +35,18 @@ class CashRequirementReport(models.Model):
     ytd_contribution_ids = fields.One2many("ytd.budget.contribution", "report_id", string="Budget Contributions")
     budget_id = fields.Many2one('crossovered.budget',string='Budget')
     has_statement_lines = fields.Boolean(string='Has Statement Lines')
+    bank_balance_date = fields.Date(string='Bank Balance')
 
-    @api.depends('journal_bank')
+    @api.depends('journal_bank','bank_balance_date')
     def compute_available_balance(self):
         if self.journal_bank:
             total_val = 0
+            till_date = self.bank_balance_date
             for rec in self.journal_bank.ids:
                 bank_balance = 0
                 if rec:
                     journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
-                    query_result = journal._get_journal_dashboard_bank_running_balance()
+                    query_result = journal._get_journal_dashboard_bank_running_balance_dated(till_date)
                     self.has_statement_lines, bank_balance = query_result.get(journal.id)
                     total_val += bank_balance
                 else:
@@ -297,7 +299,6 @@ class CashRequirementReport(models.Model):
                 "crr_requirement": ytd_crr,
                 "actual_contribution": ytd_actual,
             })
-
         if vals_list:
             self.env["budget.contribution"].create(vals_list)
         if ytd_vals_list:
