@@ -25,6 +25,92 @@ class AccountsJournal(models.Model):
     is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?')
     is_opening_balance = fields.Boolean(string='Is Opening Balance?')
 
+    def _get_journal_dashboard_bank_running_balance_dated(self,till_date):
+        print(till_date,'bbbbbbbbbbbbbbbbbbbbb')
+        if till_date:
+            self._cr.execute("""
+                SELECT journal.id AS journal_id,
+                       statement.id AS statement_id,
+                       COALESCE(statement.balance_end_real, 0) AS balance_end_real,
+                       without_statement.amount AS unlinked_amount,
+                       without_statement.count AS unlinked_count
+                  FROM account_journal journal
+             LEFT JOIN LATERAL (  -- select latest statement based on the date
+                               SELECT id,
+                                      first_line_index,
+                                      balance_end_real
+                                 FROM account_bank_statement
+                                WHERE journal_id = journal.id
+                                  AND company_id = ANY(%s)
+                                  AND date <= %s
+                             ORDER BY date DESC, id DESC
+                                LIMIT 1
+                       ) statement ON TRUE
+             LEFT JOIN LATERAL (  -- sum all the lines not linked to a statement with a higher index than the last line of the statement
+                               SELECT COALESCE(SUM(stl.amount), 0.0) AS amount,
+                                      COUNT(*)
+                                 FROM account_bank_statement_line stl
+                                 JOIN account_move move ON move.id = stl.move_id
+                                WHERE stl.statement_id IS NULL
+                                  AND move.state != 'cancel'
+                                  AND move.journal_id = journal.id
+                                  AND move.company_id = ANY(%s)
+                                  AND move.date <= %s
+                                  AND stl.internal_index >= COALESCE(statement.first_line_index, '')
+                                LIMIT 1
+                       ) without_statement ON TRUE
+                 WHERE journal.id = ANY(%s)
+            """, [self.env.companies.ids,till_date, self.env.companies.ids, till_date,self.ids])
+            query_res = {res['journal_id']: res for res in self.env.cr.dictfetchall()}
+            result = {}
+            for journal in self:
+                journal_vals = query_res[journal.id]
+                result[journal.id] = (
+                    bool(journal_vals['statement_id'] or journal_vals['unlinked_count']),
+                    journal_vals['balance_end_real'] + journal_vals['unlinked_amount'],
+                )
+        else:
+            self._cr.execute("""
+                            SELECT journal.id AS journal_id,
+                                   statement.id AS statement_id,
+                                   COALESCE(statement.balance_end_real, 0) AS balance_end_real,
+                                   without_statement.amount AS unlinked_amount,
+                                   without_statement.count AS unlinked_count
+                              FROM account_journal journal
+                         LEFT JOIN LATERAL (  -- select latest statement based on the date
+                                           SELECT id,
+                                                  first_line_index,
+                                                  balance_end_real
+                                             FROM account_bank_statement
+                                            WHERE journal_id = journal.id
+                                              AND company_id = ANY(%s)
+                                         ORDER BY date DESC, id DESC
+                                            LIMIT 1
+                                   ) statement ON TRUE
+                         LEFT JOIN LATERAL (  -- sum all the lines not linked to a statement with a higher index than the last line of the statement
+                                           SELECT COALESCE(SUM(stl.amount), 0.0) AS amount,
+                                                  COUNT(*)
+                                             FROM account_bank_statement_line stl
+                                             JOIN account_move move ON move.id = stl.move_id
+                                            WHERE stl.statement_id IS NULL
+                                              AND move.state != 'cancel'
+                                              AND move.journal_id = journal.id
+                                              AND move.company_id = ANY(%s)
+                                              AND stl.internal_index >= COALESCE(statement.first_line_index, '')
+                                            LIMIT 1
+                                   ) without_statement ON TRUE
+                             WHERE journal.id = ANY(%s)
+                        """, [self.env.companies.ids, self.env.companies.ids, self.ids])
+            query_res = {res['journal_id']: res for res in self.env.cr.dictfetchall()}
+            result = {}
+            for journal in self:
+                journal_vals = query_res[journal.id]
+                result[journal.id] = (
+                    bool(journal_vals['statement_id'] or journal_vals['unlinked_count']),
+                    journal_vals['balance_end_real'] + journal_vals['unlinked_amount'],
+                )
+        return result
+
     def _fill_bank_cash_dashboard_data(self, dashboard_data):
         """Populate all bank and cash journal's data dict with relevant information for the kanban card."""
         bank_cash_journals = self.filtered(lambda journal: journal.type in ('bank', 'cash'))
