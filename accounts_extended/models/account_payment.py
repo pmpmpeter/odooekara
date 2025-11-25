@@ -21,7 +21,7 @@ class AccountReimbursementLine(models.Model):
     def _compute_other_charge_tax_id(self):
         if self.tax_id:
             if self.tax_id.amount_type == 'percent':
-                self.other_charge = self.payment_id.payment_base_amount*(self.tax_id.amount/100)
+                self.other_charge = round(self.payment_id.payment_base_amount*(self.tax_id.amount/100))
                 tax_repartition_line = self.tax_id.invoice_repartition_line_ids.filtered(
                     lambda l: l.account_id and not l.repartition_type == 'base'
                 )[:1]
