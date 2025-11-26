@@ -181,7 +181,7 @@ class ProjectTask(models.Model):
                                        help="Select the type of document for this project.")
     validity_start_date = fields.Date(string="Validity Start Date")
     validity_end_date = fields.Date(string="Validity End Date")
-    stage_id = fields.Many2one('project.task.type', string="Stage", required=True)
+    stage_id = fields.Many2one('project.task.type', string="Stage")
     is_document_validity_management = fields.Boolean(string="Is Document Validity Management", default=False)
     days_left = fields.Integer(string="Days Left", compute="_compute_days_left")
 
@@ -198,7 +198,6 @@ class ProjectTask(models.Model):
     @api.model
     def create(self,vals):
         project_id = self.project_id.browse(vals.get('project_id'))
-        
         if project_id.is_document_validity_management:
             vals['is_document_validity_management'] = True
             vals['document_type_id'] = project_id.document_type_id.id or False

@@ -61,6 +61,17 @@ class AccountPayment(models.Model):
     other_charge_applicable = fields.Boolean(string='Other Charges Applicable?')
     payment_base_amount = fields.Float(string="Base Amount")
     other_charges_lines = fields.One2many('payment.other.charges.lines', 'payment_id', string="Other Charges", copy=True)
+    print_assigned = fields.Many2many('res.users',string='Print Assigned To')
+    print_assigned_true = fields.Boolean(string='Print Assigned True',compute='compute_print_assigned')
+
+    @api.depends('print_assigned')
+    def compute_print_assigned(self):
+        for rec in self:
+            rec.print_assigned_true = False
+            if rec.payment_type == 'outbound' and not rec.show_partner_bank_account:
+                if rec.state in ['posted', 'approved'] or self.env.user.id in rec.print_assigned.ids:
+            # if self.env.user.id in rec.print_assigned.ids:
+                    rec.print_assigned_true = True
 
     # @api.model
     # def _get_trigger_fields_to_synchronize(self):
@@ -199,7 +210,7 @@ class AccountPayment(models.Model):
         # Attach other charge lines (if any)
         if other_charges_list:
             line_vals_list.extend(other_charges_list)
-        _logger.info("Printing the lines vals list", line_vals_list)
+        # _logger.info("Printing the lines vals list", line_vals_list)
         return line_vals_list
 
     @api.model
@@ -287,7 +298,6 @@ class AccountPayment(models.Model):
             if 'line_ids' in changed_fields:
                 all_lines = move.line_ids
                 liquidity_lines, counterpart_lines, writeoff_lines = pay._seek_for_lines()
-
                 if len(liquidity_lines) != 1:
                     raise UserError(_(
                         "Journal Entry %s is not valid. In order to proceed, the journal items must "

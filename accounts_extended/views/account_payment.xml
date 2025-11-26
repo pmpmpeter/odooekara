@@ -107,6 +107,8 @@
                 </notebook>
             </xpath>
             <field name="journal_id" position="before">
+                <field name="show_partner_bank_account" invisible="0"/>
+                <field name="print_assigned_true" invisible="0"/>
                 <field name="is_fund_requsiting" invisible="1"/>
                 <field name="approval_document" invisible="1"/>
                 <field name="x_need_approval" invisible="1"/>
@@ -137,19 +139,23 @@
                 <field name="is_cheque_details_freeze" invisible="1"/>
                  <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
                          invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting) or is_utr_updated or not utr_number"/>
-                <button name="print_cheque_format" type="object" string="Print Cheque" invisible="show_partner_bank_account or payment_type != 'outbound' or state in ('draft','to approve','cancel')"/>
+                <button name="print_cheque_format" type="object" string="Print Cheque"
+                    invisible="not print_assigned_true"/>
+<!--                    invisible="(payment_type != 'outbound') and ((show_partner_bank_account) or (state not in ('draft', 'to approve', 'cancel')) or (not print_assigned_true))"/>-->
                 <button name="action_freeze_cheque_details" string="Update Cheque Details" type="object" class="oe_highlight" invisible="state != 'posted' or is_cheque_details_freeze or show_partner_bank_account or payment_type != 'outbound'"/>
                 <button name="send_vendor_mail" string="Send By Mail" type="object" class="oe_highlight" invisible="state != 'posted'"/>
             </xpath>
 
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
+                <attribute name="domain">[('company_ids', 'in', company_id),('state','=','approve')]</attribute>
             </xpath>
             <xpath expr="//label[@for='amount']" position="before">
                 <field name="other_charge_applicable" readonly="state != 'draft'"/>
                 <field name="payment_base_amount" readonly="state != 'draft'" invisible="not other_charge_applicable"/>
                 <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id)]"
                        readonly="state != 'draft'" invisible="payment_type != 'outbound'"/>
+                <field name="print_assigned" widget="many2many_tags" groups="account.group_account_manager"/>
             </xpath>
             <xpath expr="//field[@name='partner_id'][2]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
