@@ -22,6 +22,7 @@
 #############################################################################
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
+from markupsafe import Markup
 
 
 class HrAnnouncement(models.Model):
@@ -104,6 +105,9 @@ class HrAnnouncement(models.Model):
 
         announcements = super(HrAnnouncement, self).create(vals)
 
+        employees = self.env['hr.employee'].search([])
+        partners = employees.mapped('user_id.partner_id')
+
         for announcement in announcements:
             if announcement.attachment_id:
                 announcement.attachment_id.write({
@@ -111,19 +115,19 @@ class HrAnnouncement(models.Model):
                     'res_id': announcement.id
                 })
 
+            if partners:
+                message = Markup("Announcement Name: %s<br/> Announcement Title: %s") % (
+                    announcement.name,
+                    announcement.announcement_reason
+                )
+                announcement.message_post(
+                    body=message,
+                    subject="New Announcement Created",
+                    partner_ids=partners.ids,
+                    message_type="notification"
+                )
+
         return announcements
-
-    def action_reject_announcement(self):
-        """ Refuse button action """
-        self.state = 'rejected'
-
-    def action_approve_announcement(self):
-        """ Approve button action """
-        self.state = 'approved'
-
-    def action_sent_announcement(self):
-        """ 'Send For Approval' button action"""
-        self.state = 'to_approve'
 
     def get_expiry_state(self):
         """

@@ -6,21 +6,6 @@
         <field name="model">hr.announcement</field>
         <field name="arch" type="xml">
             <form string="Announcements">
-                <header>
-                    <button string="Send For Approval" class="btn-primary"
-                            type="object" name="action_sent_announcement"
-                            groups="hr.group_hr_user"
-                            invisible="state != 'draft'"/>
-                    <button string="Approve" class="btn-primary"
-                            groups="hr.group_hr_manager" type="object"
-                            name="action_approve_announcement"
-                            invisible="state != 'to_approve'"/>
-                    <button string="Refuse" groups="hr.group_hr_manager"
-                            type="object"
-                            name="action_reject_announcement" invisible="state != 'to_approve'"/>
-                    <field name="state" widget="statusbar"
-                           statusbar_visible="draft,to_approve,approved"/>
-                </header>
                 <sheet>
                     <div class="oe_title">
                         <label for="name"/>
@@ -40,7 +25,7 @@
                     <group>
                         <label for="announcement_reason"/>
                         <div>
-                            <field name="announcement_reason" readonly="state != 'draft'"/>
+                            <field name="announcement_reason"/>
                         </div>
                     </group>
                     <group>
@@ -70,7 +55,7 @@
                     </group>
                     <notebook>
                         <page name="announcement" string="Letter">
-                            <field name="announcement" readonly="state != 'draft'"/>
+                            <field name="announcement"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -89,7 +74,6 @@
             <tree string="Announcements">
                 <field name="name"/>
                 <field name="announcement_reason"/>
-                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -103,15 +87,10 @@
                 <field name="is_announcement"
                        string="Is a General Announcement"/>
                 <field name="announcement_reason" string="Announcement Reason"/>
-                <field name="state" string="State"/>
                 <separator/>
-                <filter name="approved_rewards" string="Approved Letters"
-                        domain="[('state', '=', 'approved')]"/>
                 <filter name="general_announcements"
                         string="General Announcements"
                         domain="[('is_announcement', '=',True)]"/>
-                <filter string="Status" name="Status" domain="[]"
-                        context="{'group_by':'state'}"/>
             </search>
         </field>
     </record>
