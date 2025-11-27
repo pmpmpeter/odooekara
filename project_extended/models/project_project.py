@@ -316,7 +316,22 @@ class ProjectTask(models.Model):
     first_reminder_date = fields.Date(string="First Reminder Date")
     second_reminder_date = fields.Date(string="Second Reminder Date")
     task_valid_from = fields.Date(string="Task Period From",default=fields.Date.context_today)
+    task_done = fields.Boolean(string='Task Done')
+    task_approved = fields.Boolean(string='Task Approved')
+    task_rejected = fields.Boolean(string='Task Rejected')
 
+    @api.onchange('stage_id')
+    def onchange_stage_id(self):
+        if self.stage_id.name == 'Done':
+            self.task_done = True
+        # else:
+        #     self.task_done = True
+
+    def action_task_approve(self):
+        self.task_approved = True
+
+    def action_task_reject(self):
+        self.task_rejected = True
     @api.model
     def check_expired_tasks_recurring(self):
         expired_tasks = self.search([

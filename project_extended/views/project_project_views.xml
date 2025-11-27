@@ -15,6 +15,23 @@
         </field>
     </record>
 
+    <record id="inherit_edit_project_task_view_form" model="ir.ui.view">
+        <field name="name">Inherit Task Form</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="after">
+               <field name="task_done"/>
+            </xpath>
+            <xpath expr="//sheet/div" position="before">
+                <field name="task_approved"/>
+                <field name="task_rejected"/>
+                <widget name="web_ribbon" title="Approved" invisible="task_approved != True" />
+                <widget name="web_ribbon" title="Rejected" invisible="task_rejected != True" />
+            </xpath>
+        </field>
+    </record>
+
     <record id="inherit_edit_project_view_tree" model="ir.ui.view">
         <field name="name">Inherit Project Tree</field>
         <field name="model">project.project</field>
