@@ -23,7 +23,7 @@
                     string="Change Approver"
                     context="{'active_model': 'multi.approval', 'active_ids': active_ids}"
                     invisible="state != 'Submitted'"
-                    groups="multi_level_approval.group_approval_manager"
+                    groups="multi_level_approval.group_change_approver"
                 />
             </button>
         </field>
