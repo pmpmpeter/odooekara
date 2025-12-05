@@ -23,7 +23,7 @@
                     string="Change Approver"
                     context="{'active_model': 'multi.approval', 'active_ids': active_ids}"
                     invisible="state != 'Submitted'"
-                    groups="multi_level_approval.group_approval_manager"
+                    groups="accounts_extended.group_cancel_accounting_entry"
                 />
             </button>
         </field>

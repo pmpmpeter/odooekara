@@ -155,7 +155,7 @@
                 <field name="payment_base_amount" readonly="state != 'draft'" invisible="not other_charge_applicable"/>
                 <field name="payment_purchase_id" domain="[('partner_id','=',partner_id),('company_id','=',company_id)]"
                        readonly="state != 'draft'" invisible="payment_type != 'outbound'"/>
-                <field name="print_assigned" widget="many2many_tags" groups="account.group_account_manager"/>
+                <field name="print_assigned" widget="many2many_tags" readonly="state != 'draft'" groups="account.group_account_manager"/>
             </xpath>
             <xpath expr="//field[@name='partner_id'][2]" position="attributes">
                 <attribute name="options">{'no_quick_create':True,'no_create': True}</attribute>
