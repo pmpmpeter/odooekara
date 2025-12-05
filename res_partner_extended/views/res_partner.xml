@@ -94,7 +94,7 @@
                         <button name="reset_to_draft" type="object"
                                 string="Reset To Draft" invisible="state not in ['approve', 'done']"
                                 class="oe_highlight"
-                                groups="account.group_account_manager"/>
+                                groups="accounts_extended.group_cancel_accounting_entry"/>
                         <button name="mark_as_reviewed" type="object" string="Mark As Reviewed" invisible="not has_to_review"/>
                         <field name="state" widget="statusbar"/>
                     </header>

@@ -31,6 +31,7 @@
                                 invisible="state not in ('expired')"/>
                         <button name="action_deactivate" string="Deactivate" type="object" class="btn-secondary" invisible="user_created == False or active == False"/>
                         <button name="action_activate" string="Activate" type="object" class="btn-secondary" invisible="active != False"/>
+                        <button name="action_delete" string="Delete" type="object" class="btn-secondary" invisible="state == 'in_active'" groups="accounts_extended.group_cancel_accounting_entry"/>
                     </header>
                     <sheet>
                         <widget name="web_ribbon" title="Approved" bg_color="text-bg-success" invisible="not is_approved"/>

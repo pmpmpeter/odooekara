@@ -44,6 +44,11 @@ class ContactCreation(models.Model):
         string='Status', default='draft', readonly=True, copy=False, tracking=True)
     is_approved = fields.Boolean(string="Partner Approved", compute="_compute_is_approved")
 
+    def action_delete(self):
+        for rec in self:
+            rec.active = False
+            rec.state = 'in_active'
+
     @api.depends('partner_id')
     def _compute_is_approved(self):
         for record in self:
@@ -158,7 +163,6 @@ class ContactCreation(models.Model):
                     'company_ids': [(6, 0, record.company_ids.ids)],
                     'company_id': record.default_company_id.id,
                 })
-
             record.sudo().write({'user_id': user,
                                  'partner_id':user.partner_id,})
             if record.partner_id:
