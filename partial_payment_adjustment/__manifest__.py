@@ -16,6 +16,7 @@
     "depends": [
         "account",
         "account_accountant",
+        "accounts_extended"
     ],
     'data': [
         'security/ir.model.access.csv',
