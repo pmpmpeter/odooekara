@@ -14,12 +14,12 @@
                     </div>
                 </xpath>
                 <xpath expr='//sheet' position="inside">
-                    <separator string="Invoices"/>
+                    <separator string="Invoices" invisible="advance_payment"/>
                     <field name="payment_compute" invisible="1"/>
-                    <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted')"/>
+                    <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted') or advance_payment"/>
 <!--                    <button name="update_entry" type="object" string="Update Entry" invisible="state not in ('posted')"/>-->
 <!--                    <button name="reconcile_entry" type="object" string="Reconcile Entry"/>-->
-                    <field name="payment_invoice_ids" nolabel="1" readonly="state in ('approved','posted')">
+                    <field name="payment_invoice_ids" nolabel="1" readonly="state in ('approved','posted')" invisible="advance_payment">
                         <tree editable="bottom" create="false">
 <!--                            <field name="is_entry_reconciled" column_invisible="1"/>-->
                             <field name="is_reconcile_amount"/>
@@ -30,8 +30,6 @@
                             <field name="residual" readonly="1"/>
                             <field name="reconcile_amount" sum="reconcile_amount" readonly="is_reconciled_en"/>
                             <field name="currency_id" column_invisible="1"/>
-
-
                         </tree>
                     </field>
                    <separator string="Reconciled Entry"/>

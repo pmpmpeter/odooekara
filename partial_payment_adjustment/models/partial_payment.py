@@ -52,10 +52,10 @@ class AccountPayment(models.Model):
     advance_payment_done = fields.Boolean(string='Advance Payment Done')
     payment_compute = fields.Float(compute = 'compute_bill_payment_amount',string='Compute')
 
-    @api.onchange('payment_invoice_ids')
-    def reconcile_amount_lines_update(self):
-        for rec1 in self:
-            rec1.amount = sum(rec1.payment_invoice_ids.mapped('reconcile_amount'))
+    # @api.onchange('payment_invoice_ids')
+    # def reconcile_amount_lines_update(self):
+    #     for rec1 in self:
+    #         rec1.amount = sum(rec1.payment_invoice_ids.mapped('reconcile_amount'))
 
     # @api.depends('reconciled_bill_ids')
     def compute_bill_payment_amount(self):
@@ -259,6 +259,12 @@ class AccountPayment(models.Model):
     #             raise UserError(
     #                 _("Alert!! You are trying to allocate an amount that exceeds the payment amount."))
 
+    @api.onchange('advance_payment')
+    def amount_advance_payment(self):
+        if self.advance_payment:
+            self.payment_invoice_ids.update({'reconcile_amount':0.0})
+
+
     @api.onchange('amount')
     def amount_onchange(self):
         for rec in self:
@@ -274,14 +280,14 @@ class AccountPayment(models.Model):
                                 available_amount = rec.amount - total_reconcile
                                 if abs(line.residual) < available_amount:
                                         print('1')
-                                        # line.reconcile_amount = abs(line.residual)
+                                        line.reconcile_amount = abs(line.residual)
                                 else:
                                     print('2')
-                                    # line.reconcile_amount = available_amount
+                                    line.reconcile_amount = available_amount
                     else:
                         for line in rec.payment_invoice_ids:
                             print('3')
-                            # line.reconcile_amount = 0
+                            line.reconcile_amount = 0
 
     # def write(self,vals):
     #     super(AccountPayment,self).write(vals)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from email.policy import default
 
 from odoo import api, Command, fields, models, _, _lt
 from datetime import datetime,timedelta
@@ -330,6 +331,20 @@ class ProjectTask(models.Model):
     task_rejected = fields.Boolean(string='Task Rejected')
     task_assign_line_ids = fields.One2many('task.assign.line', 'task_id', string='Task Assign Details', copy=False)
     is_done_stage = fields.Boolean(string='Is Done Stage?', related='stage_id.is_done_stage')
+    task_accepted = fields.Boolean(string='Task Accepted',default=False)
+
+    def action_accept(self):
+        self.task_accepted = True
+        line_ids = self.task_assign_line_ids.filtered(lambda x:x.assign_state=='draft')
+        line_ids.update({'assign_state':'in_progress'})
+        self.stage_id = self.env['project.task.type'].search([('name', '=', 'In Progress'),
+                                                              ('project_ids', 'in', self.project_id.id)]).id
+
+
+    def action_refuse(self):
+        self.task_accepted = True
+        line_ids = self.task_assign_line_ids.filtered(lambda x: x.assign_state == 'draft')
+        line_ids.update({'assign_state': 'refuse'})
 
     def action_assign_task_user(self):
         if self.stage_id and self.stage_id.is_done_stage:
@@ -383,6 +398,10 @@ class ProjectTask(models.Model):
 
     def action_task_approve(self):
         self.task_approved = True
+        self.stage_id = self.env['project.task.type'].search([('name', '=', 'Done'),
+                                                              ('project_ids', 'in', self.project_id.id)]).id
+        line_ids = self.task_assign_line_ids.filtered(lambda x: x.assign_state == 'in_progress')
+        line_ids.update({'assign_state': 'done'})
 
     def action_task_reject(self):
         self.task_rejected = True
@@ -393,7 +412,6 @@ class ProjectTask(models.Model):
             ('stage_id.name', '!=', 'Expired'),
             ('recurring_task','=',True),
         ])
-        print(expired_tasks,'ggggggggggg')
         for task in expired_tasks:
             task.stage_id = self.env['project.task.type'].search([('name', '=', 'Expired'),
                                                                   ('project_ids', 'in', task.project_id.id)]).id
@@ -515,4 +533,4 @@ class TaskAssignLine(models.Model):
     assigned_reason = fields.Text(string='Reason')
     assigned_date = fields.Datetime(string='Assigned Date')
     completed_date = fields.Datetime(string='Completed Date')
-    assign_state = fields.Selection([('in_progress', 'In Progress'), ('done', 'Done')], string='Status', default='in_progress')
+    assign_state = fields.Selection([('draft', 'Draft'),('in_progress', 'In Progress'),('refuse', 'Refuse'), ('done', 'Done')], string='Status', default='draft')

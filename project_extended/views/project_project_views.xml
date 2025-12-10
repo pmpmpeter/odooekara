@@ -60,6 +60,9 @@
             <xpath expr="//header" position="inside">
                 <field name="is_done_stage" invisible="1"/>
                 <button name="action_assign_task_user" type="object" string="Assign To" class="oe_highlight" invisible="is_done_stage"/>
+                <field name="task_accepted" invisible="1"/>
+                <button name="action_accept" type="object" string="Accept" class="oe_highlight" invisible="task_accepted"/>
+                <button name="action_refuse" type="object" string="Refuse" class="oe_highlight" invisible="task_accepted"/>
             </xpath>
             <xpath expr="//field[@name='user_ids']" position="attributes">
                 <attribute name="readonly">1</attribute>
