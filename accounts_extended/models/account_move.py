@@ -129,6 +129,24 @@ class AccountMoveInherit(models.Model):
     budget_update = fields.Boolean("Is Budget Updated?",copy=False)
     journal_type = fields.Selection(related='journal_id.type')
     active = fields.Boolean(string="Active",default=True, copy=False)
+    move_type = fields.Selection(
+        selection=[
+            ('entry', 'Journal Entry'),
+            ('out_invoice', 'Customer Invoice'),
+            ('out_refund', 'Customer Credit Note'),
+            ('in_invoice', 'Vendor Bill'),
+            ('in_refund', 'Vendor Debit Note'),
+            ('out_receipt', 'Sales Receipt'),
+            ('in_receipt', 'Purchase Receipt'),
+        ],
+        string='Type',
+        required=True,
+        readonly=True,
+        tracking=True,
+        change_default=True,
+        index=True,
+        default="entry",
+    )
 
     def _get_move_display_name(self, show_ref=False):
         ''' Helper to get the display name of an invoice depending of its type.
