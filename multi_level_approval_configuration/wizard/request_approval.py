@@ -234,7 +234,10 @@ class RequestApproval(models.TransientModel):
                             if not line1.filtered(lambda e: {str(line1.budget_id.analytic_account_id.id): 100} == e.analytic_distribution):
                                 raise UserError(_("Alert !! Wrong Analytic Account Mapped to %s.\n%s is mapped to %s Budgetry Position.")%(
                                     line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
-
+        elif active_res_model == 'project.task':
+            task_id = self.env['project.task'].sudo().browse(self.origin_ref.id)
+            self.type_id.line_ids.update({'user_id':task_id.raise_request_to_id})
+    
         # create request
         vals = {
             "name": self.name,

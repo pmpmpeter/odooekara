@@ -64,6 +64,9 @@
                 <button name="action_accept" type="object" string="Accept" class="oe_highlight" invisible="task_accepted"/>
                 <button name="action_refuse" type="object" string="Refuse" class="oe_highlight" invisible="task_accepted"/>
             </xpath>
+            <field name="user_ids" position="after">
+                <field name="raise_request_to_id"/>
+            </field>
             <xpath expr="//field[@name='user_ids']" position="attributes">
                 <attribute name="readonly">1</attribute>
                 <attribute name="force_save">1</attribute>

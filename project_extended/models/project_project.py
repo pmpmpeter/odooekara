@@ -332,6 +332,7 @@ class ProjectTask(models.Model):
     task_assign_line_ids = fields.One2many('task.assign.line', 'task_id', string='Task Assign Details', copy=False)
     is_done_stage = fields.Boolean(string='Is Done Stage?', related='stage_id.is_done_stage')
     task_accepted = fields.Boolean(string='Task Accepted',default=False)
+    raise_request_to_id = fields.Many2one('res.users',string='Raise Request To')
 
     def action_accept(self):
         self.task_accepted = True
@@ -375,6 +376,8 @@ class ProjectTask(models.Model):
                     }
                     task_assign_vals.append((0, 0, assign_vals))
                 task.write({'task_assign_line_ids': task_assign_vals})
+            if not task.raise_request_to_id:
+                task.raise_request_to_id = self.env.user.id
         return res
 
 
