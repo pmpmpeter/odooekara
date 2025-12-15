@@ -116,10 +116,18 @@ class HrAnnouncement(models.Model):
                 })
 
             if partners:
-                message = Markup("Announcement Name: %s<br/> Announcement Title: %s") % (
-                    announcement.name,
-                    announcement.announcement_reason
-                )
+                base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+                announcement_url = f"{base_url}/web#id={announcement.id}&model=hr.announcement&view_type=form"
+
+                message = Markup(
+                    "Announcement Name: %s<br/>"
+                    "Announcement Title: %s<br/>"
+                    "<a href='%s' target='_blank'>Open Announcement</a>"
+                ) % (
+                              announcement.name,
+                              announcement.announcement_reason,
+                              announcement_url
+                          )
                 announcement.message_post(
                     body=message,
                     subject="New Announcement Created",

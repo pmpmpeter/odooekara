@@ -1,5 +1,6 @@
 from odoo import models, api, _, fields
 from odoo.exceptions import ValidationError
+from datetime import date
 from datetime import datetime, timedelta, time
 
 
@@ -30,6 +31,18 @@ class HolidaysRequest(models.Model):
     def _onchange_holiday_status_id(self):
         """ Clears leave_subtype_id when holiday_status_id changes """
         self.leave_subtype_id = False
+
+    @api.constrains('date_from')
+    def _check_date_from_in_current_month(self):
+        for rec in self:
+            if rec.date_from:
+                today = date.today()
+                # Check month and year
+                if (rec.date_from.month != today.month) or (rec.date_from.year != today.year):
+                    raise ValidationError(
+                        "The selected date must be in the current month."
+                    )
+
 
     @api.constrains('date_from', 'leave_subtype_id', 'holiday_status_id')
     def _check_leave_days(self):
