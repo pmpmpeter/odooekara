@@ -235,6 +235,12 @@
                                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
                                             </t>
+                                             <t t-elif="deductions[i].code == 'LOP'">
+                                                  <t t-set="lop" t-value="(0.0)"/>
+                                                <span>
+                                                    <t t-esc="lop" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                                </span>
+                                            </t>
                                             <t t-else="">
                                                 <t t-set="year_total" t-value="(deductions[i].total or 0.0) * ytd"/>
                                                 <span>
