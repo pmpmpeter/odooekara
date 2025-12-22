@@ -355,10 +355,10 @@ class AccountBatchPayment(models.Model):
 
         # Create Attachment
         attachment = self.env['ir.attachment'].create({
-            'name': f'Batch_Payment_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'name': f'{self.cheque_number}.xlsx',
             'type': 'binary',
             'datas': file_data,
-            'store_fname': f'Batch_Payment_Details_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'store_fname': f'{self.cheque_number}.xlsx',
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'res_model': 'account.batch.payment',
             'res_id': self.id,
