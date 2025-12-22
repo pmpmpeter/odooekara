@@ -3,6 +3,7 @@
     <!--Cheque print template-->
     <template id="cheque_payment_document">
         <t t-call="web.html_container">
+            <meta charset="utf-8"/>
             <t t-foreach="docs" t-as="o">
 
                 <div style="font-weight:bold;margin-top:0px;padding-bottom: 250px;">
