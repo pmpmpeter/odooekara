@@ -32,16 +32,25 @@ class HolidaysRequest(models.Model):
         """ Clears leave_subtype_id when holiday_status_id changes """
         self.leave_subtype_id = False
 
-    # @api.constrains('date_from')
-    # def _check_date_from_in_current_month(self):
-    #     for rec in self:
-    #         if rec.date_from:
-    #             today = date.today()
-    #             # Check month and year
-    #             if (rec.date_from.month != today.month) or (rec.date_from.year != today.year):
-    #                 raise ValidationError(
-    #                     "The selected date must be in the current month."
-    #                 )
+    @api.constrains('date_from')
+    def _check_date_from_in_current_month(self):
+        today = date.today()
+
+        for rec in self:
+            if not rec.date_from:
+                continue
+
+            date_from = rec.date_from.date()  # ✅ convert datetime → date
+
+            # ✅ Allow past dates
+            if date_from <= today:
+                continue
+
+            # ❌ Future dates must be in current month
+            if date_from.month != today.month or date_from.year != today.year:
+                raise ValidationError(
+                    "Future dates must be within the current month."
+                )
 
 
     @api.constrains('date_from', 'leave_subtype_id', 'holiday_status_id')
