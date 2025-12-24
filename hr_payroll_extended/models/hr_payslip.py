@@ -58,7 +58,14 @@ class HrPayslip(models.Model):
             date = self.date_from
             year = date.year
             month = date.month
-            days_in_month = calendar.monthrange(year, month)[1]
+            lop_days=sum(self.worked_days_line_ids.filtered(
+                lambda x: x.work_entry_type_id.external_code == 'LOP'
+            ).mapped('number_of_days'))
+            if lop_days:
+                days_in_month = calendar.monthrange(year, month)[1] - lop_days
+            else:
+                days_in_month = calendar.monthrange(year, month)[1]
+
             return {
                 'month_total': int(len(months)),
                 'income_total': income_total,

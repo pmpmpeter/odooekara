@@ -31,6 +31,13 @@ class PayrollReportWizard(models.TransientModel):
     file_name = fields.Char(string="File Name", readonly=True)
     partner_ids = fields.Many2many('res.partner', string="Email To")
     employee_id = fields.Many2many('hr.employee',string='Email To')
+    user_id = fields.Many2many(
+        'res.users',
+        'payroll_report_wizard_res_users_rel',  # relation table name
+        'wizard_id',  # column referring to this model
+        'user_id',  # column referring to res.users
+        string="In-App Notifications"
+    )
 
     def action_send_payroll_report_mail(self):
         template = self.env.ref('hr_extended.payroll_report_share_email_template')
@@ -90,15 +97,15 @@ class PayrollReportWizard(models.TransientModel):
         #                 "summary": summary,
         #                 "user_id": user.id,  # This must be res.users.id
         #             })
-        users = self.employee_id
-        for rec in users:
-            if not rec.user_id:
+        users = self.user_id
+        for user_id in users:
+            if not user_id:
                 raise ValidationError("In-app notifications can be sent to employees who are linked to users")
             self.batch_id.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="Batch Payroll Reminder: Payroll reminder",
                 note=f"Kindly Verify the Batch Payroll:{self.batch_id.name} .",
-                user_id=rec.user_id.id,
+                user_id=user_id.id,
                 date_deadline=fields.Date.today()
             )
 
