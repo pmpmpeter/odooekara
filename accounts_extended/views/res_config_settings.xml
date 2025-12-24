@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+         <record id="res_config_settings_view_form_account_inherit" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.account</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="40"/>
+            <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+             <field name="arch" type="xml">
+                  <xpath expr="//block[@id='default_accounts']" position="inside">
+                      <setting string="Bank Reconciliation">
+                       <div class="content-group">
+                            <div class="row mt8">
+                                <label for="brs_account_ids" class="col-lg-5 o_light_label"/>
+                                <field name="brs_account_ids" widget="many2many_tags"/>
+                            </div>
+                        </div>
+                      </setting>
+                  </xpath>
+             </field>
+         </record>
+
         <record id="view_res_company_form_inherit_tax_entity" model="ir.ui.view">
             <field name="name">res.company.form.tax.entity</field>
             <field name="model">res.company</field>
