@@ -15,7 +15,7 @@
 						<div style="display: flex; justify-content: space-between; align-items: center;">
 							<div style="text-align:right; white-space: nowrap;">
 								<strong>Date:</strong>
-								<t t-esc="o.date.strftime('%d-%b-%y') or ''"/>
+								<t t-esc="datetime.datetime.today().strftime('%d-%b-%y')" />
 							</div>
 							<t t-set="test1" t-value="o.bank_advice_values()"/>
                             <t t-set="test" t-value="test1.get('employee_payslip_dict')"/>
