@@ -470,7 +470,9 @@ class BalanceLeavesReportWizard(models.TransientModel):
                     ('employee_id', '=', employee.id),
                     ('holiday_status_id.name', '=', leave['name']),
                     ('state', '=', 'validate'),
-                    ('date_to', '>', self.date_from)
+                    '|',
+                    ('date_to', '=', False),
+                    ('date_to', '>', self.date_from),
                 ])
                 total_allocation = round(sum(allocation.mapped('number_of_days')),2) if allocation else 0
 
