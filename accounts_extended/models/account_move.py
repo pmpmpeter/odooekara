@@ -147,6 +147,7 @@ class AccountMoveInherit(models.Model):
         index=True,
         default="entry",
     )
+    advance_payment = fields.Many2many('account.payment',string='Advance Payment')
 
     def _get_move_display_name(self, show_ref=False):
         ''' Helper to get the display name of an invoice depending of its type.
@@ -568,6 +569,8 @@ class AccountMoveInherit(models.Model):
 
     def action_post(self):
         for rec in self:
+            if rec.advance_payment:
+                rec.l10n_in_withhold_move_ids = [(6, 0, rec.l10n_in_withhold_move_ids.ids + rec.advance_payment.move_id.ids)]
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
@@ -578,6 +581,15 @@ class AccountMoveInherit(models.Model):
             rec.action_update_budget_cur_figure_add()
             rec.action_validate_no_bill()
         res = super(AccountMoveInherit, self).action_post()
+        for rec in self:
+            if rec.advance_payment:
+                self.activity_schedule(
+                    activity_type_id=rec.env.ref('mail.mail_activity_data_todo').id,
+                    summary=f"Kindly Check if you have add TDS for the bill {rec.name}",
+                    note=f"Kindly Check if you have add TDS.",
+                    user_id=rec.create_uid.id,
+                    date_deadline=fields.Date.today()
+                )
         for rec in self:
             if rec.move_type != 'entry' and rec.invoice_date and rec.invoice_date < fields.Date.today():
                 if rec.move_type == 'out_invoice':
@@ -614,6 +626,17 @@ class AccountMoveInherit(models.Model):
 
     def action_print_invoice_template(self):
         return self.env.ref('accounts_extended.print_invoice_template1').report_action(self)
+
+    def _compute_l10n_in_total_withholding_amount(self):
+        for move in self:
+            move.l10n_in_total_withholding_amount = sum(move.l10n_in_withhold_move_ids.filtered(
+                lambda m: m.state == 'posted').l10n_in_withholding_line_ids.mapped('l10n_in_withhold_tax_amount'))
+            if self.advance_payment:
+                advance_amount = 0
+                for line_ids in self.advance_payment.move_id.line_ids:
+                    if line_ids.tax_tag_ids:
+                        advance_amount +=abs(line_ids.amount_currency)
+                move.l10n_in_total_withholding_amount+=advance_amount
 
     def action_print_jv_cheque(self):
         return self.env.ref('odoo_print_cheque.print_cheque_payment_account_move').report_action(self)
