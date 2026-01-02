@@ -19,7 +19,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='withhold_line_ids']/tree/field[@name='amount']" position="replace">
                     <field name="amount" sum="Total Amount" widget="monetary" 
-                        options="{'currency_field': 'currency_id'}" readonly='0'/>
+                        options="{'currency_field': 'currency_id'}" readonly='1'/>
                 </xpath>
             </field>
         </record>

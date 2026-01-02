@@ -636,7 +636,7 @@ class AccountMoveInherit(models.Model):
                 for line_ids in self.advance_payment.move_id.line_ids:
                     if line_ids.tax_tag_ids:
                         advance_amount +=abs(line_ids.amount_currency)
-                move.l10n_in_total_withholding_amount+=advance_amount
+                move.l10n_in_total_withholding_amount+=round(advance_amount)
 
     def action_print_jv_cheque(self):
         return self.env.ref('odoo_print_cheque.print_cheque_payment_account_move').report_action(self)
