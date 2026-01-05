@@ -148,6 +148,10 @@ class AccountBatchJV(models.Model):
                             line.name,
                         )
                         if key not in grouped_lines:
+                            budget_id = journal_entry.crossovered_budget.crossovered_budget_line \
+                                .filtered(lambda x: x.general_budget_id.name == '70110001 Employee Salary')
+                            corporate_account = self.env['account.analytic.account'].search(
+                                [('name', '=', 'Corporate')], limit=1)
                             grouped_lines[key] = {
                                 'account_id': line.account_id.id,
                                 'name': line.name,
@@ -156,6 +160,8 @@ class AccountBatchJV(models.Model):
                                 'partner_id': line.partner_id.id if line.partner_id else False,
                                 'currency_id': line.currency_id.id if line.currency_id else False,
                                 'amount_currency': 0.0,
+                                'budget_id':budget_id.ids if line.name in ("Employee's salaries","Emplr contr. To NPS","NPS Recovery") and budget_id else False,
+                                'analytic_distribution':{corporate_account.id: 100.0} if line.name in ("Employee's salaries","Emplr contr. To NPS","NPS Recovery") and corporate_account else False,
                             }
 
                         grouped_lines[key]['debit'] += line.debit
@@ -497,7 +503,7 @@ class AccountBatchJV(models.Model):
 
         # Create Attachment
         attachment = self.env['ir.attachment'].create({
-            'name': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'name': f'Batch_Salary_JV_{datetime.now().strftime("%d_%m_%Y")}.xlsx',
             'type': 'binary',
             'datas': file_data,
             'store_fname': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
