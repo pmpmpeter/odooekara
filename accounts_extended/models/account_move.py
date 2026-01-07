@@ -147,7 +147,7 @@ class AccountMoveInherit(models.Model):
         index=True,
         default="entry",
     )
-    advance_payment = fields.Many2many('account.payment',string='Advance Payment')
+    advance_payment_ids = fields.Many2many('account.payment',string='Advance Payment')
 
     def _get_move_display_name(self, show_ref=False):
         ''' Helper to get the display name of an invoice depending of its type.
@@ -569,8 +569,8 @@ class AccountMoveInherit(models.Model):
 
     def action_post(self):
         for rec in self:
-            if rec.advance_payment:
-                rec.l10n_in_withhold_move_ids = [(6, 0, rec.l10n_in_withhold_move_ids.ids + rec.advance_payment.move_id.ids)]
+            if rec.advance_payment_ids:
+                rec.l10n_in_withhold_move_ids = [(6, 0, rec.l10n_in_withhold_move_ids.ids + rec.advance_payment_ids.move_id.ids)]
             purchase_order = self.line_ids.purchase_line_id.order_id
             if purchase_order:
                 purchase_order.budget_id.reserved_amount -= rec.amount_untaxed
@@ -582,7 +582,7 @@ class AccountMoveInherit(models.Model):
             rec.action_validate_no_bill()
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
-            if rec.advance_payment:
+            if rec.advance_payment_ids:
                 self.activity_schedule(
                     activity_type_id=rec.env.ref('mail.mail_activity_data_todo').id,
                     summary=f"Kindly Check if you have add TDS for the bill {rec.name}",
@@ -631,9 +631,9 @@ class AccountMoveInherit(models.Model):
         for move in self:
             move.l10n_in_total_withholding_amount = sum(move.l10n_in_withhold_move_ids.filtered(
                 lambda m: m.state == 'posted').l10n_in_withholding_line_ids.mapped('l10n_in_withhold_tax_amount'))
-            if self.advance_payment:
+            if self.advance_payment_ids:
                 advance_amount = 0
-                for line_ids in self.advance_payment.move_id.line_ids:
+                for line_ids in self.advance_payment_ids.move_id.line_ids:
                     if line_ids.tax_tag_ids:
                         advance_amount +=abs(line_ids.amount_currency)
                 move.l10n_in_total_withholding_amount+=round(advance_amount)

@@ -511,7 +511,7 @@
                                    readonly="state != 'draft'"
                                    groups="!account.group_account_readonly,base.group_multi_currency"
                                    options="{'no_create': True}"/>
-                            <field name="advance_payment" widget="many2many_tags"/>
+                            <field name="advance_payment_ids" widget="many2many_tags"/>
                             <field name="expense_type"
                                    invisible="move_type not in ['in_invoice'] or not is_payment_approval"
                                    readonly="state != 'draft'"/>
