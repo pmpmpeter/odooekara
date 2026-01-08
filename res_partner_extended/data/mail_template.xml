@@ -28,8 +28,7 @@
         <field name="name">Supplier - Invitation Mail</field>
         <field name="model_id" ref="model_contact_creation"/>
         <field name="email_to">{{object.email}}</field>
-        <field name="subject">Supplier Invitation Email for {{object.name}}
-        </field>
+        <field name="subject">Supplier Invitation Email for {{object.name}}</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
@@ -52,8 +51,7 @@
         <field name="name">Contact Approved - Invitation Mail</field>
         <field name="model_id" ref="model_res_partner"/>
         <field name="email_to">{{object.email}}</field>
-        <field name="subject">Contact Approved – {{ object.name }}
-        </field>
+        <field name="subject">Contact Approved – {{ object.name}}</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p style="margin: 0px; padding: 0px; font-size: 13px;">
