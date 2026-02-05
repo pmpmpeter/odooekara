@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Action Window -->
+    <record id="document_workflow_action" model="ir.actions.act_window">
+        <field name="name">Document Handling</field>
+        <field name="res_model">document.workflow</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menu Items -->
+<!--    <menuitem id="menu_document_workflow_root"-->
+<!--              name="Document Handling"-->
+<!--              web_icon="document_management_system,static/description/images.png"-->
+<!--              sequence="10" />-->
+
+    <menuitem id="menu_document_workflow"
+              name="Handle Documents"
+              parent="document_access_mgmt.menu_document_access_mgmt"
+              action="document_workflow_action"
+              sequence="10" />
+
+    <!-- Tree View -->
+    <record id="view_document_workflow_tree" model="ir.ui.view">
+        <field name="name">document.workflow.tree</field>
+        <field name="model">document.workflow</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+<!--                <field name="document_state"/>-->
+<!--                <field name="requested_by_id"/>-->
+<!--                <field name="submitted_by_id"/>-->
+<!--                <field name="received_by_id"/>-->
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_document_workflow_form" model="ir.ui.view">
+        <field name="name">document.workflow.form</field>
+        <field name="model">document.workflow</field>
+        <field name="arch" type="xml">
+            <form string="Handle Document">
+
+<!--                <header>-->
+<!--                    <button name="action_request_document"-->
+<!--                            type="object"-->
+<!--                            string="Request Document"-->
+<!--                            invisible="1"-->
+<!--                            class="btn-primary"/>-->
+<!---->
+<!--                    <button name="action_request_approval"-->
+<!--                            type="object"-->
+<!--                            string="Submit for Acceptance"-->
+<!--                            invisible="document_state not in ['draft','requested']"-->
+<!--                            class="btn-info"/>-->
+<!---->
+<!--                    <button name="action_mark_done"-->
+<!--                            type="object"-->
+<!--                            string="Received"-->
+<!--                            invisible="document_state != 'waiting_approval'"-->
+<!--                            class="btn-success"/>-->
+
+<!--                    <field name="document_state" widget="statusbar"-->
+<!--                           statusbar_visible="draft,waiting_approval,done"-->
+<!--                           statusbar_status="document_state"/>-->
+<!--                </header>-->
+
+                <sheet>
+                    <group>
+                        <field name="name" required="1"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Document Handling">
+                            <group>
+                                <field name="documents_count" readonly="1"/>
+                                <field name="attachment_ids">
+                                    <tree string="Documents" create="true" delete="true">
+                                        <field name="file_name"/>
+                                        <field name="file_data" filename="file_name" widget="download"/>
+                                    </tree>
+                                </field>
+                            </group>
+                            <group>
+                                <field name="document_history" editable="top">
+                                    <tree create="True" delete="False">
+                                        <field name="submitted_by"/>
+                                        <field name="submitted_to"/>
+                                        <field name="received_by"/>
+                                        <field name="status"/>
+                                        <button name="action_request_approval"
+                                                type="object"
+                                                string="Submit for Acceptance"
+                                                invisible="status not in ['draft','requested']"
+                                                class="btn-info"/>
+
+                                        <button name="action_mark_done"
+                                                type="object"
+                                                string="Received"
+                                                invisible="status != 'waiting_approval'"
+                                                class="btn-success"/>
+                                    </tree>
+                                    <form>
+                                        <sheet>
+                                            <group>
+                                        <field name="submitted_by"/>
+                                        <field name="submitted_to"/>
+                                        <field name="received_by"/>
+                                        <field name="status"/>
+                                            </group>
+                                        </sheet>
+                                        <div class="oe_chatter">
+                                            <field name="message_follower_ids" groups="base.group_user"/>
+                                            <field name="message_ids"/>
+                                        </div>
+                                    </form>
+                                </field>
+<!--                                <field name="document_request" invisible="1"/>-->
+<!--                                <field name="requested_to_id" invisible="1"/>-->
+<!--                                <field name="requested_by_id" readonly="1" invisible="1"/>-->
+<!--                                <field name="submitted_to_id"/>-->
+<!--                                <field name="submitted_by_id" readonly="1"/>-->
+<!--                                <field name="received_by_id" readonly="1"/>-->
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                        <field name="message_follower_ids" groups="base.group_user"/>
+                        <field name="message_ids"/>
+                    </div>
+            </form>
+        </field>
+    </record>
+
+</odoo>

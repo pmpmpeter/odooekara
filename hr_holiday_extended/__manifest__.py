@@ -13,6 +13,7 @@
         'base',
         'hr',
         'hr_holidays',
+        'hr_payroll_holidays',
     ],
     'data': [
         'security/ir.model.access.csv',
