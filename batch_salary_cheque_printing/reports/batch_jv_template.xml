@@ -23,7 +23,7 @@
                     </div>
                     <!--Cheque date format-->
                     <div t-attf-style="position: absolute;margin-left:{{o.cheque_format_id.date_left_margin}}px; margin-top:{{o.cheque_format_id.date_top_margin}}px; letter-spacing: {{o.cheque_format_id.date_letter_spacing}}em;">
-                        <t t-esc="o.date.strftime('%d%m%Y')"/>
+                        <t t-esc="datetime.datetime.today().strftime('%d%m%Y')" />
                     </div>
                     <!--Partner Name format-->
                     <div t-attf-style="width:100%;position: absolute;margin-left:{{o.cheque_format_id.beneficiary_left_margin}}px; margin-top:{{o.cheque_format_id.beneficiary_top_margin}}px;">

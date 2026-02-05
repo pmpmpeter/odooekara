@@ -70,7 +70,7 @@
 								as per cheque No:
 								<t t-out="o.cheque_number"/>
 								dated:
-								<t t-out="o.date.strftime('%d-%b-%y')"/>
+								<t t-out="datetime.datetime.today().strftime('%d-%b-%y')"/>
                                 .
 							</p>
 						</div>
