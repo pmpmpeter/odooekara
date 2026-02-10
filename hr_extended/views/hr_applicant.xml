@@ -72,6 +72,26 @@
             <field name="model">hr.applicant</field>
             <field name="inherit_id" ref="hr_recruitment.hr_applicant_view_form"/>
             <field name="arch" type="xml">
+                <field name="applicant_properties" position="before">
+                     <group string="Salary Breakup">
+                         <button name="action_create_breakup_lines"  type="object" string="Create Salary Lines" class="btn-primary" invisible="salary_breakup_added" width="80px" />
+                         <field name="salary_breakup_added" invisible="1"/>
+                         <field name="salary_breakup_approved" invisible="1"/>
+                        <field name="salary_breakup_ids" readonly="salary_breakup_approved" string="" width="60px">
+                            <tree editable="bottom" create="0" delete="0">
+                                <field name="salary_breakup_type" width="60px" readonly="1"/>
+                                <field name="salary_proposed" width="80px"/>
+                                <field name="state" readonly="1" width="80px"/>
+                                <field name="final_state" readonly="1" width="80px"/>
+                                <button name="action_hr_approve" type="object" string="HR Approve" class="btn-primary" invisible="state != 'approved' or final_state != 'draft'" width="80px" />
+                                <button name="action_approve" type="object" string="Director Approve" class="btn-primary" invisible="state != 'draft'" width="80px" />
+                                <button name="action_reject" type="object" string="Director Reject" class="btn-danger" invisible="state != 'draft'" width="80px" />
+                                <button name="action_hr_reject" type="object" string="HR Reject" class="btn-danger" invisible="state != 'approved' or final_state != 'draft'"  width="80px" />
+                                <button name="action_view" type="object" string="View" class="btn-secondary" width="80px"/>
+                            </tree>
+                        </field>
+                    </group>
+                </field>
                 <!-- to avoid jumping stages and fix approval matrix -->
                 <xpath expr="//field[@name='stage_id']" position="attributes">
                     <attribute name="options">{'fold_field': 'fold'}</attribute>
@@ -248,8 +268,21 @@
                             string="Send Invitation"
                             invisible="stage_status not in ('first_level','new','initial') or application_status == 'refused'"/>
                 </xpath>
+                <xpath expr="//group[@name='recruitment_contract']/div/field[@name='salary_proposed']" position="attributes">
+                    <attribute name="invisible">not salary_breakup_approved</attribute>
+                </xpath>
+                <xpath expr="//group[@name='recruitment_contract']/div/span[preceding-sibling::field[@name='salary_proposed']]" position="attributes">
+                   <attribute name="invisible">not salary_breakup_approved</attribute>
+                </xpath>
+                <xpath expr="//group[@name='recruitment_contract']/div/field[@name='salary_proposed_extra']" position="attributes">
+                    <attribute name="invisible">not salary_breakup_approved</attribute>
+                </xpath>
+                <field name="salary_proposed" position="attributes">
+                    <attribute name="invisible">not salary_breakup_approved</attribute>
+                </field>
                 <notebook position="inside">
-                    <page string="Salary Breakup" invisible="stage_status not in ('shortlist','offer_accepted')">
+                    <field name="salary_breakup_approved" invisible="1"/>
+                    <page string="Salary Breakup" invisible="stage_status not in ('shortlist','offer_accepted') or not salary_breakup_approved">
                         <group>
                             <group string="Compensation Details">
                                 <field name="monthly_fixed_salary"/>
@@ -384,6 +417,104 @@
                 </field>
             </field>
         </record>
+
+        <record id="view_salary_breakup_line_form" model="ir.ui.view">
+    <field name="name">salary.breakup.lines.form</field>
+    <field name="model">salary.breakup.lines</field>
+    <field name="arch" type="xml">
+        <form string="Salary Breakup Details">
+
+            <sheet>
+                <group>
+                    <field name="applicant_id" readonly="1"/>
+                    <field name="salary_breakup_type" readonly="1"/>
+                    <field name="state" readonly="1"/>
+                    <field name="salary_proposed" readonly="state in ('approved','rejected')"/>
+                </group>
+
+               <notebook position="inside">
+                    <page string="Salary Breakup">
+                        <button name="calculate_salary" invisible="state in ('approved','rejected')" type="object" string="Calculate Salary" class="btn-primary"/>
+                        <group readonly="state in ('approved','rejected')">
+                            <group string="Compensation Details">
+                                <field name="monthly_fixed_salary"/>
+                                <label for="statutory_bonus_applicable"/>
+                                <div class="o_row">
+                                    <field name="statutory_bonus_applicable"/>
+                                </div>
+                                <label for="provident_fund_applicable"/>
+                                <div class="o_row">
+                                    <field name="provident_fund_applicable"/>
+                                </div>
+                                <label for="esi_applicable"/>
+                                <div class="o_row">
+                                    <field name="esi_applicable"/>
+                                </div>
+                                <label for="variable_pay_percentage"/>
+                                <div class="o_row">
+                                    <field name="variable_pay_percentage"/>
+                                </div>
+                            </group>
+                            <group string="Compensation Details">
+                                <field name="grade"/>
+                                <field name="locations_id"  options="{'no_quick_create':True,'no_create': True,}"/>
+                                <field name="medical_insurance"/>
+                                <field name="group_personal_accident_insurance"/>
+                                <field name="health_benefit_plan"/>
+                                <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
+                            </group>
+                            <group string="Salary Break-up (Per Annum)">
+                                <field name="basic_da_per_annum" readonly="1" force_save="1"/>
+                                <field name="hra_per_annum" readonly="1" force_save="1"/>
+                                <field name="special_allowance_per_annum" readonly="1" force_save="1"/>
+                                <field name="sub_total_a_per_annum" readonly="1" force_save="1" invisible="1"/>
+                                <field name="statutory_bonus_per_annum" readonly="1" force_save="1"/>
+                                <field name="pf_employer_per_annum" readonly="1" force_save="1"/>
+                                <field name="esic_employer_per_annum" readonly="1" force_save="1"/>
+                                <field name="sub_total_b_per_annum" readonly="1" force_save="1" invisible="1"/>
+                                <field name="store_performance_incentive_annum" readonly="1" force_save="1"
+                                       invisible="1"/>
+                                <field name="monthly_performance_incentive_annum" readonly="1" force_save="1"
+                                       invisible="1"/>
+                                <field name="variable_pay_per_annum" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_annum" readonly="1" force_save="1" invisible="1"/>
+                                <field name="sub_total_c_per_annum" readonly="1" force_save="1" invisible="1"/>
+                                <field name="total_salary_per_annum" readonly="1" force_save="1"/>
+                                <field name="medical_insurances" readonly="1" force_save="1"/>
+                                <field name="group_personal_acc_insurance" readonly="1" force_save="1"/>
+                                <field name="health_ben_plan" readonly="1" force_save="1"/>
+                                <field name="sub_total_d" readonly="1" force_save="1" invisible="1"/>
+                            </group>
+                            <group string="Salary Break-up (Per Month)">
+                                <field name="basic_da_per_month" readonly="1" force_save="1"/>
+                                <field name="hra_per_month" readonly="1" force_save="1"/>
+                                <field name="special_allowance_per_month" readonly="1" force_save="1"/>
+                                <field name="sub_total_a_per_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="statutory_bonus_per_month" readonly="1" force_save="1"/>
+                                <field name="pf_employer_per_month" readonly="1" force_save="1"/>
+                                <field name="esic_employer_per_month" readonly="1" force_save="1"/>
+                                <field name="sub_total_b_per_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="store_performance_incentive_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="monthly_performance_incentive_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="variable_pay_per_month" readonly="1" force_save="1"/>
+                                <field name="performance_linked_pay_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="sub_total_c_per_month" readonly="1" force_save="1" invisible="1"/>
+                                <field name="total_salary_per_month" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="total_ctc_annum" readonly="1" force_save="1"/>
+                            </group>
+                            <group>
+                                <field name="total_ctc_month" readonly="1" force_save="1"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </sheet>
+        </form>
+    </field>
+</record>
+
 
     </data>
 </odoo>

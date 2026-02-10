@@ -35,6 +35,13 @@
 
 
                         <table style="width:100%; border-collapse: collapse;">
+                            <t t-set="overall_total_marks" t-value="0"/>
+                            <t t-set="overall_question_count" t-value="0"/>
+
+                            <t t-foreach="doc.review_line_ids" t-as="line">
+                                <t t-set="overall_total_marks" t-value="overall_total_marks + (line.rating_marks or 0)"/>
+                                <t t-set="overall_question_count" t-value="overall_question_count + 1"/>
+                            </t>
                             <tr>
                                 <td style="text-align: center;  padding: 10px;">Who are you leaving feedback for?
                                     (Employee
@@ -81,8 +88,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'communication'">
+                                                    <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -93,6 +104,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -111,8 +129,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'team_working'">
+                                                     <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -123,6 +145,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -143,8 +172,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'problem_solving'">
+                                                    <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -155,6 +188,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -173,8 +213,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'continuous'">
+                                                     <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -185,6 +229,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -205,8 +256,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'organisation_time'">
+                                                     <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -217,6 +272,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -235,8 +297,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'customer_focus'">
+                                                     <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -247,6 +313,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -267,8 +340,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'interpersonal_skills'">
+                                                    <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -279,6 +356,13 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </td>
@@ -297,8 +381,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                             <t t-set="total_marks" t-value="0"/>
+                                            <t t-set="question_count" t-value="0"/>
                                             <t t-foreach="doc.review_line_ids" t-as="competency">
                                                 <t t-if="competency.review_type == 'motivation'">
+                                                     <t t-set="total_marks" t-value="total_marks + competency.rating_marks"/>
+                                                    <t t-set="question_count" t-value="question_count + 1"/>
                                                     <tr>
                                                         <td style="text-align: left; padding: 10px;">
                                                             <t t-esc="competency.config_id.name"/>
@@ -309,8 +397,24 @@
                                                     </tr>
                                                 </t>
                                             </t>
+                                             <tr>
+                                                <td style="text-align: left; padding: 10px; font-weight: bold;">
+                                                </td>
+                                                <td style="text-align: left; padding: 10px;">
+                                                    <t t-esc="str(round(question_count and ((total_marks / question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="text-align: left; padding: 10px; font-weight: bold; width: 40%;">
+                                    Overall Performance Score (%)
+                                </td>
+                                <td style="text-align: left; padding: 10px;">
+                                    <t t-esc="str(round(overall_question_count and ((overall_total_marks / overall_question_count) / 5.0) * 100 or 0, 2)) + ' %'"/>
                                 </td>
                             </tr>
                         </table>

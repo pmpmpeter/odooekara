@@ -30,8 +30,6 @@
                             <field name="annual_store_performance_incentive" invisible="1"/>
                             <field name="annual_performance_linked_pay" invisible="1"/>
                             <field name="monthly_performance_incentive" invisible="1"/>
-                            <field name="medical_insurance"/>
-                            <field name="group_personal_accident_insurance"/>
                             <field name="health_benefit_plan"/>
                             <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                         </group>
@@ -124,6 +122,8 @@
 
                          <group string="Basic Components">
                             <field name="standard_deduction"/>
+                             <field name="medical_insurance"/>
+                            <field name="group_personal_accident_insurance"/>
                             <field name="income_tax_applicable" invisible="0"/>
                             <field name="provident_fund_applicable"/>
                             <field name="nps_applicable"/>

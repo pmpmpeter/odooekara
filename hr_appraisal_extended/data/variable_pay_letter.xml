@@ -30,7 +30,7 @@
                         </span>
                         <br/>
                         <span style="font-weight:bold;">Job Level:
-                            <t t-out="object.employee_id.job_id.name"/>
+                            <t t-out="object.job_level.name"/>
                         </span>
                         <br/>
                         <br/>
@@ -47,7 +47,7 @@
                         Consequent to the review of your performance and in recognition of your contribution during the
                         last financial year. Your Variable pay amount for the year<t t-esc="current_year"/>-
                         <t t-esc="next_year"/>
-                        is Rs. <t t-out="round(object.variable_pay_per_annum)"/>/- and will be
+                        is Rs. <t t-out="round(object.variable_pay_amount)"/>/- and will be
                         credited along with the salary for <t t-out="object.appraisal_date.strftime('%B %Y')"/>.
                         <br/>
                         <br/>
@@ -73,12 +73,7 @@
                         <b>With Best Wishes,</b>
                         <br/>
                         <br/>
-                        <b>
-                            <t t-out="object.reviewer_id.name"/>
-                            <br/>
-                            <t t-out="object.reviewer_id.job_id.name"/>
-
-                        </b>
+                        <b>HEAD - HUMAN RESOURCES</b>
                     </p>
                 </div>
             </field>

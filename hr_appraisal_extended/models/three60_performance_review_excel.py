@@ -129,11 +129,25 @@ class PerformanceReview(models.AbstractModel):
 
             left_row = row
             right_row = row
-
+            add_row_left = 0
+            add_row_right = 0
+            left_review_type=''
+            right_review_type=''
+            line_count = 0
+            right_line_count = 0
+            total_rating_per = 0
             for line in review.review_line_ids:
                 if line.review_type in ['communication', 'problem_solving', 'organisation_time',
                                         'interpersonal_skills']:
                     if line.review_type not in written_categories_left:
+                        add_row_left += 1
+                        if add_row_left > 1:
+                            rating_marks = sum(review.review_line_ids.filtered(lambda line: line.review_type == left_review_type).mapped("rating_marks"))
+                            rating_per = ((rating_marks/4)/5)*100
+                            total_rating_per += rating_per
+                            worksheet.write(left_row, 2,f"{str(rating_per)}%", merge_format2)
+                            left_row += 1
+                        left_review_type = line.review_type
                         worksheet.write(left_row, 1, dict(line._fields['review_type'].selection).get(line.review_type, '').capitalize(),
                                         merge_format4)
                         worksheet.write(left_row, 2, 'Rating', merge_format4)
@@ -143,9 +157,31 @@ class PerformanceReview(models.AbstractModel):
                     worksheet.write(left_row, 1, line.config_id.name, merge_format1)
                     worksheet.write(left_row, 2, line.rating if line.rating is not None else '', merge_format2)
                     left_row += 1
+                    if len(written_categories_left) == 4:
+                        line_count +=1
+                    if len(written_categories_left) == 4 and line_count==4:
+                        rating_marks = sum(
+                            review.review_line_ids.filtered(lambda line: line.review_type == left_review_type).mapped(
+                                "rating_marks"))
+                        rating_per = ((rating_marks / 4) / 5) * 100
+                        total_rating_per += rating_per
+                        worksheet.write(left_row, 2, f"{str(rating_per)}%", merge_format2)
+                        left_row += 1
+                        add_row_left += 1
 
                 elif line.review_type in ['team_working', 'continuous', 'customer_focus', 'motivation']:
                     if line.review_type not in written_categories_right:
+                        add_row_right += 1
+                        if add_row_right > 1:
+                            rating_marks = sum(
+                                review.review_line_ids.filtered(lambda line: line.review_type == right_review_type).mapped(
+                                    "rating_marks"))
+                            rating_per = ((rating_marks / 4) / 5) * 100
+                            total_rating_per += rating_per
+                            worksheet.write(right_row, 5, f"{str(rating_per)}%", merge_format2)
+                            right_row += 1
+
+                        right_review_type = line.review_type
                         worksheet.write(right_row, 4,
                                               dict(line._fields['review_type'].selection).get(line.review_type, '').capitalize(), merge_format6)
                         worksheet.write(right_row, 5, 'Rating', merge_format6)
@@ -155,10 +191,22 @@ class PerformanceReview(models.AbstractModel):
                     worksheet.write(right_row, 4, line.config_id.name, merge_format1)
                     worksheet.write(right_row, 5, line.rating if line.rating is not None else '', merge_format2)
                     right_row += 1
-
-            worksheet.write(left_row, 1, "Review submitted by (Employee Name, Designation , Department , BU) ",
-                            merge_format9)
-            worksheet.write(left_row + 1, 1, "Date and Time ", merge_format9)
+                    if len(written_categories_right) == 4:
+                        right_line_count +=1
+                    if len(written_categories_right) == 4 and right_line_count==4:
+                        rating_marks = sum(
+                            review.review_line_ids.filtered(lambda line: line.review_type == right_review_type).mapped(
+                                "rating_marks"))
+                        rating_per = ((rating_marks / 4) / 5) * 100
+                        total_rating_per += rating_per
+                        worksheet.write(right_row, 5, f"{str(rating_per)}%", merge_format2)
+                        right_row += 1
+                        add_row_right += 1
+            worksheet.write(left_row, 1, f"Overall Percentage ",merge_format9)
+            worksheet.write(left_row, 2, f"{total_rating_per / 8:.2f}%", merge_format1)
+            left_row +=1
+            worksheet.write(left_row, 1, "Review submitted by (Employee Name, Designation , Department , BU) ",merge_format9)
+            worksheet.write(left_row+1 , 1, "Date and Time ", merge_format9)
 
             review_submitted_by = review.review_submitted_by.name or ''
             review_designation = review.review_designation.name or ''

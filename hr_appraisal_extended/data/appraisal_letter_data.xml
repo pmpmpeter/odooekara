@@ -76,11 +76,7 @@
                         With Best Wishes,
                         <br/>
                         <br/>
-                        <b>
-                            <t t-out="object.reviewer_id.name"/>
-                            <br/>
-                            <t t-out="object.reviewer_id.job_id.name"/>
-                        </b>
+                         <b>HEAD - HUMAN RESOURCES</b>
                     </p>
                 </div>
                 <div style="justify-content: center; padding:0.6rem;padding-left: 35px;text-decoration: none; font-size:13px;width: 100%;">
@@ -302,11 +298,7 @@
                     <b>With Best Wishes,</b>
                     <br/>
                     <br/>
-                    <b>
-                        <t t-out="object.reviewer_id.name"/>
-                        <br/>
-                        <t t-out="object.reviewer_id.job_id.name"/>
-                    </b>
+                    <b>HEAD - HUMAN RESOURCES</b>
                 </div>
             </field>
         </record>

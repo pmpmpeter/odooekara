@@ -66,6 +66,7 @@
                             <field name="review_submitted_by" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
+                            <field name="emp_category" readonly="state not in ('draft')" />
                             <field name="review_designation" readonly="state not in ('draft')"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>

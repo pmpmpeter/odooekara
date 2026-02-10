@@ -161,7 +161,7 @@ class EmployeeKra(models.Model):
             if not employee.department_id:
                 raise ValidationError("Please Select the Department for the Employee")
 
-            self.env['self.rating'].sudo().create({
+            self_rating_id = self.env['self.rating'].sudo().create({
                 'employee_id': employee.id,
                 'designation_id': employee.job_id.id,
                 'department_id': employee.department_id.id,
@@ -196,6 +196,8 @@ class EmployeeKra(models.Model):
                     'weightage': detail.weightage,
                 }) for detail in record.kra_details_ids],
             })
+            self_rating_id._compute_contract_self_rating()
+            self_rating_id._onchange_employee_id()
             record.state = 'done'
 
     def action_reset(self):

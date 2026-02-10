@@ -1,6 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import *
 from datetime import datetime
+
 import pytz
 
 
@@ -30,11 +31,27 @@ class ThreePerformanceReviewLine(models.Model):
         ('D', 'Gets by'),
         ('E', 'Current weakness'),
         ('X', 'Unable to rate')], string="Rating")
+    rating_marks = fields.Integer(string="Rating Marks")
+
+
 
     @api.depends('config_id')
     def _compute_review_type(self):
         for record in self:
             record.review_type = record.config_id.review_types if record.config_id else False
+
+    @api.onchange('rating')
+    def _onchange_rating(self):
+        mapping = {
+            'A': 5,
+            'B': 4,
+            'C': 3,
+            'D': 2,
+            'E': 1,
+            'X': 0,
+        }
+        for rec in self:
+            rec.rating_marks = mapping.get(rec.rating, 0)
 
 
 class ThreePerformanceReview(models.Model):
@@ -137,6 +154,15 @@ class ThreePerformanceReview(models.Model):
         string="Interpersonal Skills Complete", compute='_compute_section_complete', store=False)
     motivation_complete = fields.Boolean(
         string="Motivation Complete", compute='_compute_section_complete', store=False)
+    emp_category = fields.Selection(
+        [
+            ('self', 'SELF'),
+            ('peer', 'PEER'),
+            ('subordinate', 'SUBORDINATE'),
+            ('supervisor', 'SUPERVISOR'),
+        ],
+        string="Category",
+    )
 
 
     @api.onchange('employee_id')
@@ -253,6 +279,9 @@ class ThreePerformanceReview(models.Model):
 
     def action_submit(self):
         for record in self:
+            review_ids = self.env['threeperformance.review.line'].search([('review_id','=',self.id)])
+            for line in review_ids:
+                line._onchange_rating()
             if any(not line.rating for line in record.review_line_ids):
                 raise UserError(f"Please fill in the rating for all review lines in {record.missing_reviews} before proceeding.")
 
