@@ -22,7 +22,28 @@ class ResConfigSettings(models.TransientModel):
     crr_reminder_users = fields.Many2many(related='company_id.crr_reminder_users', string="CRR & CUR Reminder Users",
                                           help="Users who will receive monthly CRR & CUR reminders", readonly=False)
     po_threshold_amount = fields.Float(string="PO Threshold Amount", related='company_id.po_threshold_amount', readonly=False)
+    brs_account_ids = fields.Many2many(
+        'account.account',
+        'brs_account_rel',  # relation table name
+        'config_id',  # column for config
+        'account_id',  # column for account
+        string='BRS Accounts'
+    )
 
+    def set_values(self):
+        super().set_values()
+        self.env['ir.config_parameter'].sudo().set_param(
+            'brs_account_ids',
+            ','.join(map(str, self.brs_account_ids.ids))
+        )
+
+    def get_values(self):
+        res = super().get_values()
+        param = self.env['ir.config_parameter'].sudo().get_param('brs_account_ids')
+        res.update(
+            brs_account_ids=[(6, 0, list(map(int, param.split(','))))] if param else False
+        )
+        return res
     @api.model
     def send_crr_reminder(self):
         """Send CRR & CUR reminder emails on the 20th of each month."""

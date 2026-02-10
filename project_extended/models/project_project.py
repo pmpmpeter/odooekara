@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from email.policy import default
 
 from odoo import api, Command, fields, models, _, _lt
 from datetime import datetime,timedelta
@@ -199,6 +200,7 @@ class Project(models.Model):
                     template.write({'email_to': ', '.join(emails),
                                     'subject':'Statutory Notice Project Creation - %s'%(vals.get('name'))})
                     template.send_mail(self.id, force_send=True)
+            vals['company_id'] = self.env.company.id
             res = super().create(vals)
             return res
 
@@ -307,6 +309,14 @@ CLOSED_STATES = {
     '1_done': 'Done',
     '1_canceled': 'Canceled',
 }
+
+
+class ProjectTaskType(models.Model):
+    _inherit = 'project.task.type'
+
+    is_done_stage = fields.Boolean(string='Is Done Stage?')
+
+
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
@@ -316,7 +326,88 @@ class ProjectTask(models.Model):
     first_reminder_date = fields.Date(string="First Reminder Date")
     second_reminder_date = fields.Date(string="Second Reminder Date")
     task_valid_from = fields.Date(string="Task Period From",default=fields.Date.context_today)
+    task_done = fields.Boolean(string='Task Done')
+    task_approved = fields.Boolean(string='Task Approved')
+    task_rejected = fields.Boolean(string='Task Rejected')
+    task_assign_line_ids = fields.One2many('task.assign.line', 'task_id', string='Task Assign Details', copy=False)
+    is_done_stage = fields.Boolean(string='Is Done Stage?', related='stage_id.is_done_stage')
+    task_accepted = fields.Boolean(string='Task Accepted',default=False)
+    raise_request_to_id = fields.Many2one('res.users',string='Raise Request To')
 
+    def action_accept(self):
+        self.task_accepted = True
+        line_ids = self.task_assign_line_ids.filtered(lambda x:x.assign_state=='draft')
+        line_ids.update({'assign_state':'in_progress'})
+        self.stage_id = self.env['project.task.type'].search([('name', '=', 'In Progress'),
+                                                              ('project_ids', 'in', self.project_id.id)]).id
+
+
+    def action_refuse(self):
+        self.task_accepted = True
+        line_ids = self.task_assign_line_ids.filtered(lambda x: x.assign_state == 'draft')
+        line_ids.update({'assign_state': 'refuse'})
+
+    def action_assign_task_user(self):
+        if self.stage_id and self.stage_id.is_done_stage:
+            raise ValidationError(_("Cannot assign this task as it is already moved to %s stage") % self.stage_id.name)
+        return {
+            'name': "Assign To",
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task.assign.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_task_id': self.id,
+            }
+        }
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        for task in res:
+            if task.user_ids:
+                task_assign_vals = []
+                for user in task.user_ids:
+                    assign_vals = {
+                        'assigned_by_user_id': self.env.user.id,
+                        'assigned_user_id': user.id,
+                        'assigned_reason': '',
+                        'assigned_date': fields.Datetime.now(),
+                    }
+                    task_assign_vals.append((0, 0, assign_vals))
+                task.write({'task_assign_line_ids': task_assign_vals})
+            if not task.raise_request_to_id:
+                task.raise_request_to_id = self.env.user.id
+        return res
+
+
+    @api.onchange('stage_id')
+    def onchange_stage_id(self):
+        # if self.stage_id.name == 'Done':
+        #     self.task_done = True
+        if self.is_done_stage:
+            self.task_done = True
+            if 'x_need_approval' in self._fields:
+                self.x_need_approval = True
+                assigning_user_line = self._origin.task_assign_line_ids.filtered(lambda x: x.assigned_user_id.id == self.env.user.id)
+                if assigning_user_line:
+                    assigning_user_line[0].write({'completed_date': fields.Datetime.now(), 'assign_state': 'done'})
+        else:
+            self.task_done = False
+            if 'x_need_approval' in self._fields:
+                self.x_need_approval = False
+        # else:
+        #     self.task_done = True
+
+    def action_task_approve(self):
+        self.task_approved = True
+        self.stage_id = self.env['project.task.type'].search([('name', '=', 'Done'),
+                                                              ('project_ids', 'in', self.project_id.id)]).id
+        line_ids = self.task_assign_line_ids.filtered(lambda x: x.assign_state == 'in_progress')
+        line_ids.update({'assign_state': 'done'})
+
+    def action_task_reject(self):
+        self.task_rejected = True
     @api.model
     def check_expired_tasks_recurring(self):
         expired_tasks = self.search([
@@ -324,7 +415,6 @@ class ProjectTask(models.Model):
             ('stage_id.name', '!=', 'Expired'),
             ('recurring_task','=',True),
         ])
-        print(expired_tasks,'ggggggggggg')
         for task in expired_tasks:
             task.stage_id = self.env['project.task.type'].search([('name', '=', 'Expired'),
                                                                   ('project_ids', 'in', task.project_id.id)]).id
@@ -435,3 +525,15 @@ class ProjectTaskRecurrence(models.Model):
                     'recurrence_reminder':occurrence_from.recurrence_reminder,
                     'recurrence_reminder2':occurrence_from.recurrence_reminder2
                 })
+
+
+class TaskAssignLine(models.Model):
+    _name = 'task.assign.line'
+
+    task_id = fields.Many2one('project.task', string='Task', ondelete='cascade')
+    assigned_by_user_id = fields.Many2one('res.users', string='Assigned By')
+    assigned_user_id = fields.Many2one('res.users', string='Assigned User')
+    assigned_reason = fields.Text(string='Reason')
+    assigned_date = fields.Datetime(string='Assigned Date')
+    completed_date = fields.Datetime(string='Completed Date')
+    assign_state = fields.Selection([('draft', 'Draft'),('in_progress', 'In Progress'),('refuse', 'Refuse'), ('done', 'Done')], string='Status', default='draft')

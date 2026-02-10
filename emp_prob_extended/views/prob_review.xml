@@ -25,27 +25,27 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,review1_done,review2_done,done"
                            nolabel="1"/>
                     <button name="reset_to_draft" string="Reset to Draft" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             invisible="state == 'draft'"
                     />
                     <button name="mark_review1_done" string="Initial Review" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             class="oe_highlight" invisible="state == 'done' or state != 'draft'"
                     />
                     <button name="mark_review2_done" string="Final Review" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             class="oe_highlight" invisible="state == 'done' or state != 'review1_done'"
                     />
                     <button name="mark_done" string="Done" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             class="oe_highlight" invisible="state == 'done' or state != 'review2_done'"
                     />
                     <button name="mark_cancel" string="Cancel" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             class="btn-secondary" invisible="state in ('draft','cancel')"
                     />
                     <button name="print_employee_probation_review_form" string="Print" type="object"
-                            groups="emp_prob_extended.group_employee_probation_manager"
+                            groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
                             class="oe_highlight" invisible="state not in ('done')"/>
 
                 </header>
@@ -286,7 +286,7 @@
               parent="probation_menu_root"
               name="Employee Probation Review Form"
               action="probation_review_form_action"
-              groups="emp_prob_extended.group_employee_probation_manager"
+              groups="emp_prob_extended.group_employee_probation_manager,emp_prob_extended.group_employee_probation_supervisor"
               sequence="8"
     />
 </odoo>

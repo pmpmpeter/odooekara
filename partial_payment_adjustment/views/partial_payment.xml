@@ -8,17 +8,18 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[@class='oe_button_box']" position="inside">
                     <div class="oe_button_box" name="button_box">
+                        <field name="is_advance_payment" invisible="1" readonly="state in ('approved','posted')"/>
                             <button name="action_payments_advances"
                                 string="Reference Payments" type="object" class="oe_stat_button" invisible="not is_advance_payment"/>
                     </div>
                 </xpath>
                 <xpath expr='//sheet' position="inside">
-                    <separator string="Invoices"/>
+                    <separator string="Invoices" invisible="advance_payment"/>
                     <field name="payment_compute" invisible="1"/>
-                    <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted')"/>
+                    <button name="update_reconcile_amount" type="object" string="Update Amount" invisible="state in ('approved','posted') or advance_payment"/>
 <!--                    <button name="update_entry" type="object" string="Update Entry" invisible="state not in ('posted')"/>-->
 <!--                    <button name="reconcile_entry" type="object" string="Reconcile Entry"/>-->
-                    <field name="payment_invoice_ids" nolabel="1" readonly="state in ('approved','posted')">
+                    <field name="payment_invoice_ids" nolabel="1" readonly="state in ('approved','posted')" invisible="advance_payment">
                         <tree editable="bottom" create="false">
 <!--                            <field name="is_entry_reconciled" column_invisible="1"/>-->
                             <field name="is_reconcile_amount"/>
@@ -29,8 +30,6 @@
                             <field name="residual" readonly="1"/>
                             <field name="reconcile_amount" sum="reconcile_amount" readonly="is_reconciled_en"/>
                             <field name="currency_id" column_invisible="1"/>
-
-
                         </tree>
                     </field>
                    <separator string="Reconciled Entry"/>
@@ -61,15 +60,13 @@
                 <xpath expr="//field[@name='date']" position="before">
                     <field name="unallocated_amount" readonly="1" invisible="not is_advance_payment" force_save="1"/>
                 </xpath>
-                <xpath expr="//field[@name='payment_purchase_id']" position="after">
-                    <field name="is_advance_payment" invisible="1" readonly="state in ('approved','posted')"/>
-                    <field name="advance_payment_done" invisible="1"/>
-                    <field name="amount_partial_total" invisible="not is_advance_payment" readonly="state in ('approved','posted')"/>
-                </xpath>
                 <xpath expr="//group[@name='main_group']/group[@name='group2']" position="inside">
                         <field name="source_payment" invisible="is_advance_payment"
                            domain="[('is_advance_payment', '=', True),('partner_id','=',partner_id),('advance_payment_done','=',False),('state','=','posted')]"
                             readonly="state in ('approved','posted')"/>
+                </xpath>
+                <xpath expr="//field[@name='partner_id']" position="before">
+                    <field name="advance_payment" readonly="state != 'draft'"/>
                 </xpath>
             </field>
         </record>
@@ -84,5 +81,23 @@
                                  </xpath>
             </field>
         </record>
+
+        <record id="accounts_extended_view_account_payment_form_view_inherited" model="ir.ui.view">
+            <field name="name">accounts.extended.account.payment.form.inherited</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="accounts_extended.view_account_payment_form_view_inherit"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='payment_purchase_id']" position="after">
+                    <field name="is_advance_payment" invisible="1" readonly="state in ('approved','posted')"/>
+                    <field name="advance_payment_done" invisible="1"/>
+                    <field name="amount_partial_total" invisible="not is_advance_payment" readonly="state in ('approved','posted')"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="account.action_account_payments_payable" model="ir.actions.act_window">
+            <field name="context">{'default_payment_type': 'outbound', 'default_partner_type': 'supplier', 'search_default_outbound_filter': 1, 'default_move_journal_types': ('bank', 'cash'), 'display_account_trust': True, 'default_is_manual_payment': True}</field>
+        </record>
+
     </data>
 </odoo>

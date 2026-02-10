@@ -5,6 +5,16 @@ from num2words import num2words
 from datetime import timedelta
 import math
 
+class PBVPReference(models.Model):
+    _name = 'pbvp.reference'
+    _description = 'PBVP Reference Table'
+    _rec_name = 'score_range'
+
+    score_range = fields.Char(string='Final Score/Rating')
+    payout_percentage = fields.Char(string='Applicable PBVP Payout')
+    rating_id = fields.Many2one('self.rating', string='Rating Link')
+
+
 
 class SelfRating(models.Model):
     _name = 'self.rating'
@@ -12,6 +22,12 @@ class SelfRating(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'employee_id'
 
+    pbvp_reference_ids = fields.One2many(
+        'pbvp.reference',
+        'rating_id',
+        string='PBVP Reference',
+        readonly=True
+    )
     employee_id = fields.Many2one('hr.employee', string='Employee', domain="[('company_id', '=', company_id)]",
                                   tracking=True)
     department_id = fields.Many2one('hr.department', string='Department', domain="[('company_id', '=', company_id)]",
@@ -21,6 +37,8 @@ class SelfRating(models.Model):
                                  domain=lambda self: [('id', '=', (self.env.company.id))])
     date_of_joining = fields.Date(string='Date of Joining', tracking=True, related='employee_id.joining_date')
     designation_id = fields.Many2one('hr.job', string="Designation", domain="[('company_id', '=', company_id)]",
+                                     tracking=True)
+    job_level = fields.Many2one('hr.job.levels', string="Job Level", domain="[('company_id', '=', company_id)]",
                                      tracking=True)
     reporting_to_id = fields.Many2one('hr.employee', string='Reporting to', tracking=True,
                                       domain="[('company_id', '=', company_id)]",
@@ -197,6 +215,54 @@ class SelfRating(models.Model):
                                                 copy=False)
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
+    revised_increment_per = fields.Float(string='Revised Increment %')
+    variable_pay_amount = fields.Float(string="Variable Pay Amount", compute="_compute_variable_pay_amount")
+    # To be filled by Manager
+    manager_eligible_for_promotion = fields.Selection([('yes', 'Yes'), ('no', 'No')], string="Eligible for Promotion?")
+    manager_new_designation = fields.Char(string="Redesignation (if applicable)")
+    manager_remark = fields.Char(string="Remark")
+
+
+
+
+    @api.depends('contract_self_rating_ids.variable_pay_per_annum','recommended_pbvp_payout')
+    def _compute_variable_pay_amount(self):
+        for rec in self:
+            rec.variable_pay_amount = 0.0
+            if rec.contract_self_rating_ids:
+                contract = rec.contract_self_rating_ids[0]
+                variable_pay = contract.variable_pay_per_annum or 0.0
+                payout_percentage = rec.recommended_pbvp_payout or 0.0
+                rec.variable_pay_amount = variable_pay * (payout_percentage / 100.0)
+
+    @api.onchange('recommended_increment','revised_increment_per')
+    def _onchange_increment(self):
+        if self.contract_self_rating_ids:
+            if self.revised_increment_per > 0:
+                contract_id = self.contract_self_rating_ids.ids[0]
+                if contract_id:
+                    contract_id = self.env['hr.contract'].browse(contract_id)
+                    current_salary = contract_id.monthly_fixed_salary
+                    increment_amount = (current_salary * self.revised_increment_per) / 100.0
+                    # New salary
+                    new_salary = current_salary + increment_amount
+                    self.monthly_fixed_salary = new_salary
+            elif self.recommended_increment > 0:
+                contract_id = self.contract_self_rating_ids.ids[0]
+                if contract_id:
+                    contract_id = self.env['hr.contract'].browse(contract_id)
+                    current_salary = contract_id.monthly_fixed_salary
+                    increment_amount = (current_salary * self.recommended_increment) / 100.0
+                    # New salary
+                    new_salary = current_salary + increment_amount
+                    self.monthly_fixed_salary = new_salary
+            else:
+                contract_id = self.contract_self_rating_ids.ids[0]
+                if contract_id:
+                    contract_id = self.env['hr.contract'].browse(contract_id)
+                    self.monthly_fixed_salary = contract_id.monthly_fixed_salary
+
+
 
     @api.model
     def default_get(self, fields):
@@ -214,6 +280,29 @@ class SelfRating(models.Model):
                 record.department_id = record.sudo().employee_id.department_id
                 record.grade = record.sudo().employee_id.contract_id.grade
                 record.location_id = record.sudo().employee_id.contract_id.location_id
+                contract_id = record.contract_self_rating_ids.ids[0]
+                if contract_id:
+                    contract_id = self.env['hr.contract'].browse(contract_id)
+                    record.monthly_fixed_salary = contract_id.monthly_fixed_salary
+                    record.statutory_bonus_applicable = contract_id.statutory_bonus_applicable
+                    record.provident_fund_applicable = contract_id.provident_fund_applicable = record.provident_fund_applicable
+                    record.esi_applicable = contract_id.esi_applicable
+                    record.variable_pay_percentage = contract_id.variable_pay_percentage
+                    record.medical_insurance = contract_id.medical_insurance
+                    record.group_personal_accident_insurance = contract_id.group_personal_accident_insurance
+                    record.health_benefit_plan = contract_id.health_benefit_plan
+                    record._onchange_calculate_salary_breakup()
+            record.pbvp_reference_ids = [
+                (0, 0, {'score_range': 'Above 4.7', 'payout_percentage': '100%'}),
+                (0, 0, {'score_range': '4.5 to 4.7', 'payout_percentage': '90%'}),
+                (0, 0, {'score_range': '4.0 to 4.5', 'payout_percentage': '80%'}),
+                (0, 0, {'score_range': '3.5 to 4.0', 'payout_percentage': '70%'}),
+                (0, 0, {'score_range': '3.0 to 3.5', 'payout_percentage': '50%'}),
+                (0, 0, {'score_range': '2.5 to 3.0', 'payout_percentage': '30%'}),
+                (0, 0, {'score_range': 'Below 2.5', 'payout_percentage': '0%'}),
+            ]
+
+
 
     @api.onchange('total_ctc_annum')
     def _compute_total_ctc_in_words(self):
@@ -659,7 +748,7 @@ class SelfRating(models.Model):
             # Search for an existing contract for the employee
             existing_contract = self.env['hr.contract'].search(
                 [('employee_id', '=', self.employee_id.id), ('state', '=', 'open')], limit=1)
-
+            self.employee_id.job_level_id = self.job_level.id
             # Prepare contract values
             contract_vals = {
                 'name': f'{self.employee_id.name} Compensation master',
@@ -828,8 +917,8 @@ class SelfRating(models.Model):
             # record.total_manager_weighted_score = ((record.total_score_manager / 100) / 100) * line_count_manager
             record.total_employee_weighted_score = ((record.total_score_employee) / 100) * 5
             record.total_manager_weighted_score = ((record.total_score_manager) / 100) * 5
-            record.employee_final_score = round(record.total_employee_weighted_score, 1)
-            record.manager_final_score = round(record.total_manager_weighted_score, 1)
+            record.employee_final_score = record.total_employee_weighted_score
+            record.manager_final_score = record.total_manager_weighted_score
             if record.manager_final_score > 4.7:
                 record.pbvp_payout = 100
             elif 4.5 <= record.manager_final_score <= 4.7:
@@ -1022,6 +1111,7 @@ class SelfRating(models.Model):
                 'target': 'new',
                 'context': ctx,
             }
+
 
     def send_variable_pay_letter(self):
         for record in self:

@@ -2,7 +2,7 @@
 import base64
 import io
 import xlsxwriter
-from odoo import models, fields, api, _
+from odoo import models, fields, api,Command, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import html2plaintext
 from datetime import datetime
@@ -23,7 +23,7 @@ class AccountBatchJV(models.Model):
     ], store=True, compute='_compute_state', default='draft', tracking=True)
     journal_id = fields.Many2one(
         'account.journal',
-        string='Bank',
+        string='Journal',
         check_company=True,
         domain=[('type', '=', 'bank')],
         tracking=True,
@@ -58,7 +58,27 @@ class AccountBatchJV(models.Model):
     consolidated_jv = fields.One2many('account.move','cons_journal_id',string='Consolidated JV')
     is_consolidated = fields.Boolean(string='Is Consolidated')
     company_id = fields.Many2one('res.company',string='Company',default=lambda self:self.env.company.id)
+    hr_payslip_run_id = fields.Many2one('hr.payslip.run', string='HR Payslip')
+    remarks = fields.Char(string='Remarks')
+    salary_payable_amount = fields.Float(string='Salary Amount',compute='compute_salary_payable_amount')
+    bank_id = fields.Many2one('res.partner.bank',string='Bank Account')
+    company_partner = fields.Many2one('res.partner',string='partner',related='company_id.partner_id')
 
+    @api.depends('consolidated_jv')
+    def compute_salary_payable_amount(self):
+        for rec in self:
+            if rec.consolidated_jv:
+                # print(rec.consolidated_jv.filtered(lambda l:l.line_ids.account_id.name == 'Salary Payable').amount)
+                amount = rec.consolidated_jv.line_ids.filtered(lambda l:l.account_id.name == 'Salary Payable')
+                if amount:
+                    rec.salary_payable_amount = amount.credit if amount.credit else amount.debit
+                else:
+                    rec.salary_payable_amount = 0
+            else:
+                rec.salary_payable_amount = 0
+
+    def action_print_batch_salary_cheque(self):
+        return self.env.ref('batch_salary_cheque_printing.print_cheque_jv_batch').report_action(self)
 
     def action_lock(self):
         for rec in self:
@@ -83,7 +103,7 @@ class AccountBatchJV(models.Model):
     @api.depends('amount', 'currency_id')
     def _compute_amount_total_words(self):
         for rec in self:
-            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.amount)).replace(',', '')
+            rec.amount_total_words = rec.currency_id.amount_to_text(abs(rec.salary_payable_amount)).replace(',', '')
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -128,6 +148,10 @@ class AccountBatchJV(models.Model):
                             line.name,
                         )
                         if key not in grouped_lines:
+                            budget_id = journal_entry.crossovered_budget.crossovered_budget_line \
+                                .filtered(lambda x: x.general_budget_id.name == '70110001 Employee Salary')
+                            corporate_account = self.env['account.analytic.account'].search(
+                                [('name', '=', 'Corporate')], limit=1)
                             grouped_lines[key] = {
                                 'account_id': line.account_id.id,
                                 'name': line.name,
@@ -136,6 +160,8 @@ class AccountBatchJV(models.Model):
                                 'partner_id': line.partner_id.id if line.partner_id else False,
                                 'currency_id': line.currency_id.id if line.currency_id else False,
                                 'amount_currency': 0.0,
+                                'budget_id':budget_id.ids if line.name in ("Employee's salaries","Emplr contr. To NPS","NPS Recovery") and budget_id else False,
+                                'analytic_distribution':{corporate_account.id: 100.0} if line.name in ("Employee's salaries","Emplr contr. To NPS","NPS Recovery") and corporate_account else False,
                             }
 
                         grouped_lines[key]['debit'] += line.debit
@@ -143,12 +169,12 @@ class AccountBatchJV(models.Model):
                         grouped_lines[key]['amount_currency'] += line.amount_currency
 
                 all_lines = [(0, 0, line_vals) for line_vals in grouped_lines.values()]
-
-                # Create the new move
+                attachments = []
                 move = self.env['account.move'].sudo().create({
                     'move_type': 'entry',
                     'journal_id': rec.journal_id.id,
                     'line_ids': all_lines,
+
                 })
                 for entry in rec.journal_ids:
                     if entry.state == 'posted':
@@ -161,6 +187,46 @@ class AccountBatchJV(models.Model):
                 })
                 for entry1 in rec.journal_ids:
                     entry1.active = False
+                self.action_download_salary_jv()
+                for line in self:
+                    line_attachments = self.env['ir.attachment'].search([
+                        ('res_model', '=', line._name),
+                        ('res_id', '=', line.id),
+                    ])
+                    for attachment in line_attachments:
+                        attachments.append(
+                            Command.create(attachment.copy_data({
+                                'res_model': 'account.move',
+                                'res_id': False,
+                                'raw': attachment.raw,
+                            })[0])
+                        )
+                move.update({
+                    'attachment_ids': attachments,
+                })
+
+    def bank_advice_values(self):
+        for rec in self:
+            if rec.hr_payslip_run_id:
+                payslips = self.env['hr.payslip'].search([
+                    ('payslip_run_id', '=', self.hr_payslip_run_id.id)
+                ])
+                employee_payslip_dict = {}
+                bank = ''
+                for slip in payslips:
+                    employee_name = slip.employee_id.name
+                    comp = 0
+                    ded = 0
+                    for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Basic' and x.appears_on_payslip):
+                        comp += r.total
+                    for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Deduction' and x.appears_on_payslip):
+                        ded += r.total
+                    employee_payslip_dict[employee_name] = comp-ded
+                    bank = self.company_id.partner_id.bank_ids[:1]
+                return {
+                    'employee_payslip_dict': employee_payslip_dict,
+                    'bank': bank,
+                }
 
     def action_open_mail_wizard(self):
         """ Opens a wizard to compose an email, with relevant mail template loaded by default """
@@ -229,18 +295,40 @@ class AccountBatchJV(models.Model):
         row = 1
         rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
         c=1
+        # company_bank = self.company_id.partner_id.bank_ids[:1]
+        # employee_salary = self.bank_advice_values()
+        # print(employee_salary,'pppppppppppppppppppppp')
+        # for slip in rec:
+        #     row = row + 1
+        #     sheet.write(row, 0, c or '')
+        #     sheet.write(row, 1, self.cheque_number or '')
+        #     sheet.write(row, 2, company_bank.acc_number or '', date_format)
+        #     sheet.write(row, 3, slip.move_id.amount_total or 0.0, amount_format)
+        #     sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
+        #     sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
+        #     sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
+        #     sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
+        #     sheet.write(row, 8, self.remarks or '')
+        #     c+=1
+        employee_salary = self.bank_advice_values()
+        employee_dict = employee_salary.get('employee_payslip_dict', {})
+        company_bank = employee_salary.get('bank')[:1]  # just in case it’s a recordset
+
         for slip in rec:
-            row = row + 1
+            row += 1
+            emp_name = slip.employee_id.name
+            emp_amount = employee_dict.get(emp_name, 0.0)  # get amount if name matches, else 0
+
             sheet.write(row, 0, c or '')
             sheet.write(row, 1, self.cheque_number or '')
-            sheet.write(row, 2, self.journal_id.bank_account_id.acc_number or '', date_format)
-            sheet.write(row, 3, slip.move_id.amount_total or 0.0, amount_format)
+            sheet.write(row, 2, company_bank.acc_number or '', date_format)
+            sheet.write(row, 3, emp_amount, amount_format)  # 👈 replaced here
             sheet.write(row, 4, slip.employee_id.bank_account_id.acc_number or '')
-            sheet.write(row, 5, slip.employee_id.bank_account_id.bank_id.name or '')
+            sheet.write(row, 5, slip.employee_id.bank_account_id.acc_holder_name or '')
             sheet.write(row, 6, slip.employee_id.bank_account_id.bank_id.ifsc_code or '')
             sheet.write(row, 7, slip.employee_id.bank_account_id.bank_id.beneficiary_lei or '')
-            sheet.write(row, 8, self.towards or '')
-            c+=1
+            sheet.write(row, 8, self.remarks or '')
+            c += 1
 
         sheet.set_column(0, 0, 5)
         sheet.set_column(1, 1, 15)
@@ -316,44 +404,81 @@ class AccountBatchJV(models.Model):
         #
         # # Populate Data
         row = 7
-        for index, line in enumerate(self.consolidated_jv.line_ids, start=1):
-            sheet.write(row, 0, line.account_id.name or '')
-            sheet.write(row, 1, line.debit or '0.0', amount_format)
-            sheet.write(row, 2, line.credit or '0.0', amount_format)
+        batch = self.hr_payslip_run_id.slip_ids
+
+        # Dictionary to consolidate total amounts by salary rule
+        consolidated_lines = {}
+
+        for payslip in batch:
+            valid_lines = payslip.line_ids.filtered(lambda l: l.salary_rule_id.appears_on_batch_report)
+            for line in valid_lines:
+                rule = line.salary_rule_id
+                rule_id = rule.id
+                if rule_id not in consolidated_lines:
+                    consolidated_lines[rule_id] = {
+                        'name': rule.name,
+                        'code': rule.code,
+                        'debit': 0.0,
+                        'credit': 0.0,
+                    }
+                if rule.account_credit:
+                    consolidated_lines[rule_id]['credit'] += line.total
+                elif rule.account_debit:
+                    consolidated_lines[rule_id]['debit'] += line.total
+        result = list(consolidated_lines.values())
+        for index, (rule_id, line) in enumerate(consolidated_lines.items(), start=1):
+            sheet.write(row, 0, line.get('name') or '')
+            sheet.write(row, 1, line.get('debit', '-'), amount_format)
+            sheet.write(row, 2, line.get('credit', '-'), amount_format)
             row += 1
+        debit = 0
+        credit = 0
+        for r in self.consolidated_jv.line_ids:
+            if r.name == 'Adjustment Entry':
+                if r.debit:
+                    debit = r.debit
+                    sheet.write(row, 0, r.account_id.name or '-')
+                    sheet.write(row, 1,r.debit,amount_format)
+                elif r.credit:
+                    credit = r.credit
+                    sheet.write(row, 0, r.account_id.name or '-')
+                    sheet.write(row, 2,r.credit,amount_format)
+
         row = row+1
+        total_debit = sum(line.get('debit','-') for line in consolidated_lines.values())
+        total_credit = sum(line.get('credit', '-') for line in consolidated_lines.values())
+
         sheet.write(row, 0, 'Total', bold1)
-        sheet.write(row, 1, sum(self.consolidated_jv.line_ids.mapped('debit')), amount_format1)
-        sheet.write(row, 2, sum(self.consolidated_jv.line_ids.mapped('credit')), amount_format1)
+        sheet.write(row, 1, total_debit+debit, amount_format1)
+        sheet.write(row, 2, total_credit+credit, amount_format1)
         row = row+1
 
-        sheet.write(row, 0, 'Employee Name',bold)
-        sheet.write(row, 1, 'Employee ID',bold)
-        sheet.write(row, 2, 'Salary On Hold',bold)
-        sheet.write(row, 3, 'Parental Insurance',bold)
-        sheet.write(row, 4, 'Food Coupons', bold)
-        row = row + 1
-        salary_on_hold_total = 0
-        insurance_total = 0
-        # for rec in self.journal_ids:
+        # sheet.write(row, 0, 'Employee Name',bold)
+        # sheet.write(row, 1, 'Employee ID',bold)
+        # sheet.write(row, 2, 'Salary On Hold',bold)
+        # sheet.write(row, 3, 'Parental Insurance',bold)
+        # sheet.write(row, 4, 'Food Coupons', bold)
+        # row = row + 1
+        # salary_on_hold_total = 0
+        # insurance_total = 0
+        # # for rec in self.journal_ids:
+        # #     row = row + 1
+        # rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
+        # for payslip in rec:
         #     row = row + 1
-        rec = self.env['hr.payslip'].sudo().search([('batch_jv_ref','=',self.name)])
-        for payslip in rec:
-            row = row + 1
-            parental_insurance = payslip.line_ids.filtered(lambda l: l.code == 'Other_recoveries')
-            food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
-            salary_on_hold = payslip.line_ids.filtered(lambda l: l.code == 'SOA')
-            print(parental_insurance,food_coupons,salary_on_hold,'jjjjjjjjjjjjjj')
-            sheet.write(row, 0, payslip.employee_id.name)
-            sheet.write(row, 1, payslip.employee_id.employee_number)
-            sheet.write(row, 2, salary_on_hold.total or 0.0, total_style)
-            sheet.write(row, 3, parental_insurance.total or 0.0,total_style)
-            sheet.write(row, 4, food_coupons.total or 0.0, total_style)
-            insurance_total+=parental_insurance.total
-            salary_on_hold_total+=salary_on_hold.total
-        rows = row+2
-        sheet.write(rows, 2, salary_on_hold_total,total_style)
-        sheet.write(rows, 3, insurance_total,total_style)
+        #     parental_insurance = payslip.line_ids.filtered(lambda l: l.code == 'Other_recoveries')
+        #     food_coupons = payslip.line_ids.filtered(lambda l: l.code == 'FC')
+        #     salary_on_hold = payslip.line_ids.filtered(lambda l: l.code == 'SOA')
+        #     sheet.write(row, 0, payslip.employee_id.name)
+        #     sheet.write(row, 1, payslip.employee_id.employee_number)
+        #     sheet.write(row, 2, salary_on_hold.total or 0.0, total_style)
+        #     sheet.write(row, 3, parental_insurance.total or 0.0,total_style)
+        #     sheet.write(row, 4, food_coupons.total or 0.0, total_style)
+        #     insurance_total+=parental_insurance.total
+        #     salary_on_hold_total+=salary_on_hold.total
+        # rows = row+2
+        # sheet.write(rows, 2, salary_on_hold_total,total_style)
+        # sheet.write(rows, 3, insurance_total,total_style)
         sheet.set_column(0, 0, 25)
         sheet.set_column(1, 1, 15)
         sheet.set_column(2, 2, 15)
@@ -378,7 +503,7 @@ class AccountBatchJV(models.Model):
 
         # Create Attachment
         attachment = self.env['ir.attachment'].create({
-            'name': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',
+            'name': f'Batch_Salary_JV_{datetime.now().strftime("%d_%m_%Y")}.xlsx',
             'type': 'binary',
             'datas': file_data,
             'store_fname': f'Batch Salary_JV_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx',

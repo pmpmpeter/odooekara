@@ -1,7 +1,6 @@
 from odoo import _, api, fields, models , Command
 from odoo.exceptions import UserError
 from datetime import date, timedelta
-import pdb
 
 class AccountPaymentInvoices(models.Model):
     _name = 'account.payment.invoice.line'
@@ -17,14 +16,14 @@ class AccountPaymentInvoices(models.Model):
     is_reconcile_amount = fields.Boolean(string='Reconcile Amount')
     is_reconciled_en = fields.Boolean(string="Reconciled")
 
-    @api.onchange('reconcile_amount')
-    def reconcile_amount_lines_update(self):
-        total_amount = 0
-        pay_id = self.payment_id._origin
-        for rec in self.payment_id.payment_invoice_ids:
-            total_amount += rec.reconcile_amount
-        print(pay_id,total_amount,'bbbbb')
-        pay_id.amount = total_amount
+    # @api.onchange('reconcile_amount')
+    # def reconcile_amount_lines_update(self):
+    #     total_amount = 0
+    #     pay_id = self.payment_id
+    #     for rec in self.payment_id.payment_invoice_ids:
+    #         total_amount += rec.reconcile_amount
+    #     print(pay_id,total_amount,'bbbbb')
+    #     pay_id.amount = total_amount
 
 
     # @api.onchange('reconcile_amount')
@@ -47,9 +46,16 @@ class AccountPayment(models.Model):
     unallocated_amount = fields.Monetary(string='Residual Amount')
     amount_partial_total = fields.Monetary(string='Advance Amount')
     is_advance_payment = fields.Boolean(string='Is Advance Payment')
+    advance_payment = fields.Boolean(string='Advance Payment?')
+    is_manual_payment = fields.Boolean(string='Is Manual Payment')
     source_payment = fields.Many2one('account.payment',string='Source Payment')
     advance_payment_done = fields.Boolean(string='Advance Payment Done')
     payment_compute = fields.Float(compute = 'compute_bill_payment_amount',string='Compute')
+
+    # @api.onchange('payment_invoice_ids')
+    # def reconcile_amount_lines_update(self):
+    #     for rec1 in self:
+    #         rec1.amount = sum(rec1.payment_invoice_ids.mapped('reconcile_amount'))
 
     # @api.depends('reconciled_bill_ids')
     def compute_bill_payment_amount(self):
@@ -253,24 +259,46 @@ class AccountPayment(models.Model):
     #             raise UserError(
     #                 _("Alert!! You are trying to allocate an amount that exceeds the payment amount."))
 
+    @api.onchange('advance_payment')
+    def amount_advance_payment(self):
+        if self.advance_payment:
+            self.payment_invoice_ids.update({'reconcile_amount':0.0})
+
+
     @api.onchange('amount')
     def amount_onchange(self):
         for rec in self:
-            if rec.payment_invoice_ids:
-                for line in rec.payment_invoice_ids:
-                    line.reconcile_amount = 0.0
-                if rec.amount > 0:
+            if not rec.advance_payment:
+                if rec.payment_invoice_ids:
                     for line in rec.payment_invoice_ids:
-                        total_reconcile = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
-                        if total_reconcile < rec.amount:
-                            available_amount = rec.amount - total_reconcile
-                            if abs(line.residual) < available_amount:
-                                    line.reconcile_amount = abs(line.residual)
-                            else:
-                                line.reconcile_amount = available_amount
-                else:
-                    for line in rec.payment_invoice_ids:
-                        line.reconcile_amount = 0
+                        print('444')
+                        # line.reconcile_amount = 0.0
+                    if rec.amount > 0:
+                        for line in rec.payment_invoice_ids:
+                            total_reconcile = sum(abs(line.reconcile_amount) for line in rec.payment_invoice_ids)
+                            if total_reconcile < rec.amount:
+                                available_amount = rec.amount - total_reconcile
+                                if abs(line.residual) < available_amount:
+                                        print('1')
+                                        line.reconcile_amount = abs(line.residual)
+                                else:
+                                    print('2')
+                                    line.reconcile_amount = available_amount
+                    else:
+                        for line in rec.payment_invoice_ids:
+                            print('3')
+                            line.reconcile_amount = 0
+
+    # def write(self,vals):
+    #     super(AccountPayment,self).write(vals)
+    #     total_amount = 0
+    #     for rec1 in self:
+    #         for rec in rec1.payment_invoice_ids:
+    #             total_amount += rec.reconcile_amount
+    #         print('total---------',total_amount)
+    #         rec1.amount = total_amount
+
+
 
     def action_draft(self):
         super(AccountPayment, self).action_draft()
@@ -297,9 +325,8 @@ class AccountPayment(models.Model):
                 # if total_payment_available != total_reconcile_amount:
                 #     raise UserError(
                 #         _("The sum of the reconcile amount of listed invoices is not equal to payment amount."))
-                if not payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
-                    raise UserError(
-                            _("Kindly update the amount to reconcile for each transactions."))
+                if not self.advance_payment and not payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount > 0):
+                    raise UserError(_("Kindly update the amount to reconcile for each transactions."))
 
             if payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount <= 0):
                 payment.payment_invoice_ids.filtered(lambda line: line.reconcile_amount <= 0).sudo().unlink()

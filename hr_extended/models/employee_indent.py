@@ -224,6 +224,8 @@ class EmployeeIndent(models.Model):
         ('yes', 'Yes'),
         ('no', 'No')
     ], string='Approved by (Director)', required=True, default='no', copy=False)
+    kra_document = fields.Binary(string="KRA Document")
+    kra_document_filename = fields.Char(string="File Name")
 
     def _organization_domain(self):
         return [('id', '=', self.env.companies.ids)]

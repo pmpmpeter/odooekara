@@ -56,9 +56,10 @@
 
                         <!-- Title -->
                         <div class="text-center" style="margin-top: 10px;">
-                            <h4>SALARY SLIP FOR THE MONTH OF
-                                <t t-esc="o.payslip_run_id.name"/>
-                            </h4>
+                                <h4>SALARY SLIP FOR THE MONTH OF
+                                    <t t-esc="o.date_from.strftime('%B').upper()"/>
+                                    <t t-esc="o.date_from.strftime('%Y').upper()"/>
+                                </h4>
                         </div>
 
                         <!-- Employee Details -->
@@ -88,7 +89,9 @@
                                     <strong>PAN:</strong>
                                 </td>
                                 <td>
-                                    <t t-esc="''"/>
+                                    <t t-if="o.employee_id.user_id.partner_id">
+                                        <t t-esc="o.employee_id.user_id.partner_id.l10n_in_pan"/>
+                                    </t>
                                 </td>
                             </tr>
                             <tr>
@@ -124,7 +127,9 @@
                                     <strong>Paid Days this Month:</strong>
                                 </td>
                                 <td colspan="3">
-
+                                    <t t-set="vals" t-value="o.compute_ytd_value(o.employee_id)"/>
+                                    <t t-set="days" t-value="vals['days_in_month']"/>
+                                    <t t-esc="days"/>
                                 </td>
                             </tr>
                         </table>
@@ -147,9 +152,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-set="line_ids" t-value="o.line_ids or []"/>
-                                <t t-set="earnings" t-value="[l for l in line_ids if l.category_id.code != 'DED']"/>
-                                <t t-set="deductions" t-value="[l for l in line_ids if l.category_id.code == 'DED']"/>
+                                <t t-set="line_ids" t-value="o.sudo().line_ids.sudo() or []"/>
+                                <t t-set="earnings" t-value="[l for l in line_ids if l.category_id.code != 'DED' and l.salary_rule_id.appears_on_payroll_report]"/>
+                                <t t-set="deductions" t-value="[l for l in line_ids if l.category_id.code == 'DED' and l.salary_rule_id.appears_on_payroll_report]"/>
 
                                 <t t-set="max_lines" t-value="max(len(earnings), len(deductions))"/>
 
@@ -168,12 +173,26 @@
                                                 </span>
                                             </t>
                                         </td>
+                                        <t t-set="vals" t-value="o.compute_ytd_value(o.employee_id)"/>
+                                        <t t-set="ytd" t-value="vals['month_total']"/>
+                                        <t t-set="income_total" t-value="vals['income_total']"/>
+                                        <t t-set="ytd_april" t-value="vals['ytd_april']"/>
+                                        <t t-set="recoveries_of_advance" t-value="vals['recoveries_of_advance']"/>
+                                        <t t-set="recoveries" t-value="vals['recoveries']"/>
                                         <td style="text-align: right;">
                                             <t t-if="i &lt; len(earnings)">
-                                                <t t-set="year_total" t-value="(earnings[i].total or 0.0) * 12"/>
+                                            <t t-if="earnings[i].code == 'Other_earnings_through_payroll'">
                                                 <span>
-                                                    <t t-esc="year_total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                    <t t-esc="ytd_april" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
+                                            </t>
+                                                <t t-else="">
+                                                    <t t-set="year_total" t-value="(earnings[i].total or 0.0) * ytd"/>
+                                                    <span>
+                                                        <t t-esc="year_total"
+                                                           t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                    </span>
+                                                </t>
                                             </t>
                                         </td>
 
@@ -186,15 +205,47 @@
                                         <td style="text-align: right;">
                                             <t t-if="i &lt; len(deductions)">
                                                 <span>
-                                                    <t t-esc="deductions[i].total or 0.0" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                    <t t-esc="deductions[i].total or 0.0"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
                                             </t>
                                         </td>
                                         <td style="text-align: right;">
-                                            <t t-if="i &lt; len(deductions)">
-                                                <t t-set="year_total" t-value="(deductions[i].total or 0.0) * 12"/>
+                                            <!--                                            <t t-if="i &lt; len(deductions)">-->
+                                            <!--                                                <t t-set="year_total" t-value="(deductions[i].total or 0.0) * ytd"/>-->
+                                            <!--                                                <span>-->
+                                            <!--                                                    <t t-esc="year_total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>-->
+                                            <!--                                                </span>-->
+                                            <!--                                            </t>-->
+                                            <t t-if="deductions[i].code == 'INC-T'">
                                                 <span>
-                                                    <t t-esc="year_total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                    <t t-esc="income_total"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                </span>
+                                            </t>
+                                            <t t-elif="deductions[i].code == 'Other_recoveries'">
+                                                <span>
+                                                    <t t-esc="recoveries"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                </span>
+                                            </t>
+                                            <t t-elif="deductions[i].code == 'Recovery_of_advances'">
+                                                <span>
+                                                    <t t-esc="recoveries_of_advance"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                                </span>
+                                            </t>
+                                             <t t-elif="deductions[i].code == 'LOP'">
+                                                  <t t-set="lop" t-value="(0.0)"/>
+                                                <span>
+                                                    <t t-esc="lop" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.company_id.currency_id}"/>
+                                                </span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-set="year_total" t-value="(deductions[i].total or 0.0) * ytd"/>
+                                                <span>
+                                                    <t t-esc="year_total"
+                                                       t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
                                             </t>
                                         </td>
@@ -213,7 +264,7 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <span>
-                                            <t t-esc="sum(l.total for l in earnings) * 12" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                            <t t-esc="sum(l.total for l in earnings) * ytd" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                         </span>
                                     </td>
                                     <td style="text-align: center;">
@@ -226,7 +277,7 @@
                                     </td>
                                     <td style="text-align: right;">
                                         <span>
-                                            <t t-esc="sum(l.total for l in deductions) * 12" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                            <t t-esc="sum(l.total for l in deductions) * ytd" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                         </span>
                                     </td>
                                 </tr>

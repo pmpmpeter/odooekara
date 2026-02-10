@@ -69,10 +69,11 @@
                                             <img t-if="o.company_id.logo" style="max-width:280px;max-height:90px;padding-left:10px;" t-att-src="image_data_uri(o.company_id.logo)" class="float-left" alt="Logo"/>
                                         </div>
                                     </td>
-                                    <td rowspan="2" width="30%" style="padding-top:2px;">
-                                        <div style="padding-top:2px;font-weight:bold;font-size:15px;">
+                                    <td rowspan="2" width="30%" style="padding-top:10px;padding-bottom:10px;">
+                                        <div style="padding-top:10px;font-weight:bold;font-size:15px;">
                                             <t t-esc="o.company_id.name"/>
                                         </div>
+                                        <br/>
                                         <t t-if="o.company_id.street">
                                             <div style="padding-top:2px;font-size:13px;">
                                                 <t t-if="o.company_id.street and o.company_id.street2">
@@ -134,8 +135,8 @@
 <!--                                            </t>-->
 <!--                                        </div>-->
                                     </td>
-                                    <td width="22%" style="line-height:normal;padding-left:2px;padding-top:2px;">
-                                        <b>Invoice # &amp; Dt.</b><br/>
+                                    <td width="22%" style="line-height:normal;padding-left:2px;padding-top:10px;padding-bottom:10px;padding-left:10px;">
+                                        <b>Invoice # &amp; Dt.</b><br/><br/>
                                         <t t-esc="o.name"/>
                                         <t t-if="o.name and o.invoice_date">
                                             <div style="padding-left:35px;">&amp;<br/>
@@ -145,8 +146,8 @@
                                             <t t-esc="o.invoice_date" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MMM-yyyy&quot;}"/>
                                         </t>
                                     </td>
-                                    <td width="28%" style="line-height:normal;padding-left:2px;padding-top:2px;">
-                                        <b>Due Date</b>
+                                    <td width="28%" style="line-height:normal;padding-left:2px;padding-top:2px;padding-bottom:10px;padding-left:10px;">
+                                        <b>Due Date</b><br/>
                                         <t t-if="o.invoice_date_due">
                                             <br/>
                                             <t t-esc="o.invoice_date_due" t-options="{&quot;widget&quot;: &quot;date&quot;,&quot;format&quot;: &quot;dd-MMM-yyyy&quot;}"/>
@@ -154,8 +155,8 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2" style="line-height:normal;padding-left:2px;padding-top:2px;">
-                                        <b>Payment Reference</b>
+                                    <td colspan="2" style="line-height:normal;padding-left:2px;padding-top:2px;padding-bottom:10px;padding-left:10px;">
+                                        <b>Payment Reference</b><br/>
                                             <t t-if="o.payment_reference">
                                                 <br/>
                                                 <t t-esc="o.payment_reference"/>
@@ -163,8 +164,9 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="2" rowspan="2" style="padding-top:4px;padding-left:1px; margin-bottom:none;font-size:15px;">
-                                        <b>Invoice To:</b>
+                                    <td colspan="2" rowspan="2" style="padding-top:10px;padding-bottom:10px;padding-left:10px; margin-bottom:none;font-size:15px;">
+                                        <b>Invoice To:</b><br/><br/>
+                                        <div style="padding-left:10px;">
                                         <t t-if="o.partner_shipping_id.name">
                                             <t t-esc="o.partner_shipping_id.name"/>
                                         </t>
@@ -218,9 +220,10 @@
                                                 </t>
                                             </div>
                                         </t>
+                                        </div>
                                     </td>
-                                    <td colspan="2" style="padding-left:1px;padding-top:4px;font-size:15px;">
-                                        <b>Ship To:</b>
+                                    <td colspan="2" style="padding-left:10px;padding-top:10px;padding-bottom:10px;font-size:15px;">
+                                        <b>Ship To:</b><br/><br/>
                                         <div style="padding-top:3px;">
                                             <t t-if="o.partner_id.parent_id and o.partner_id">
                                                 <t t-esc="o.partner_id.parent_id.name"/>,
@@ -359,8 +362,8 @@
                                 </t>
                             </tbody>
                                <tr>
-                                    <td colspan="1" style="text-align:left; padding-left:1p;">
-                                        <span>Amount in Words:</span>
+                                    <td colspan="1" style="text-align:left;padding-top:10px;padding-bottom:10px;">
+                                        <b><span>Amount in Words:</span></b>
                                         <small>
                                             <span t-field="o.amount_total_words"/>
                                         </small>
@@ -402,13 +405,13 @@
                         </table>
                                     </td>
                                 </tr>
-                                <t t-if="o.company_id.partner_id.bank_ids[0].bank_id.name">
+                                <t t-if="o.company_id.partner_id.bank_ids">
                                     <tr>
-                                        <td colspan="4" style="padding-left:1px;padding-bottom:0px;padding-top:2px;">
+                                        <td colspan="4" style="padding-left:10px;padding-bottom:10px;padding-top:10px;">
                                             <u>
                                                 <b>Bank Details:</b>
                                             </u>
-                                            <br/>
+                                            <br/><br/>
                                             <div style="padding-top:3px;font-size:14px;">
                                                 <t t-if="o.company_id.partner_id.bank_ids[0].bank_id.name">
                                                     <t t-esc="o.company_id.partner_id.bank_ids[0].bank_id.name"/>
@@ -444,6 +447,7 @@
                                                 <t t-if="o.company_id.partner_id.bank_ids[0].acc_number">A/c No.:
                                                     <t t-esc="o.company_id.partner_id.bank_ids[0].acc_number"/>
                                                 </t>  
+                                                <br/>
                                                 <t t-if="o.company_id.partner_id.bank_ids[0].bank_id.bic">SWIFT:
                                                     <t t-esc="o.company_id.partner_id.bank_ids[0].bank_id.bic"/>
                                                 </t>
@@ -456,12 +460,13 @@
                                     <!--    Declaration: We declare that this invoice shows the actual price of the Goods-->
                                     <!--    described and that all particulars are true and correct.-->
                                     <!--</td>-->
-                                    <td colspan="12" style="text-align:right;padding-right:1px;padding-top:2px;font-size:14px;">
-                                        <b>
+                                    <td colspan="12" style="text-align:right;padding-right:1px;padding-top:2px;font-size:14px;padding-bottom:30px;">
+                                        <b><br/>
                                             For <t t-esc="o.company_id.name"/>
                                         </b>
                                         <br/>
-                                        <br/>Authorized Signatory
+                                        <br/>
+                                        <div style="padding-top:70px;">Authorized Signatory</div>
                                     </td>
                                 </tr>
                             </table>

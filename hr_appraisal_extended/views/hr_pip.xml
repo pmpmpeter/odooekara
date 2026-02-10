@@ -205,4 +205,30 @@
               parent="hr_appraisal_extended.performance_review_main"
               groups="hr_appraisal.group_hr_appraisal_manager"
               sequence="4" action="action_hr_pip"/>
+
+        <record id="view_res_config_settings_hr_pip" model="ir.ui.view">
+        <field name="name">res.config.settings.hr.pip.reminders</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+             <xpath expr="//form" position="inside">
+                 <app data-string="PIP Reminder Settings" string="PIP Reminder Settings" name="hr_pip_reminder" groups="hr.group_hr_manager">
+                <block title="PIP Reminder Settings">
+                    <setting string="Reminder for 30-day PIP" company_dependent="1"
+                             help="Number of days before midpoint reminder for 30-day PIP cases">
+                        <field name="pip_30_day_reminder"/>
+                    </setting>
+                    <setting string="Reminder interval for 60+ day PIP" company_dependent="1"
+                             help="Interval in days for reminders in 60+ day PIP cases">
+                        <field name="pip_60_day_reminder"/>
+                    </setting>
+                    <setting string="Reminder before End Date" company_dependent="1"
+                             help="Number of days before end date to send reminder">
+                        <field name="pip_end_reminder"/>
+                    </setting>
+                </block>
+                 </app>
+            </xpath>
+        </field>
+    </record>
 </odoo>

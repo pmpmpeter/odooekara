@@ -48,32 +48,32 @@
                             invisible="state not in ('preparation')"
                             class="oe_highlight"/>
 
-                    <button string="Manager Review" type="object"
+                    <button string="Manager Review Submit" type="object"
                             name="action_manager_review"
                             groups="hr_recruitment.group_hr_recruitment_user"
                             class="oe_highlight"
                             invisible="state != 'preparation_clarification'"/>
 
-                    <button string="HOD Review" type="object"
+                    <button string="BU Head or HOD Review Submit" type="object"
                             name="action_hod_review"
                             groups="hr_extended.group_hr_recruitment_bu_head"
                             class="oe_highlight"
                             invisible="state != 'half_year_pending'"/>
 
-                    <button string="Director Review" type="object"
+                    <button string="Director Review Submit" type="object"
                             name="action_director_review"
                             groups="hr_extended.group_hr_recruitment_director"
                             class="oe_highlight"
                             invisible="state != 'full_year_pending'"/>
 
-                    <button string="Refuse" type="object"
+                    <button string="Send Back for Clarification" type="object"
                             name="action_refuse_request"
                             groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_recruitment_bu_head,hr_recruitment.group_hr_recruitment_user"
                             class="oe_highlight"
                             invisible="state in ('preparation','request_appraisal','review_completed')"/>
                     <button name="action_create_new_contract" type="object"
                             groups="hr_extended.group_hr_recruitment_director"
-                            class="oe_highlight new-compensation-btn" invisible="state != 'full_year_pending'"
+                            class="oe_highlight new-compensation-btn" invisible="state != 'review_completed'"
                             string="Update Compensation"/>
 
                 </header>
@@ -111,7 +111,8 @@
                             <field name="designation_id" required="True"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    readonly="not is_appraisal_manager"/>
-                            <field name="grade" readonly="not is_appraisal_manager"/>
+                            <field name="grade" readonly="not is_appraisal_manager" invisible="1"/>
+                            <field name="job_level" readonly="not is_appraisal_manager" />
                             <field name="location_id" readonly="not is_appraisal_manager"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="appraisal_date" required="True" readonly="not is_appraisal_manager"/>
@@ -184,7 +185,7 @@
                                 <!-- </group>-->
                             </group>
                         </page>
-                        <page string="Manager Ratings" invisible="is_employee == True"
+                        <page string="Manager Review" invisible="is_employee == True"
                               groups="hr_recruitment.group_hr_recruitment_user">
                             <field name="manager_rating_ids">
                                 <tree editable="bottom" create="0" delete="0">
@@ -204,6 +205,11 @@
                                     <field name="manager_final_score" readonly="1" force_save="1" invisible="1"
                                            groups="hr_extended.group_hr_recruitment_director"/>
                                     <field name="pbvp_payout" readonly="1" force_save="1" invisible="1"/>
+                                    <field name="manager_remark"/>
+                                </group>
+                                <group>
+                                    <field name="manager_eligible_for_promotion"/>
+                                    <field name="manager_new_designation"/>
                                 </group>
                             </group>
                         </page>
@@ -220,11 +226,11 @@
                                 </group>
                             </group>
                             <group>
-                                <field name="remark"/>
+                                <field name="remark" string="Remark (please specify)"/>
                             </group>
                         </page>
                         <page string="Director Ratings" invisible="is_employee == True"
-                              groups="hr_extended.group_hr_recruitment_director">
+                              groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin">
                             <!--                            <field name="director_rating_ids">-->
                             <!--                                <tree editable="bottom">-->
                             <!--                                    <field name="name"/>-->
@@ -244,6 +250,11 @@
                                         <field name="recommended_increment" style="max-width: 50px"/>
                                         <span>%</span>
                                     </div>
+<!--                                     <label for="revised_increment_per"/>-->
+<!--                                    <div class="o_row" name="revised_increment_per">-->
+<!--                                        <field name="revised_increment_per" style="max-width: 50px"/>-->
+<!--                                        <span>%</span>-->
+<!--                                    </div>-->
                                     <label for="recommended_pbvp_payout"/>
                                     <div class="o_row" name="recommended_pbvp_payout">
                                         <field name="recommended_pbvp_payout" style="max-width: 50px" readonly="1"
@@ -255,10 +266,16 @@
                                     <field name="eligible_for_promotion"/>
                                     <field name="new_job_level" invisible="1"/>
                                     <field name="new_designation"/>
+                                    <field name="pbvp_reference_ids" readonly="1" invisible="1">
+                                        <tree editable="false">
+                                            <field name="score_range"/>
+                                            <field name="payout_percentage"/>
+                                        </tree>
+                                    </field>
                                 </group>
                             </group>
                         </page>
-                        <page string="Salary Breakup" groups="hr_extended.group_hr_recruitment_director">
+                        <page string="Salary Breakup" groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin">
                             <group>
                                 <group string="Compensation Details">
                                     <field name="monthly_fixed_salary"/>
@@ -285,7 +302,7 @@
                                     <field name="monthly_performance_incentive" invisible="1"/>
                                     <field name="medical_insurance"/>
                                     <field name="group_personal_accident_insurance"/>
-                                    <field name="health_benefit_plan"/>
+                                    <field name="health_benefit_plan" invisible="1"/>
                                     <field name="indicative_take_home_salary" readonly="1" force_save="1"/>
                                 </group>
                                 <group string="Salary Break-up (Per Annum)">
@@ -308,7 +325,7 @@
                                     <field name="total_salary_per_annum" readonly="1" force_save="1"/>
                                     <field name="medical_insurances" readonly="1" force_save="1"/>
                                     <field name="group_personal_acc_insurance" readonly="1" force_save="1"/>
-                                    <field name="health_ben_plan" readonly="1" force_save="1"/>
+                                    <field name="health_ben_plan" invisible="1" readonly="1" force_save="1"/>
                                     <field name="sub_total_d" readonly="1" force_save="1" invisible="1"/>
 
                                 </group>
@@ -349,7 +366,7 @@
                                 <!--                                </style>-->
                             </group>
                         </page>
-                        <page string="Review Comments" invisible="is_employee == True">
+                        <page string="Review Comments" groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin" invisible="is_employee == True">
                             <field name="goal_review_comments">
                                 <tree editable="bottom">
                                     <field name="commented_by"
@@ -361,7 +378,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Assessment KRA">
+                        <page string="Assessment KRA" groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin">
                             <field name="assessment_kra_ids">
                                 <tree editable="bottom" create="0" delete="0">
                                     <field name="name" string="KRA" readonly="1"/>
@@ -417,7 +434,7 @@
                         <!--                                </group>-->
                         <!--                            </group>-->
                         <!--                        </page>-->
-                        <page string="Employee Development Plan">
+                        <page string="Employee Development Plan" groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin">
                             <field name="development_plan_ids">
                                 <tree editable="bottom">
                                     <field name="action" string="Action"/>
@@ -445,7 +462,7 @@
                                        string="Reporting Manager’s Signature"/>
                             </group>
                         </page>
-                        <page string="Others">
+                        <page string="Others" groups="hr_extended.group_hr_recruitment_director,hr_extended.group_hr_payslip_admin">
                             <group>
                                 <field name="supporting_document"/>
                             </group>

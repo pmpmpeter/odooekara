@@ -2,7 +2,6 @@
 <odoo>
     <template id="report_document_item">
 		<t t-call="web.external_layout">
-
 	    	<div class="page">
 		    	<div class="oe_structure"/>
                 <t t-if="env.context.get('generation_date', False)">

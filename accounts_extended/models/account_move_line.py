@@ -86,6 +86,7 @@ class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
     budget_id  = fields.Many2many('crossovered.budget.lines', string='Budget Code', copy=False, required=0)
+    other_charges_payment_line = fields.Boolean(string="Other Charges Payment Line", copy=False)
 
     @api.onchange('account_id')
     def update_budget_code(self):

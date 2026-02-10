@@ -548,7 +548,7 @@ for rec in self:
 
         # Create compute field
         compute_field = "x_need_approval"
-        field = self.env['ir.model.fields'].sudo().search([('name', '=', compute_field),('id','=',model_id)])
+        field = self.env['ir.model.fields'].sudo().search([('name', '=', compute_field),('model_id','=',model_id)])
         if not field:
             self.create_compute_field(compute_field, model_id)
 
@@ -735,7 +735,6 @@ VALUES (NOW() at time zone 'UTC', %s, %s, %s, %s, %s, %s, %s, %s, %s)
             raise UserError(err) from err
         except Exception as exc:
             _logger.debug("Approval Failed: ", str(exc))
-            # print("Case11111111111111111111",exc)
             raise UserError(
                 _(
                     """

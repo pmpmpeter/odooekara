@@ -1,7 +1,9 @@
 from odoo import models, fields
 from odoo.tools.misc import formatLang
 from collections import defaultdict
-
+from odoo.exceptions import UserError, ValidationError
+import base64
+from io import BytesIO
 
 class GeneratePdfReport(models.TransientModel):
     _name = 'generate.pdf.report'
@@ -16,6 +18,46 @@ class GeneratePdfReport(models.TransientModel):
         default=lambda self: self.env.company,
         readonly=True
     )
+    partner_ids = fields.Many2many('res.partner', string="Email To")
+    report_file = fields.Binary(string="Report File", readonly=True)
+    file_name = fields.Char(string="File Name", readonly=True)
+
+    def action_send_balance_confirmation_report_mail(self):
+        template = self.env.ref('ekara_pdf_report.balance_confirmtaion_share_email_template')
+        for record in self:
+            if not record.partner_ids:
+                raise ValidationError("Please add at least one partner to send the email.")
+
+            missing = [p.name for p in record.partner_ids if not p.email]
+            if missing:
+                raise ValidationError(f"Missing email for: {', '.join(missing)}")
+
+            if not record.report_file:
+                raise ValidationError("Please upload the report file before sending the email.")
+
+            attachment = self.env['ir.attachment'].create({
+                'name': record.file_name or 'report.pdf',
+                'type': 'binary',
+                'datas': record.report_file,
+                'res_model': record._name,
+                'res_id': record.id,
+                'mimetype': 'application/pdf',
+            })
+
+            template.send_mail(record.id, force_send=True, email_values={
+                'attachment_ids': [attachment.id],
+            })
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Success',
+                'message': 'Email sent to selected recipients.',
+                'type': 'success',
+                'sticky': True,
+            }
+        }
 
     def get_paymenet_id(self, move):
         self._cr.execute('''
@@ -62,6 +104,29 @@ class GeneratePdfReport(models.TransientModel):
             ('date', '<=', self.to_date),
             ('state', '=', 'posted')
         ], order='date')
+        # Fetch payments
+        self.ensure_one()
+        partner_id = self.vendor_id.id
+        from_date = self.from_date
+
+        query = """
+                SELECT 
+                    COALESCE(SUM(aml.debit), 0) - COALESCE(SUM(aml.credit), 0) AS opening_balance
+                FROM 
+                    account_move_line aml
+                JOIN 
+                    account_account acc ON aml.account_id = acc.id
+                WHERE 
+                    aml.partner_id = %s
+                    AND aml.date < %s
+                    AND aml.parent_state = 'posted'
+                    AND acc.account_type = 'liability_payable'
+            """
+
+        self.env.cr.execute(query, (partner_id, from_date))
+        result = self.env.cr.fetchone()
+
+        opening_balance = abs(result[0] if result else 0.0)
 
         # Combine into one list
         combined = [
@@ -80,6 +145,14 @@ class GeneratePdfReport(models.TransientModel):
                            'record': pay,
                        }
                        for pay in payments
+                   ]+[
+                       {
+                           'date': self.from_date,
+                           'type': 'opening_balance',
+                           'amount':opening_balance,
+                           'record': '',
+                       }
+
                    ]
 
         # Sort by date
@@ -128,8 +201,19 @@ class GeneratePdfReport(models.TransientModel):
                             'credit_label': line.account_id.display_name,
                             'credit_amount': invoice.amount_total,
                         })
-
                     total_credit += invoice.amount_total
+                elif rec['type'] == 'opening_balance':
+                    result.append({
+                        'debit_date': '',
+                        'debit_label': '',
+                        'debit_amount': 0,
+                        'credit_date': self.from_date.strftime('%d-%b-%y') if self.from_date else '',
+                        'credit_label':'Opening Balance',
+                        'credit_amount': opening_balance,
+                    })
+
+
+                    total_credit += opening_balance
 
         # for move in account_moves:
         #     payment = self.get_paymenet_id(move)
@@ -171,4 +255,25 @@ class GeneratePdfReport(models.TransientModel):
 
     def action_generate_pdf(self):
         self.ensure_one()
-        return self.env.ref('ekara_pdf_report.action_pdf_report_creation').report_action(self)
+        pdf_content, _ = self.env['ir.actions.report']._render_qweb_pdf(
+            'ekara_pdf_report.action_pdf_report_creation',
+            res_ids=self.ids
+        )
+        print(self.ids)
+        pdf_base64 = base64.b64encode(pdf_content)
+        self.report_file = pdf_base64
+        attachment = self.env['ir.attachment'].create({
+            'name': f'Balance Confirmation',
+            'type': 'binary',
+            'datas': base64.b64encode(pdf_content),
+            'res_model': 'generate.pdf.report',
+            'res_id': self.id,
+            'mimetype': 'application/pdf',
+        })
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'new',
+        }
+

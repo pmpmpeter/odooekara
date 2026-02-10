@@ -35,23 +35,26 @@ class CashRequirementReport(models.Model):
     ytd_contribution_ids = fields.One2many("ytd.budget.contribution", "report_id", string="Budget Contributions")
     budget_id = fields.Many2one('crossovered.budget',string='Budget')
     has_statement_lines = fields.Boolean(string='Has Statement Lines')
+    bank_balance_date = fields.Date(string='Bank Balance')
 
-    @api.depends('journal_bank')
+    @api.depends('journal_bank','bank_balance_date')
     def compute_available_balance(self):
-        if self.journal_bank:
-            total_val = 0
-            for rec in self.journal_bank.ids:
-                bank_balance = 0
-                if rec:
-                    journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
-                    query_result = journal._get_journal_dashboard_bank_running_balance()
-                    self.has_statement_lines, bank_balance = query_result.get(journal.id)
-                    total_val += bank_balance
-                else:
-                    self.available_balance = 0
-            self.available_balance = total_val
-        else:
-            self.available_balance = 0
+        for rec1 in self:
+            if rec1.journal_bank:
+                total_val = 0
+                till_date = rec1.bank_balance_date
+                for rec in rec1.journal_bank.ids:
+                    bank_balance = 0
+                    if rec:
+                        journal = self.env['account.journal'].sudo().search([('id', '=', rec)])
+                        query_result = journal._get_journal_dashboard_bank_running_balance_dated(till_date)
+                        rec1.has_statement_lines, bank_balance = query_result.get(journal.id)
+                        total_val += bank_balance
+                    else:
+                        rec1.available_balance = 0
+                rec1.available_balance = total_val
+            else:
+                rec1.available_balance = 0
 
     def action_print_cash_requirement(self):
         """Return the report action to print the cash requirement report as PDF"""
@@ -238,9 +241,6 @@ class CashRequirementReport(models.Model):
             if self.budget_id:
                 # Sum all months from April to current month
                 month_fields = []
-                month_fields = []
-
-                # months Apr (4) → Dec (12) in same year
                 if self.start_date.month >= 4:
                     for m in range(4, self.start_date.month + 1):
                         month_map = {
@@ -297,7 +297,6 @@ class CashRequirementReport(models.Model):
                 "crr_requirement": ytd_crr,
                 "actual_contribution": ytd_actual,
             })
-
         if vals_list:
             self.env["budget.contribution"].create(vals_list)
         if ytd_vals_list:

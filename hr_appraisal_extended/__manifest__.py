@@ -21,6 +21,8 @@
         'data/increment_redesignation_letter_iim_job_approved.xml',
         'data/mail_template.xml',
         'data/variable_pay_letter.xml',
+        'data/ir_cron.xml',
+        'data/pbvp_reference_data.xml',
         # 'views/hr_appraisal.xml',
         'reports/360_performance_review.xml',
         'reports/360_performance_review_excel.xml',

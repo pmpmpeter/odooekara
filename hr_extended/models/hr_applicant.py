@@ -6,7 +6,224 @@ from odoo.exceptions import UserError, ValidationError
 import math, re
 from num2words import num2words
 
+class SalaryBreakupLine(models.Model):
+    _name = "salary.breakup.lines"
+    _description = "Salary Breakup Lines"
 
+    applicant_id = fields.Many2one("hr.applicant", string="Applicant")
+    salary_proposed = fields.Float(string="Proposed Salary")
+    salary_breakup_type = fields.Selection([
+        ('breakup_one', 'One'),
+        ('breakup_two', 'Two'),
+        ('breakup_three', 'Three'),
+    ], string="Type", required=True)
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ], default='draft', string="Director Approval Status")
+    final_state = fields.Selection([
+        ('draft', 'Draft'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ], default='draft', string="HR Approval Status")
+
+    # Compensation basic input fields
+    monthly_fixed_salary = fields.Float(string="Monthly Fixed Salary (excl PF & all incentive pay)")
+
+    statutory_bonus_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Statutory Bonus Applicable",
+        default='no',
+        required=True,
+    )
+    provident_fund_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="Provident Fund Applicable",
+        default='no',
+        required=True,
+    )
+    esi_applicable = fields.Selection(
+        [('yes', 'Yes'), ('no', 'No')],
+        string="ESI Applicable",
+        default='no',
+        required=True,
+    )
+
+    variable_pay_percentage = fields.Float(string="Percentage of Variable Pay")
+
+    grade = fields.Selection([
+        ('spl_grade', 'Spl Grade'),
+        ('grade_a', 'Grade A'),
+        ('grade_b', 'Grade B'),
+        ('grade_c', 'Grade C'),
+        ('grade_d', 'Grade D'),
+        ('grade_e', 'Grade E'),
+        ('grade_f', 'Grade F'),
+        ('grade_g', 'Grade G'),
+    ], string="Grade", default='spl_grade', required=True)
+
+    locations_id = fields.Many2one(
+        'location.master',
+        string="Location"
+    )
+
+    medical_insurance = fields.Float(string="Medical Insurance")
+    group_personal_accident_insurance = fields.Float(string="Group Personal Accident Insurance")
+    health_benefit_plan = fields.Float(string="Health Benefit Plan")
+    indicative_take_home_salary = fields.Float(string="Indicative Take Home Salary Per Month")
+
+    # Salary breakup – Per Annum
+    basic_da_per_annum = fields.Float(string='Basic & DA')
+    hra_per_annum = fields.Float(string='House Rent Allowance')
+    special_allowance_per_annum = fields.Float(string='Special Allowance')
+    sub_total_a_per_annum = fields.Float(string='Sub-total Part A')
+
+    statutory_bonus_per_annum = fields.Float(string='Statutory Bonus')
+    pf_employer_per_annum = fields.Float(string="Provident Fund (Employer Contribution)")
+    esic_employer_per_annum = fields.Float(string='ESIC (Employer Contribution)')
+    sub_total_b_per_annum = fields.Float(string='Sub-total Part B')
+
+    store_performance_incentive_annum = fields.Float(string="Store Performance Incentive")
+    monthly_performance_incentive_annum = fields.Float(string="Monthly Performance Incentive")
+    variable_pay_per_annum = fields.Float(string='Performance Linked Variable Pay')
+    performance_linked_pay_annum = fields.Float(string='Performance Linked Pay')
+    sub_total_c_per_annum = fields.Float(string='Sub-total Part C')
+
+    total_salary_per_annum = fields.Float(string='Total Salary')
+
+    medical_insurances = fields.Float(string='Medical Insurance')
+    group_personal_acc_insurance = fields.Float(string='Group Personal Accident Insurance')
+    health_ben_plan = fields.Float(string='Health Benefit Plan')
+    sub_total_d = fields.Float(string='Sub-total Part D')
+
+    total_ctc_annum = fields.Float(string='Total Cost to Company')
+
+    # Salary breakup – Per Month
+    basic_da_per_month = fields.Float(string='Basic & DA')
+    hra_per_month = fields.Float(string='House Rent Allowance')
+    special_allowance_per_month = fields.Float(string='Special Allowance')
+    sub_total_a_per_month = fields.Float(string='Sub-total Part A')
+
+    statutory_bonus_per_month = fields.Float(string='Statutory Bonus')
+    pf_employer_per_month = fields.Float(string="Provident Fund (Employer Contribution)")
+    esic_employer_per_month = fields.Float(string='ESIC (Employer Contribution)')
+    sub_total_b_per_month = fields.Float(string='Sub-total Part B')
+
+    store_performance_incentive_month = fields.Float(string="Store Performance Incentive")
+    monthly_performance_incentive_month = fields.Float(string="Monthly Performance Incentive")
+    variable_pay_per_month = fields.Float(string='Performance Linked Variable Pay')
+    performance_linked_pay_month = fields.Float(string='Performance Linked Pay')
+    sub_total_c_per_month = fields.Float(string='Sub-total Part C')
+
+    total_salary_per_month = fields.Float(string='Total Salary')
+
+    total_ctc_month = fields.Float(string='Total Cost to Company')
+
+
+    def calculate_salary(self):
+        if not self.locations_id:
+            raise UserError("Warning!! Kindly Select Location")
+        self.applicant_id.salary_proposed= self.salary_proposed
+        self.applicant_id.monthly_fixed_salary= self.monthly_fixed_salary
+        self.applicant_id.statutory_bonus_applicable = self.statutory_bonus_applicable
+        self.applicant_id.provident_fund_applicable = self.provident_fund_applicable
+        self.applicant_id.esi_applicable = self.esi_applicable
+        self.applicant_id.variable_pay_percentage = self.variable_pay_percentage
+        self.applicant_id.grade = self.grade
+        self.applicant_id.locations_id = self.locations_id.id
+        self.applicant_id.medical_insurance = self.medical_insurance
+        self.applicant_id.group_personal_accident_insurance = self.group_personal_accident_insurance
+        self.applicant_id.health_benefit_plan = self.health_benefit_plan
+        self.applicant_id._onchange_calculate_salary_breakup()
+        self.indicative_take_home_salary = self.applicant_id.indicative_take_home_salary
+        # Per Annum
+        self.basic_da_per_annum = self.applicant_id.basic_da_per_annum
+        self.hra_per_annum = self.applicant_id.hra_per_annum
+        self.special_allowance_per_annum = self.applicant_id.special_allowance_per_annum
+        self.sub_total_a_per_annum = self.applicant_id.sub_total_a_per_annum
+        self.statutory_bonus_per_annum = self.applicant_id.statutory_bonus_per_annum
+        self.pf_employer_per_annum = self.applicant_id.pf_employer_per_annum
+        self.esic_employer_per_annum = self.applicant_id.esic_employer_per_annum
+        self.sub_total_b_per_annum = self.applicant_id.sub_total_b_per_annum
+        self.store_performance_incentive_annum = self.applicant_id.store_performance_incentive_annum
+        self.monthly_performance_incentive_annum = self.applicant_id.monthly_performance_incentive_annum
+        self.variable_pay_per_annum = self.applicant_id.variable_pay_per_annum
+        self.performance_linked_pay_annum = self.applicant_id.performance_linked_pay_annum
+        self.sub_total_c_per_annum = self.applicant_id.sub_total_c_per_annum
+        self.total_salary_per_annum = self.applicant_id.total_salary_per_annum
+        self.medical_insurances = self.applicant_id.medical_insurances
+        self.group_personal_acc_insurance = self.applicant_id.group_personal_acc_insurance
+        self.health_ben_plan = self.applicant_id.health_ben_plan
+        self.sub_total_d = self.applicant_id.sub_total_d
+        self.total_ctc_annum = self.applicant_id.total_ctc_annum
+        # Per Month
+        self.basic_da_per_month = self.applicant_id.basic_da_per_month
+        self.hra_per_month = self.applicant_id.hra_per_month
+        self.special_allowance_per_month = self.applicant_id.special_allowance_per_month
+        self.sub_total_a_per_month = self.applicant_id.sub_total_a_per_month
+        self.statutory_bonus_per_month = self.applicant_id.statutory_bonus_per_month
+        self.pf_employer_per_month = self.applicant_id.pf_employer_per_month
+        self.esic_employer_per_month = self.applicant_id.esic_employer_per_month
+        self.sub_total_b_per_month = self.applicant_id.sub_total_b_per_month
+        self.store_performance_incentive_month = self.applicant_id.store_performance_incentive_month
+        self.monthly_performance_incentive_month = self.applicant_id.monthly_performance_incentive_month
+        self.variable_pay_per_month = self.applicant_id.variable_pay_per_month
+        self.performance_linked_pay_month = self.applicant_id.performance_linked_pay_month
+        self.sub_total_c_per_month = self.applicant_id.sub_total_c_per_month
+        #Total
+        self.total_salary_per_month = self.applicant_id.total_salary_per_month
+        self.total_ctc_month = self.applicant_id.total_ctc_month
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Salary Breakup',
+            'view_mode': 'form',
+            'res_model': 'salary.breakup.lines',
+            'res_id': self.id,
+            'target': 'new',  # Popup
+        }
+
+
+
+    def action_hr_approve(self):
+        self.write({'final_state': 'approved'})
+        line_ids = self.search([('applicant_id','=',self.applicant_id.id),('id','!=',self.id)])
+        line_ids.update({'final_state':'rejected'})
+        self.applicant_id.salary_proposed = self.salary_proposed
+        self.applicant_id.monthly_fixed_salary = self.monthly_fixed_salary
+        self.applicant_id.statutory_bonus_applicable = self.statutory_bonus_applicable
+        self.applicant_id.provident_fund_applicable = self.provident_fund_applicable
+        self.applicant_id.esi_applicable = self.esi_applicable
+        self.applicant_id.variable_pay_percentage = self.variable_pay_percentage
+        self.applicant_id.grade = self.grade
+        self.applicant_id.locations_id = self.locations_id.id
+        self.applicant_id.medical_insurance = self.medical_insurance
+        self.applicant_id.group_personal_accident_insurance = self.group_personal_accident_insurance
+        self.applicant_id.health_benefit_plan = self.health_benefit_plan
+        self.applicant_id._onchange_calculate_salary_breakup()
+        self.applicant_id.salary_breakup_approved = True
+
+    def action_approve(self):
+        self.write({'state': 'approved'})
+
+
+    def action_hr_reject(self):
+        self.write({'final_state': 'rejected'})
+
+    def action_reject(self):
+        self.write({'state': 'rejected','final_state':'rejected'})
+
+    def action_view(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Salary Breakup',
+            'view_mode': 'form',
+            'res_model': 'salary.breakup.lines',
+            'res_id': self.id,
+            'target': 'new',  # Popup
+        }
 class RecruitmentStage(models.Model):
     _inherit = "hr.recruitment.stage"
 
@@ -31,7 +248,12 @@ class HrJobKra(models.Model):
 
     kra_master = fields.Many2one('kra.master', string='KRA', copy=False,
                                  help="Select the Key Result Area (KRA) Master associated with this applicant.")
-
+    allowed_user_ids = fields.Many2many('res.users', string="Allowed Users")
+    interviewer_ids = fields.Many2many(
+        "res.users",
+        string="Interviewers",
+        help="The Interviewers set on the job position can see all Applicants in it. They have access to the information, the attachments, the meeting management and they can refuse him. You don't need to have Recruitment rights to be set as an interviewer.",
+    )
     def unlink(self):
         """Check if the record is referenced before deletion."""
         related_fields = self.env['ir.model.fields'].search([
@@ -205,12 +427,45 @@ class Job_Applicant(models.Model):
                                        domain="[('share', '=', False), ('company_ids', 'in', company_id)]")
     document_ids = fields.One2many("hr.applicant.document", "applicant_id", string="Documents")
     refuse_count = fields.Integer(string="Refusal Count")
+    salary_breakup_ids = fields.One2many(
+        "salary.breakup.lines",
+        "applicant_id",
+        string="Salary Breakup"
+    )
+    salary_breakup_added = fields.Boolean(default=False)
+    salary_breakup_approved = fields.Boolean(default=False)
 
+    def action_create_breakup_lines(self):
+        """
+        # Ensures existing and new applicants always have 3 breakup lines:
+        # breakup one, breakup two, breakup three
+        # """
+        if not self.salary_breakup_added and not self.salary_breakup_ids:
+            for rec in self:
+                required = ['breakup_one', 'breakup_two', 'breakup_three']
+                existing = rec.salary_breakup_ids.mapped('salary_breakup_type')
 
+                missing = list(set(required) - set(existing))
 
+                for m in missing:
+                    self.env['salary.breakup.lines'].create({
+                        'applicant_id': rec.id,
+                        'salary_breakup_type': m,
+                    })
+            self.salary_breakup_added = True
 
     def action_send_offer_offer_letter_for_approval(self):
         for record in self:
+            user = self.env['employee.indent'].search([('job_id','=',record.job_id.id)]).director_approval_id
+            if user:
+                record.activity_schedule(
+                    activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                    summary="Offer Letter – Director Approval Required",
+                    note=f"Offer letter for {record.partner_name} has been sent for your approval.",
+                    user_id=user.id,
+                    date_deadline=fields.Date.today(),
+                )
+
             record.offer_letter_sent_director = "yes"
 
     def action_refuse_employee_documents(self):
@@ -856,9 +1111,9 @@ class Job_Applicant(models.Model):
                 template.send_mail(applicant.id, force_send=True)
                 applicant.write({'document_sent': 'yes'})
 
-    def action_send_offer_offer_letter_for_approval(self):
-        for record in self:
-            record.offer_letter_sent_director = "yes"
+    # def action_send_offer_offer_letter_for_approval(self):
+    #     for record in self:
+    #         record.offer_letter_sent_director = "yes"
 
     def action_approve_offer_letter(self):
         for record in self:
@@ -1216,3 +1471,4 @@ class HrApplicantRefuseWizard(models.TransientModel):
 
         # Update status
         applicant.write({"offer_letter_approved": "no",'offer_letter_sent_director':'no','refuse_count':+1})
+

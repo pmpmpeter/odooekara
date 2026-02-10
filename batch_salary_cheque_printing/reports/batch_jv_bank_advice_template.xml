@@ -4,88 +4,91 @@
 <template id="print_batch_bank_advice">
     <t t-call="web.basic_layout">
 				<t t-foreach="docs" t-as="o">
-
 					<div class="page">
 						<!-- Company Name and Date -->
 						<div style="text-align:center;">
 							<h2 style="font-weight:bold;">
-								<t t-esc="o.journal_id.company_id.name" />
+								<t t-esc="o.journal_id.company_id.name"/>
 							</h2>
 						</div>
 						<div style="border-bottom: 3px solid black; margin-bottom: 10px;"/>
 						<div style="display: flex; justify-content: space-between; align-items: center;">
 							<div style="text-align:right; white-space: nowrap;">
 								<strong>Date:</strong>
-								<t t-esc="o.date.strftime('%d-%b-%y') or ''" />
+								<t t-esc="datetime.datetime.today().strftime('%d-%b-%y')" />
 							</div>
+							<t t-set="test1" t-value="o.bank_advice_values()"/>
+                            <t t-set="test" t-value="test1.get('employee_payslip_dict')"/>
+                            <t t-set="bank" t-value="test1.get('bank')"/>
 							<div style="text-align:left;">
 								<span><strong>To:</strong>
 								</span><br/>
 								<span>Branch Manager</span><br/>
-								<t t-if="o.journal_id.bank_id.name">
-									<span t-esc="o.journal_id.bank_id.name"/>
+								<t t-if="bank.bank_id">
+									<span t-esc="bank.bank_id.name"/>
 								</t>
-								<t t-if="o.journal_id.bank_account_id.acc_number">A/c -
-									<span t-esc="o.journal_id.bank_account_id.acc_number"/>
+                                <br/>
+								<t t-if="bank.bank_id.street">
+									<span t-esc="bank.bank_id.street"/>
+								</t>,
+								<t t-if="bank.bank_id.street2">
+									<span t-esc="bank.bank_id.street2"/>
 								</t><br/>
-								<t t-if="o.journal_id.bank_id.street">
-									<span t-esc="o.journal_id.bank_id.street"/>
-								</t>
-								<t t-if="o.journal_id.bank_id.street2">
-									<span t-esc="o.journal_id.bank_id.street2"/>
-								</t><br/>
-								<t t-if="o.journal_id.bank_id.city">
-									<span t-esc="o.journal_id.bank_id.city"/>
+								<t t-if="bank.bank_id.city">
+									<span t-esc="bank.bank_id.city"/>
 								</t>
 							</div>
 						</div>
 						<br/>
+
 						<div styel="margin-top: 35px;">
 							<strong>Dear Sir/Madam</strong>
 						</div>
 						<!-- Subject and Reference Account -->
 						<div style="text-align:center">
 							<div style="margin-left: 50px;">
-								<strong>Subject:</strong>
-								Requesting For NEFT/RTGS Transactions.
-							</div>
-							<div style="margin-left: 50px;">
-								<strong>Reference Current A/C No.:</strong>
-								<t t-esc="o.journal_id.bank_account_id.acc_number" />
+								<strong>Sub: RTGS / NEFT Request from our A/c. No:<t t-esc="bank.acc_number"/></strong>
 							</div>
 						</div>
 						<br/>
 						<br/>
+
+                        <t t-set="line" t-value="request.env['hr.payslip'].sudo().search([('batch_jv_ref','=',o.name)])"/>
+
+                                <t t-foreach="line" t-as="slip">
+									<tr>
+                                        <t t-set="amount" t-value="test.get(slip.employee_id.name, 0.0) or 0.0"/>
+                                        <t t-set="total1" t-value="(total1 or 0.0) + float(amount)"/>
+                                    </tr>
+								</t>
 						<div style="width:100%; text-align:left;">
 							<p>
-								With reference to the above subject kindly debit A/c for total
-								sum of Rs.
-								<t t-esc="'{:,.2f}'.format(abs(o.amount))"></t>
-								through vide
-								<br></br>
-								check no.
-								<t t-out="o.name"></t>
+								We request you to RTGS / NEFT a total sum of Rs
+								<t t-esc="'{:,.2f}'.format(abs(total1))"/>
+								to the following accounts as given in the table below,
+								<br/>
+								as per cheque No:
+								<t t-out="o.cheque_number"/>
 								dated:
-								<t t-out="o.date.strftime('%d-%b-%y')"></t>
-								and credit the account listed below.
+								<t t-out="datetime.datetime.today().strftime('%d-%b-%y')"/>
+                                .
 							</p>
 						</div>
 						<!-- Payment Details Table -->
-						<table class="table table-bordered"
-							style="width:100%; text-align:left;border: 2px solid black;">
+						<table class="table table-bordered" style="width:100%; text-align:left;border: 2px solid black;">
 							<thead>
 								<tr>
 									<th style="width:5%;">Sl No.</th>
-									<th style="width:15%;">Type</th>
-									<th style="width:20%;">Beneficiary Name</th>
-									<th style="width:20%;">Beneficiary Bank</th>
+									<th style="width:20%;">To the credit of</th>
+                                    <th style="width:15%;">Account Number</th>
+									<th style="width:20%;">Bank</th>
 									<th style="width:15%;">IFSC Code</th>
-									<th style="width:15%;">Account Number</th>
+                                    <th style="width:15%;">Branch</th>
 									<th style="width:10%; text-align:right;">Amount</th>
 								</tr>
 							</thead>
 							<tbody>
-								<t t-set="sl_no" t-value="1" />
+								<t t-set="sl_no" t-value="1"/>
 <!--								<t t-foreach="o.journal_ids" t-as="line">-->
 <!--									<tr>-->
 <!--										<td t-esc="sl_no" />-->
@@ -104,47 +107,45 @@
 <!--									<t t-set="sl_no" t-value="sl_no + 1" />-->
 <!--								</t>-->
 								<t t-set="line" t-value="request.env['hr.payslip'].sudo().search([('batch_jv_ref','=',o.name)])"/>
-								<t t-foreach="line" t-as="slip">
+
+                                <t t-foreach="line" t-as="slip">
 									<tr>
-										<td t-esc="sl_no" />
-										<td>NEFT</td>
-<!--										<t t-esc="slip"/>-->
-										<td t-esc="slip.employee_id.name" />
-										<td
-											t-esc="slip.employee_id.bank_account_id.bank_id.name if slip.employee_id.bank_account_id.bank_id.name else 'N/A'" />
-										<td
-											t-esc="slip.employee_id.bank_account_id.bank_id.bic if slip.employee_id.bank_account_id.bank_id.bic else 'N/A'" />
-										<td
-											t-esc="slip.employee_id.bank_account_id.acc_number if slip.employee_id.bank_account_id.acc_number else 'N/A'" />
-										<td t-esc="slip.move_id.amount_total" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
-									</tr>
-									<t t-set="sl_no" t-value="sl_no + 1" />
+										<td t-esc="sl_no"/>
+										<td t-esc="slip.employee_id.name"/>
+										<td t-esc="slip.employee_id.bank_account_id.acc_number if slip.employee_id.bank_account_id.acc_number else 'N/A'"/>
+                                        <td t-esc="slip.employee_id.bank_account_id.bank_id.name if slip.employee_id.bank_account_id.bank_id.name else 'N/A'"/>
+                                        <td t-esc="slip.employee_id.bank_account_id.bank_id.ifsc_code if slip.employee_id.bank_account_id.bank_id.ifsc_code else 'N/A'"/>
+                                        <td t-esc="slip.employee_id.bank_account_id.bank_id.bank_branch if slip.employee_id.bank_account_id.bank_id.bank_branch else 'N/A'"/>
+                                        <t t-set="amount" t-value="test.get(slip.employee_id.name, 0.0) or 0.0"/>
+                                        <td t-esc="amount" style="text-align:right;" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                        <t t-set="total" t-value="(total or 0.0) + float(amount)"/>
+                                    </tr>
+									<t t-set="sl_no" t-value="sl_no + 1"/>
 								</t>
 								<tr>
 									<td colspan="6" style="text-align:right;">
-										<strong>Total</strong>
+										<strong>Total : <t t-esc="o.currency_id.amount_to_text(abs(total))"/> Only.</strong>
 									</td>
 									<td style="text-align:right;">
-										<!--<strong t-esc="o.amount" />-->
-										<strong t-esc="abs(o.amount)" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+										 <strong t-esc="total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
 									</td>
 								</tr>
 							</tbody>
 						</table>
 						<!-- Amount in Words -->
-						<div style="margin-top:30px;">
-							<p>
-								<strong>Amount in Words:</strong>
-								<t t-esc="o.currency_id.name"/>
-								<t t-esc="o.currency_id.amount_to_text(abs(o.amount))"/> Only.
-							</p>
-							<p>Kindly do the needful to process the above-listed payments at the earliest.</p>
-						</div>
+<!--						<div style="margin-top:30px;">-->
+<!--							<p>-->
+<!--								<strong>Amount in Words:</strong>-->
+<!--								<t t-esc="o.currency_id.name"/>-->
+<!--								-->
+<!--							</p>-->
+<!--							<p>Kindly do the needful to process the above-listed payments at the earliest.</p>-->
+<!--						</div>-->
 						<div style="margin-top:50px;">
 							<p>Thanking you,<br/>
 							<strong>Yours sincerely,</strong><br/>
 							<strong>
-								<t t-esc="o.journal_id.company_id.name" />
+								<t t-esc="o.journal_id.company_id.name"/>
 							</strong>
 							</p>
 						</div>
@@ -160,19 +161,19 @@
 							<!--<div style="font-size: 12px;margin-right: 400px;">-->
 								<t t-if="o.journal_id.company_id.name">
 									<p style="margin: 0; text-align: center;">
-										<strong><t t-esc="o.journal_id.company_id.name" /></strong>
+										<strong><t t-esc="o.journal_id.company_id.name"/></strong>
 									</p>
 								</t>
 								<t t-if="o.journal_id.company_id.street">
 									<p style="margin: 0; text-align: center;">
-										<t t-esc="o.journal_id.company_id.street" />
+										<t t-esc="o.journal_id.company_id.street"/>
 									</p>
 								</t>
 								<t t-if="o.journal_id.company_id.street2 or o.journal_id.company_id.city">
 									<p style="margin: 0; text-align: center;">
 										<t t-esc="o.journal_id.company_id.street2"/>,
 										<t t-esc="o.journal_id.company_id.city"/> -
-										<t t-esc="o.journal_id.company_id.zip" />
+										<t t-esc="o.journal_id.company_id.zip"/>
 									</p>
 								</t>
 <!--								<t t-if="o.journal_id.company_id.city">-->
@@ -191,13 +192,13 @@
 								<t t-if="o.journal_id.company_id.phone">
 									<p style="margin: 0; text-align: center;">
 										<strong>Phone:</strong>
-										<t t-esc="o.journal_id.company_id.phone" />
+										<t t-esc="o.journal_id.company_id.phone"/>
 									</p>
 								</t>
 								<t t-if="o.journal_id.company_id.email">
 									<p style="margin: 0; text-align: center;">
 										<strong>Email:</strong>
-										<t t-esc="o.journal_id.company_id.email" />
+										<t t-esc="o.journal_id.company_id.email"/>
 									</p>
 								</t>
 							<!--</div>-->

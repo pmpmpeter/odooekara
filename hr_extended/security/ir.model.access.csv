@@ -45,5 +45,7 @@ access_hr_payslip_readonly,hr.payslip.readonly,hr_payroll.model_hr_payslip,group
 access_hr_applicant_document,access_hr_applicant_document,model_hr_applicant_document,base.group_user,1,1,1,1
 access_hr_applicant_refuse_wizard,access_hr_applicant_refuse_wizard,model_hr_applicant_refuse_wizard,base.group_user,1,1,1,1
 access_hr_applicant_refuse,access_hr_applicant_refuse,model_hr_applicant_refuse,base.group_user,1,1,1,1
+access_salary_breakup_lines,access_salary_breakup_lines,model_salary_breakup_lines,base.group_user,1,1,1,1
+access_hr_policy,access_hr_policy,model_hr_policy,base.group_user,1,1,1,1
 
 

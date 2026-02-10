@@ -10,6 +10,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError,ValidationError
 import base64
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 _logger = logging.getLogger(__name__)
 
@@ -492,8 +493,7 @@ class MultiApproval(models.Model):
                     message = self.env["mail.message"].create(
                         {
                             "subject": _("{request_name}").format(
-                                request_name=req.display_name
-                            ),
+                                request_name=BeautifulSoup(req.display_name,'lxml').get_text(strip=True)),
                             "model": req._name,
                             "res_id": req.id,
                             "body": self.description,
@@ -508,6 +508,7 @@ class MultiApproval(models.Model):
                             "email_to": user.email,
                             "email_from": req.user_id.email,
                             "auto_delete": True,
+                            "is_notification": True,
                             "state": "outgoing",
                         }
                     )
@@ -521,14 +522,12 @@ class MultiApproval(models.Model):
                         message = self.env["mail.message"].create(
                             {
                                 "subject": _("Request the approval for: {request_name}").format(
-                                    request_name=req.display_name
-                                ),
+                                    request_name=BeautifulSoup(req.display_name,'lxml').get_text(strip=True)),
                                 "model": req._name,
                                 "res_id": req.id,
                                 "body": self.description,
                             }
                         )
-
                         self.env["mail.mail"].sudo().create(
                             {
                                 "mail_message_id": message.id,
@@ -536,6 +535,7 @@ class MultiApproval(models.Model):
                                 "email_to": user.email,
                                 "email_from": req.user_id.email,
                                 "auto_delete": True,
+                                "is_notification":True,
                                 "state": "outgoing",
                             }
                         )
@@ -564,7 +564,7 @@ class MultiApproval(models.Model):
         if not notify_type:
             return
         for req in requests:
-            summary = _("The request {code} need to be reviewed").format(code=req.code)
+            summary = _("The request {code} need to be reviewed").format(code=BeautifulSoup(req.code,'lxml').get_text(strip=True))
             for user in req.pic_id:
                 self.env["mail.activity"].create(
                     {

@@ -20,6 +20,7 @@ class ResCompanyInherited(models.Model):
         "company_id",
         string="Tax Entities",
     )
+    disable_budget_company = fields.Boolean(string='Disable Budget')
 
     def _update_opening_move(self, to_update):
         """ Create or update the opening move for the accounts passed as parameter.

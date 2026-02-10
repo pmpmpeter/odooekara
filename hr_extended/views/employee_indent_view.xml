@@ -112,7 +112,7 @@
                                     <field name="budgeted_amount" string="Budgeted Amount for Position"
                                            invisible="not is_budgeted"
                                            readonly="state not in ('draft','cancel')"/>
-                                    <field name="proposed_annual_ctc" invisible="not is_budgeted"
+                                    <field name="proposed_annual_ctc"
                                            readonly="state not in ('draft','cancel')"/>
                                     <field name="utilized_budget" string="Utilized Budget" invisible="not is_budgeted"
                                            readonly="1"/>
@@ -167,6 +167,7 @@
                                     <field name="professional_requirements" readonly="state not in ('draft','cancel')"/>
                                     <field name="educational_requirements" readonly="state not in ('draft','cancel')"/>
                                     <field name="desirable" readonly="state not in ('draft','cancel')"/>
+                                    <field name="kra_document" filename="kra_document_filename" />
                                 </group>
                             </group>
                             <group>

@@ -1,0 +1,14 @@
+<odoo>
+    <data noupdate="1">
+        <record id="ir_cron_pip_reminders" model="ir.cron">
+            <field name="name">PIP Reminder Notifications</field>
+            <field name="model_id" ref="model_hr_pip"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_pip_reminders()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

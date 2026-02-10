@@ -1,5 +1,6 @@
 from odoo import models, fields, api
-from datetime import datetime
+from datetime import datetime,date
+import calendar
 import base64
 from io import BytesIO
 import xlsxwriter
@@ -30,6 +31,13 @@ class PayrollReportWizard(models.TransientModel):
     file_name = fields.Char(string="File Name", readonly=True)
     partner_ids = fields.Many2many('res.partner', string="Email To")
     employee_id = fields.Many2many('hr.employee',string='Email To')
+    user_id = fields.Many2many(
+        'res.users',
+        'payroll_report_wizard_res_users_rel',  # relation table name
+        'wizard_id',  # column referring to this model
+        'user_id',  # column referring to res.users
+        string="In-App Notifications"
+    )
 
     def action_send_payroll_report_mail(self):
         template = self.env.ref('hr_extended.payroll_report_share_email_template')
@@ -89,15 +97,15 @@ class PayrollReportWizard(models.TransientModel):
         #                 "summary": summary,
         #                 "user_id": user.id,  # This must be res.users.id
         #             })
-        users = self.employee_id
-        for rec in users:
-            if not rec.user_id:
+        users = self.user_id
+        for user_id in users:
+            if not user_id:
                 raise ValidationError("In-app notifications can be sent to employees who are linked to users")
             self.batch_id.activity_schedule(
                 activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
                 summary="Batch Payroll Reminder: Payroll reminder",
                 note=f"Kindly Verify the Batch Payroll:{self.batch_id.name} .",
-                user_id=rec.user_id.id,
+                user_id=user_id.id,
                 date_deadline=fields.Date.today()
             )
 
@@ -183,7 +191,7 @@ class PayrollReportWizard(models.TransientModel):
         wrk_names =['CL this month','EL this month','LoP this month']
         comp_col = work_col
         components = payslips.struct_id.rule_ids.filtered(
-            lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] for rule in l)
+            lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] and rule.appears_on_payslip for rule in l)
         )
         for comp_name in components.mapped('name'):
             sheet.write(row, comp_col, comp_name, header_format)
@@ -192,7 +200,7 @@ class PayrollReportWizard(models.TransientModel):
         comp_col += 1
         ded_col = comp_col
         deduction = payslips.struct_id.rule_ids.filtered(
-            lambda l: any(rule.category_id.name in ['Deduction'] for rule in l)
+            lambda l: any(rule.category_id.name in ['Deduction'] and rule.appears_on_payslip for rule in l)
         )
         for comp_name in deduction.mapped('name'):
             sheet.write(row, ded_col, comp_name, header_format)
@@ -201,7 +209,7 @@ class PayrollReportWizard(models.TransientModel):
         ded_col += 1
         pay_col = ded_col
         payments = payslips.struct_id.rule_ids.filtered(
-            lambda l: any(rule.category_id.name in ['Payments'] for rule in l)
+            lambda l: any(rule.category_id.name in ['Payments'] and rule.appears_on_payslip for rule in l)
         )
         for comp_name in payments.mapped('name'):
             sheet.write(row, pay_col, comp_name, header_format)
@@ -225,7 +233,10 @@ class PayrollReportWizard(models.TransientModel):
         ded_fin_list = []
         pay_fin_list = []
         for slip in payslips.filtered(
-            lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] for rule in l.struct_id.rule_ids)):
+                lambda l: any(rule.category_id.name in ['Basic', 'Allowance'] for rule in l.struct_id.rule_ids)
+        ).sorted(key=lambda l: min(
+                (rule.sequence for rule in l.struct_id.rule_ids if rule.category_id.name in ['Basic', 'Allowance']),
+                default=0)):
             comp_list = []
             wrk_list = []
             for line in slip.line_ids:
@@ -244,7 +255,9 @@ class PayrollReportWizard(models.TransientModel):
                 wrk_list.append({lv_name:line.number_of_days})
             wrk_fin_list.append(wrk_list)
         for slip in payslips.filtered(
-            lambda l: any(rule.category_id.name in ['Deduction'] for rule in l.struct_id.rule_ids)):
+            lambda l: any(rule.category_id.name in ['Deduction'] for rule in l.struct_id.rule_ids)).sorted(key=lambda l: min(
+                (rule.sequence for rule in l.struct_id.rule_ids if rule.category_id.name in ['Deduction']),
+                default=0)):
             ded_list = []
             total = 0
             for line in slip.line_ids:
@@ -252,7 +265,9 @@ class PayrollReportWizard(models.TransientModel):
                 total = total + line.total
             ded_fin_list.append(ded_list)
         for slip in payslips.filtered(
-            lambda l: any(rule.category_id.name in ['Payments'] for rule in l.struct_id.rule_ids)):
+            lambda l: any(rule.category_id.name in ['Payments'] for rule in l.struct_id.rule_ids)).sorted(key=lambda l: min(
+                (rule.sequence for rule in l.struct_id.rule_ids if rule.category_id.name in ['Payments']),
+                default=0)):
             pay_list = []
             for line in slip.line_ids:
                 pay_list.append({line.name:line.total})
@@ -346,7 +361,12 @@ class PayrollReportWizard(models.TransientModel):
                 for line in slip.worked_days_line_ids
                 if (line.work_entry_type_id.external_code or '').strip().upper() == 'LOP'
             )
-            days_paid = total_days - lop_days
+            # days_paid = total_days - lop_days
+            date = self.batch_id.date_start  # current date
+            year = date.year
+            month = date.month
+            days_in_month = calendar.monthrange(year, month)[1]
+            days_paid = days_in_month - lop_days
             sheet.write(row, col + 9, days_paid, data_format)
             # sheet.write(row, col + comp_col,'', data_format)
             row += 1

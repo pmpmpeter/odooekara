@@ -668,3 +668,14 @@ class PartnerBank(models.Model):
         help="The branch of the bank."
     )
     beneficiary_lei = fields.Char(string="Beneficiary LEI",copy=False)
+
+class HrPolicy(models.Model):
+    _name = 'hr.policy'
+    _description = 'HR Policy'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    name = fields.Char(string="Policy Title", required=True, tracking=True)
+    description = fields.Text(string="Description")
+    document = fields.Binary(string="Policy Document", attachment=True)
+    filename = fields.Char(string="File Name")
+    active = fields.Boolean(string="Active", default=True)

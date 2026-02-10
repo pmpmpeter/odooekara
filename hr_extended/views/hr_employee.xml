@@ -309,4 +309,49 @@
     <record id="base.menu_apps" model="ir.ui.menu">
         <field name="groups_id" eval="[(4, ref('base.group_erp_manager'))]"/>
     </record>
+
+    <record id="action_hr_policy" model="ir.actions.act_window">
+        <field name="name">HR Policies</field>
+        <field name="res_model">hr.policy</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_hr_policy"
+              name="HR Policies"
+              parent="hr.menu_hr_employee_payroll"
+              action="action_hr_policy"
+              sequence="8"/>
+
+    <!-- Tree View -->
+    <record id="view_hr_policy_tree" model="ir.ui.view">
+        <field name="name">hr.policy.tree</field>
+        <field name="model">hr.policy</field>
+        <field name="arch" type="xml">
+            <tree string="HR Policies">
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_hr_policy_form" model="ir.ui.view">
+        <field name="name">hr.policy.form</field>
+        <field name="model">hr.policy</field>
+        <field name="arch" type="xml">
+            <form string="HR Policy">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                        <field name="document" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 </odoo>

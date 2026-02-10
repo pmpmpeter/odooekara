@@ -85,7 +85,7 @@
         </record>
 
         <record id="group_cancel_accounting_entry" model="res.groups">
-            <field name="name">Cancel Accounting Entries</field>
+                <field name="name">Reset/Cancel Access</field>
         </record>
          <record id="group_disable_budget_code" model="res.groups">
             <field name="name">Disable Budget Code</field>

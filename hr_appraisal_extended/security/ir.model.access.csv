@@ -25,3 +25,4 @@ access_threeperformance_review_user,access.threeperformance.review.user,hr_appra
 access_perform_review_line,access.perform.review.line,hr_appraisal_extended.model_performance_review_line,,1,1,1,1
 access_perform_refuse,access.perform.refuse,hr_appraisal_extended.model_performance_review_refuse_popup,,1,1,1,1
 access_salary_master,access.salary.master,hr_appraisal_extended.model_salary_master,,1,1,1,1
+access_pbvp_reference,access.pbvp.reference,hr_appraisal_extended.model_pbvp_reference,,1,1,1,1

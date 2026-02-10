@@ -1,5 +1,29 @@
 from odoo import models, fields, api
+from datetime import timedelta
 
+class ResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    pip_30_day_reminder = fields.Integer(string="Reminder for 30-day PIP", default=15)
+    pip_60_day_reminder = fields.Integer(string="Reminder interval for 60+ day PIP", default=30)
+    pip_end_reminder = fields.Integer(string="Reminder before End Date", default=7)
+
+    def set_values(self):
+        super().set_values()
+        self.env['ir.config_parameter'].sudo().set_param('hr_pip.pip_30_day_reminder', self.pip_30_day_reminder)
+        self.env['ir.config_parameter'].sudo().set_param('hr_pip.pip_60_day_reminder', self.pip_60_day_reminder)
+        self.env['ir.config_parameter'].sudo().set_param('hr_pip.pip_end_reminder', self.pip_end_reminder)
+
+    @api.model
+    def get_values(self):
+        res = super().get_values()
+        ICP = self.env['ir.config_parameter'].sudo()
+        res.update(
+            pip_30_day_reminder=int(ICP.get_param('hr_pip.pip_30_day_reminder', default=15)),
+            pip_60_day_reminder=int(ICP.get_param('hr_pip.pip_60_day_reminder', default=30)),
+            pip_end_reminder=int(ICP.get_param('hr_pip.pip_end_reminder', default=7)),
+        )
+        return res
 
 class HrPerformanceImprovementPlan(models.Model):
     _name = 'hr.pip'
@@ -42,6 +66,46 @@ class HrPerformanceImprovementPlan(models.Model):
     hr_head_sign_id = fields.Many2one('hr.employee', string="HR Head Name ")
     hr_head_signature = fields.Binary(string="HR Head Signature")
     hr_head_signature_date = fields.Date(string="HR Head Signature Date")
+
+    @api.model
+    def cron_pip_reminders(self):
+        ICP = self.env['ir.config_parameter'].sudo()
+        reminder_30 = int(ICP.get_param('hr_pip.pip_30_day_reminder', default=15))
+        reminder_60 = int(ICP.get_param('hr_pip.pip_60_day_reminder', default=30))
+        reminder_end = int(ICP.get_param('hr_pip.pip_end_reminder', default=7))
+
+        today = fields.Date.today()
+        records = self.search([('state', '=', 'in_progress'), ('end_date', '!=', False)])
+
+        for record in records:
+            duration = (record.end_date - today).days
+            # Reminder for 30-day PIP
+            if duration == (30 - reminder_30):
+                record._create_activity("PIP Reminder – Midpoint Notification")
+
+            # Reminder for 60+ day PIP (every 30 days)
+            if duration % reminder_60 == 0 and duration > 30:
+                record._create_activity("PIP Reminder – Periodic Notification")
+
+            # Reminder before end date
+            if duration == reminder_end:
+                record._create_activity("PIP Reminder – Upcoming End Date")
+
+    def _create_activity(self, summary):
+        users = []
+        if self.supervisor_id.user_id:
+            users.append(self.supervisor_id.user_id)
+        if self.hr_head_id.user_id:
+            users.append(self.hr_head_id.user_id)
+
+        for user in users:
+            self.activity_schedule(
+                activity_type_id=self.env.ref('mail.mail_activity_data_todo').id,
+                summary=summary,
+                note=f"PIP for {self.employee_id.name} requires your attention.",
+                user_id=user.id,
+                date_deadline=fields.Date.today(),
+            )
 
     def action_submit(self):
         for record in self:

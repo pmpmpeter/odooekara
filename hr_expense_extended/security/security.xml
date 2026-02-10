@@ -5,4 +5,8 @@
         <field name="name">Expense Access</field>
     </record>
 
+    <record id="group_post_journal_expense" model="res.groups">
+        <field name="name">Post Journal Notify</field>
+    </record>
+
 </odoo>

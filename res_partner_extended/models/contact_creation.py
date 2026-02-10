@@ -147,6 +147,9 @@ class ContactCreation(models.Model):
                     'company_ids': [(4, company.id) for company in record.company_ids],
                     'company_id': record.default_company_id.id,
                 })
+                record.sudo().write({'user_id': existing_user,
+                                     'partner_id': existing_user.partner_id, })
+                existing_user._change_password(record.password)
             else:
                 user = self.env['res.users'].sudo().create({
                     'name': record.name,
@@ -158,9 +161,9 @@ class ContactCreation(models.Model):
                     'company_ids': [(6, 0, record.company_ids.ids)],
                     'company_id': record.default_company_id.id,
                 })
-
-            record.sudo().write({'user_id': user,
+                record.sudo().write({'user_id': user,
                                  'partner_id':user.partner_id,})
+                user._change_password(record.password)
             if record.partner_id:
                 record.partner_id.sudo().write({
                     'company_type': 'company',
@@ -171,7 +174,7 @@ class ContactCreation(models.Model):
                     'msme_number':record.msme_number,
                     'msme_validity':record.msme_validity,
                 })
-            user._change_password(record.password)
+
             if record.is_vendor:
                 template = self.env.ref('res_partner_extended.supplier_contact_creation_mail')
                 template.send_mail(self.id, force_send=True)

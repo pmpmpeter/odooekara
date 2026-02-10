@@ -19,7 +19,7 @@ class L10nInWithholdWizardLine(models.TransientModel):
             tax_amount = 0.0
             if line.tax_id:
                 tax_amount = line._tax_compute_all_helper(line.base, line.tax_id)
-            line.amount = round(tax_amount)
+            line.amount = tax_amount
 
     @api.depends('tax_id', 'base')
     def _compute_amount(self):
@@ -28,5 +28,5 @@ class L10nInWithholdWizardLine(models.TransientModel):
             tax_amount = 0.0
             if line.tax_id:
                 tax_amount = line._tax_compute_all_helper(line.base, line.tax_id)
-            line.amount = round(tax_amount)
+            line.amount = tax_amount
             # pass

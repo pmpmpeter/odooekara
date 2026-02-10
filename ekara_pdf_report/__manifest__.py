@@ -6,6 +6,7 @@
     'category': 'Custom',
     'depends': ['base', 'account'],
     'data': [
+        'data/data.xml',
         'security/ir.model.access.csv',
         'wizard/pdf_report.xml',
         'report/pdf_report_action.xml',
