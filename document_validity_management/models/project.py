@@ -14,6 +14,7 @@ class ProjectProject(models.Model):
     closed_date = fields.Date(string='Closed Date',readonly=1)
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
     days_left = fields.Integer(string="Days Left", compute="_compute_days_left")
+    second_person_name = fields.Many2one('res.partner', string="Second Person Name")
 
     @api.depends('validity_end_date')
     def _compute_days_left(self):
@@ -87,13 +88,13 @@ class ProjectProject(models.Model):
         projects._create_default_task_stages()
         return projects
 
-    @api.onchange('document_type_id', 'validity_start_date')
-    def _onchange_document_type(self):
-        if not self.document_type_id:
-            self.validity_end_date = self.validity_start_date = False
-        if self.document_type_id and self.validity_start_date:
-            self.validity_end_date = self.validity_start_date + timedelta(
-                days=self.document_type_id.default_validity_period) 
+    # @api.onchange('document_type_id', 'validity_start_date')
+    # def _onchange_document_type(self):
+    #     if not self.document_type_id:
+    #         self.validity_end_date = self.validity_start_date = False
+    #     if self.document_type_id and self.validity_start_date:
+    #         self.validity_end_date = self.validity_start_date + timedelta(
+    #             days=self.document_type_id.default_validity_period)
 
     @api.onchange('validity_end_date','document_reminder')
     def _onchange_validity_dates(self):

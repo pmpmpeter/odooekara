@@ -28,6 +28,7 @@ class ChequeFormat(models.Model):
     _description = 'Cheque Format'
     _rec_name = 'bank_name'
 
+    is_readonly = fields.Boolean(string='Readonly',default="False")
     bank_name = fields.Char(string='Bank Name',
                             help='Enter the name of the bank.',
                             required=True)
