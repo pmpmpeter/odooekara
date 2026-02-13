@@ -74,6 +74,15 @@
                 <field name="second_person_name" widget="res_partner_many2one" readonly="is_done" invisible="1" string="Second Person Name"/>
                 <field name="partner_id" widget="res_partner_many2one" readonly="is_done" invisible="is_document_validity_management"/>
             </xpath>
+            <field name="tag_ids" position="attributes">
+                <attribute name="invisible">is_document_validity_management</attribute>
+            </field>
+            <field name="label_tasks" position="attributes">
+                <attribute name="invisible">is_document_validity_management</attribute>
+            </field>
+            <field name="date_start" position="attributes">
+                <attribute name="invisible">is_document_validity_management</attribute>
+            </field>
         </field>
     </record>
 
