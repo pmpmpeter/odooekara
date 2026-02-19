@@ -44,17 +44,28 @@ class AccountCURReportWizard(models.TransientModel):
             'target': 'new',
         }
 
-    def get_month_list(self,start, end):
+    def get_month_list(self, start, end):
         months = []
         current = start.replace(day=1)  # Start from 1st of month
         while current <= end:
-            months.append(current.strftime("%b").upper())  # 'APR', 'MAY'
+            months.append(current)  # keep the datetime object
             # Move to next month
             if current.month == 12:
                 current = current.replace(year=current.year + 1, month=1)
             else:
                 current = current.replace(month=current.month + 1)
         return months
+    # def get_month_list(self,start, end):
+    #     months = []
+    #     current = start.replace(day=1)  # Start from 1st of month
+    #     while current <= end:
+    #         months.append(current.strftime("%b").upper())  # 'APR', 'MAY'
+    #         # Move to next month
+    #         if current.month == 12:
+    #             current = current.replace(year=current.year + 1, month=1)
+    #         else:
+    #             current = current.replace(month=current.month + 1)
+    #     return months
 
     def _generate_excel_report(self):
         """Generate an Excel file from CRR data, including company and transaction details."""
@@ -107,7 +118,8 @@ class AccountCURReportWizard(models.TransientModel):
         border_fmt = workbook.add_format({'border': 1})
         formatted_date = self.start_date.strftime('%d-%b-%Y')
         formatted_en_date = self.end_date.strftime('%d-%b-%Y')
-        month_list = self.get_month_list(self.start_date, self.end_date)
+        # month_list = self.get_month_list(self.start_date, self.end_date)
+        month_list_year = self.get_month_list(self.start_date, self.end_date)
         sheet.write(1, 0, 'Particulars  ', header_format)
         sheet.write(1, 1, 'GL Code', header_format)
         sheet.write(1, 2, 'Amount', header_format)
@@ -123,14 +135,23 @@ class AccountCURReportWizard(models.TransientModel):
         # record_credit_card = self.credit_card_expenses(self.start_date, self.end_date, self.company_id)
         year = date.today().year
         year_suffix = str(year)[-2:]
+        month_list = []
         if self.groupby_month:
             base_col = 2
             row_num = 0
-            for idx, month in enumerate(month_list):
+            for idx, month in enumerate(month_list_year):
                 start_col = base_col + idx
-                sheet.write(0,start_col, f"{month} {year_suffix}", header_format)
+                year_suffix = str(month.year)[-2:]
+                month_name = month.strftime("%b").upper()
+                month_list.append(month_name)
+                sheet.write(0, start_col, f"{month_name} {year_suffix}", header_format)
                 sheet.write(1, start_col, 'Amount', header_format)
                 sheet.set_column(0, start_col, 15)
+            # for idx, month in enumerate(month_list):
+            #     start_col = base_col + idx
+            #     sheet.write(0,start_col, f"{month} {year_suffix}", header_format)
+            #     sheet.write(1, start_col, 'Amount', header_format)
+            #     sheet.set_column(0, start_col, 15)
             row_num += 1
         if not self.groupby_month:
             opening_balance_1 = 0
@@ -339,65 +360,154 @@ class AccountCURReportWizard(models.TransientModel):
                 'JAN': 11, 'FEB': 12, 'MAR': 13, 'APR': 2, 'MAY': 3, 'JUN': 4,
                 'JUL': 5, 'AUG': 6, 'SEP': 7, 'OCT': 8, 'NOV': 9, 'DEC': 10
             }
-
-            first_tx_query = """
-                SELECT
-                    am.id AS move_id,
-                    am.journal_id AS journal_id,
-                    aj.name->>'en_US' AS account_name,
-                    aa.code AS account_code,
-                    am.date AS first_date,
-                    absl.amount AS balance
-                FROM account_bank_statement_line absl
-                JOIN account_move am ON am.id = absl.move_id
-                JOIN account_journal aj ON aj.id = am.journal_id
-                JOIN account_account aa ON aa.id = aj.default_account_id
-                WHERE aa.account_type = 'asset_cash'
-            """
+            query91 = """
+                                            SELECT
+                                                am.journal_id AS journal_id,
+                                                aj.name->>'en_US' AS account_name,
+                                                aa.code AS account_code,
+                                                SUM(absl.amount) AS balance
+                                            FROM account_bank_statement_line absl
+                                            JOIN account_move am ON am.id = absl.move_id
+                                            JOIN account_journal aj ON aj.id = am.journal_id
+                                            JOIN account_account aa ON aa.id = aj.default_account_id
+                                            WHERE am.date < %s
+                                            AND aa.account_type = 'asset_cash'
+                                        """
             if self.company_id:
-                first_tx_query += " AND am.company_id = %s"
-                first_tx_query += " GROUP BY aa.code,am.journal_id,am.id, aj.name,am.date,absl.amount ORDER BY am.date ASC LIMIT 1"
-                self.env.cr.execute(first_tx_query, (self.company_id.id,))
+                query91 += " AND am.company_id = %s"
+            query91 += " GROUP BY am.journal_id,aa.code, aj.name ORDER BY aa.code"
+
+            if self.company_id:
+                query_params91 = (self.end_date, self.company_id.id)
             else:
-                self.env.cr.execute(first_tx_query)
+                query_params91 = (self.end_date,)
 
-            first_tx = self.env.cr.dictfetchone()
-            if first_tx and first_tx.get('first_date'):
-                first_date = first_tx['first_date']
-                if self.start_date <= first_date <= self.end_date:
-                    first_month = first_date.strftime('%b').upper()
-                    if first_month in month_col_map:
-                        col = month_col_map[first_month]
+            self.env.cr.execute(query91, query_params91)
+            accounts = self.env.cr.dictfetchall()
+            op = 0
+            for acc in accounts:
+                first_tx_query = """
+                                SELECT
+                                    am.id AS move_id,
+                                    am.journal_id AS journal_id,
+                                    aj.name->>'en_US' AS account_name,
+                                    aa.code AS account_code,
+                                    am.date AS first_date,
+                                    absl.amount AS balance
+                                FROM account_bank_statement_line absl
+                                JOIN account_move am ON am.id = absl.move_id
+                                JOIN account_journal aj ON aj.id = am.journal_id
+                                JOIN account_account aa ON aa.id = aj.default_account_id
+                                WHERE aa.account_type = 'asset_cash'
+                            """
+                if self.company_id:
+                    first_tx_query += " AND am.company_id = %s AND aj.id=%s"
+                    first_tx_query += " GROUP BY aa.code,am.journal_id,am.id, aj.name,am.date,absl.amount ORDER BY am.date ASC"
+                    self.env.cr.execute(first_tx_query, (self.company_id.id,acc['journal_id']))
+                else:
+                    self.env.cr.execute(first_tx_query)
 
-                        first_balance_query = """
-                            SELECT
-                                am.journal_id AS journal_id,
-                                aj.name->>'en_US' AS account_name,
-                                aa.code AS account_code,
-                                SUM(absl.amount) AS balance
-                            FROM account_bank_statement_line absl
-                            JOIN account_move am ON am.id = absl.move_id
-                            JOIN account_journal aj ON aj.id = am.journal_id
-                            JOIN account_account aa ON aa.id = aj.default_account_id
-                            WHERE aa.account_type = 'asset_cash' AND am.id = %s
-                            GROUP BY am.journal_id, aa.code, aj.name
-                            ORDER BY aa.code
-                        """
-                        self.env.cr.execute(first_balance_query, (first_tx['move_id'],))
-                        first_month_lines = self.env.cr.dictfetchall()
-                        opening_balance_1 = first_tx.get('balance')
-                        if first_date:
-                            first_month = first_date.strftime('%b').upper()
-                            for idx, month in enumerate(month_list):
-                                if first_month in month:
-                                    opening_balances[month] = opening_balance_1 # Adjust offset to your month column
-                                    sheet.write(2, 2, opening_balance_1, value_format)
-                        for line in first_month_lines:
-                            acc_code = line['account_code']
-                            balance = line['balance'] or 0.0
-                            if acc_code in account_row_map:
-                                row_idx = account_row_map[acc_code]
-                                sheet.write(row_idx, col, balance, value_format)
+                first_tx = self.env.cr.dictfetchone()
+                if first_tx and first_tx.get('first_date'):
+                    first_date = first_tx['first_date']
+                    if self.start_date <= first_date <= self.end_date:
+                        first_month = first_date.strftime('%b').upper()
+                        if first_month in month_col_map:
+                            col = month_col_map[first_month]
+                            journal_ids = tuple(item['journal_id'] for item in accounts)
+                            first_balance_query = """
+                                            SELECT
+                                                am.journal_id AS journal_id,
+                                                aj.name->>'en_US' AS account_name,
+                                                aa.code AS account_code,
+                                                SUM(absl.amount) AS balance
+                                            FROM account_bank_statement_line absl
+                                            JOIN account_move am ON am.id = absl.move_id
+                                            JOIN account_journal aj ON aj.id = am.journal_id
+                                            JOIN account_account aa ON aa.id = aj.default_account_id
+                                            WHERE aa.account_type = 'asset_cash' AND am.id = %s
+                                            GROUP BY am.journal_id, aa.code, aj.name
+                                            ORDER BY aa.code
+                                        """
+                            # journal_ids = [item['journal_id'] for item in accounts]
+                            self.env.cr.execute(first_balance_query, (first_tx['move_id'],))
+                            first_month_lines = self.env.cr.dictfetchall()
+                            opening_balance_1 = first_tx.get('balance')
+                            if first_date:
+                                first_month = first_date.strftime('%b').upper()
+
+                                for idx, month in enumerate(month_list):
+                                    if first_month in month:
+                                        opening_balances[month] += opening_balance_1
+                                # sheet.write(2, col, new_value, value_format)
+                            for line in first_month_lines:
+                                acc_code = line['account_code']
+                                balance = line['balance'] or 0.0
+                                if acc_code in account_row_map:
+                                    row_idx = account_row_map[acc_code]
+                                    sheet.write(row_idx, col, balance, value_format)
+            for month,balances in opening_balances.items():
+                col = month_col_map[month]
+                sheet.write(2, col, balances, value_format)
+                # print(opening,"oooooooooooooooooooooooooooooooooooooooo")
+            # first_tx_query = """
+            #     SELECT
+            #         am.id AS move_id,
+            #         am.journal_id AS journal_id,
+            #         aj.name->>'en_US' AS account_name,
+            #         aa.code AS account_code,
+            #         am.date AS first_date,
+            #         absl.amount AS balance
+            #     FROM account_bank_statement_line absl
+            #     JOIN account_move am ON am.id = absl.move_id
+            #     JOIN account_journal aj ON aj.id = am.journal_id
+            #     JOIN account_account aa ON aa.id = aj.default_account_id
+            #     WHERE aa.account_type = 'asset_cash'
+            # """
+            # if self.company_id:
+            #     first_tx_query += " AND am.company_id = %s"
+            #     first_tx_query += " GROUP BY aa.code,am.journal_id,am.id, aj.name,am.date,absl.amount ORDER BY am.date ASC LIMIT 1"
+            #     self.env.cr.execute(first_tx_query, (self.company_id.id,))
+            # else:
+            #     self.env.cr.execute(first_tx_query)
+            #
+            # first_tx = self.env.cr.dictfetchone()
+            # if first_tx and first_tx.get('first_date'):
+            #     first_date = first_tx['first_date']
+            #     if self.start_date <= first_date <= self.end_date:
+            #         first_month = first_date.strftime('%b').upper()
+            #         if first_month in month_col_map:
+            #             col = month_col_map[first_month]
+            #
+            #             first_balance_query = """
+            #                 SELECT
+            #                     am.journal_id AS journal_id,
+            #                     aj.name->>'en_US' AS account_name,
+            #                     aa.code AS account_code,
+            #                     SUM(absl.amount) AS balance
+            #                 FROM account_bank_statement_line absl
+            #                 JOIN account_move am ON am.id = absl.move_id
+            #                 JOIN account_journal aj ON aj.id = am.journal_id
+            #                 JOIN account_account aa ON aa.id = aj.default_account_id
+            #                 WHERE aa.account_type = 'asset_cash' AND am.id = %s
+            #                 GROUP BY am.journal_id, aa.code, aj.name
+            #                 ORDER BY aa.code
+            #             """
+            #             self.env.cr.execute(first_balance_query, (first_tx['move_id'],))
+            #             first_month_lines = self.env.cr.dictfetchall()
+            #             opening_balance_1 = first_tx.get('balance')
+            #             if first_date:
+            #                 first_month = first_date.strftime('%b').upper()
+            #                 for idx, month in enumerate(month_list):
+            #                     if first_month in month:
+            #                         opening_balances[month] = opening_balance_1 # Adjust offset to your month column
+            #                         sheet.write(2, 2, opening_balance_1, value_format)
+            #             for line in first_month_lines:
+            #                 acc_code = line['account_code']
+            #                 balance = line['balance'] or 0.0
+            #                 if acc_code in account_row_map:
+            #                     row_idx = account_row_map[acc_code]
+            #                     sheet.write(row_idx, col, balance, value_format)
             row_num += 1
         end_balance1 = """SELECT
                     am.journal_id AS journal_id,
