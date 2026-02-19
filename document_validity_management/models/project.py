@@ -15,6 +15,23 @@ class ProjectProject(models.Model):
     closed_by = fields.Many2one('res.users',string='Closed By',readonly=1)
     days_left = fields.Integer(string="Days Left", compute="_compute_days_left")
     second_person_name = fields.Many2one('res.partner', string="Second Person Name")
+    status = fields.Selection(
+        [
+            ('active', 'Active'),
+            ('expired', 'Expired'),
+        ],
+        string="Status",
+        compute="_compute_status",
+    )
+
+    @api.depends('validity_end_date')
+    def _compute_status(self):
+        today = fields.Date.today()
+        for record in self:
+            if record.validity_end_date and record.validity_end_date < today:
+                record.status = 'expired'
+            else:
+                record.status = 'active'
 
     @api.depends('validity_end_date')
     def _compute_days_left(self):
@@ -105,10 +122,7 @@ class ProjectProject(models.Model):
             if project.is_legal_notice or project.is_document_validity_management:
                 if project.validity_end_date:
                     validity_end_date = project.validity_end_date
-                    if validity_end_date < fields.Date.today():
-                            raise UserError("Kindly provide the correct date.")
-                    else:
-                        if project.document_reminder:
+                    if project.document_reminder:
                             document_reminder = project.document_reminder
                             project.first_reminder_date = validity_end_date - timedelta(days=document_reminder)
 
