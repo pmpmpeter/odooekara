@@ -12,6 +12,7 @@
                        invisible="not is_document_validity_management" readonly="is_done"/>
                 <field name="validity_end_date" required="document_type_id or is_document_validity_management"
                        invisible="not is_document_validity_management" readonly="is_done"/>
+                <field name="status" invisible="not is_document_validity_management"/>
                 <field name="document_reminder" invisible="not is_document_validity_management" readonly="is_done"/>
             </field>
         </field>
@@ -70,7 +71,7 @@
                 <field name="closed_by" invisible="not is_document_validity_management and not is_statuory_notice"/>
             </field>
             <xpath expr="//field[@name='partner_id']" position="replace">
-                <field name="partner_id" widget="res_partner_many2one" readonly="is_done" invisible="not is_document_validity_management" string="First Person Name"/>
+                <field name="partner_id" widget="res_partner_many2one" readonly="is_done" invisible="not is_document_validity_management" string="First Party Name"/>
                 <field name="second_person_name" widget="res_partner_many2one" readonly="is_done" invisible="1" string="Second Person Name"/>
                 <field name="partner_id" widget="res_partner_many2one" readonly="is_done" invisible="is_document_validity_management"/>
             </xpath>
@@ -81,6 +82,9 @@
                 <attribute name="invisible">is_document_validity_management</attribute>
             </field>
             <field name="date_start" position="attributes">
+                <attribute name="invisible">is_document_validity_management</attribute>
+            </field>
+             <field name="date_start" position="attributes">
                 <attribute name="invisible">is_document_validity_management</attribute>
             </field>
         </field>
@@ -95,6 +99,7 @@
                 <field name="partner_id" string="First Person Name"/>
                 <field name="validity_start_date"/>
                 <field name="validity_end_date"/>
+                <field name="status"/>
                 <field name="days_left"/>
                 <field name="create_date"/>
                 <field name="company_id"/>
