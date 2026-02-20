@@ -147,6 +147,7 @@ class AccountCURReportWizard(models.TransientModel):
                 sheet.write(0, start_col, f"{month_name} {year_suffix}", header_format)
                 sheet.write(1, start_col, 'Amount', header_format)
                 sheet.set_column(0, start_col, 15)
+            sheet.set_column(0, 0, 35)
             # for idx, month in enumerate(month_list):
             #     start_col = base_col + idx
             #     sheet.write(0,start_col, f"{month} {year_suffix}", header_format)
