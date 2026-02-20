@@ -1084,7 +1084,7 @@ class AccountCURReportWizard(models.TransientModel):
             accounts = self.env.cr.dictfetchall()
             row_num += 1
             base_col = 2
-            sheet.write(row_num, 0, "Balance as per book", header_format_num)
+            sheet.write(row_num, 0, "Total Inflow (-) Outflow", header_format_num)
             sheet.write(row_num, 1, "", header_format_num)
             for idx, month in enumerate(month_list):
                 col_number = base_col + idx
@@ -1095,9 +1095,13 @@ class AccountCURReportWizard(models.TransientModel):
                 diff = (opb+receipts) - payments
                 sheet.write(row_num, col_number, diff, header_format_num)
             row_num += 1
+            monthly_end_total_balances=[]
             for acc in accounts:
                 monthly_end_balances = []
+                total_balances = {}
+                s_no=0
                 for idx, month in enumerate(month_list):
+
                     month_start = self.start_date.replace(day=1) + relativedelta(months=idx)
                     month_end = (month_start + relativedelta(months=1)) - relativedelta(days=1)
                     if self.company_id:
@@ -1116,10 +1120,25 @@ class AccountCURReportWizard(models.TransientModel):
                     sheet.write(row_num, 1, acc['account_code'], value_format)
 
                     for idx, balance in enumerate(monthly_end_balances):
+                        s_no += 1
                         col_number = base_col + idx
+                        total = {'sno': s_no, 'balance': balance}
+                        monthly_end_total_balances.append(total)
                         sheet.write(row_num, col_number, balance or 0.0, value_format)
 
                     row_num += 1
+            sums = {}
+            for entry in monthly_end_total_balances:
+                sno = entry['sno']
+                balance = entry['balance']
+                sums[sno] = sums.get(sno, 0) + balance
+
+            final_balance = [round(balance,2) for sno, balance in sums.items()]
+            sheet.write(row_num, 0, "Balance as per book", header_format_num)
+            sheet.write(row_num, 1, "", header_format_num)
+            for idx, balance in enumerate(final_balance):
+                col_number = base_col + idx
+                sheet.write(row_num, col_number, balance or 0.0, header_format_num)
 
         workbook.close()
 
@@ -1215,6 +1234,7 @@ class AccountCURReportWizard(models.TransientModel):
             ('move_id.state', '=', 'posted'),
             ('move_id.journal_id.type', 'in', ('bank', 'cash')),
             ('move_id.company_id','=',company_id.id),
+            ('move_id.move_type', '=', 'entry'),
         ])
         grouped = defaultdict(list)
         duplicates = defaultdict(list)
