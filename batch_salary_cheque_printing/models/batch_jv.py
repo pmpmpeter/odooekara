@@ -217,11 +217,14 @@ class AccountBatchJV(models.Model):
                     employee_name = slip.employee_id.name
                     comp = 0
                     ded = 0
+                    allow = 0
                     for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Basic' and x.appears_on_payslip):
                         comp += r.total
+                    for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Allowance' and x.appears_on_payslip):
+                        allow += r.total
                     for r in slip.line_ids.filtered(lambda x:x.salary_rule_id.category_id.name =='Deduction' and x.appears_on_payslip):
                         ded += r.total
-                    employee_payslip_dict[employee_name] = comp-ded
+                    employee_payslip_dict[employee_name] = comp-ded+allow
                     bank = self.company_id.partner_id.bank_ids[:1]
                 return {
                     'employee_payslip_dict': employee_payslip_dict,
