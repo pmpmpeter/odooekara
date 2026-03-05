@@ -236,7 +236,7 @@ class RequestApproval(models.TransientModel):
                                     line1.account_id.display_name,line1.budget_id.analytic_account_id.display_name,line1.budget_id.display_name))
         elif active_res_model == 'project.task':
             task_id = self.env['project.task'].sudo().browse(self.origin_ref.id)
-            self.type_id.line_ids.update({'user_id':task_id.raise_request_to_id})
+            # self.type_id.line_ids.update({'user_id':task_id.raise_request_to_id})
     
         # create request
         vals = {
