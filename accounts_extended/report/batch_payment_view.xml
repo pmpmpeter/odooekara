@@ -93,12 +93,9 @@
 										<td t-esc="sl_no" />
 										<td>NEFT</td>
 										<td t-esc="line.partner_id.name" />
-										<td
-											t-esc="line.partner_id.bank_ids[0].bank_id.name if line.partner_id.bank_ids.bank_id.name else 'N/A'" />
-										<td
-											t-esc="line.partner_id.bank_ids[0].bank_id.bic if line.partner_id.bank_ids.bank_id.bic else 'N/A'" />
-										<td
-											t-esc="line.partner_id.bank_ids[0].acc_number if line.partner_id.bank_ids.acc_number else 'N/A'" />
+										<td t-esc="line.partner_id.bank_ids and line.partner_id.bank_ids[0].bank_id.name or 'N/A'"/>
+										<td t-esc="line.partner_id.bank_ids and line.partner_id.bank_ids[0].bank_id.bic or 'N/A'"/>
+										<td t-esc="line.partner_id.bank_ids and line.partner_id.bank_ids[0].acc_number or 'N/A'"/>
 										<td t-esc="line.amount" style="text-align:right;" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
 									</tr>
 									<t t-set="sl_no" t-value="sl_no + 1" />
