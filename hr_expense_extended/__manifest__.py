@@ -21,8 +21,8 @@
         'project',
     ],
     'data': [
-        'security/ir.model.access.csv',
         'security/security.xml',
+        'security/ir.model.access.csv',
         'data/sequence.xml',
         'views/payment_approval_config.xml',
         'views/payment_approval.xml',
