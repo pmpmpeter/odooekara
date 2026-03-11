@@ -22,7 +22,7 @@ class MultiApprovalType(models.Model):
         if not dmain:
             return False
         if rec._name == "project.task":
-            dmain = [("id", "=", rec.id), ('is_credit_expense', '=', False)] + dmain
+            dmain = [("id", "=", rec.id), ('is_credit_expense', '=', True)] + dmain
         else:
             dmain = [("id", "=", rec.id)] + dmain
         try:
