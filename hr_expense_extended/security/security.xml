@@ -9,6 +9,7 @@
         <field name="name">User</field>
         <field name="category_id" ref="base.module_category_human_resources_expenses"/>
         <field name="implied_ids" eval="[(4, ref('hr_expense_extended.group_expense_view'))]"/>
+        <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
     <record id="hr_expense.group_hr_expense_team_approver" model="res.groups">
