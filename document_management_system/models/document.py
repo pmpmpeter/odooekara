@@ -1,3 +1,5 @@
+import datetime
+
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from markupsafe import Markup
@@ -131,9 +133,14 @@ class Documenthistory(models.Model):
     submitted_by = fields.Many2one('res.users',"Submitted By",tracking=True,readonly=True)
     submitted_to = fields.Many2one('res.users',"Submitted To",tracking=True)
     received_by = fields.Many2one('res.users',"Received By",tracking=True,readonly=True)
+    submitted_date = fields.Datetime(string="Submitted Date")
+    received_date = fields.Datetime(string="Received Date")
+    partner_id = fields.Many2one('res.partner', string='External Customer')
     status = fields.Selection([('draft', 'Draft'),
         ('requested', 'Requested'),
         ('waiting_approval', 'Waiting for Approval'),
+        ('scrapped', 'Scrapped'),
+        ('stored', 'Stored'),
         ('done', 'Done'),
     ], string="Document Status", default="draft", tracking=True,readonly=True)
     document_workflow_id = fields.Many2one(
@@ -177,6 +184,7 @@ class Documenthistory(models.Model):
                 )
             rec.status = "waiting_approval"
             rec.submitted_by = self.env.user
+            rec.submitted_date = fields.Datetime.now()
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
             document_url = f"{base_url}/web#id={rec.document_workflow_id.id}&model=document.workflow&view_type=form"
 
@@ -196,7 +204,37 @@ class Documenthistory(models.Model):
                 message_type="notification"
             )
 
+    def add_logger_comment(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        document_url = f"{base_url}/web#id={self.document_workflow_id.id}&model=document.workflow&view_type=form"
+        status = "Received" if self.status == 'done' else self.status.title()
+        message = Markup("Document Name: %s<br/> %s By: %s<br/><a href='%s' target='_blank'>Open Document Submitted</a>") % (
+                      self.document_workflow_id.name, status, self.received_by.name, document_url
+                  )
+        self.document_workflow_id.message_post(
+            body=message,
+            subject=f"New Document has been {self.status.title()}",
+            partner_ids=[self.received_by.partner_id.id],
+            message_type="notification"
+        )
+
     def action_mark_done(self):
         for rec in self:
             rec.status = "done"
             rec.received_by = self.env.user
+            rec.received_date = fields.Datetime.now()
+            rec.add_logger_comment()
+
+    def action_mark_stored(self):
+        for rec in self:
+            rec.status = "stored"
+            rec.received_by = self.env.user
+            rec.received_date = fields.Datetime.now()
+            rec.add_logger_comment()
+
+    def action_mark_scrap(self):
+        for rec in self:
+            rec.status = "scrapped"
+            rec.received_by = self.env.user
+            rec.received_date = fields.Datetime.now()
+            rec.add_logger_comment()

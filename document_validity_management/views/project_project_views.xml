@@ -70,14 +70,19 @@
                 <field name="closed_date" invisible="not is_document_validity_management and not is_statuory_notice"/>
                 <field name="closed_by" invisible="not is_document_validity_management and not is_statuory_notice"/>
             </field>
+            <field name='label_tasks' position="after">
+                <field name="department_id" readonly="is_done" options="{'no_create': True, 'no_open': True}" invisible="not is_statuory_notice"/>
+            </field>
             <xpath expr="//field[@name='partner_id']" position="replace">
                 <field name="partner_id" widget="res_partner_many2one" readonly="is_done" invisible="not is_document_validity_management" string="Name"/>
                 <field name="second_person_name" widget="res_partner_many2one" readonly="is_done" invisible="1" string="Second Person Name"/>
-                <field name="partner_id" widget="res_partner_many2one" readonly="is_done"  string="Customer / Vendor" invisible="is_document_validity_management"/>
+                <field name="partner_id" widget="res_partner_many2one" readonly="is_done"  string="Customer / Vendor" invisible="not is_legal_notice"/>
             </xpath>
             <xpath expr="//field[@name='user_id']" position="replace">
-                <field name="user_id" string="Created By" widget="many2one_avatar_user" invisible="not is_document_validity_management" readonly="not active or is_done" domain="[('share', '=', False)]" options="{'no_quick_create': True}"/>
-                <field name="user_id" string="Project Manager" widget="many2one_avatar_user" invisible="is_document_validity_management" readonly="not active or is_done" domain="[('share', '=', False)]" options="{'no_quick_create': True}"/>
+                <field name="user_id" string="Created By" widget="many2one_avatar_user" readonly="not active or is_done" domain="[('share', '=', False)]" options="{'no_quick_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='create_uid']" position="attributes">
+                <attribute name="invisible">True</attribute>
             </xpath>
             <field name="tag_ids" position="attributes">
                 <attribute name="invisible">is_document_validity_management</attribute>
