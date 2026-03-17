@@ -1,8 +1,8 @@
 import datetime
-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from markupsafe import Markup
+
 
 class DocumentWorkflow(models.Model):
     _name = "document.workflow"
@@ -130,6 +130,7 @@ class Documenthistory(models.Model):
     _description = "Document History"
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    name = fields.Char("Name", required=True)
     submitted_by = fields.Many2one('res.users',"Submitted By",tracking=True,readonly=True)
     submitted_to = fields.Many2one('res.users',"Submitted To",tracking=True)
     received_by = fields.Many2one('res.users',"Received By",tracking=True,readonly=True)
@@ -147,6 +148,50 @@ class Documenthistory(models.Model):
         'document.workflow',
         string="Workflow",readonly=True
     )
+    show_scrap = fields.Boolean("Show Scrap", compute="_compute_show_button", default=False)
+    show_store = fields.Boolean("Show Store", compute="_compute_show_button", default=False)
+    show_requested = fields.Boolean("Show Request", compute="_compute_show_button", default=False)
+    show_received = fields.Boolean("Show Received", compute="_compute_show_button", default=False)
+
+    def _compute_show_button(self):
+        user_id = self.env.user.id
+        self.show_scrap = False
+        self.show_store = False
+        self.show_requested = False
+        self.show_received = False
+        for rec in self:
+            if rec.submitted_to.id == user_id:
+                rec.show_received = True
+            if rec.submitted_by.id == user_id or rec.create_uid.id == user_id:
+                rec.show_requested = True
+            if not rec.id or not rec.document_workflow_id:
+                continue
+            records = self.search([('document_workflow_id', '=', rec.document_workflow_id.id)], order="id asc")
+            if not records:
+                continue
+            last_record = records[-1]
+            if rec.id != last_record.id:
+                continue
+            if rec.received_by.id == user_id:
+                rec.show_scrap = True
+                rec.show_store = True
+
+    @api.constrains('submitted_by', 'document_workflow_id')
+    def validate_record_creation(self):
+        for rec in self:
+            if not rec.document_workflow_id:
+                continue
+            last_record = self.search([('document_workflow_id', '=', rec.document_workflow_id.id), ('id', '!=', rec.id)], order="id desc", limit=1)
+            if not last_record:
+                continue
+            if last_record.status != "done" or last_record.submitted_to.id != self.env.user.id:
+                raise ValidationError("You are not allowed to create documents!")
+
+
+
+
+
+
 
     # def action_request_document(self):
     #     for rec in self:

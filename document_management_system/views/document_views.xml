@@ -43,6 +43,18 @@
                                             <field name="file_name"/>
                                             <field name="file_data" filename="file_name" widget="download"/>
                                         </tree>
+                                        <form>
+                                            <sheet>
+                                                <group>
+                                                    <group>
+                                                        <field name="file_data" filename="file_name" widget="download"/>
+                                                    </group>
+                                                    <group>
+                                                        <field name="file_name" required="1"/>
+                                                    </group>
+                                                </group>
+                                            </sheet>
+                                        </form>
                                     </field>
                                 </page>
                             </notebook>
@@ -50,6 +62,7 @@
                                 <page string="Document History">
                                     <field name="document_history" editable="top">
                                         <tree create="True" delete="False">
+                                            <field name="name" />
                                             <field name="partner_id" />
                                             <field name="submitted_by"/>
                                             <field name="submitted_date"/>
@@ -57,38 +70,44 @@
                                             <field name="received_by"/>
                                             <field name="received_date"/>
                                             <field name="status"/>
+                                            <field name="show_scrap" column_invisible="1"/>
+                                            <field name="show_store" column_invisible="1"/>
+                                            <field name="show_requested" column_invisible="1"/>
+                                            <field name="show_received" column_invisible="1"/>
+
                                             <button name="action_request_approval"
                                                     type="object"
                                                     string="Submit for Acceptance"
-                                                    invisible="status not in ['draft','requested']"
+                                                    invisible="status not in ['draft','requested'] or show_requested == False"
                                                     class="btn-info"/>
 
                                             <button name="action_mark_stored"
                                                     type="object"
                                                     string="Store"
-                                                    invisible="status != 'waiting_approval'"
+                                                    invisible="status != 'done' or show_store == False"
                                                     class="btn-primary"/>
 
                                             <button name="action_mark_scrap"
                                                     type="object"
                                                     string="Scrap"
-                                                    invisible="status != 'waiting_approval'"
+                                                    invisible="status != 'done' or show_scrap == False"
                                                     class="btn-warning"/>
 
                                             <button name="action_mark_done"
                                                     type="object"
                                                     string="Received"
-                                                    invisible="status != 'waiting_approval'"
+                                                    invisible="status != 'waiting_approval' or show_received == False"
                                                     class="btn-success"/>
                                         </tree>
                                         <form>
                                             <sheet>
                                                 <group>
-                                            <field name="partner_id" required="1" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
-                                            <field name="submitted_by"/>
-                                            <field name="submitted_to"/>
-                                            <field name="received_by"/>
-                                            <field name="status"/>
+                                                    <field name="name" required="1"/>
+                                                    <field name="partner_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
+                                                    <field name="submitted_by"/>
+                                                    <field name="submitted_to"/>
+                                                    <field name="received_by"/>
+                                                    <field name="status"/>
                                                 </group>
                                             </sheet>
                                             <div class="oe_chatter">
@@ -152,20 +171,45 @@
     </record>
 
     <record id="view_document_history_pivot" model="ir.ui.view">
-            <field name="name">document.history.pivot</field>
-            <field name="model">document.history</field>
-            <field name="arch" type="xml">
-                <pivot string="Document History Analysis">
-                    <field name="status" type="col"/>
-                    <field name="document_workflow_id" type="row"/>
-                </pivot>
-            </field>
-        </record>
+        <field name="name">document.history.pivot</field>
+        <field name="model">document.history</field>
+        <field name="arch" type="xml">
+            <pivot string="Document History Analysis">
+                <field name="status" type="col"/>
+                <field name="document_workflow_id" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_document_history_search" model="ir.ui.view">
+        <field name="name">document.history.search</field>
+        <field name="model">document.history</field>
+        <field name="arch" type="xml">
+            <search string="Document History">
+                <field name="name"/>
+                <field name="submitted_by"/>
+                <field name="submitted_to"/>
+                <field name="received_by"/>
+
+                <filter name="filter_requested" string="Requested" domain="[('status', '=', 'requested')]"/>
+                <filter name="filter_waiting_approval" string="Waiting For Approval" domain="[('status', '=', 'waiting_approval')]"/>
+                <filter name="filter_scrapped" string="Scrapped" domain="[('status', '=', 'scrapped')]"/>
+                <filter name="filter_stored" string="Stored" domain="[('status', '=', 'stored')]"/>
+                <filter name="filter_done" string="Done" domain="[('status', '=', 'done')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_submitted_by" string="Submitted By" context="{'group_by': 'submitted_by'}"/>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_received_by" string="Received By" context="{'group_by': 'received_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
 
     <record id="document_history_action" model="ir.actions.act_window">
         <field name="name">Document History</field>
         <field name="res_model">document.history</field>
-        <field name="view_mode">tree,form,pivot</field>
+        <field name="view_mode">tree,form,pivot,search</field>
     </record>
 
     <menuitem id="menu_document_workflow_main"

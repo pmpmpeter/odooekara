@@ -305,12 +305,13 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="display_name"/>
-                <field name="partner_id"/>
+                <field name="department_id" column_invisible="context.get('is_legal_notice_option')"/>
+                <field name="partner_id" string="Customer / Vendor" column_invisible="context.get('is_statuory_notice_option')"/>
                 <field name="date_of_notice"/>
                 <field name="last_date"/>
                 <field name="create_date"/>
                 <field name="company_id"/>
-                <field name="user_id"/>
+                <field name="user_id" string="Created By"/>
                 <field name="stage_id"/>
             </tree>
         </field>
