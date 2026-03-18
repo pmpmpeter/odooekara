@@ -12,6 +12,13 @@ class ProjectTask(models.Model):
 
     is_credit_expense = fields.Boolean(string='Is Credit Expense',default=False)
 
+    def write(self, vals):
+        res = super().write(vals)
+        for rec in self:
+            self.env['multi.approval.type'].compute_need_approval(rec)
+        return res
+
+
 class MultiApprovalType(models.Model):
     _inherit = "multi.approval.type"
     _order = "priority"
@@ -22,7 +29,10 @@ class MultiApprovalType(models.Model):
         if not dmain:
             return False
         if rec._name == "project.task":
-            dmain = [("id", "=", rec.id), ('is_credit_expense', '=', True)] + dmain
+            rec_id = rec.id
+            if not isinstance(rec.id, fields.Integer):
+                rec_id = rec._origin.id
+            dmain = [("id", "=", rec_id), ('is_credit_expense', '=', True)] + dmain
         else:
             dmain = [("id", "=", rec.id)] + dmain
         try:
