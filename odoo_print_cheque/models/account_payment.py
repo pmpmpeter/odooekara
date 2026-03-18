@@ -36,7 +36,21 @@ class AccountPayment(models.Model):
     beneficiary_account_type = fields.Char(string="Beneficiary Account Type", copy=False)
     sender_receiver_info = fields.Char(string="Sender Receiver Information", copy=False)
     sms_email = fields.Selection([('sms', 'SMS'), ('email', 'Email')], string="SMS / Email", copy=False)
-    rtgs_addition = fields.Boolean(string='NEFT/RTGS')
+    rtgs_addition = fields.Boolean(string='NEFT/RTGS', compute='compute_rtgs')
+
+    @api.depends('partner_bank_id','journal_id')
+    @api.onchange('partner_bank_id','journal_id')
+    def compute_rtgs(self):
+        for rec in self:
+            partner_bank = rec.partner_bank_id.bank_id if rec.partner_bank_id else False
+            journal_bank = rec.journal_id.bank_account_id.bank_id if rec.journal_id and rec.journal_id.bank_account_id else False
+
+            if partner_bank and journal_bank:
+                rec.rtgs_addition = (partner_bank.name != journal_bank.name)
+            elif partner_bank and not journal_bank:
+                rec.rtgs_addition = True
+            else:
+                rec.rtgs_addition = False
 
     def create(self,vals):
         result = super(AccountPayment, self).create(vals)
