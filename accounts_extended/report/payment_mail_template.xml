@@ -29,17 +29,25 @@
                     <br/>
                     <br/>
 
-                    <t t-foreach="object.reconciled_bill_ids" t-as="inv">
-                        Bill Reference:
-                        <span style="font-weight:bold;">
-                            <t t-out="inv.ref"></t>
-                        </span>
-                        dated on
-                        <span style="font-weight:bold;">
-                            <t t-out="format_date(inv.invoice_date)"></t>
-                        </span>
-                        <br/>
-                    </t>
+                        <t t-foreach="object.reconciled_bill_ids" t-as="inv">
+                            Bill Reference:
+                            <span style="font-weight:bold;">
+                                <t t-out="inv.ref"/>
+                            </span>
+                            dated on
+                            <span style="font-weight:bold;">
+                                <t t-out="format_date(inv.invoice_date)"/>
+                            </span>
+
+                            <!-- UTR condition -->
+                            <t t-if="object.utr_number">
+                                , UTR:
+                                <span style="font-weight:bold;">
+                                    <t t-out="object.utr_number"/>
+                                </span>
+                            </t>
+                            <br/>
+                        </t>
                     </t>
                     <br/>
                     If you have any questions, please feel free to contact us.

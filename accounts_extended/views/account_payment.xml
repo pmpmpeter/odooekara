@@ -50,7 +50,7 @@
                 <field name="ref" readonly="state not in ('draft','to approve')"/>
             </xpath>
             <field name="ref" position="after">
-                <field name='utr_number' invisible="state not in  ('approved','posted') or (payment_type =='inbound' and not is_fund_requsiting) or
+                <field name='utr_number' invisible="state not in  ('approved','posted') or (payment_type =='inbound') or
                         (not show_partner_bank_account and not is_cheque_cleared)" readonly="is_utr_updated"/>
                 <field name='old_utr_number' invisible='1'/>
             </field>
@@ -109,7 +109,7 @@
             <field name="journal_id" position="before">
                 <field name="show_partner_bank_account" invisible="0"/>
                 <field name="print_assigned_true" invisible="0"/>
-                <field name="is_fund_requsiting" invisible="1"/>
+                <field name="is_fund_requsiting" invisible="0"/>
                 <field name="approval_document" invisible="1"/>
                 <field name="x_need_approval" invisible="1"/>
                 <field name="x_has_request_approval" invisible="1"/>
