@@ -970,6 +970,7 @@
                                         <field name="authorised_date"/>
                                         <field name="comments"/>
                                         <field name="towards"/>
+                                        <field name="utr_number"/>
                                         <field name="rtgs_addition"/>
                                     </group>
                                     <group>

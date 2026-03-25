@@ -148,6 +148,7 @@ class AccountMoveInherit(models.Model):
         default="entry",
     )
     advance_payment_ids = fields.Many2many('account.payment',string='Advance Payment')
+    utr_number =fields.Char(string='UTR Number')
 
     def _get_move_display_name(self, show_ref=False):
         ''' Helper to get the display name of an invoice depending of its type.

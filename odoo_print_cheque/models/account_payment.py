@@ -46,9 +46,7 @@ class AccountPayment(models.Model):
             journal_bank = rec.journal_id.bank_account_id.bank_id if rec.journal_id and rec.journal_id.bank_account_id else False
 
             if partner_bank and journal_bank:
-                rec.rtgs_addition = (partner_bank.name != journal_bank.name)
-            elif partner_bank and not journal_bank:
-                rec.rtgs_addition = True
+                rec.rtgs_addition = (partner_bank.name == journal_bank.name)
             else:
                 rec.rtgs_addition = False
 

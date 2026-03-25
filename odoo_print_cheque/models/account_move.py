@@ -62,7 +62,19 @@ class AccountMove(models.Model):
     )
     partner_id = fields.Many2one('res.partner',string='Beneficiary Name')
     partner_bank_id = fields.Many2one('res.partner.bank', string='Beneficiary Account Name')
-    rtgs_addition = fields.Boolean(string='NEFT/RTGS')
+    rtgs_addition = fields.Boolean(string='NEFT/RTGS', compute='compute_rtgs')
+
+    @api.depends('partner_bank_id', 'journal_id')
+    @api.onchange('partner_bank_id', 'journal_id')
+    def compute_rtgs(self):
+        for rec in self:
+            partner_bank = rec.partner_bank_id.bank_id if rec.partner_bank_id else False
+            journal_bank = rec.journal_id.bank_account_id.bank_id if rec.journal_id and rec.journal_id.bank_account_id else False
+
+            if partner_bank and journal_bank:
+                rec.rtgs_addition = (partner_bank.name == journal_bank.name)
+            else:
+                rec.rtgs_addition = False
 
     @api.depends('payment_method_line_id', 'cheque_format_id', 'line_ids.debit', 'line_ids.credit','check_amount_in_num')
     def _compute_check_amount_in_words_move(self):

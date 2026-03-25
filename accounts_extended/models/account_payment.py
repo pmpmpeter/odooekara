@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWar
 from datetime import timedelta
 import pdb
 import logging
+from odoo.tools import html2plaintext
 _logger = logging.getLogger(__name__)
 
 class AccountReimbursementLine(models.Model):
@@ -63,6 +64,7 @@ class AccountPayment(models.Model):
     other_charges_lines = fields.One2many('payment.other.charges.lines', 'payment_id', string="Other Charges", copy=True)
     print_assigned = fields.Many2many('res.users',string='Print Assigned To')
     print_assigned_true = fields.Boolean(string='Print Assigned True',compute='compute_print_assigned')
+    # ref = fields.Text()
 
     @api.depends('print_assigned')
     def compute_print_assigned(self):
@@ -465,12 +467,13 @@ class AccountPayment(models.Model):
         for rec in self:
             if rec.state == 'posted' and rec.utr_number:
                 if rec.move_id:
-                    for line in rec.move_id.line_ids:
-                        if line.account_id == rec.outstanding_account_id:
-                            if rec.old_utr_number:
-                                line.name = line.name.replace(rec.old_utr_number, rec.utr_number)
-                            else:
-                                line.name += ('-' + rec.utr_number)
+                    rec.move_id.utr_number = rec.utr_number
+                    # for line in rec.move_id.line_ids:
+                    #     if line.account_id == rec.outstanding_account_id:
+                    #         if rec.old_utr_number:
+                    #             line.name = line.name.replace(rec.old_utr_number, rec.utr_number)
+                    #         else:
+                    #             line.name += ('-' + rec.utr_number)
                     rec.old_utr_number = rec.utr_number
                     rec.is_utr_updated = True
 
@@ -548,6 +551,38 @@ class AccountPayment(models.Model):
     def action_reject_payment(self):
         for rec in self:
             rec.write({'state': 'cancel'})
+
+    def _prepare_ref_from_invoices(self):
+        self.ensure_one()
+        values = []
+
+        for line in self.payment_invoice_ids:
+            move = line.invoice_id.move_id if line.invoice_id and line.invoice_id.move_id else False
+
+            if move:
+                name = move.name or ''
+                narration = html2plaintext(move.narration or '').replace('\n', ' ').strip()
+
+                combined = f"{name} - {narration}" if narration else name
+                values.append(combined)
+
+        return '\n'.join(values) if values else False
+
+    @api.model
+    def create(self, vals):
+        rec = super().create(vals)
+        rec.ref = rec._prepare_ref_from_invoices()
+        return rec
+
+    def write(self, vals):
+        res = super().write(vals)
+
+        if 'payment_invoice_ids' in vals:
+            for rec in self:
+                ref_value = rec._prepare_ref_from_invoices()
+                super(type(rec), rec).write({'ref': ref_value})
+
+        return res
 
 class AccountBatchPayment(models.Model):
     _inherit = 'account.batch.payment'
