@@ -225,7 +225,7 @@ class SelfRating(models.Model):
 
 
 
-    @api.depends('contract_self_rating_ids.variable_pay_per_annum','recommended_pbvp_payout')
+    @api.depends('contract_self_rating_ids.variable_pay_per_annum','recommended_pbvp_payout','variable_pay_percentage')
     def _compute_variable_pay_amount(self):
         for rec in self:
             rec.variable_pay_amount = 0.0
