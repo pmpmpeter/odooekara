@@ -6,6 +6,36 @@ from odoo import api, Command, fields, models, _, _lt
 from datetime import datetime,timedelta
 from odoo.exceptions import UserError, ValidationError
 
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    task_id = fields.Many2one('project.task', string="Task")
+
+    def create(self, vals_list):
+        records = super().create(vals_list)
+
+        # Ensure vals_list is always a list
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        for record, vals in zip(records, vals_list):
+            task_id = vals.get('task_id')
+
+            if task_id:
+                attachments = self.env['ir.attachment'].search([
+                    ('res_model', '=', 'project.task'),
+                    ('res_id', '=', task_id)
+                ])
+
+                for att in attachments:
+                    i = att.copy({
+                        'res_model': 'account.move',
+                        'res_id': record.id,
+                    })
+                    print(i)
+
+        return records
+
 class Project(models.Model):
     _inherit = "project.project"
 
@@ -333,6 +363,22 @@ class ProjectTask(models.Model):
     is_done_stage = fields.Boolean(string='Is Done Stage?', related='stage_id.is_done_stage')
     task_accepted = fields.Boolean(string='Task Accepted',default=False)
     raise_request_to_id = fields.Many2one('res.users',string='Raise Request To')
+    allow_bill_creation = fields.Boolean(string="Allow Bill Creation")
+
+    def action_open_bill(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Vendor Bill',
+            'res_model': 'account.move',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_move_type': 'in_invoice',
+                'default_task_id': self.id,  # ✅ only this
+            }
+        }
 
     def action_accept(self):
         self.task_accepted = True
