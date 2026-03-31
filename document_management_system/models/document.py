@@ -129,8 +129,9 @@ class Documenthistory(models.Model):
     _name = "document.history"
     _description = "Document History"
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    _rec_name = 'document_workflow_id'
 
-    name = fields.Char("Name", required=True)
+    # name = fields.Char("Name", required=True)
     submitted_by = fields.Many2one('res.users',"Submitted By",tracking=True,readonly=True)
     submitted_to = fields.Many2one('res.users',"Submitted To",tracking=True)
     received_by = fields.Many2one('res.users',"Received By",tracking=True,readonly=True)

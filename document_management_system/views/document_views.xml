@@ -62,7 +62,7 @@
                                 <page string="Document History">
                                     <field name="document_history" editable="top">
                                         <tree create="True" delete="False">
-                                            <field name="name" />
+                                            <field name="document_workflow_id"/>
                                             <field name="partner_id" />
                                             <field name="submitted_by"/>
                                             <field name="submitted_date"/>
@@ -102,7 +102,6 @@
                                         <form>
                                             <sheet>
                                                 <group>
-                                                    <field name="name" required="1"/>
                                                     <field name="partner_id" options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                                                     <field name="submitted_by"/>
                                                     <field name="submitted_to"/>
@@ -135,6 +134,7 @@
         <field name="model">document.history</field>
         <field name="arch" type="xml">
             <tree create="0" edit="0" delete="0">
+                <field name="document_workflow_id"/>
                 <field name="partner_id"/>
                 <field name="submitted_by"/>
                 <field name="submitted_date"/>
@@ -154,6 +154,7 @@
                 <sheet>
                     <group>
                         <group>
+                            <field name="document_workflow_id"/>
                             <field name="partner_id"/>
                             <field name="submitted_by"/>
                             <field name="submitted_date"/>
@@ -186,7 +187,7 @@
         <field name="model">document.history</field>
         <field name="arch" type="xml">
             <search string="Document History">
-                <field name="name"/>
+<!--                <field name="name"/>-->
                 <field name="submitted_by"/>
                 <field name="submitted_to"/>
                 <field name="received_by"/>

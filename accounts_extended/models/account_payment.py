@@ -562,25 +562,53 @@ class AccountPayment(models.Model):
             if move:
                 name = move.name or ''
                 narration = html2plaintext(move.narration or '').replace('\n', ' ').strip()
-
                 combined = f"{name} - {narration}" if narration else name
                 values.append(combined)
 
         return '\n'.join(values) if values else False
 
+
     @api.model
     def create(self, vals):
         rec = super().create(vals)
-        rec.ref = rec._prepare_ref_from_invoices()
+
+        ref_value = rec._prepare_ref_from_invoices()
+
+        update_vals = {'ref': ref_value}
+
+        # CONDITION → update towards also
+        if (not rec.show_partner_bank_account) or rec.payment_type == 'inbound':
+            update_vals['towards'] = ref_value
+
+        # avoid recursion
+        super(type(rec), rec).write(update_vals)
+
         return rec
+
 
     def write(self, vals):
         res = super().write(vals)
 
-        if 'payment_invoice_ids' in vals:
+        trigger_fields = {
+            'payment_invoice_ids',
+            'show_partner_bank_account',
+            'payment_type'
+        }
+
+        if trigger_fields.intersection(vals):
             for rec in self:
                 ref_value = rec._prepare_ref_from_invoices()
-                super(type(rec), rec).write({'ref': ref_value})
+
+                update_vals = {'ref': ref_value}
+
+                # CONDITION → update towards also
+                if (not rec.show_partner_bank_account) or rec.payment_type == 'inbound':
+                    # optional optimization
+                    if rec.towards != ref_value:
+                        update_vals['towards'] = ref_value
+
+                # avoid recursion
+                super(type(rec), rec).write(update_vals)
 
         return res
 
