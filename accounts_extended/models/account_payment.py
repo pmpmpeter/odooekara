@@ -552,22 +552,28 @@ class AccountPayment(models.Model):
         for rec in self:
             rec.write({'state': 'cancel'})
 
+    # -----------------------------------
+    # Prepare Ref from Invoice Lines
+    # -----------------------------------
     def _prepare_ref_from_invoices(self):
         self.ensure_one()
         values = []
 
         for line in self.payment_invoice_ids:
-            move = line.invoice_id.move_id if line.invoice_id and line.invoice_id.move_id else False
+            if line.reconcile_amount != 0 and line.invoice_id and line.invoice_id.move_id:
+                move = line.invoice_id.move_id
 
-            if move:
                 name = move.name or ''
                 narration = html2plaintext(move.narration or '').replace('\n', ' ').strip()
+
                 combined = f"{name} - {narration}" if narration else name
                 values.append(combined)
 
         return '\n'.join(values) if values else False
 
-
+    # -----------------------------------
+    # Create
+    # -----------------------------------
     @api.model
     def create(self, vals):
         rec = super().create(vals)
@@ -585,14 +591,17 @@ class AccountPayment(models.Model):
 
         return rec
 
-
+    # -----------------------------------
+    # Write
+    # -----------------------------------
     def write(self, vals):
         res = super().write(vals)
 
         trigger_fields = {
             'payment_invoice_ids',
             'show_partner_bank_account',
-            'payment_type'
+            'payment_type',
+            'payment_method_line_id'
         }
 
         if trigger_fields.intersection(vals):
@@ -601,13 +610,11 @@ class AccountPayment(models.Model):
 
                 update_vals = {'ref': ref_value}
 
-                # CONDITION → update towards also
                 if (not rec.show_partner_bank_account) or rec.payment_type == 'inbound':
-                    # optional optimization
                     if rec.towards != ref_value:
                         update_vals['towards'] = ref_value
 
-                # avoid recursion
+                # single safe write (no recursion)
                 super(type(rec), rec).write(update_vals)
 
         return res

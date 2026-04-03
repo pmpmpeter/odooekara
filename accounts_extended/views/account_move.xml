@@ -902,6 +902,7 @@
                                        invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')">
                                     <field name="company_id" groups="base.group_multi_company"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
+                                    <field name="task_id" invisible="1"/>
                                     <field name="invoice_incoterm_id"
                                            options="{'no_quick_create':True,'no_create': True,}"/>
                                     <field name="incoterm_location"/>

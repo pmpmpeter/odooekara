@@ -97,11 +97,23 @@ class AccountPayment(models.Model):
 
     def update_reconcile_amount(self):
         for rec in self:
-            invoice_ids = rec.payment_invoice_ids.filtered(lambda l:l.is_reconcile_amount)
-            total_reconcile = sum(abs(line.residual) for line in invoice_ids)
+            invoice_lines = rec.payment_invoice_ids.filtered(lambda l: l.is_reconcile_amount)
+            total_reconcile = sum(abs(line.residual) for line in invoice_lines)
             rec.amount = total_reconcile
             rec.amount_onchange_manual()
             rec.compute_unallocated_amount()
+
+            # ✅ compute ref AFTER updating all lines
+            ref_value = rec._prepare_ref_from_invoices()
+
+            update_vals = {'ref': ref_value}
+
+            # CONDITION → update towards also
+            if (not rec.show_partner_bank_account) or rec.payment_type == 'inbound':
+                update_vals['towards'] = ref_value
+
+            # ✅ single write per payment
+            super(type(rec), rec).write(update_vals)
 
     def update_entry(self):
         for rec in self:

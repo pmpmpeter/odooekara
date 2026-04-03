@@ -364,10 +364,26 @@ class ProjectTask(models.Model):
     task_accepted = fields.Boolean(string='Task Accepted',default=False)
     raise_request_to_id = fields.Many2one('res.users',string='Raise Request To')
     allow_bill_creation = fields.Boolean(string="Allow Bill Creation")
+    hide_bill_creation = fields.Boolean(string="Hide Bill Creation")
+
+    def action_view_bills(self):
+        self.ensure_one()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Vendor Bills',
+            'res_model': 'account.move',
+            'view_mode': 'tree,form',
+            'domain': [('task_id', '=', self.id), ('move_type', '=', 'in_invoice')],
+            'context': {
+                'default_task_id': self.id,
+                'default_move_type': 'in_invoice',
+            },
+        }
 
     def action_open_bill(self):
         self.ensure_one()
-
+        self.hide_bill_creation = True
         return {
             'type': 'ir.actions.act_window',
             'name': 'Vendor Bill',
