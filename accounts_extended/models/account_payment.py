@@ -368,6 +368,7 @@ class AccountPayment(models.Model):
     def action_freeze_cheque_details(self):
         for rec in self:
             rec.is_cheque_details_freeze = True
+            rec.is_utr_updated = True
 
     def send_vendor_mail(self):
         form_view = self.env.ref('mail.email_compose_message_wizard_form')
@@ -465,17 +466,9 @@ class AccountPayment(models.Model):
 
     def action_update_utr_number(self):
         for rec in self:
-            if rec.state == 'posted' and rec.utr_number:
-                if rec.move_id:
-                    rec.move_id.utr_number = rec.utr_number
-                    # for line in rec.move_id.line_ids:
-                    #     if line.account_id == rec.outstanding_account_id:
-                    #         if rec.old_utr_number:
-                    #             line.name = line.name.replace(rec.old_utr_number, rec.utr_number)
-                    #         else:
-                    #             line.name += ('-' + rec.utr_number)
-                    rec.old_utr_number = rec.utr_number
-                    rec.is_utr_updated = True
+            if rec.state == 'posted':
+                rec.is_cheque_cleared = True
+
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')
     def compute_approval_state(self):

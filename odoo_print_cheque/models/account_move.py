@@ -49,7 +49,7 @@ class AccountMove(models.Model):
     payment_type = fields.Selection([
         ('outbound', 'Send'),
         ('inbound', 'Receive'),
-    ], string='Payment Type', default='inbound', required=True, tracking=True)
+    ], string='Payment Type', default='outbound', required=True, tracking=True)
     is_bank_entry = fields.Boolean('Is Cash/Bank Journal?', compute='_get_cash_bank_journal_type', default=False)
     check_amount_in_words = fields.Char(
         string="Amount in Words",

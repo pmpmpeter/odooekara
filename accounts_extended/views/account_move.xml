@@ -134,6 +134,7 @@
                     type="object"
                     class="oe_highlight"
                     invisible="not is_bank_entry or state in ('draft','to approve','cancel')"/>
+                    <button name="send_vendor_mail" string="Send By Mail" type="object" class="oe_highlight" invisible="state != 'posted' or move_type != 'entry' or  not is_bank_entry"/>
 
                     <!-- Set as Checked -->
                     <button name="button_set_checked" string="Set as Checked" type="object"

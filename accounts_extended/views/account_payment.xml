@@ -71,8 +71,8 @@
             <xpath expr="//field[@name='payment_method_line_id']" position="after">
                 <field name="cheque_format_id" invisible="show_partner_bank_account or payment_type != 'outbound'"
                        options="{'no_open':True,'no_create': True}" readonly="state not in ('draft','to approve')"/>
-                <field name="is_cheque_cleared" invisible="show_partner_bank_account or payment_type != 'outbound'" readonly="is_cheque_details_freeze"/>
-                <field name="cheque_cleared_date" invisible="show_partner_bank_account or not is_cheque_cleared" readonly="is_cheque_details_freeze"/>
+                <field name="is_cheque_cleared" invisible="1" readonly="is_cheque_details_freeze"/>
+                <field name="cheque_cleared_date" invisible="1" readonly="is_cheque_details_freeze"/>
             </xpath>
             <xpath expr="//group[@name='main_group']" position="after">
                 <notebook>
@@ -109,7 +109,7 @@
             <field name="journal_id" position="before">
                 <field name="show_partner_bank_account" invisible="0"/>
                 <field name="print_assigned_true" invisible="0"/>
-                <field name="is_fund_requsiting" invisible="0"/>
+                <field name="is_fund_requsiting" invisible="1"/>
                 <field name="approval_document" invisible="1"/>
                 <field name="x_need_approval" invisible="1"/>
                 <field name="x_has_request_approval" invisible="1"/>
@@ -138,11 +138,11 @@
                 <field name="is_utr_updated" invisible="1"/>
                 <field name="is_cheque_details_freeze" invisible="1"/>
                  <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
-                         invisible="state != 'posted' or (payment_type =='inbound' and not is_fund_requsiting) or is_utr_updated or not utr_number"/>
+                         invisible="state != 'posted' or (payment_type =='inbound') or is_utr_updated"/>
                 <button name="print_cheque_format" type="object" string="Print Cheque"
                     invisible="not print_assigned_true"/>
 <!--                    invisible="(payment_type != 'outbound') and ((show_partner_bank_account) or (state not in ('draft', 'to approve', 'cancel')) or (not print_assigned_true))"/>-->
-                <button name="action_freeze_cheque_details" string="Update Cheque Details" type="object" class="oe_highlight" invisible="state != 'posted' or is_cheque_details_freeze or show_partner_bank_account or payment_type != 'outbound'"/>
+                <button name="action_freeze_cheque_details" string="Lock Cheque Details" type="object" class="oe_highlight" invisible="state != 'posted' or is_cheque_details_freeze or show_partner_bank_account or payment_type != 'outbound'"/>
                 <button name="send_vendor_mail" string="Send By Mail" type="object" class="oe_highlight" invisible="state != 'posted'"/>
             </xpath>
 

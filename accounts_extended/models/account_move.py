@@ -152,6 +152,27 @@ class AccountMoveInherit(models.Model):
     advance_payment_ids = fields.Many2many('account.payment',string='Advance Payment')
     utr_number =fields.Char(string='UTR Number')
 
+    def send_vendor_mail(self):
+        form_view = self.env.ref('mail.email_compose_message_wizard_form')
+
+        ctx = {
+            'default_model': 'account.move',
+            'default_res_ids': self.ids,
+            'default_template_id': self.env.ref('accounts_extended.mail_template_data_journal_payment').id,
+            'default_attachment_ids': [],
+            'force_email': True,
+        }
+
+        return {
+            'name': _('Send By Mail'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'view_mode': 'form',
+            'views': [(form_view.id, 'form')],
+            'target': 'new',
+            'context': ctx
+        }
+
     def _get_move_display_name(self, show_ref=False):
         ''' Helper to get the display name of an invoice depending of its type.
         :param show_ref:    A flag indicating of the display name must include or not the journal entry reference.
