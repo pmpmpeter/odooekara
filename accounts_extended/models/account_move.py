@@ -22,6 +22,8 @@ from odoo.addons.account.tools import format_structured_reference_iso
 from odoo.exceptions import UserError, ValidationError, AccessError, RedirectWarning
 import io
 import xlsxwriter
+import re
+import calendar
 from datetime import datetime
 from odoo.tools import (
     date_utils,
@@ -583,6 +585,86 @@ class AccountMoveInherit(models.Model):
             rec.action_validate_no_bill()
         res = super(AccountMoveInherit, self).action_post()
         for rec in self:
+            if rec.move_type != 'entry':
+                continue
+
+                # Find Salary Payable line (10321002)
+            salary_lines = rec.line_ids.filtered(
+                lambda l: l.account_id.code == '10321002' and l.credit > 0
+            )
+
+            if not salary_lines:
+                continue
+
+            # If multiple lines → sum
+            amount = sum(salary_lines.mapped('credit'))
+
+            existing = self.env['account.move'].search([
+                ('ref', 'ilike', rec.ref),
+                ('journal_id.code', '=', 'ICI97')
+            ], limit=1)
+
+            if existing:
+                continue
+
+            # Accounts
+            debit_account = self.env['account.account'].search([
+                ('code', '=', '10321002')
+            ], limit=1)
+
+            credit_account = self.env['account.account'].search([
+                ('code', '=', '100204')
+            ], limit=1)
+
+            if not debit_account or not credit_account:
+                continue
+
+            # Journal
+            journal = self.env['account.journal'].search([
+                ('code', '=', 'ICI97')
+            ], limit=1)
+
+            if not journal:
+                continue
+
+            ref_text = rec.ref or ''
+
+            month_full = ''
+            year = ''
+
+            match = re.search(r'(\w+)\s+(\d{4})', ref_text)
+            if match:
+                month_short = match.group(1)
+                year = match.group(2)
+
+                try:
+                    month_full = calendar.month_name[
+                        list(calendar.month_abbr).index(month_short[:3])
+                    ]
+                except:
+                    month_full = month_short
+
+            new_ref = f"Salary payment for the month of {month_full} {year}" if month_full else rec.name
+            new_move = self.env['account.move'].create({
+                'move_type': 'entry',
+                'journal_id': journal.id,
+                'date': fields.Date.today(),
+                'ref': new_ref,
+                'line_ids': [
+                    (0, 0, {
+                        'account_id': debit_account.id,
+                        'debit': amount,
+                        'credit': 0.0,
+                    }),
+                    (0, 0, {
+                        'account_id': credit_account.id,
+                        'debit': 0.0,
+                        'credit': amount,
+                    }),
+                ]
+            })
+
+            new_move.action_post()
             if rec.advance_payment_ids:
                 self.activity_schedule(
                     activity_type_id=rec.env.ref('mail.mail_activity_data_todo').id,
