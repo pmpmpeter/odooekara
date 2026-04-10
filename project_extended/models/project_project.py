@@ -371,7 +371,7 @@ class ProjectTask(models.Model):
 
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Payments',
+            'name': 'Bills & Journals',
             'res_model': 'account.move',
             'view_mode': 'tree,form',
             'domain': [('task_id', '=', self.id)],
@@ -386,7 +386,7 @@ class ProjectTask(models.Model):
         # self.hide_bill_creation = True
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Payment',
+            'name': 'Bills',
             'res_model': 'account.move',
             'view_mode': 'form',
             'target': 'new',
@@ -401,7 +401,7 @@ class ProjectTask(models.Model):
         # self.hide_bill_creation = True
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Payment',
+            'name': 'Journals',
             'res_model': 'account.move',
             'view_mode': 'form',
             'target': 'new',

@@ -31,7 +31,14 @@
                                 <span style="font-weight:bold;">
                                     <t t-out="object.utr_number"/>
                                 </span>
-                    </t>
+                    </t><br/>
+
+                    <t t-if="object.cheque_number">
+                                 Cheque NO:
+                                <span style="font-weight:bold;">
+                                    <t t-out="object.cheque_number"/>
+                                </span>
+                        </t><br></br>
                     <t t-if="object.reconciled_bill_ids">
                     against the following bill(s):
                     <br/>
