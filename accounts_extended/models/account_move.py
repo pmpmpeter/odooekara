@@ -151,6 +151,13 @@ class AccountMoveInherit(models.Model):
     )
     advance_payment_ids = fields.Many2many('account.payment',string='Advance Payment')
     utr_number =fields.Char(string='UTR Number')
+    is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed')
+
+    def action_update_utr_number(self):
+        for rec in self:
+            if rec.state == 'posted':
+                rec.is_cheque_details_freeze = True
+
 
     def send_vendor_mail(self):
         form_view = self.env.ref('mail.email_compose_message_wizard_form')

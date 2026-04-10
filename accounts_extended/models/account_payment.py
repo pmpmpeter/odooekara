@@ -467,7 +467,7 @@ class AccountPayment(models.Model):
     def action_update_utr_number(self):
         for rec in self:
             if rec.state == 'posted':
-                rec.is_cheque_cleared = True
+                rec.is_cheque_details_freeze = True
 
 
     @api.depends('approval_document.type_id.state', 'approval_document.line_ids.state')

@@ -371,10 +371,10 @@ class ProjectTask(models.Model):
 
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Vendor Bills',
+            'name': 'Payments',
             'res_model': 'account.move',
             'view_mode': 'tree,form',
-            'domain': [('task_id', '=', self.id), ('move_type', '=', 'in_invoice')],
+            'domain': [('task_id', '=', self.id)],
             'context': {
                 'default_task_id': self.id,
                 'default_move_type': 'in_invoice',
@@ -383,15 +383,30 @@ class ProjectTask(models.Model):
 
     def action_open_bill(self):
         self.ensure_one()
-        self.hide_bill_creation = True
+        # self.hide_bill_creation = True
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Vendor Bill',
+            'name': 'Payment',
             'res_model': 'account.move',
             'view_mode': 'form',
             'target': 'new',
             'context': {
                 'default_move_type': 'in_invoice',
+                'default_task_id': self.id,  # ✅ only this
+            }
+        }
+
+    def action_open_journal(self):
+        self.ensure_one()
+        # self.hide_bill_creation = True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Payment',
+            'res_model': 'account.move',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_move_type': 'entry',
                 'default_task_id': self.id,  # ✅ only this
             }
         }

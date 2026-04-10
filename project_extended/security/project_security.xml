@@ -12,4 +12,7 @@
             ]
         </field>
     </record>
+    <record id="group_project_bill" model="res.groups">
+        <field name="name">Task Bill &amp; Payment creation</field>
+    </record>
 </odoo>

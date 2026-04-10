@@ -134,6 +134,9 @@
                     type="object"
                     class="oe_highlight"
                     invisible="not is_bank_entry or state in ('draft','to approve','cancel')"/>
+                    <button name="action_update_utr_number" string="Update UTR Number" type="object" class="oe_highlight"
+                         invisible="state != 'posted' or move_type != 'entry' or  not is_bank_entry or not utr_number"/>
+
                     <button name="send_vendor_mail" string="Send By Mail" type="object" class="oe_highlight" invisible="state != 'posted' or move_type != 'entry' or  not is_bank_entry"/>
 
                     <!-- Set as Checked -->
@@ -950,39 +953,40 @@
                             <page name="cheque_details" string="Cheque Details" invisible="move_type not in 'entry' or not is_bank_entry">
                                 <group>
                                     <group>
+                                        <field name="is_cheque_details_freeze" invisible="1"/>
                                         <field name="is_bank_entry" invisible="1"/>
-                                        <field name="check_amount_in_num" invisible="move_type not in ['entry']"/>
+                                        <field name="check_amount_in_num" invisible="move_type not in ['entry']" readonly="is_cheque_details_freeze"/>
                                         <field name="check_amount_in_words" invisible="1"/>
                                         <field name="payment_type"
                                                invisible="move_type not in ['entry'] or not is_bank_entry"
                                                readonly="state != 'draft'"/>
                                         <field name="cheque_format_id" invisible="not is_bank_entry or payment_type != 'outbound'"
-                                               options="{'no_open':True,'no_create': True}"/>
-                                        <field name="is_cheque_cleared" invisible="not is_bank_entry or payment_type != 'outbound'"/>
-                                        <field name="cheque_cleared_date" invisible="not is_bank_entry or not is_cheque_cleared"/>
+                                               options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="is_cheque_cleared" invisible="not is_bank_entry or payment_type != 'outbound'" readonly="is_cheque_details_freeze"/>
+                                        <field name="cheque_cleared_date" invisible="not is_bank_entry or not is_cheque_cleared" readonly="is_cheque_details_freeze"/>
                                     </group>
                                     <group>
-                                        <field name="sr_no"/>
+                                        <field name="sr_no" readonly="is_cheque_details_freeze"/>
                                         <field name="cheque_number"/>
-                                        <field name="assigned_by" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="managed_by" options="{'no_open':True,'no_create': True}"/>
+                                        <field name="assigned_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="managed_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
                                     </group>
                                     <group>
-                                        <field name="authorised_by" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="authorised_date"/>
-                                        <field name="comments"/>
-                                        <field name="towards"/>
-                                        <field name="utr_number"/>
-                                        <field name="rtgs_addition"/>
+                                        <field name="authorised_by" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="authorised_date" readonly="is_cheque_details_freeze"/>
+                                        <field name="comments" readonly="is_cheque_details_freeze"/>
+                                        <field name="towards" readonly="is_cheque_details_freeze"/>
+                                        <field name="utr_number" readonly="is_cheque_details_freeze"/>
+                                        <field name="rtgs_addition" readonly="is_cheque_details_freeze"/>
                                     </group>
                                     <group>
-                                        <field name="trans_id" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="sender_account_type" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="partner_id" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="partner_bank_id" options="{'no_open':True,'no_create': True}"/>
-                                        <field name="sender_receiver_info"/>
-                                        <field name="sms_email"/>
+                                        <field name="trans_id" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="sender_account_type" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="beneficiary_account_type" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="partner_id" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="partner_bank_id" options="{'no_open':True,'no_create': True}" readonly="is_cheque_details_freeze"/>
+                                        <field name="sender_receiver_info" readonly="is_cheque_details_freeze"/>
+                                        <field name="sms_email" readonly="is_cheque_details_freeze"/>
                                     </group>
                                 </group>
                             </page>
