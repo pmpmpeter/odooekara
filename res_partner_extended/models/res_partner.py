@@ -3,6 +3,8 @@ from odoo.exceptions import UserError, AccessError,ValidationError
 import logging, re
 from datetime import datetime
 from odoo.tools import SQL
+from markupsafe import Markup
+
 _logger = logging.getLogger(__name__)
 
 class ResPartner(models.Model):
@@ -40,6 +42,46 @@ class ResPartner(models.Model):
     has_to_review = fields.Boolean(string='Has to Review')
     is_nonodoo_company = fields.Boolean(string='IS Company')
     company_ids = fields.Many2many('res.company', 'contact_company_rel', string="Companies",tracking=True)
+    is_request_approved = fields.Boolean()
+    can_request = fields.Boolean()
+
+    def action_view_approvals(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Approvals',
+            'res_model': 'res.partner.approval',
+            'view_mode': 'tree,form',
+            'domain': [('partner_id', '=', self.id)],
+            'context': {
+                'default_partner_id': self.id
+            }
+        }
+
+    # Create new approval directly
+    def action_create_approval(self):
+        self.ensure_one()
+
+        # 🔍 Check existing draft/pending approvals
+        existing = self.env['res.partner.approval'].search([
+            ('partner_id', '=', self.id),
+            ('state', 'in', ['draft', 'pending'])
+        ], limit=1)
+
+        if existing:
+            raise UserError(
+                "An approval request is already in Draft or Pending state."
+            )
+        approval = self.env['res.partner.approval'].create({
+            'partner_id': self.id,
+        })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'res.partner.approval',
+            'res_id': approval.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     def _compute_can_edit_vendor_code(self):
         is_admin_or_accounts_head = (
@@ -160,6 +202,7 @@ class ResPartner(models.Model):
     def action_draft(self):
         for record in self.filtered(lambda m: m.state not in 'draft'):
             record.write({'state': 'draft'})
+            record.can_request = False
 
     def action_approve(self):
         for record in self.filtered(lambda m: m.state not in 'approve'):
@@ -175,6 +218,7 @@ class ResPartner(models.Model):
             # if record.is_vendor and not record.vendor_code:
             #     raise UserError(_("Alert !! Kindly update Vendor Category."))
             record.write({'state': 'done'})
+            record.is_request_approved = False
 
     def action_approve(self):
         for record in self.filtered(lambda m: m.state in 'done'):
@@ -441,3 +485,105 @@ class ReviewLines(models.Model):
                     rec.review_status = 'expired'
                     rec.review_link.has_to_review = False
 
+
+class ResPartnerApproval(models.Model):
+    _name = 'res.partner.approval'
+    _description = 'Contact Approval'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _rec_name = 'partner_id'
+
+    partner_id = fields.Many2one('res.partner', required=True, tracking=True)
+    request_note = fields.Text("Change Request", tracking=True)
+    rejection_reason = fields.Text("Rejection Reason", tracking=True)
+
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ], default='draft', tracking=True)
+
+    # ----------------------
+    # Actions
+    # ----------------------
+
+    def action_submit(self):
+        self.state = 'pending'
+
+    def action_approve(self):
+        self.state = 'approved'
+
+        creator = self.create_uid.partner_id
+        self.partner_id.is_request_approved = True
+
+        message = Markup(
+            "✅ Change Approved<br/>"
+            "Request: %s<br/>"
+            "Requested by: <a href='#' data-oe-model='res.partner' data-oe-id='%s'>@%s</a><br/>"
+            "Approved by: %s"
+        ) % (
+            self.request_note or '',
+            creator.id,
+            creator.name,
+            self.env.user.name
+        )
+
+        self.partner_id.message_post(
+            body=message,
+            subject="Contact Change Approved",
+            partner_ids=[creator.id],
+            message_type="notification"
+        )
+
+    def action_reject(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reject Reason',
+            'res_model': 'partner.approval.reject.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'active_id': self.id},
+        }
+
+    def action_reset_draft(self):
+        self.state = 'draft'
+
+
+# ---------------------------------
+# Reject Wizard
+# ---------------------------------
+
+class PartnerApprovalRejectWizard(models.TransientModel):
+    _name = 'partner.approval.reject.wizard'
+    _description = 'Reject Approval'
+
+    reason = fields.Text("Reason", required=True)
+
+    def action_confirm_reject(self):
+        approval = self.env['res.partner.approval'].browse(self.env.context.get('active_id'))
+
+        approval.rejection_reason = self.reason
+        approval.state = 'rejected'
+
+        creator = approval.create_uid.partner_id
+
+        message = Markup(
+            "❌ Change Rejected<br/>"
+            "Request: %s<br/>"
+            "Reason: %s<br/>"
+            "Requested by: <a href='#' data-oe-model='res.partner' data-oe-id='%s'>@%s</a><br/>"
+            "Rejected by: %s"
+        ) % (
+            approval.request_note or '',
+            self.reason or '',
+            creator.id,
+            creator.name,
+            self.env.user.name
+        )
+
+        approval.partner_id.message_post(
+            body=message,
+            subject="Contact Change Rejected",
+            partner_ids=[creator.id],
+            message_type="notification"
+        )
