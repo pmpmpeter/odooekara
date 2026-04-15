@@ -241,7 +241,9 @@ class AccountPayment(models.Model):
                 ('amount_residual', '!=', 0),('debit', '!=', 0),('company_id', '=', self.company_id.id),
                 ('currency_id', '=', self.currency_id.id)]
             invoice_recs = self.env['account.move.line'].sudo().search(domain1)
-            invoice_recs = invoice_recs.sorted(lambda l: l.move_id.invoice_date)
+            invoice_recs = invoice_recs.sorted(
+                lambda l: l.move_id.invoice_date or date.max
+            )
             # pdb.set_trace()
             # payment_invoice_values = []
             # for invoice_rec in invoice_recs:

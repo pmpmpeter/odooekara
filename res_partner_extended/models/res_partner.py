@@ -151,10 +151,10 @@ class ResPartner(models.Model):
         for res in self:
             if res.state_id:
                 state = self.env['res.country.state'].sudo().search([('id', '=', res.state_id.id)])
-                
+
                 if not state.l10n_in_tin:
                     raise ValidationError(_('First define the GST state code.'))
-                
+
                 if res.vat:
                     vat = res.vat.replace(" ", "")  # Remove any spaces in GST number
 
@@ -421,7 +421,7 @@ class ResPartner(models.Model):
     @api.constrains("phone")
     def _check_phone_number_format(self):
         if self.phone:
-            regex = re.compile("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$")            
+            regex = re.compile("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$")
             p = re.compile(regex)
             if (re.search(p, self.phone)):
                 pass
@@ -488,7 +488,6 @@ class ReviewLines(models.Model):
 
 class ResPartnerApproval(models.Model):
     _name = 'res.partner.approval'
-    _description = 'Contact Approval'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = 'partner_id'
 
@@ -503,38 +502,85 @@ class ResPartnerApproval(models.Model):
         ('rejected', 'Rejected'),
     ], default='draft', tracking=True)
 
-    # ----------------------
-    # Actions
-    # ----------------------
+    # ---------------------------------
+    # 🔔 Reusable Bus Notification
+    # ---------------------------------
+    def _send_bus_notification(self, users, title, message, notif_type='info'):
+        for user in users:
+            if user.partner_id:
+                self.env['bus.bus']._sendone(
+                    user.partner_id,
+                    'simple_notification',
+                    {
+                        'type': notif_type,
+                        'title': title,
+                        'message': message,
+                        'sticky': False,
+                    }
+                )
 
+    # ---------------------------------
+    # Submit
+    # ---------------------------------
     def action_submit(self):
         self.state = 'pending'
 
+        group = self.env.ref('res_partner_extended.group_contact_admin_access')
+        users = group.users.filtered(lambda u: u != self.env.user)
+
+        message_text = _("New Approval Request: %s") % (self.request_note or '')
+
+        # 🔔 Real-time popup to managers
+        self._send_bus_notification(users, _('Approval Request'), message_text, 'info')
+
+        # 💬 Chatter
+        self.partner_id.message_post(
+            body=f"🟡 New Approval Request<br/>Request: {self.request_note}",
+            partner_ids=users.mapped('partner_id').ids,
+            message_type='notification'
+        )
+
+
+    # ---------------------------------
+    # Approve
+    # ---------------------------------
     def action_approve(self):
         self.state = 'approved'
 
-        creator = self.create_uid.partner_id
+        creator_user = self.create_uid
+        creator_partner = creator_user.partner_id
+
         self.partner_id.is_request_approved = True
 
-        message = Markup(
+        # 🔹 Message (HTML)
+        message_html = Markup(
             "✅ Change Approved<br/>"
             "Request: %s<br/>"
             "Requested by: <a href='#' data-oe-model='res.partner' data-oe-id='%s'>@%s</a><br/>"
             "Approved by: %s"
         ) % (
             self.request_note or '',
-            creator.id,
-            creator.name,
+            creator_partner.id,
+            creator_partner.name,
             self.env.user.name
         )
 
+        # 💬 Chatter
         self.partner_id.message_post(
-            body=message,
+            body=message_html,
             subject="Contact Change Approved",
-            partner_ids=[creator.id],
+            partner_ids=[creator_partner.id],
             message_type="notification"
         )
 
+        # 🔔 Real-time popup to creator
+        popup_msg = _("Your request has been approved: %s") % (self.request_note or '')
+        self._send_bus_notification([creator_user], _('Approved'), popup_msg, 'success')
+
+
+    # ---------------------------------
+    # Reject (open wizard)
+    # ---------------------------------
     def action_reject(self):
         return {
             'type': 'ir.actions.act_window',
@@ -545,8 +591,12 @@ class ResPartnerApproval(models.Model):
             'context': {'active_id': self.id},
         }
 
+    # ---------------------------------
+    # Reset
+    # ---------------------------------
     def action_reset_draft(self):
         self.state = 'draft'
+        self.partner_id.is_request_approved = False
 
 
 # ---------------------------------
@@ -564,10 +614,13 @@ class PartnerApprovalRejectWizard(models.TransientModel):
 
         approval.rejection_reason = self.reason
         approval.state = 'rejected'
+        approval.partner_id.is_request_approved = False
 
-        creator = approval.create_uid.partner_id
+        creator_user = approval.create_uid
+        creator_partner = creator_user.partner_id
 
-        message = Markup(
+        # 🔹 HTML Message
+        message_html = Markup(
             "❌ Change Rejected<br/>"
             "Request: %s<br/>"
             "Reason: %s<br/>"
@@ -576,14 +629,19 @@ class PartnerApprovalRejectWizard(models.TransientModel):
         ) % (
             approval.request_note or '',
             self.reason or '',
-            creator.id,
-            creator.name,
+            creator_partner.id,
+            creator_partner.name,
             self.env.user.name
         )
 
+        # 💬 Chatter
         approval.partner_id.message_post(
-            body=message,
+            body=message_html,
             subject="Contact Change Rejected",
-            partner_ids=[creator.id],
+            partner_ids=[creator_partner.id],
             message_type="notification"
         )
+
+        # 🔔 Real-time popup to creator
+        popup_msg = _("Your request has been rejected.\nReason: %s") % (self.reason or '')
+        approval._send_bus_notification([creator_user], _('Rejected'), popup_msg, 'danger')

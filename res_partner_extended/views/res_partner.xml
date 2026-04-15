@@ -88,7 +88,7 @@
                             type="object"
                             class="oe_stat_button"
                             icon="fa-check-circle"
-                            string="Approvals"/>
+                            string="Change Request"/>
 
                 </xpath>
                 <xpath expr="//sheet" position='before'>
@@ -99,7 +99,7 @@
                         <button name="action_create_approval"
                                 type="object"
                                 invisible="state == 'draft'"
-                                string="Request Approval"
+                                string="Request Changes"
                                 class="btn-primary"/>
                         <button name="action_validate" type="object" string="Validate"
                                 invisible="state != 'draft'" class="oe_highlight"
@@ -562,7 +562,7 @@
 
     <!-- ACTION -->
     <record id="action_partner_approval" model="ir.actions.act_window">
-        <field name="name">Contact Approvals</field>
+        <field name="name">Contact Change Request</field>
         <field name="res_model">res.partner.approval</field>
         <field name="view_mode">tree,form</field>
     </record>
