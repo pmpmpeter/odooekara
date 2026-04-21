@@ -37,6 +37,9 @@
                             <field name="basic_da_per_annum" readonly="0" force_save="1"/>
                             <field name="hra_per_annum" readonly="0" force_save="1"/>
                             <field name="special_allowance_per_annum" readonly="0" force_save="1"/>
+                            <field name="food_coupon_per_annum" readonly="0" force_save="1"/>
+                            <field name="lta_per_annum" readonly="0" force_save="1"/>
+                            <field name="conveyances_per_annum" readonly="0" force_save="1"/>
                             <field name="sub_total_a_per_annum" readonly="0" force_save="1" invisible="1"/>
                             <field name="statutory_bonus_per_annum" readonly="0" force_save="1"/>
                             <field name="pf_employee_per_annum" readonly="0" force_save="1"/>
@@ -58,6 +61,9 @@
                             <field name="basic_da_per_month" readonly="0" force_save="1"/>
                             <field name="hra_per_month" readonly="0" force_save="1"/>
                             <field name="special_allowance_per_month" readonly="0" force_save="1"/>
+                            <field name="food_coupon_per_month" readonly="0" force_save="1"/>
+                            <field name="lta_per_month" readonly="0" force_save="1"/>
+                            <field name="conveyances_per_month" readonly="0" force_save="1"/>
                             <field name="sub_total_a_per_month" readonly="0" force_save="1" invisible="1"/>
                             <field name="statutory_bonus_per_month" readonly="0" force_save="1"/>
                             <field name="pf_employee_per_month" readonly="0" force_save="1"/>

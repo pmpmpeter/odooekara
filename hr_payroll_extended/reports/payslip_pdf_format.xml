@@ -211,7 +211,7 @@
                                             </t>
                                         </td>
                                         <td style="text-align: right;">
-                                            <!--                                            <t t-if="i &lt; len(deductions)">-->
+                                            <t t-if="i &lt; len(deductions)">
                                             <!--                                                <t t-set="year_total" t-value="(deductions[i].total or 0.0) * ytd"/>-->
                                             <!--                                                <span>-->
                                             <!--                                                    <t t-esc="year_total" t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>-->
@@ -247,6 +247,7 @@
                                                     <t t-esc="year_total"
                                                        t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
                                                 </span>
+                                            </t>
                                             </t>
                                         </td>
                                     </tr>
