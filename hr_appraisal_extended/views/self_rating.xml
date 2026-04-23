@@ -98,6 +98,7 @@
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"
                                    required="True"/>
                             <field name="date_of_joining"/>
+                            <field name="current_running_contract"/>
                             <field name="reporting_to_id"
                                    options="{'no_open': True, 'no_quick_create':True,'no_create': True,}"/>
                             <field name="is_employee" invisible="1"/>

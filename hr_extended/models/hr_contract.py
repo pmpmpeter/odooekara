@@ -276,11 +276,11 @@ class HrContract(models.Model):
             else:
                 rec.net_taxable_income = rec.total_ctc_annum_exc - rec.standard_deduction
 
-    @api.onchange('location_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
-                  'esi_applicable', 'grade',
-                  'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
-                  'monthly_performance_incentive',
-                  'medical_insurance', 'group_personal_accident_insurance', 'health_benefit_plan')
+    # @api.onchange('location_id', 'monthly_fixed_salary', 'statutory_bonus_applicable', 'provident_fund_applicable',
+    #               'esi_applicable', 'grade',
+    #               'variable_pay_percentage', 'annual_store_performance_incentive', 'annual_performance_linked_pay',
+    #               'monthly_performance_incentive',
+    #               'medical_insurance', 'group_personal_accident_insurance', 'health_benefit_plan')
     def _onchange_calculate_salary_breakup(self):
         for record in self:
             # Fetch the salary structure based on location and grade

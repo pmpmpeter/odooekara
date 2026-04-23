@@ -16,6 +16,7 @@
         'security/ir.model.access.csv',
         'security/security.xml',
         'data/increment_letter.xml',
+        'data/increment_letter_new.xml',
         'data/appraisal_letter_data.xml',
         'data/annual_increment_promotion_letter.xml',
         'data/increment_redesignation_letter_iim_job_approved.xml',

@@ -40,21 +40,21 @@
                             <field name="food_coupon_per_annum" readonly="0" force_save="1"/>
                             <field name="lta_per_annum" readonly="0" force_save="1"/>
                             <field name="conveyances_per_annum" readonly="0" force_save="1"/>
-                            <field name="sub_total_a_per_annum" readonly="0" force_save="1" invisible="1"/>
+                            <field name="sub_total_a_per_annum" readonly="0" force_save="1" invisible="0"/>
                             <field name="statutory_bonus_per_annum" readonly="0" force_save="1"/>
                             <field name="pf_employee_per_annum" readonly="0" force_save="1"/>
                             <field name="esic_employer_per_annum" readonly="0" force_save="1"/>
-                            <field name="sub_total_b_per_annum" readonly="0" force_save="1" invisible="1"/>
-                            <field name="store_performance_incentive_annum" invisible="1" readonly="0" force_save="1"/>
-                            <field name="monthly_performance_incentive_annum" invisible="1" readonly="0"
+                            <field name="sub_total_b_per_annum" readonly="0" force_save="1" invisible="0"/>
+                            <field name="store_performance_incentive_annum" invisible="0" readonly="0" force_save="1"/>
+                            <field name="monthly_performance_incentive_annum" invisible="0" readonly="0"
                                    force_save="1"/>
-                            <field name="performance_linked_pay_annum" invisible="1" readonly="0" force_save="1"/>
-                            <field name="sub_total_c_per_annum" readonly="0" force_save="1" invisible="1"/>
+                            <field name="performance_linked_pay_annum" invisible="0" readonly="0" force_save="1"/>
+                            <field name="sub_total_c_per_annum" readonly="0" force_save="1" invisible="0"/>
                             <field name="total_salary_per_annum" readonly="0" force_save="1"/>
                             <field name="medical_insurances" readonly="0" force_save="1"/>
                             <field name="group_personal_acc_insurance" readonly="0" force_save="1"/>
                             <field name="health_ben_plan" readonly="0" force_save="1"/>
-                            <field name="sub_total_d" readonly="0" force_save="1" invisible="1"/>
+                            <field name="sub_total_d" readonly="0" force_save="1" invisible="0"/>
 
                         </group>
                         <group string="Salary Break-up (Per Month)">
@@ -64,15 +64,15 @@
                             <field name="food_coupon_per_month" readonly="0" force_save="1"/>
                             <field name="lta_per_month" readonly="0" force_save="1"/>
                             <field name="conveyances_per_month" readonly="0" force_save="1"/>
-                            <field name="sub_total_a_per_month" readonly="0" force_save="1" invisible="1"/>
+                            <field name="sub_total_a_per_month" readonly="0" force_save="1" invisible="0"/>
                             <field name="statutory_bonus_per_month" readonly="0" force_save="1"/>
                             <field name="pf_employee_per_month" readonly="0" force_save="1"/>
                             <field name="esic_employer_per_month" readonly="0" force_save="1"/>
-                            <field name="sub_total_b_per_month" readonly="0" force_save="1" invisible="1"/>
-                            <field name="store_performance_incentive_month" invisible="1" readonly="0" force_save="1"/>
-                            <field name="monthly_performance_incentive_month" invisible="1" readonly="0" force_save="1"/>
-                            <field name="performance_linked_pay_month" invisible="1" readonly="0" force_save="1"/>
-                            <field name="sub_total_c_per_month" readonly="0" force_save="1" invisible="1"/>
+                            <field name="sub_total_b_per_month" readonly="0" force_save="1" invisible="0"/>
+                            <field name="store_performance_incentive_month" invisible="0" readonly="0" force_save="1"/>
+                            <field name="monthly_performance_incentive_month" invisible="0" readonly="0" force_save="1"/>
+                            <field name="performance_linked_pay_month" invisible="0" readonly="0" force_save="1"/>
+                            <field name="sub_total_c_per_month" readonly="0" force_save="1" invisible="0"/>
                             <field name="total_salary_per_month" readonly="0" force_save="1"/>
                         </group>
                         <group>

@@ -213,6 +213,8 @@ class SelfRating(models.Model):
     contract_self_rating_count = fields.Integer("Compensation Master Count",
                                                 compute='_compute_contract_self_rating', default=0,
                                                 copy=False)
+    current_running_contract = fields.Many2one('hr.contract',compute='_compute_contract_self_rating',
+                                                string='Compensation Master')
 
     total_ctc_in_words = fields.Char(string="Total CTC In Words", compute='_compute_total_ctc_in_words')
     revised_increment_per = fields.Float(string='Revised Increment %')
@@ -726,6 +728,7 @@ class SelfRating(models.Model):
             contract_self_rating_ids = self.env['hr.contract'].sudo().search(domain)
             record.contract_self_rating_ids = contract_self_rating_ids
             record.contract_self_rating_count = len(contract_self_rating_ids)
+            record.current_running_contract = self.env['hr.contract'].sudo().search([('employee_id', '=', record.employee_id.id),('state','=','open')],limit=1)
 
     def action_open_contract_self_rating(self):
         action = self.env.ref('hr_contract.action_hr_contract')
@@ -982,7 +985,7 @@ class SelfRating(models.Model):
 
     def send_increment_letter_job_level_approved(self):
         for record in self:
-            template_id = self.env.ref('hr_appraisal_extended.mail_increment_letters')
+            template_id = self.env.ref('hr_appraisal_extended.mail_increment_letters_new')
             if not template_id:
                 raise UserError(_("Increment letter template not found."))
 
