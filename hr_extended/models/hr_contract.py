@@ -268,7 +268,7 @@ class HrContract(models.Model):
             else:
                 record.total_ctc_in_words = 'None'
 
-    @api.onchange('variable_pay_per_annum')
+    # @api.onchange('variable_pay_per_annum')
     def _onchange_variable_pay_per_annum(self):
         for rec in self:
             if rec.variable_pay_per_annum>0:
@@ -698,7 +698,7 @@ class HrContract(models.Model):
             else:
                 pass
 
-    @api.onchange('monthly_fixed_salary','standard_deduction','total_ctc_annum','income_tax_applicable')
+    # @api.onchange('monthly_fixed_salary','standard_deduction','total_ctc_annum','income_tax_applicable')
     def  _onchange_calculate_income_tax(self):
         for record in self:
             if record.monthly_fixed_salary:
