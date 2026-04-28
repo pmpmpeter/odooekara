@@ -227,7 +227,7 @@ class HrContract(models.Model):
                 rec.cess_annum = 0
 
 
-    @api.onchange('nps_cal_perc', 'nps_applicable', 'nps_applicable_from')
+    # @api.onchange('nps_cal_perc', 'nps_applicable', 'nps_applicable_from')
     def _onchange_nps_calculation(self):
         for rec in self:
             rec.nps_employer_per_month = 0
@@ -812,6 +812,7 @@ class HrContract(models.Model):
                 record.tax_slab_7 = 0
         record.income_tax_annual = record.tax_slab_1 + record.tax_slab_2 + record.tax_slab_3 + record.tax_slab_4 + record.tax_slab_5 + record.tax_slab_6 + record.tax_slab_7
         record.income_tax_month = round(record.income_tax_annual / 12)
+
     basic_da = fields.Float(string="Basic & DA (PA)", store=True, copy=False, )
     house_rent_allowance = fields.Float(string="House Rent Allowance (PA)", store=True, copy=False)
     special_allowance = fields.Float(string="Special Allowance (PA)", store=True, copy=False)
