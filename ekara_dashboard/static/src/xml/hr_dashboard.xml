@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+    <t t-name="ekara_dashboard.Dashboard">
+
+        <div class="o_ekara_dashboard">
+
+            <!-- Header -->
+            <div class="dashboard_header">
+
+                <div>
+
+                    <h1>
+                        HR Headcount Analytics
+                    </h1>
+
+                    <span>
+                        Workforce insights &amp; diversity overview
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- KPI Cards -->
+
+            <div class="row mt-4">
+
+                <!-- Total Employees -->
+
+                <div class="col-lg-3 col-md-6 mb-3">
+
+                    <div class="ek_card total"
+                         t-on-click="openEmployees">
+
+                        <div class="icon">
+
+                            <i class="fa fa-users"/>
+
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                <t t-esc="state.headcount"/>
+                            </h2>
+
+                            <div>Total Employees</div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Male -->
+
+                <div class="col-lg-3 col-md-6 mb-3">
+
+                    <div class="ek_card male"
+                         t-on-click="openMaleEmployees">
+
+                        <div class="icon">
+
+                            <i class="fa fa-male"/>
+
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                <t t-esc="state.male"/>
+                            </h2>
+
+                            <div>Male</div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Female -->
+
+                <div class="col-lg-3 col-md-6 mb-3">
+
+                    <div class="ek_card female"
+                         t-on-click="openFemaleEmployees">
+
+                        <div class="icon">
+
+                            <i class="fa fa-female"/>
+
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                <t t-esc="state.female"/>
+                            </h2>
+
+                            <div>Female</div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Attrition -->
+
+                <div class="col-lg-3 col-md-6 mb-3">
+
+                    <div class="ek_card attrition"
+                         t-on-click="openAttrition">
+
+                        <div class="icon">
+
+                            <i class="fa fa-line-chart"/>
+
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                <t t-esc="state.attrition"/>%
+                            </h2>
+
+                            <div>Attrition</div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Department Section -->
+
+            <div class="section mt-5">
+
+                <h3>
+                    Department Analytics
+                </h3>
+
+                <div class="row">
+
+                    <t t-foreach="state.department"
+                       t-as="d"
+                       t-key="d.id">
+
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+
+                            <div class="dept_card"
+                                 t-on-click="openDepartment.bind(this,d.id)">
+
+                                <div class="dept_icon">
+
+                                    <i class="fa fa-building"/>
+
+                                </div>
+
+                                <h2>
+
+                                    <t t-esc="d.count"/>
+
+                                </h2>
+
+                                <div>
+
+                                    <t t-esc="d.name"/>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </t>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </t>
+
+</templates>
