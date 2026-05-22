@@ -6,11 +6,11 @@
         <field name="tag">ekara_dashboard_tag</field>
     </record>
 
-    <menuitem
+    <!-- <menuitem
             id="menu_ekara_dashboard"
             name="HR Analytics"
             parent="hr.menu_hr_root"
             action="action_ekara_dashboard"
-            sequence="1"/>
+            sequence="1"/> -->
 
 </odoo>

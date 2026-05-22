@@ -90,7 +90,14 @@ export class EkaraDashboard extends Component {
 
         this.openAction(
             "Employees",
-            []
+            [['job_id', '!=', false],
+
+        ['job_id.name', 'not in', [
+
+            'Director',
+            'Head - Human Resources'
+
+        ]]]
         );
 
     }
