@@ -12,14 +12,26 @@ export class EkaraDashboard extends Component {
         this.action = useService("action");
 
         this.state = useState({
-            headcount: 0,
-            male: 0,
-            female: 0,
-            attrition: 0,
-            department: [],
+
+            headcount:0,
+            male:0,
+            female:0,
+
+            male_pct:0,
+            female_pct:0,
+
+            attrition:0,
+            retention:0,
+
+            department:[],
+            location:[],
+            grade:[],
+
+            monthly_trend:[]
+
         });
 
-        onWillStart(async () => {
+        onWillStart(async()=>{
 
             const result = await this.orm.call(
                 "hr.dashboard",
@@ -27,160 +39,253 @@ export class EkaraDashboard extends Component {
                 []
             );
 
-            Object.assign(this.state, result);
-
-        });
-    }
-
-
-    openEmployees() {
-
-        this.action.doAction({
-
-            type: "ir.actions.act_window",
-
-            name: "Employees",
-
-            res_model: "hr.employee",
-
-            view_mode: "tree,form",
-
-            views: [
-                [false, "tree"],
-                [false, "form"]
-            ],
-
-            target: "current",
-
-            domain: []
+            Object.assign(
+                this.state,
+                result
+            );
 
         });
 
     }
 
 
-    openMaleEmployees() {
+    //==================================================
+    // COMMON ACTION
+    //==================================================
+
+    openAction(title, domain=[]){
 
         this.action.doAction({
 
-            type: "ir.actions.act_window",
+            type:"ir.actions.act_window",
 
-            name: "Male Employees",
+            name:title,
 
-            res_model: "hr.employee",
+            res_model:"hr.employee",
 
-            view_mode: "tree,form",
-
-            views: [
-                [false, "tree"],
-                [false, "form"]
+            views:[
+                [false,"list"],
+                [false,"form"]
             ],
 
-            target: "current",
+            view_mode:"list,form",
 
-            domain: [
-                ['gender','=','male']
+            target:"current",
+
+            context:{},
+
+            domain:domain
+
+        });
+
+    }
+
+
+
+    //==================================================
+    // KPI CARDS
+    //==================================================
+
+    openEmployees(){
+
+        this.openAction(
+            "Employees",
+            []
+        );
+
+    }
+
+
+    openMaleEmployees(){
+
+        this.openAction(
+
+            "Male Employees",
+
+            [
+
+                ["gender","=","male"]
+
             ]
 
-        });
+        );
 
     }
 
 
-    openFemaleEmployees() {
+    openFemaleEmployees(){
 
-        this.action.doAction({
+        this.openAction(
 
-            type: "ir.actions.act_window",
+            "Female Employees",
 
-            name: "Female Employees",
+            [
 
-            res_model: "hr.employee",
+                ["gender","=","female"]
 
-            view_mode: "tree,form",
-
-            views: [
-                [false, "tree"],
-                [false, "form"]
-            ],
-
-            target: "current",
-
-            domain: [
-                ['gender','=','female']
             ]
 
-        });
+        );
 
     }
 
 
+    openAttrition(){
 
-    openAttrition() {
+        this.openAction(
 
-        this.action.doAction({
+            "Resigned Employees",
 
-            type: "ir.actions.act_window",
+            [
 
-            name: "Attrition Employees",
+                ["employee_status_payroll","=","resigned"]
 
-            res_model: "hr.employee",
-
-            view_mode: "tree,form",
-
-            views: [
-                [false, "tree"],
-                [false, "form"]
-            ],
-
-            target: "current",
-
-            domain: [
-                ['active','=',false]
             ]
 
-        });
+        );
 
     }
 
+
+
+    //==================================================
+    // DEPARTMENT
+    //==================================================
 
     openDepartment(id){
 
-    if (!this.action){
-        return;
+        this.openAction(
+
+            "Department Employees",
+
+            [
+
+                ["department_id","=",id]
+
+            ]
+
+        );
+
     }
 
-    this.action.doAction({
 
-        type:'ir.actions.act_window',
 
-        name:'Department Employees',
+    //==================================================
+    // LOCATION
+    //==================================================
 
-        res_model:'hr.employee',
+    openLocation(id){
 
-        view_mode:'tree,form',
+        this.openAction(
 
-        views:[
-            [false,'tree'],
-            [false,'form']
-        ],
+            "Location Employees",
 
-        domain:[
-            ['department_id','=',id]
-        ],
+            [
 
-        target:'current'
+                ["work_location_id","=",id]
 
-    });
+            ]
+
+        );
+
+    }
+
+
+
+    //==================================================
+    // JOB LEVEL / GRADE
+    //==================================================
+
+    openGrade(id){
+
+        this.openAction(
+
+            "Job Level Employees",
+
+            [
+
+                ["job_level_id","=",id]
+
+            ]
+
+        );
+
+    }
+
+
+
+    //==================================================
+    // DIVERSITY
+    //==================================================
+
+    openMaleRatio(){
+
+        this.openMaleEmployees();
+
+    }
+
+
+    openFemaleRatio(){
+
+        this.openFemaleEmployees();
+
+    }
+
+
+
+    //==================================================
+    // RETENTION
+    //==================================================
+
+    openRetention(){
+
+        this.openAction(
+
+            "Active Employees",
+
+            [
+
+                ["employee_status_payroll","=","active"]
+
+            ]
+
+        );
+
+    }
+
+
+
+    //==================================================
+    // MONTHLY TREND
+    //==================================================
+
+    openMonthlyTrend(month){
+
+        this.openAction(
+
+            "Resigned Employees",
+
+            [
+
+                ["employee_status_payroll","=","resigned"]
+
+            ]
+
+        );
+
+    }
 
 }
 
-}
 
 EkaraDashboard.template =
 "ekara_dashboard.Dashboard";
 
+
 registry.category("actions").add(
+
     "ekara_dashboard_tag",
+
     EkaraDashboard
+
 );
