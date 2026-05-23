@@ -698,7 +698,7 @@ class HrContract(models.Model):
             else:
                 pass
 
-    # @api.onchange('monthly_fixed_salary','standard_deduction','total_ctc_annum','income_tax_applicable')
+    @api.onchange('monthly_fixed_salary','standard_deduction','total_ctc_annum','income_tax_applicable')
     def  _onchange_calculate_income_tax(self):
         for record in self:
             if record.monthly_fixed_salary:
