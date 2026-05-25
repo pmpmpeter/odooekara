@@ -32,7 +32,9 @@ class HrDashboard(models.AbstractModel):
 
             ('job_id', '!=', False),
 
-            ('job_id', 'not in', excluded_jobs)
+            ('job_id', 'not in', excluded_jobs),
+            
+            ('employee_status_payroll','!=','resigned')
 
         ]
 

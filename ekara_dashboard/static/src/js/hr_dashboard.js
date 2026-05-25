@@ -64,7 +64,8 @@ export class EkaraDashboard extends Component {
                 'Director',
                 'Head - Human Resources'
 
-            ]]
+            ]],
+            ['employee_status_payroll','!=','resigned']
 
         ];
 
