@@ -55,6 +55,20 @@ export class EkaraDashboard extends Component {
 
     openAction(title, domain=[]){
 
+        const baseDomain=[
+
+            ['job_id','!=',false],
+
+            ['job_id.name','not in',[
+
+                'Director',
+                'Head - Human Resources'
+
+            ]]
+
+        ];
+
+
         this.action.doAction({
 
             type:"ir.actions.act_window",
@@ -74,7 +88,10 @@ export class EkaraDashboard extends Component {
 
             context:{},
 
-            domain:domain
+            domain:[
+                ...baseDomain,
+                ...domain
+            ]
 
         });
 
@@ -89,15 +106,7 @@ export class EkaraDashboard extends Component {
     openEmployees(){
 
         this.openAction(
-            "Employees",
-            [['job_id', '!=', false],
-
-        ['job_id.name', 'not in', [
-
-            'Director',
-            'Head - Human Resources'
-
-        ]]]
+            "Employees"
         );
 
     }
@@ -252,7 +261,12 @@ export class EkaraDashboard extends Component {
 
             [
 
-                ["employee_status_payroll","=","active"]
+                ["employee_status_payroll","in",[
+
+                    "active",
+                    "onnotice"
+
+                ]]
 
             ]
 

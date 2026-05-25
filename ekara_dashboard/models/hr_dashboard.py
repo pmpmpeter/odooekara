@@ -16,16 +16,23 @@ class HrDashboard(models.AbstractModel):
 
     def _employee_domain(self):
 
-        return [
+        excluded_jobs = self.env['hr.job'].search([
 
-            ('job_id', '!=', False),
-
-            ('job_id.name', 'not in', [
+            ('name', 'in', [
 
                 'Director',
                 'Head - Human Resources'
 
             ])
+
+        ]).ids
+
+
+        return [
+
+            ('job_id', '!=', False),
+
+            ('job_id', 'not in', excluded_jobs)
 
         ]
 
