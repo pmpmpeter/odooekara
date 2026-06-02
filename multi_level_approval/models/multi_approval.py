@@ -102,16 +102,16 @@ class MultiApproval(models.Model):
     line_id = fields.Many2one("multi.approval.line", string="Line", copy=False)
     deadline = fields.Date(string="Deadline", related="line_id.deadline")
     pic_id = fields.Many2many("res.users", string="Approver", related="line_id.user_id")
-    is_pic = fields.Boolean(compute="_compute_is_pic")
+    is_pic = fields.Boolean(string="Is Pic",compute="_compute_is_pic")
     follower = fields.Text("Following Users", default="[]", copy=False)
-    refused_reason = fields.Text()
+    refused_reason = fields.Text(string="Refused Reason")
 
     # copy the idea of hr_expense
     attachment_number = fields.Integer(
         "Number of Attachments", compute="_compute_attachment_number"
     )
 
-    show_approve_button = fields.Boolean(compute="_compute_show_approve_button")
+    show_approve_button = fields.Boolean(string="Show Approve Button",compute="_compute_show_approve_button")
 
     @api.depends("line_id.approved_users")
     def _compute_show_approve_button(self):

@@ -27,7 +27,8 @@ class EmployeeKra(models.Model):
                                  domain=lambda self: [('id', '=', (self.env.company.id))])
     user_id = fields.Many2one('res.users', string='User ID', default=lambda self: self.env.user)
     overall_weightage = fields.Integer(string='Total Weightage', copy=False)
-    remaining = fields.Char(copy=False, redaonly=1)
+    remaining = fields.Char(copy=False, readonly=True)
+    x_review_result = fields.Char(string="Review Result")
 
     @api.model
     def _compute_employee_domain(self):

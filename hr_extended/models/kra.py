@@ -12,7 +12,7 @@ class KraMaster(models.Model):
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.company, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     active = fields.Boolean(string="Active", default=True)
     overall_weightage = fields.Integer(string='Total Weightage', copy=False)
-    remaining = fields.Char(copy=False, redaonly=1)
+    remaining = fields.Char(copy=False, readonly=True)
 
     @api.onchange('details_ids')
     def onchange_weightage(self):

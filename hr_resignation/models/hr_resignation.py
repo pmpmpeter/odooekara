@@ -108,6 +108,7 @@ class HrResignation(models.Model):
          ('cancel', 'Rejected')],
         string='Status Manager', default='manager_approved')
     status_boolean = fields.Boolean(string="Status Boolean", default=False)
+    x_review_result = fields.Char(string="Review Result")
 
     @api.depends('employee_id')
     def _compute_is_employee(self):

@@ -384,9 +384,7 @@ class HrEmployeeSmartButton(models.Model):
     business_processes = fields.Char(string="Business Processes")
 
     # base fields
-    work_location_id = fields.Many2one('location.master', 'Work Location',
-                                       readonly=False,
-                                       domain="[('company_id', '=', company_id)]")
+    work_location_id = fields.Many2one('location.master', 'Work Location',readonly=False,domain="[('company_id', '=', company_id)]",ondelete='set null')
     employee_status_payroll = fields.Selection([
         ('active', 'Active'),
         ('inactive', 'Inactive'),

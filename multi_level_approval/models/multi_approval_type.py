@@ -18,8 +18,8 @@ class MultiApprovalType(models.Model):
     name = fields.Char(required=True)
     description = fields.Char()
     image = fields.Binary(attachment=True)
-    active = fields.Boolean(default=True, readonly=False)
-    mail_notification = fields.Boolean()
+    active = fields.Boolean(string="Active",default=True, readonly=False)
+    mail_notification = fields.Boolean(string="Mail Notification")
     mail_template_id = fields.Many2one(
         comodel_name="mail.template",
         string="Template for the request",
@@ -131,7 +131,7 @@ class MultiApprovalType(models.Model):
     submitted_nb = fields.Integer(
         string="To Review", compute="_compute_submitted_request"
     )
-    activity_notification = fields.Boolean()
+    activity_notification = fields.Boolean(string="Activity Notification")
 
     def _compute_submitted_request(self):
         for r in self:

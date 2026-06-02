@@ -365,6 +365,7 @@ class ProjectTask(models.Model):
     raise_request_to_id = fields.Many2one('res.users',string='Raise Request To')
     allow_bill_creation = fields.Boolean(string="Allow Bill Creation")
     hide_bill_creation = fields.Boolean(string="Hide Bill Creation")
+    x_review_result = fields.Char(string="Review Result")
 
     def action_view_bills(self):
         self.ensure_one()

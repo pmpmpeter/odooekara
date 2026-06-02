@@ -39,12 +39,14 @@
         'data/ir_cron_data.xml',
         'report/experience_relieving_letter.xml',
         'data/mail_template_data.xml',
+        'report/clearance_form.xml',
+        'report/exit_interview.xml',
         'views/hr_employee_views.xml',
         'views/hr_resignation_views.xml',
         'views/exit_interview.xml',
         'views/clearance_form.xml',
-        'report/clearance_form.xml',
-        'report/exit_interview.xml',
+        
+        
     ],
     # 'live_test_url': 'https://youtu.be/BorJthxY_VI',
     'images': ['static/description/banner.jpg'],

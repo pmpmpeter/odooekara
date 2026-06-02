@@ -35,8 +35,8 @@
         'hr',
         'hr_payroll',
         'hr_contract',
-        'hr_extended',
-        'hr_employee_extended',
+        # 'hr_extended',
+        # 'hr_employee_extended',
     ],
     'data': [
         'security/ir.model.access.csv',

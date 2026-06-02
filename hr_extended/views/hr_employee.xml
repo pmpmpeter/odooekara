@@ -156,6 +156,7 @@
                     <group string="Employee Exit Information">
                         <field name="last_working_day_current"/>
                         <field name="reason_for_leaving"/>
+                        <field name="state" invisible="1"/>
                         <field name="notice_period"/>
                         <field name="notice_period_start_date"/>
                     </group>
