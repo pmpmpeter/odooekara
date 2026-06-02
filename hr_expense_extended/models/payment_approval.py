@@ -538,6 +538,8 @@ class HrExpenseSheet(models.Model):
         ("level5", "5 Level"),
         ("level6", "6 Level"),
     ], default="none", string="Approval Level", tracking=True,store=True,compute='_compute_approval_level')
+    x_has_request_approval = fields.Boolean(string="Has Request Approval")
+    x_review_result = fields.Char(string="Review Result")
 
     @api.depends("employee_id")
     def _compute_approval_level(self):

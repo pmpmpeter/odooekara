@@ -253,11 +253,7 @@
         <field name="domain">[('is_payment_approval', '=', True)]</field>
     </record>
 
-    <menuitem id="hr_expense.menu_hr_expense_root" name="Expenses" sequence="230"
-              groups="hr_expense_extended.group_expense_view" web_icon="hr_expense,static/description/icon.png"/>
-
-    <menuitem id="payment_approval_sheet" name="Payment Approval" sequence="2"
-              parent="hr_expense_extended.expense_request_sheet" action="payment_approval_action_extend"/>
+    
 
     <record id='custom_hr_expense_sheet_inherited_form' model='ir.ui.view'>
         <field name="name">custom.hr.expense.sheet.inherited.form</field>

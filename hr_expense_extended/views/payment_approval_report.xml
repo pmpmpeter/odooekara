@@ -270,8 +270,7 @@
         <field name="domain">[('is_payment_approval', '=', True)]</field>
     </record>
 
-    <menuitem id="payment_approval_report" name="Payment Approval Report" sequence="3"
-              parent="hr_expense_extended.expense_request_sheet" action="payment_approval_report_action_extend"/>
+    
 
     <record id="custom_view_hr_expense_sheet_inherited_tree" model="ir.ui.view">
         <field name="name">custom.hr.expense.sheet.inherited.tree</field>
