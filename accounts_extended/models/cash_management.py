@@ -50,6 +50,7 @@ class CashManagement(models.Model):
     cash_receipt_ids = fields.One2many('cash.management.line', 'cash_id', string="Cash Receipts",
                                        domain=[('cash_type', '=', 'cash_receipt')])
     budget_id = fields.Many2one('crossovered.budget', string='Budget')
+    x_review_result = fields.Char(string="Review Result")
 
     @api.model
     def default_get(self, fields):

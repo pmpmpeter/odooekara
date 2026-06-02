@@ -30,12 +30,13 @@ class CashRequirementReport(models.Model):
     end_date = fields.Date(string='End Date')
     revision_reason = fields.Text(string="Revision Reasons", readonly=True, default="", copy=False)
     approval_document = fields.Many2one('multi.approval', string='Approval Record', copy=False)
-    active = fields.Boolean(string='Active')
+    active = fields.Boolean(string='Active',default=True)
     contribution_ids = fields.One2many("budget.contribution", "report_id", string="Budget Contributions")
     ytd_contribution_ids = fields.One2many("ytd.budget.contribution", "report_id", string="Budget Contributions")
     budget_id = fields.Many2one('crossovered.budget',string='Budget')
-    has_statement_lines = fields.Boolean(string='Has Statement Lines')
+    has_statement_lines = fields.Boolean(string='Has Statement Lines',default=False)
     bank_balance_date = fields.Date(string='Bank Balance')
+    x_review_result = fields.Char(string="Review Result")
 
     @api.depends('journal_bank','bank_balance_date')
     def compute_available_balance(self):

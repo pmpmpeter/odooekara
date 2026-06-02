@@ -23,7 +23,8 @@ class CashPool(models.Model):
             ('waiting_for_approval', 'Waiting for Approval'),
             ('approved', 'Approved')
         ], string='Status', default='draft', required=True)
-    invalid_cash_pool = fields.Boolean(string='Invalid Cash Pool')
+    invalid_cash_pool = fields.Boolean(string='Invalid Cash Pool',default=False)
+    x_review_result = fields.Char(string="Review Result")
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):

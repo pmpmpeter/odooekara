@@ -128,7 +128,7 @@ class AccountMoveInherit(models.Model):
     )
     budget_id = fields.Many2one('crossovered.budget.lines', 'Budget Code', copy=False, required=0)
     crossovered_budget = fields.Many2one('crossovered.budget',string='Budget',copy=False,default=lambda self: self.env['crossovered.budget'].sudo().search([('user_type','=','odoo'),('company_id','=',self.env.company.id)]),limit=1)
-    budget_update = fields.Boolean("Is Budget Updated?",copy=False)
+    budget_update = fields.Boolean("Is Budget Updated?",copy=False,default=False)
     journal_type = fields.Selection(related='journal_id.type')
     active = fields.Boolean(string="Active",default=True, copy=False)
     move_type = fields.Selection(
@@ -151,7 +151,9 @@ class AccountMoveInherit(models.Model):
     )
     advance_payment_ids = fields.Many2many('account.payment',string='Advance Payment')
     utr_number =fields.Char(string='UTR Number')
-    is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed')
+    is_cheque_details_freeze = fields.Boolean(string='Is Cheque Details Freezed',default=False)
+    x_has_request_approval = fields.Boolean(string="Has Request Approval",default=False)
+    x_review_result = fields.Char(string="Review Result")
 
     def action_update_utr_number(self):
         for rec in self:

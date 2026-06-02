@@ -12,16 +12,23 @@
         'account_accountant',
         'analytic',
         'sale',
-        'l10n_in',
-        'l10n_in_reports_gstr',
-        'hr_expense_extended',
-        'payment',
+        # 'l10n_in',
+        # 'l10n_in_reports_gstr',
+        # 'hr_expense_extended',
+        # 'payment',
         'account_budget',
         'multi_level_approval',
-        'report_xlsx',
-        'odoo_print_cheque',
-        'account_invoice_extract',
+        # 'report_xlsx',
+        # 'odoo_print_cheque',
+        # 'account_invoice_extract',
         'l10n_in_withholding',
+
+        'multi_level_approval_configuration',
+        'res_partner_extended',
+        'project_extended',
+        'account_check_printing',
+        'account_batch_payment',
+        'account_asset',
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -57,5 +64,7 @@
         # 'views/account_journal_dashboard_view.xml'
     ],
     'license': 'LGPL-3',
+    'installable': True,
+    'application': True,
 
 }

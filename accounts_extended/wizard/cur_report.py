@@ -28,7 +28,7 @@ class AccountCURReportWizard(models.TransientModel):
         default=_default_end_date,
         required=True,
     )
-    groupby_month = fields.Boolean(string='Group By Month')
+    groupby_month = fields.Boolean(string='Group By Month',default=False)
     report_file = fields.Binary('Report File', readonly=True)
     file_name = fields.Char('File Name', readonly=True)
 

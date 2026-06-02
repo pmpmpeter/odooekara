@@ -32,7 +32,7 @@ class AccountAsset(models.Model):
         ('asset_tag_no_unique', 'unique (asset_tag_no)', 'The Asset Tag Number must be unique.'),
     ]
 
-    can_edit_asset_fields = fields.Boolean(compute="_compute_can_edit_asset_fields", store=False)
+    can_edit_asset_fields = fields.Boolean(compute="_compute_can_edit_asset_fields", store=False,default=False)
 
     @api.depends_context('uid')
     def _compute_can_edit_asset_fields(self):

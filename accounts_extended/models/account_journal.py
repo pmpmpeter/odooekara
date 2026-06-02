@@ -22,8 +22,8 @@ def group_by_journal(vals_list):
 class AccountsJournal(models.Model):
     _inherit = 'account.journal'
 
-    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?')
-    is_opening_balance = fields.Boolean(string='Is Opening Balance?')
+    is_credit_card_bank = fields.Boolean(string='Is Credit Card Payment?',default=False)
+    is_opening_balance = fields.Boolean(string='Is Opening Balance?',default=False)
 
     def _get_journal_dashboard_bank_running_balance_dated(self,till_date):
         print(till_date,'bbbbbbbbbbbbbbbbbbbbb')
@@ -255,6 +255,8 @@ class AccountsJournal(models.Model):
 
 class AccountBankStatementLine(models.Model):
     _inherit = 'account.bank.statement.line'
+
+    x_review_result = fields.Char(string="Review Result",related="move_id.x_review_result")
 
     def _get_default_amls_matching_domain(self):
         self.ensure_one()

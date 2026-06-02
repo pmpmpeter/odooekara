@@ -20,7 +20,7 @@ class AccountAccount(models.Model):
     _inherit = 'account.account'
 
     active = fields.Boolean(string="Active",default=True, copy=False)
-    is_cash_rounding = fields.Boolean(string="Disable Budget Code",copy=False)
+    is_cash_rounding = fields.Boolean(string="Disable Budget Code",copy=False,default=False)
     subgroup = fields.Many2one('account.subgroup',string='SubGroup',company_dependent = True)
 
     @api.constrains('opening_debit', 'opening_credit')
