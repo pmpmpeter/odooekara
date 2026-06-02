@@ -9,10 +9,10 @@ class ResCompanyInherited(models.Model):
     _inherit = 'res.company'
 
     company_code = fields.Char('Code')
-    tcs_limit = fields.Boolean('Enable TCS Limit')
+    tcs_limit = fields.Boolean('Enable TCS Limit',default=False)
     tcs_limit_amount = fields.Float(
         'Maximum TCS Amount', help="By adding maximum limit amount will let users know about the TCS limit")
-    tds_limit = fields.Boolean('Enable TDS Limit')
+    tds_limit = fields.Boolean('Enable TDS Limit',default=False)
     tds_limit_amount = fields.Float(
         'Maximum TDS Amount', help="By adding maximum limit amount will let users know about the TDS limit")
     tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", domain=[('type_tax_use', 'in', ['purchase','none'])])

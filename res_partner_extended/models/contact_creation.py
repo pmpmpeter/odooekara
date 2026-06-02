@@ -29,8 +29,8 @@ class ContactCreation(models.Model):
     user_id = fields.Many2one('res.users', string='User', copy=False)
     partner_id = fields.Many2one('res.partner',string='Partner', copy=False)
     password = fields.Char(string='Password', copy=False, required=True, tracking=True)
-    is_vendor = fields.Boolean(string='Is Supplier')
-    is_customer = fields.Boolean(string='Is Customer')
+    is_vendor = fields.Boolean(string='Is Supplier',default=False)
+    is_customer = fields.Boolean(string='Is Customer',default=False)
     msme_status = fields.Selection([
         ('registered', 'Registered'),
         ('unregistered', 'Unregistered')
@@ -42,7 +42,7 @@ class ContactCreation(models.Model):
     valid_up_to = fields.Date(string="Valid Up to", tracking=True)
     state = fields.Selection([('draft', 'Draft'), ('active', 'Active'), ('expired','Expired'),('in_active','In Active')],
         string='Status', default='draft', readonly=True, copy=False, tracking=True)
-    is_approved = fields.Boolean(string="Partner Approved", compute="_compute_is_approved")
+    is_approved = fields.Boolean(string="Partner Approved", compute="_compute_is_approved",default=False)
 
     def action_delete(self):
         for rec in self:

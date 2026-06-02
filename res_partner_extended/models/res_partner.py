@@ -13,13 +13,13 @@ class ResPartner(models.Model):
     state = fields.Selection(
         [('draft', 'Draft'), ('done', 'To Validate'), ('approve', 'Approved')],
         string='Status', default='draft', readonly=True, copy=False, tracking=True,)
-    is_vendor = fields.Boolean(string='Is Supplier')
-    is_customer = fields.Boolean(string='Is Customer')
+    is_vendor = fields.Boolean(string='Is Supplier',default=False)
+    is_customer = fields.Boolean(string='Is Customer',default=False)
     vendor_code = fields.Char(string='Partner Code',readonly=0, copy=False)
     customer_code = fields.Char(string='Customer Code', readonly=1, copy=False)
     vat = fields.Char(string='GSTIN')
-    tds_applicable = fields.Boolean('TDS Applicable?')
-    tcs_applicable = fields.Boolean('TCS Applicable?')
+    tds_applicable = fields.Boolean('TDS Applicable?',default=False)
+    tcs_applicable = fields.Boolean('TCS Applicable?',default=False)
     tds_tax_id = fields.Many2one('account.tax', string="TDS Tax", domain=[('type_tax_use', 'in', ['purchase','none'])], company_dependent=True)
     tcs_tax_id = fields.Many2one('account.tax', string="TCS Tax", domain=[('type_tax_use', '=', ['sale','none'])],company_dependent=True)
     tds_limit_amount_partner = fields.Float(
@@ -35,15 +35,15 @@ class ResPartner(models.Model):
     msme_validity = fields.Date(string="MSME Validity")
     ldc_no = fields.Char(string="LDC Number")
     ldc_expiry_date = fields.Date(string="LDC Expiry Date")
-    can_edit_vendor_code = fields.Boolean(compute='_compute_can_edit_vendor_code')
+    can_edit_vendor_code = fields.Boolean(compute='_compute_can_edit_vendor_code',default=False)
     approved_date = fields.Date(string="Approved Date",copy=False)
     review_on = fields.Selection([('monthly', 'Monthly'),('quarterly', 'Quarterly')],string='Review Based on',default='quarterly')
     review_lines = fields.One2many('review.lines','review_link',string='Review',copy=False)
-    has_to_review = fields.Boolean(string='Has to Review')
-    is_nonodoo_company = fields.Boolean(string='IS Company')
+    has_to_review = fields.Boolean(string='Has to Review',default=False)
+    is_nonodoo_company = fields.Boolean(string='IS Company',default=False)
     company_ids = fields.Many2many('res.company', 'contact_company_rel', string="Companies",tracking=True)
-    is_request_approved = fields.Boolean()
-    can_request = fields.Boolean()
+    is_request_approved = fields.Boolean(string="Is Requst Approved",default=False)
+    can_request = fields.Boolean(string="Can request",default=False)
 
     def action_view_approvals(self):
         return {

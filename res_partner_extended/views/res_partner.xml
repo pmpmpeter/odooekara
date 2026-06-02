@@ -63,6 +63,7 @@
             <field name="inherit_id" ref="l10n_in.l10n_in_view_partner_form"/>
             <field name="arch" type="xml">
                 <field name="l10n_in_pan" position="after">
+                    <field name="state" invisible="1"/>
                     <field name="msme_status" widget="radio" readonly="state in ('approve', 'done')"/>
                     <field name="is_nonodoo_company" readonly="state in ('approve', 'done')"/>
                     <field name="msme_number" invisible="msme_status ==  'unregistered'"
