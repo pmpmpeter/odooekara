@@ -42,6 +42,7 @@ class DocumentRequest(models.Model):
     is_watermark = fields.Boolean(string="Is Watermark",copy=False)
     watermark_content = fields.Html(string="Watermark Content", copy=False)
     is_doc_expired = fields.Boolean(string='Is Expired')
+    x_review_result = fields.Char(string="Review Result")
 
 
     @api.model_create_multi
