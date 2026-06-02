@@ -150,6 +150,7 @@ class PurchaseRequest(models.Model):
         string="Total Estimated Cost",
         store=True,
     )
+    x_review_result = fields.Char(string="Review Result")
 
     @api.depends("line_ids", "line_ids.estimated_cost")
     def _compute_estimated_cost(self):

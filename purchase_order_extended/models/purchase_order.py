@@ -41,6 +41,8 @@ class PurchaseOrderInherit(models.Model):
     ], string="Status", readonly=True, index=True, default='draft', tracking=True, copy=False)
     rfq_reminder_sent = fields.Boolean(string="RFQ Reminder Sent", default=False, copy=False)
     rfq_lock_applied = fields.Boolean(default=False, copy=False)
+    x_has_request_approval = fields.Boolean(string="Has Request Approval")
+    x_review_result = fields.Char(string="Review Result")
 
     def portal_url(self):
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
