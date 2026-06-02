@@ -504,7 +504,7 @@ class AccountingBalanceReport(models.Model):
     date_to = fields.Date("To Date")
     partner_id = fields.Many2one('res.partner', 'Partner')
     analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account')
-    current_fiscal_year = fields.Boolean('Current Fiscal Year')
+    current_fiscal_year = fields.Boolean('Current Fiscal Year',default=False)
     monthly_report_lines = fields.One2many('ledger.monthly.report.lines', 'wizard_id', string='Report Lines')
     analytic_account_ids = fields.Many2many('account.analytic.account', string="Analytic Account")
     partner_ids = fields.Many2many('res.partner', string="Partners")
