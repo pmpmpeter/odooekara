@@ -10,5 +10,4 @@ class StockLocation(models.Model):
 
     allow_negative_stock = fields.Boolean(
         help="Allow negative stock levels for the stockable products "
-        "attached to this location.",
-    )
+        "attached to this location.",default=False)
