@@ -439,6 +439,7 @@
                             <field name="expense_invoice_no"
                                    invisible="move_type not in ['in_invoice'] or not is_payment_approval"
                                    readonly="state != 'draft'"/>
+                            <field name="approval_id" readonly="state != 'draft'"/>
                         </group>
                         <group id="header_right_group">
 
