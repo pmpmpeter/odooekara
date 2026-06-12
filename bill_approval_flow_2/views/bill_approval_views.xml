@@ -67,6 +67,11 @@
                             string="Payment"
                             class="btn-primary" invisible="approver_status != 'approved'"
                             groups="bill_approval_flow_2.group_create_entry"/>
+                    <button name="action_open_receipt"
+                            type="object"
+                            string="Receipts"
+                            class="btn-primary" invisible="approver_status != 'approved'"
+                            groups="bill_approval_flow_2.group_create_entry"/>
 
                     <button name="action_reject" string="Reject"
                             type="object" class="btn-danger"
@@ -95,7 +100,7 @@
                                 invisible="approver_status not in ['approved','done']">
 
                         </button>
-                        <button name="action_view_payments" type="object"
+                        <button name="action_view_payment" type="object"
                                 class="oe_stat_button" icon="fa-credit-card" string="Payments"
                                 invisible="approver_status not in ['approved','done']">
                         </button>
@@ -133,7 +138,8 @@
                             <field name="invoice_date" readonly="approver_status != 'draft'"/>
                             <field name="move_status"/>
                             <field name="payment_status_display"/>
-                            <field name="payment_status_refresh"/>
+                            <field name="company_id"/>
+                            <field name="payment_status_refresh" invisible="1"/>
                             <field name="is_history" invisible="1"/>
                             <field name="is_history_dup" invisible="1"/>
                         </group>
@@ -249,6 +255,28 @@
                        decoration-success="approver_status in ('approved','done')"
                        decoration-warning="approver_status in ('waiting_l1','waiting_l2','waiting_l3')"
                        decoration-danger="approver_status == 'rejected'"/>
+                <field name="move_status"/>
+                <field name="payment_status_display"/>
+                <field name="payment_status_refresh" column_invisible="1"/>
+                <field name="company_id" optional="hide"/>
+                <field name="can_approve_l1" column_invisible="1"/>
+                    <field name="can_approve_l2" column_invisible="1"/>
+                    <field name="can_approve_l3" column_invisible="1"/>
+                    <field name="can_reject" column_invisible="1"/>
+                <button name="action_approve_l1" string="Approve (L1)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l1"/>
+
+                    <button name="action_approve_l2" string="Approve (L2)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l2"/>
+
+                    <button name="action_approve_l3" string="Approve (L3 – Final)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l3"/>
+                <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="not can_reject"/>
                 <field name="l1_status" widget="badge"
                        decoration-success="l1_status == 'approved'"
                        decoration-warning="l1_status == 'pending'"
@@ -284,10 +312,12 @@
                 <filter string="Approved" name="app" domain="[('approver_status','=','approved')]"/>
                 <filter string="Done" name="done" domain="[('approver_status','=','done')]"/>
                 <filter string="Rejected" name="rej" domain="[('approver_status','=','rejected')]"/>
+                <field name="company_id"/>
                 <group expand="0" string="Group By">
                     <filter string="Status" name="g_status" context="{'group_by':'approver_status'}"/>
                     <filter string="Capex/Opex" name="g_capex" context="{'group_by':'capex_opex'}"/>
                     <filter string="Supplier" name="g_supplier" context="{'group_by':'supplier_name'}"/>
+                    <filter string="Company" name="company_id" context="{'group_by':'company_id'}"/>
                 </group>
             </search>
         </field>
@@ -310,7 +340,7 @@
         <field name="name">Bill Approvals</field>
         <field name="res_model">bill.approval</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('approver_status', 'not in', ['approved','done'])]</field>
+        <field name="domain">[('approver_status', 'not in', ['approved','done']),('company_id', 'in', allowed_company_ids)]</field>
         <field name="search_view_id" ref="view_bill_approval_search"/>
     </record>
     <record id="action_bill_approved" model="ir.actions.act_window">
@@ -318,7 +348,7 @@
         <field name="res_model">bill.approval</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">
-            [('approver_status', '=', 'approved'),
+            [('approver_status', '=', 'approved'),('company_id', 'in', allowed_company_ids),
             ('is_history', '=', False)]
         </field>
     </record>
@@ -327,7 +357,7 @@
         <field name="res_model">bill.approval</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">
-            [('is_history', '=', True)]
+            [('is_history', '=', True),('company_id', 'in', allowed_company_ids)]
         </field>
     </record>
     <record id="action_approval_report" model="ir.actions.act_window">
@@ -335,7 +365,7 @@
         <field name="res_model">bill.approval</field>
         <field name="view_mode">pivot</field>
         <field name="domain">
-            [(1, '=', 1)]
+            [('company_id', 'in', allowed_company_ids)]
         </field>
     </record>
     <record id="view_bill_approval_document_list" model="ir.ui.view">

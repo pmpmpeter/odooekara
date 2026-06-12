@@ -40,7 +40,7 @@ class BillApproval(models.Model):
         'res.partner', string='Supplier Name', required=True, tracking=True,
     )
     email = fields.Char(
-        string='Email Address', related='supplier_name.email', readonly=True,
+        string='Email Address', related='create_uid.email', readonly=True,
     )
 
     # ── Classification ─────────────────────────────────────────────────────────
@@ -205,6 +205,12 @@ class BillApproval(models.Model):
     is_history = fields.Boolean(
         compute='_compute_is_history',
         store=True
+    )
+    company_id = fields.Many2one(
+        'res.company',
+        string='Company',
+        required=True,
+        default=lambda self: self.env.company
     )
 
     @api.depends(
@@ -554,7 +560,7 @@ class BillApproval(models.Model):
                 'default_move_type': 'in_invoice',
             },
         }
-    def action_view_payments(self):
+    def action_view_payment(self):
         self.ensure_one()
 
         return {
@@ -580,6 +586,7 @@ class BillApproval(models.Model):
             'context': {
                 'default_move_type': 'in_invoice',
                 'default_approval_id': self.id,
+                'default_ref':self.invoice_no,
                 'default_partner_id': self.supplier_name.id,
                 'default_narration': self.description,
             'default_invoice_date': self.invoice_date}
@@ -680,8 +687,27 @@ class BillApproval(models.Model):
             'res_model': 'account.payment',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_payment_type':'outbound','default_approval_id': self.id,}
+            'context':
+            {'default_payment_type': 'outbound', 'default_partner_type': 'supplier',
+             'search_default_outbound_filter': 1, 'default_move_journal_types': ('bank', 'cash'),
+             'display_account_trust': True, 'default_is_manual_payment': True,'default_approval_id': self.id,}
         }
+    def action_open_receipt(self):
+        self.ensure_one()
+        # self.hide_bill_creation = True
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Payments',
+            'res_model': 'account.payment',
+            'view_mode': 'form',
+            'target': 'new',
+            'context':
+            { 'default_payment_type': 'inbound',  'default_partner_type': 'customer',
+              'search_default_inbound_filter': 1,
+              'default_move_journal_types': ('bank', 'cash'),
+              'display_account_trust': True,       'default_approval_id': self.id,     }
+        }
+
 
 
     # ── Create Bill ─────────────────────────────────────────────────────────────
