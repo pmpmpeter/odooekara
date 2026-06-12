@@ -1,0 +1,26 @@
+<odoo>
+
+    <record id="view_device_log_tree" model="ir.ui.view">
+        <field name="name">device.log.tree</field>
+        <field name="model">device.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="user_id"/>
+                <field name="log_datetime"/>
+                <field name="serial_number"/>
+                <field name="device_name"/>
+                <field name="processed"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_device_logs"
+            model="ir.actions.act_window">
+
+        <field name="name">Device Logs</field>
+        <field name="res_model">device.log</field>
+        <field name="view_mode">tree,form</field>
+
+    </record>
+
+</odoo>

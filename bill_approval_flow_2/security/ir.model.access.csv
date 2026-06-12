@@ -1,5 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_bill_approval_user,bill.approval user,model_bill_approval,base.group_user,1,1,1,0
-access_bill_approval_step_log,bill.approval.step.log,model_bill_approval_step_log,base.group_user,1,1,1,0
-access_bill_approval_wizard,bill.approval.wizard,model_bill_approval_wizard,base.group_user,1,1,1,1
-access_bill_approval_document,bill.approval.document,model_bill_approval_document,base.group_user,1,1,1,1
+access_bill_approval_user,bill.approval user,model_bill_approval,group_see_own_record,1,1,1,0
+access_bill_approval_step_log,bill.approval.step.log,model_bill_approval_step_log,group_see_own_record,1,1,1,0
+access_bill_approval_wizard,bill.approval.wizard,model_bill_approval_wizard,group_see_own_record,1,1,1,1
+access_bill_approval_document,bill.approval.document,model_bill_approval_document,group_see_own_record,1,1,1,1

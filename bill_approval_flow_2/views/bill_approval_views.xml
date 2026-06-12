@@ -117,7 +117,7 @@
                     <group>
                         <group string="Supplier Details">
                             <field name="supplier_name" readonly="approver_status != 'draft'"/>
-                            <field name="email" readonly="approver_status != 'draft'"/>
+                            <field name="email"/>
                             <field name="timestamp" readonly="approver_status != 'draft'"/>
                         </group>
                         <group string="Classification">
@@ -238,45 +238,31 @@
                   decoration-danger="approver_status == 'rejected'"
                   decoration-success="approver_status in ('approved','done')"
                   decoration-warning="approver_status in ('waiting_l1','waiting_l2','waiting_l3')">
-                <field name="name"/>
-                <field name="timestamp"/>
-                <field name="email"/>
-                <field name="supplier_name"/>
-                <field name="description"/>
-                <field name="capex_opex"/>
-                <field name="expense_head"/>
-                <field name="document_type" string="Doc Type"/>
-                <field name="invoice_no" string="Doc No"/>
-                <field name="invoice_date" string="Doc Date"/>
-                <field name="taxable_value"/>
-                <field name="gst"/>
-                <field name="total_value"/>
+                <field name="name" optional="hide"/>
+                <field name="timestamp" optional="hide"/>
+                <field name="email" optional="hide"/>
+                <field name="supplier_name" optional="hide"/>
+                <field name="description" optional="hide"/>
+                <field name="capex_opex" optional="hide"/>
+                <field name="expense_head" optional="hide"/>
+                <field name="document_type" string="Doc Type" optional="hide"/>
+                <field name="invoice_no" string="Doc No" optional="hide"/>
+                <field name="invoice_date" string="Doc Date" optional="hide"/>
+                <field name="taxable_value" optional="hide"/>
+                <field name="gst" optional="hide"/>
+                <field name="total_value" optional="hide"/>
                 <field name="approver_status" widget="badge"
                        decoration-success="approver_status in ('approved','done')"
                        decoration-warning="approver_status in ('waiting_l1','waiting_l2','waiting_l3')"
-                       decoration-danger="approver_status == 'rejected'"/>
-                <field name="move_status"/>
-                <field name="payment_status_display"/>
+                       decoration-danger="approver_status == 'rejected'" optional="hide"/>
+                <field name="move_status" optional="hide"/>
+                <field name="payment_status_display" optional="hide"/>
                 <field name="payment_status_refresh" column_invisible="1"/>
                 <field name="company_id" optional="hide"/>
                 <field name="can_approve_l1" column_invisible="1"/>
                     <field name="can_approve_l2" column_invisible="1"/>
                     <field name="can_approve_l3" column_invisible="1"/>
                     <field name="can_reject" column_invisible="1"/>
-                <button name="action_approve_l1" string="Approve (L1)"
-                            type="object" class="btn-success"
-                            invisible="not can_approve_l1"/>
-
-                    <button name="action_approve_l2" string="Approve (L2)"
-                            type="object" class="btn-success"
-                            invisible="not can_approve_l2"/>
-
-                    <button name="action_approve_l3" string="Approve (L3 – Final)"
-                            type="object" class="btn-success"
-                            invisible="not can_approve_l3"/>
-                <button name="action_reject" string="Reject"
-                            type="object" class="btn-danger"
-                            invisible="not can_reject"/>
                 <field name="l1_status" widget="badge"
                        decoration-success="l1_status == 'approved'"
                        decoration-warning="l1_status == 'pending'"
@@ -292,6 +278,20 @@
                        decoration-warning="l3_status == 'pending'"
                        decoration-danger="l3_status == 'rejected'"
                        optional="show"/>
+                <button name="action_approve_l1" string="Approve (L1)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l1"/>
+
+                    <button name="action_approve_l2" string="Approve (L2)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l2"/>
+
+                    <button name="action_approve_l3" string="Approve (L3 – Final)"
+                            type="object" class="btn-success"
+                            invisible="not can_approve_l3"/>
+                <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"
+                            invisible="not can_reject"/>
 
             </tree>
         </field>

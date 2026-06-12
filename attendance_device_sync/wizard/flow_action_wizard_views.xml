@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_flow_action_wizard_form" model="ir.ui.view">
+        <field name="name">flow.action.wizard.form</field>
+        <field name="model">flow.action.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Action">
+
+                <!-- Approve (L1 / L2 / L3) — comment optional -->
+                <group invisible="wizard_type not in ('approve_l1','approve_l2','approve_l3')">
+                    <field name="comment" placeholder="Add a comment (optional)..."/>
+                </group>
+
+                <!-- Reject — comment required -->
+                <group invisible="wizard_type != 'reject'">
+                    <field name="comment" string="Rejection Reason"
+                           placeholder="Provide a clear reason for rejection..."
+                           required="wizard_type == 'reject'"/>
+                </group>
+
+                <!-- Create Bill -->
+                <group string="Bill Details" invisible="wizard_type != 'bill'">
+                    <group>
+                        <field name="journal_type"/>
+                        <field name="partner_id"/>
+                    </group>
+                    <group>
+                        <field name="account_id"/>
+                        <field name="bill_note"/>
+                    </group>
+                </group>
+
+                <!-- Register Payment -->
+                <group string="Payment Details" invisible="wizard_type != 'payment'">
+                    <group>
+                        <field name="journal_id" required="wizard_type == 'payment'"/>
+                        <field name="payment_amount" required="wizard_type == 'payment'"/>
+                    </group>
+                    <group>
+                        <field name="payment_date"/>
+                        <field name="payment_note"/>
+                    </group>
+                </group>
+
+                <field name="wizard_type" invisible="1"/>
+                <field name="bill_id" invisible="1"/>
+
+                <footer>
+                    <button name="action_confirm" string="Confirm"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

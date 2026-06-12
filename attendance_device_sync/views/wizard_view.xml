@@ -1,0 +1,46 @@
+<odoo>
+
+    <record id="view_attendance_sync_wizard" model="ir.ui.view">
+        <field name="name">attendance.sync.wizard.form</field>
+        <field name="model">attendance.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Sync">
+
+                <group>
+                    <field name="sync_date"/>
+                </group>
+
+                <footer>
+
+                    <button
+                        name="action_import_logs"
+                        string="Import Logs"
+                        type="object"
+                        class="btn-primary"/>
+
+                    <button
+                        name="action_process_attendance"
+                        string="Process Attendance"
+                        type="object"/>
+
+                    <button
+                        string="Cancel"
+                        special="cancel"/>
+
+                </footer>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="action_attendance_sync_wizard"
+            model="ir.actions.act_window">
+
+        <field name="name">Attendance Sync</field>
+        <field name="res_model">attendance.sync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+
+    </record>
+
+</odoo>

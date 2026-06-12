@@ -504,6 +504,7 @@
                 <field name="request_note"/>
                 <field name="state"/>
                 <field name="create_date"/>
+                <field name="company_id"/>
             </tree>
         </field>
     </record>
@@ -545,6 +546,7 @@
                     <group>
                         <field name="partner_id" readonly="state != 'draft'"/>
                         <field name="request_note" readonly="state != 'draft'"/>
+                        <field name="company_id" readonly="1"/>
                         <field name="rejection_reason"
                                readonly="1"
                                invisible="state != 'rejected'"/>

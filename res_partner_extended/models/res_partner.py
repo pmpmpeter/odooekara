@@ -501,6 +501,12 @@ class ResPartnerApproval(models.Model):
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     ], default='draft', tracking=True)
+    company_id = fields.Many2one(
+        'res.company',
+        string='Company',
+        required=True,
+        default=lambda self: self.env.company
+    )
 
     # ---------------------------------
     # 🔔 Reusable Bus Notification

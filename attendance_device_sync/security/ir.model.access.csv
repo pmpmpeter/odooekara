@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_device_log,device.log,model_device_log,hr.group_hr_manager,1,0,0,0
+access_attendance_sync,attendance.sync,model_attendance_sync,hr.group_hr_manager,1,1,1,1
+access_attendance_wizard,attendance.sync.wizard,model_attendance_sync_wizard,hr.group_hr_manager,1,1,1,1
