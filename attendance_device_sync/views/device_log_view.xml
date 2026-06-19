@@ -1,5 +1,28 @@
 <odoo>
-
+    <record id="view_device_log_form" model="ir.ui.view">
+        <field name="name">device.log.form</field>
+        <field name="model">device.log</field>
+        <field name="arch" type="xml">
+                <form string="Device Log">
+                   <sheet>
+                       <group>
+                           <group>
+                               <field name="user_id"/>
+                               <field name="log_datetime"/>
+                               <field name="serial_number"/>
+                               <field name="device_name"/>
+                               <field name="processed"/>
+                           </group>
+                       </group>
+                   </sheet>
+                    <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+                </form>
+        </field>
+    </record>
     <record id="view_device_log_tree" model="ir.ui.view">
         <field name="name">device.log.tree</field>
         <field name="model">device.log</field>

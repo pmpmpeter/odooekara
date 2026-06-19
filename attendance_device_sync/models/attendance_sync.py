@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, time, timedelta
 
-from odoo import models
+from odoo import models,fields
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -80,3 +80,34 @@ class AttendanceSync(models.AbstractModel):
             })
 
         return created
+
+    def cron_import_and_process_attendance(self):
+
+        yesterday = (
+                fields.Date.today()
+                - timedelta(days=1)
+        )
+
+        _logger.info(
+            "Starting attendance sync for %s",
+            yesterday
+        )
+
+        imported = self.env[
+            "device.log"
+        ].import_logs_from_api(
+            yesterday
+        )
+
+        created = self.process_attendance(
+            yesterday
+        )
+
+        _logger.info(
+            "Attendance sync completed. "
+            "Imported=%s Created=%s",
+            imported,
+            created
+        )
+
+        return True

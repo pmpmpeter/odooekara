@@ -1,5 +1,6 @@
 import requests
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
@@ -8,12 +9,13 @@ class DeviceLog(models.Model):
     _name = "device.log"
     _description = "Biometric Device Log"
     _order = "log_datetime desc"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    user_id = fields.Char(required=True, index=True)
-    log_datetime = fields.Datetime(required=True, index=True)
-    serial_number = fields.Char()
-    device_name = fields.Char()
-    processed = fields.Boolean(default=False)
+    user_id = fields.Char(required=True, index=True,tracking=True)
+    log_datetime = fields.Datetime(required=True, index=True,tracking=True)
+    serial_number = fields.Char(tracking=True)
+    device_name = fields.Char(tracking=True)
+    processed = fields.Boolean(default=False,tracking=True)
 
     _sql_constraints = [
         (
@@ -62,7 +64,14 @@ class DeviceLog(models.Model):
             if not user_id or not log_date:
                 continue
 
-            log_datetime = log_date.replace("T", " ")
+            ist_dt = datetime.fromisoformat(log_date).replace(
+                tzinfo=ZoneInfo("Asia/Kolkata")
+            )
+
+            # Convert IST -> UTC for Odoo storage
+            log_datetime = ist_dt.astimezone(
+                ZoneInfo("UTC")
+            ).replace(tzinfo=None)
 
             existing = self.search([
                 ("user_id", "=", user_id),

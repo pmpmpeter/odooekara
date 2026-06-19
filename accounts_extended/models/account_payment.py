@@ -557,9 +557,10 @@ class AccountPayment(models.Model):
                 move = line.invoice_id.move_id
 
                 name = move.name or ''
+                approval_id = self.approval_id.name if self.approval_id else ''
                 narration = html2plaintext(move.narration or '').replace('\n', ' ').strip()
 
-                combined = f"{name} - {narration}" if narration else name
+                combined = f"{approval_id}-{name} - {narration}" if narration else name
                 values.append(combined)
 
         return '\n'.join(values) if values else False
@@ -594,7 +595,8 @@ class AccountPayment(models.Model):
             'payment_invoice_ids',
             'show_partner_bank_account',
             'payment_type',
-            'payment_method_line_id'
+            'payment_method_line_id',
+            'approval_id'
         }
 
         if trigger_fields.intersection(vals):

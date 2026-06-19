@@ -1,6 +1,8 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from markupsafe import Markup
+from odoo.exceptions import ValidationError
+
 
 class BillApprovalStepLog(models.Model):
     _name = 'bill.approval.step.log'
@@ -37,7 +39,7 @@ class BillApproval(models.Model):
     # ── Supplier ───────────────────────────────────────────────────────────────
     timestamp = fields.Datetime(string='Timestamp', default=fields.Datetime.now)
     supplier_name = fields.Many2one(
-        'res.partner', string='Supplier Name', required=True, tracking=True,
+        'res.partner', string='Supplier Name', required=True, tracking=True,domain=[('state','=','approve')]
     )
     email = fields.Char(
         string='Email Address', related='create_uid.email', readonly=True,
@@ -90,12 +92,18 @@ class BillApproval(models.Model):
     invoice_date = fields.Date(string='Document Date')
 
     # ── Amounts ────────────────────────────────────────────────────────────────
-    taxable_value = fields.Float(string='Taxable Value')
+    taxable_value = fields.Float(string='Taxable Value',required=True)
     gst = fields.Float(string='GST')
     total_value = fields.Float(
         string='Total Invoice Value', tracking=True,
         compute='_compute_total_value', store=True,
     )
+
+    @api.constrains('taxable_value')
+    def _check_taxable_value(self):
+        for record in self:
+            if record.taxable_value <= 0.0:
+                raise ValidationError(_("The Amount field must be greater than zero."))
 
     @api.depends('taxable_value', 'gst')
     def _compute_total_value(self):
@@ -153,14 +161,12 @@ class BillApproval(models.Model):
     step_log_ids = fields.One2many(
         'bill.approval.step.log', 'bill_id', string='History',
     )
-    account_move_ids = fields.Many2many(
-        'account.move',
-        'bill_approval_move_rel', 'bill_id', 'move_id',
-        string='Bills / Journal Entries',
+    account_move_ids = fields.One2many(
+        'account.move', 'approval_id',
+        string='Bills / Journal Entries',domain=[('journal_id.type','not in',['bank','cash'])]
     )
-    payment_ids = fields.Many2many(
-        'account.payment',
-        'bill_approval_payment_rel', 'bill_id', 'payment_id',
+    payment_ids = fields.One2many(
+        'account.payment','approval_id',
         string='Payments',
     )
     move_count    = fields.Integer(compute='_compute_counts')
@@ -182,7 +188,7 @@ class BillApproval(models.Model):
     move_status = fields.Char(
         compute="_compute_latest_status",
         store=True,
-        string="Doc Status"
+        string="Bill Status"
     )
 
     payment_status_display = fields.Char(
@@ -203,7 +209,6 @@ class BillApproval(models.Model):
     )
 
     is_history = fields.Boolean(
-        compute='_compute_is_history',
         store=True
     )
     company_id = fields.Many2one(
@@ -213,17 +218,23 @@ class BillApproval(models.Model):
         default=lambda self: self.env.company
     )
 
+    def move_to_history(self):
+        for rec in self:
+            rec.is_history = True
+
     @api.depends(
-        'account_move_ids.state',
-        'payment_ids.state'
+        'account_move_ids',
+        'payment_ids'
     )
+    @api.onchange('account_move_ids',
+        'payment_ids')
     def _compute_latest_status(self):
         Move = self.env['account.move']
         Payment = self.env['account.payment']
 
         for rec in self:
             move = Move.search(
-                [('approval_id', '=', rec.id)],
+                [('approval_id', '=', rec.id),('journal_id.type','not in',['bank','cash'])],
                 order='create_date desc, id desc',
                 limit=1
             )
@@ -251,8 +262,6 @@ class BillApproval(models.Model):
                             or rec.payment_status_display in ('paid', 'reconciled')
                     )
             )
-
-            rec.is_history = value
             rec.is_history_dup = value
 
     @api.depends('approver_status')
@@ -688,7 +697,7 @@ class BillApproval(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context':
-            {'default_payment_type': 'outbound', 'default_partner_type': 'supplier',
+            {'default_payment_type': 'outbound', 'default_partner_type': 'supplier','default_partner_id':self.supplier_name.id, 'default_amount': self.total_value,
              'search_default_outbound_filter': 1, 'default_move_journal_types': ('bank', 'cash'),
              'display_account_trust': True, 'default_is_manual_payment': True,'default_approval_id': self.id,}
         }
@@ -702,7 +711,7 @@ class BillApproval(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context':
-            { 'default_payment_type': 'inbound',  'default_partner_type': 'customer',
+            { 'default_payment_type': 'inbound',  'default_partner_type': 'customer','default_partner_id':self.supplier_name.id, 'default_amount': self.total_value,
               'search_default_inbound_filter': 1,
               'default_move_journal_types': ('bank', 'cash'),
               'display_account_trust': True,       'default_approval_id': self.id,     }
